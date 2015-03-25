@@ -921,7 +921,7 @@ public abstract class Loader {
 			return processResultSet( rs, queryParameters, session, returnProxies, forcedResultTransformer, maxRows, afterLoadActions );
 		}
 		finally {
-			session.getTransactionCoordinator().getJdbcCoordinator().release( st );
+			session.getJdbcCoordinator().getResourceRegistry().release( st );
 		}
 
 	}
@@ -1880,7 +1880,7 @@ public abstract class Loader {
 		boolean callable = queryParameters.isCallable();
 		final ScrollMode scrollMode = getScrollMode( scroll, hasFirstRow, useLimitOffset, queryParameters );
 		
-		PreparedStatement st = session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareQueryStatement(
+		PreparedStatement st = session.getJdbcCoordinator().getStatementPreparer().prepareQueryStatement(
 				sql,
 				callable,
 				scrollMode
@@ -1933,11 +1933,11 @@ public abstract class Loader {
 			   LOG.tracev( "Bound [{0}] parameters total", col );
 		}
 		catch ( SQLException sqle ) {
-			session.getTransactionCoordinator().getJdbcCoordinator().release( st );
+			session.getJdbcCoordinator().getResourceRegistry().release( st );
 			throw sqle;
 		}
 		catch ( HibernateException he ) {
-			session.getTransactionCoordinator().getJdbcCoordinator().release( st );
+			session.getJdbcCoordinator().getResourceRegistry().release( st );
 			throw he;
 		}
 
@@ -2061,7 +2061,7 @@ public abstract class Loader {
 	throws SQLException, HibernateException {
 
 		try {
-			ResultSet rs = session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().extract( st );
+			ResultSet rs = session.getJdbcCoordinator().getResultSetReturn().extract( st );
 			rs = wrapResultSetIfEnabled( rs , session );
 
 			if ( !limitHandler.supportsLimitOffset() || !LimitHelper.useLimit( limitHandler, selection ) ) {
@@ -2074,7 +2074,7 @@ public abstract class Loader {
 			return rs;
 		}
 		catch ( SQLException sqle ) {
-			session.getTransactionCoordinator().getJdbcCoordinator().release( st );
+			session.getJdbcCoordinator().getResourceRegistry().release( st );
 			throw sqle;
 		}
 	}

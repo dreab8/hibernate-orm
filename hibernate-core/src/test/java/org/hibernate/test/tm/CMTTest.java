@@ -35,7 +35,6 @@ import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.criterion.Order;
-import org.hibernate.engine.transaction.internal.jta.CMTTransactionFactory;
 
 import org.hibernate.testing.DialectChecks;
 import org.hibernate.testing.RequiresDialectFeature;

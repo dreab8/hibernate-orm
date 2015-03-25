@@ -23,14 +23,10 @@
  */
 package org.hibernate.test.lazyload;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
-import org.hibernate.engine.transaction.internal.jta.JtaTransactionFactory;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.jta.TestingJtaBootstrap;

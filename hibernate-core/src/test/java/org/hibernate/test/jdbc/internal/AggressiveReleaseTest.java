@@ -36,10 +36,9 @@ import java.sql.Statement;
 import org.hibernate.ConnectionReleaseMode;
 import org.hibernate.Session;
 import org.hibernate.engine.jdbc.internal.JdbcCoordinatorImpl;
-import org.hibernate.engine.jdbc.internal.LogicalConnectionImpl;
-import org.hibernate.engine.jdbc.spi.JdbcCoordinator;
-import org.hibernate.engine.jdbc.spi.LogicalConnectionImplementor;
 import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.resource.jdbc.spi.LogicalConnectionImplementor;
+
 import org.hibernate.test.common.BasicTestingJdbcServiceImpl;
 import org.hibernate.test.common.JdbcConnectionAccessImpl;
 import org.hibernate.test.common.JournalingConnectionObserver;
@@ -117,11 +116,12 @@ public class AggressiveReleaseTest extends BaseCoreFunctionalTestCase {
 		Session session = openSession();
 		SessionImplementor sessionImpl = (SessionImplementor) session;
 		
-		LogicalConnectionImpl logicalConnection = new LogicalConnectionImpl( null,
+		LogicalConnectionImplementor logicalConnection = new LogicalConnectionImpl( null,
 				ConnectionReleaseMode.AFTER_STATEMENT, services, new JdbcConnectionAccessImpl(
 						services.getConnectionProvider() ) );
+
 		JdbcCoordinatorImpl jdbcCoord = new JdbcCoordinatorImpl( logicalConnection,
-				sessionImpl.getTransactionCoordinator() );
+				sessionImpl );
 		JournalingConnectionObserver observer = new JournalingConnectionObserver();
 		logicalConnection.addObserver( observer );
 

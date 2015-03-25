@@ -101,18 +101,16 @@ public class TemporaryTableBulkIdStrategy implements MultiTableBulkIdStrategy {
 		TemporaryTableCreationWork work = new TemporaryTableCreationWork( persister );
 		if ( shouldIsolateTemporaryTableDDL( session ) ) {
 			session.getTransactionCoordinator()
-					.getTransaction()
 					.createIsolationDelegate()
 					.delegateWork( work, shouldTransactIsolatedTemporaryTableDDL( session ) );
 		}
 		else {
-			final Connection connection = session.getTransactionCoordinator()
+			final Connection connection = session
 					.getJdbcCoordinator()
 					.getLogicalConnection()
-					.getConnection();
+					.getPhysicalConnection();
 			work.execute( connection );
-			session.getTransactionCoordinator()
-					.getJdbcCoordinator()
+			session.getJdbcCoordinator()
 					.afterStatementExecution();
 		}
 	}
@@ -122,18 +120,16 @@ public class TemporaryTableBulkIdStrategy implements MultiTableBulkIdStrategy {
 			TemporaryTableDropWork work = new TemporaryTableDropWork( persister, session );
 			if ( shouldIsolateTemporaryTableDDL( session ) ) {
 				session.getTransactionCoordinator()
-						.getTransaction()
 						.createIsolationDelegate()
 						.delegateWork( work, shouldTransactIsolatedTemporaryTableDDL( session ) );
 			}
 			else {
-				final Connection connection = session.getTransactionCoordinator()
+				final Connection connection = session
 						.getJdbcCoordinator()
 						.getLogicalConnection()
-						.getConnection();
+						.getPhysicalConnection();
 				work.execute( connection );
-				session.getTransactionCoordinator()
-						.getJdbcCoordinator()
+				session.getJdbcCoordinator()
 						.afterStatementExecution();
 			}
 		}
@@ -142,8 +138,8 @@ public class TemporaryTableBulkIdStrategy implements MultiTableBulkIdStrategy {
 			PreparedStatement ps = null;
 			try {
 				final String sql = "delete from " + persister.getTemporaryIdTableName();
-				ps = session.getTransactionCoordinator().getJdbcCoordinator().getStatementPreparer().prepareStatement( sql, false );
-				session.getTransactionCoordinator().getJdbcCoordinator().getResultSetReturn().executeUpdate( ps );
+				ps = session.getJdbcCoordinator().getStatementPreparer().prepareStatement( sql, false );
+				session.getJdbcCoordinator().getResultSetReturn().executeUpdate( ps );
 			}
 			catch( Throwable t ) {
 				log.unableToCleanupTemporaryIdTable(t);
@@ -151,7 +147,7 @@ public class TemporaryTableBulkIdStrategy implements MultiTableBulkIdStrategy {
 			finally {
 				if ( ps != null ) {
 					try {
-						session.getTransactionCoordinator().getJdbcCoordinator().release( ps );
+						session.getJdbcCoordinator().getResourceRegistry().release( ps );
 					}
 					catch( Throwable ignore ) {
 						// ignore

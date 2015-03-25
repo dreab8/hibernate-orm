@@ -118,7 +118,7 @@ public abstract class AbstractScrollableResults implements ScrollableResults {
 	public final void close() {
 		// not absolutely necessary, but does help with aggressive release
 		//session.getJDBCContext().getConnectionManager().closeQueryStatement( ps, resultSet );
-		session.getTransactionCoordinator().getJdbcCoordinator().release( ps );
+		session.getJdbcCoordinator().getResourceRegistry().release( ps );
 		try {
 			session.getPersistenceContext().getLoadContexts().cleanup( resultSet );
 		}
