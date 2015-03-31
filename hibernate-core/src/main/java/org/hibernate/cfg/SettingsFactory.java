@@ -184,22 +184,23 @@ public class SettingsFactory implements Serializable {
 			LOG.debugf( "Connection release mode: %s", releaseModeName );
 		}
 		ConnectionReleaseMode releaseMode;
-//		if ( "auto".equals(releaseModeName) ) {
+		if ( "auto".equals( releaseModeName ) ) {
 //			releaseMode = serviceRegistry.getService( TransactionFactory.class ).getDefaultReleaseMode();
-//		}
-//		else {
-		releaseMode = ConnectionReleaseMode.parse( releaseModeName );
-		if ( releaseMode == ConnectionReleaseMode.AFTER_STATEMENT ) {
-			// we need to make sure the underlying JDBC connection access supports aggressive release...
-			boolean supportsAgrressiveRelease = multiTenancyStrategy.requiresMultiTenantConnectionProvider()
-					? serviceRegistry.getService( MultiTenantConnectionProvider.class ).supportsAggressiveRelease()
-					: serviceRegistry.getService( ConnectionProvider.class ).supportsAggressiveRelease();
-			if ( !supportsAgrressiveRelease ) {
-				LOG.unsupportedAfterStatement();
-				releaseMode = ConnectionReleaseMode.AFTER_TRANSACTION;
+			releaseMode = ConnectionReleaseMode.AFTER_TRANSACTION;
+		}
+		else {
+			releaseMode = ConnectionReleaseMode.parse( releaseModeName );
+			if ( releaseMode == ConnectionReleaseMode.AFTER_STATEMENT ) {
+				// we need to make sure the underlying JDBC connection access supports aggressive release...
+				boolean supportsAgrressiveRelease = multiTenancyStrategy.requiresMultiTenantConnectionProvider()
+						? serviceRegistry.getService( MultiTenantConnectionProvider.class ).supportsAggressiveRelease()
+						: serviceRegistry.getService( ConnectionProvider.class ).supportsAggressiveRelease();
+				if ( !supportsAgrressiveRelease ) {
+					LOG.unsupportedAfterStatement();
+					releaseMode = ConnectionReleaseMode.AFTER_TRANSACTION;
+				}
 			}
 		}
-//		}
 		settings.setConnectionReleaseMode( releaseMode );
 
 		final BatchFetchStyle batchFetchStyle = BatchFetchStyle.interpret( properties.get( AvailableSettings.BATCH_FETCH_STYLE ) );
