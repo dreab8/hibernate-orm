@@ -103,8 +103,6 @@ import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionOwner;
 import org.hibernate.engine.spi.Status;
-import org.hibernate.engine.transaction.internal.TransactionImpl;
-import org.hibernate.engine.transaction.spi.TransactionImplementor;
 import org.hibernate.engine.transaction.spi.TransactionObserver;
 import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
@@ -220,8 +218,6 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 	private transient TransactionObserver transactionObserver;
 
 	private SessionEventListenerManagerImpl sessionEventsManager = new SessionEventListenerManagerImpl();
-
-	private transient TransactionImplementor currentHibernateTransaction;
 
 	/**
 	 * Constructor used for openSession(...) processing, as well as construction
@@ -1374,16 +1370,6 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 	}
 
 	@Override
-	public Transaction getTransaction() throws HibernateException {
-		errorIfClosed();
-		if ( this.currentHibernateTransaction == null ) {
-			this.transactionCoordinator.pulse();
-			this.currentHibernateTransaction = new TransactionImpl( this.transactionCoordinator );
-		}
-		return currentHibernateTransaction;
-	}
-
-	@Override
 	public Transaction beginTransaction() throws HibernateException {
 		errorIfClosed();
 		Transaction result = getTransaction();
@@ -2215,22 +2201,6 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 	}
 
 	private transient LobHelperImpl lobHelper;
-
-	@Override
-	public TransactionCoordinatorBuilder getTransactionCoordinatorBuilder() {
-		if ( factory.getSettings().getJtaPlatform() == null ) {
-			return TransactionCoordinatorBuilderFactory.INSTANCE.forResourceLocal();
-		}
-		return TransactionCoordinatorBuilderFactory.INSTANCE.forJta()
-				.setJtaPlatform(
-						factory.getSettings()
-								.getJtaPlatform()
-				).setAutoJoinTransactions( autoJoinTransactions ).setPerformJtaThreadTracking(
-						factory.getSettings()
-								.isJtaTrackByThread()
-				).setPreferUserTransactions( false );
-
-	}
 
 	@Override
 	public JdbcSessionContext getJdbcSessionContext() {

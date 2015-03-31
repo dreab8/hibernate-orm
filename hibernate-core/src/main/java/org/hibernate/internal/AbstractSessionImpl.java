@@ -39,6 +39,7 @@ import org.hibernate.ScrollableResults;
 import org.hibernate.SessionEventListener;
 import org.hibernate.SessionException;
 import org.hibernate.SharedSessionContract;
+import org.hibernate.Transaction;
 import org.hibernate.cache.spi.CacheKey;
 import org.hibernate.cfg.Settings;
 import org.hibernate.engine.jdbc.LobCreationContext;
@@ -55,8 +56,11 @@ import org.hibernate.engine.spi.NamedSQLQueryDefinition;
 import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.engine.transaction.internal.TransactionImpl;
+import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
 import org.hibernate.engine.transaction.spi.TransactionContext;
 import org.hibernate.engine.transaction.spi.TransactionEnvironment;
+import org.hibernate.engine.transaction.spi.TransactionImplementor;
 import org.hibernate.id.uuid.StandardRandomStrategy;
 import org.hibernate.jdbc.WorkExecutor;
 import org.hibernate.jdbc.WorkExecutorVisitable;
@@ -70,6 +74,7 @@ import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
 import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.hibernate.resource.transaction.TransactionCoordinatorBuilder;
 import org.hibernate.resource.transaction.TransactionCoordinatorBuilderFactory;
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.Type;
 
@@ -83,6 +88,8 @@ public abstract class AbstractSessionImpl
 	protected transient SessionFactoryImpl factory;
 	private final String tenantIdentifier;
 	private boolean closed;
+
+	protected transient TransactionImplementor currentHibernateTransaction;
 
 	protected AbstractSessionImpl(SessionFactoryImpl factory, String tenantIdentifier) {
 		this.factory = factory;
@@ -136,6 +143,7 @@ public abstract class AbstractSessionImpl
 	}
 
 	protected void setClosed() {
+		getJdbcCoordinator().close();
 		closed = true;
 	}
 
@@ -316,6 +324,16 @@ public abstract class AbstractSessionImpl
 
 	protected NativeSQLQueryPlan getNativeSQLQueryPlan(NativeSQLQuerySpecification spec) throws HibernateException {
 		return factory.getQueryPlanCache().getNativeSQLQueryPlan( spec );
+	}
+
+	@Override
+	public Transaction getTransaction() throws HibernateException {
+		errorIfClosed();
+		if ( this.currentHibernateTransaction == null || this.currentHibernateTransaction.getStatus() != TransactionStatus.ACTIVE ) {
+			getTransactionCoordinator().pulse();
+			this.currentHibernateTransaction = new TransactionImpl( getTransactionCoordinator() );
+		}
+		return currentHibernateTransaction;
 	}
 
 	@Override
@@ -585,7 +603,6 @@ public abstract class AbstractSessionImpl
 						factory.getSettings()
 								.isJtaTrackByThread()
 				).setPreferUserTransactions( false );
-
 	}
 
 }

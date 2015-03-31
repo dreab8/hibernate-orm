@@ -62,9 +62,7 @@ import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.engine.spi.PersistenceContext;
 import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.SessionEventListenerManager;
-import org.hibernate.engine.transaction.internal.TransactionImpl;
 import org.hibernate.engine.transaction.spi.TransactionEnvironment;
-import org.hibernate.engine.transaction.spi.TransactionImplementor;
 import org.hibernate.id.IdentifierGeneratorHelper;
 import org.hibernate.loader.criteria.CriteriaLoader;
 import org.hibernate.loader.custom.CustomLoader;
@@ -86,7 +84,6 @@ public class StatelessSessionImpl extends AbstractSessionImpl implements Statele
     private static final CoreMessageLogger LOG = Logger.getMessageLogger(CoreMessageLogger.class, StatelessSessionImpl.class.getName());
 
 	private TransactionCoordinator transactionCoordinator;
-	private transient TransactionImplementor currentHibernateTransaction;
 
 	private transient JdbcCoordinator jdbcCoordinator;
 	private PersistenceContext temporaryPersistenceContext = new StatefulPersistenceContext( this );
@@ -545,16 +542,6 @@ public class StatelessSessionImpl extends AbstractSessionImpl implements Statele
 	@Override
 	public void setFlushMode(FlushMode fm) {
 		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public Transaction getTransaction() throws HibernateException {
-		errorIfClosed();
-		if ( this.currentHibernateTransaction == null ) {
-			this.transactionCoordinator.pulse();
-			this.currentHibernateTransaction = new TransactionImpl( this.transactionCoordinator );
-		}
-		return currentHibernateTransaction;
 	}
 
 	@Override
