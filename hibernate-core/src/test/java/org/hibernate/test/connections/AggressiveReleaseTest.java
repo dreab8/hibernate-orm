@@ -19,6 +19,8 @@ import org.hibernate.internal.util.SerializationHelper;
 import org.hibernate.testing.RequiresDialect;
 import org.hibernate.testing.jta.TestingJtaBootstrap;
 import org.hibernate.testing.jta.TestingJtaPlatformImpl;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -31,6 +33,7 @@ import static org.junit.Assert.fail;
  * @author Steve Ebersole
  */
 @RequiresDialect(H2Dialect.class)
+@Ignore
 public class AggressiveReleaseTest extends ConnectionManagementTestCase {
 	@Override
 	@SuppressWarnings("unchecked")
@@ -38,7 +41,7 @@ public class AggressiveReleaseTest extends ConnectionManagementTestCase {
 		super.addSettings( settings );
 
 		TestingJtaBootstrap.prepare( settings );
-		settings.put( Environment.TRANSACTION_STRATEGY, CMTTransactionFactory.class.getName() );
+//		settings.put( Environment.TRANSACTION_STRATEGY, CMTTransactionFactory.class.getName() );
 		settings.put( Environment.RELEASE_CONNECTIONS, ConnectionReleaseMode.AFTER_STATEMENT.toString() );
 		settings.put( Environment.GENERATE_STATISTICS, "true" );
 		settings.put( Environment.STATEMENT_BATCH_SIZE, "0" );

@@ -61,7 +61,7 @@ public class CMTTest extends BaseNonConfigCoreFunctionalTestCase {
 	@Override
 	protected void addSettings(Map settings) {
 		TestingJtaBootstrap.prepare( settings );
-		settings.put( AvailableSettings.TRANSACTION_STRATEGY, CMTTransactionFactory.class.getName() );
+//		settings.put( AvailableSettings.TRANSACTION_STRATEGY, CMTTransactionFactory.class.getName() );
 		settings.put( AvailableSettings.AUTO_CLOSE_SESSION, "true" );
 		settings.put( AvailableSettings.FLUSH_BEFORE_COMPLETION, "true" );
 		settings.put( AvailableSettings.RELEASE_CONNECTIONS, ConnectionReleaseMode.AFTER_STATEMENT.toString() );
