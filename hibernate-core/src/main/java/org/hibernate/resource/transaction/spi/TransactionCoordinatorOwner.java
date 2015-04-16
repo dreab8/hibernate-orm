@@ -63,4 +63,12 @@ public interface TransactionCoordinatorOwner {
 	public void afterTransactionCompletion(boolean successful);
 
 	public JdbcSessionOwner getJdbcSessionOwner();
+
+	/**
+	 * Set the effective transaction timeout period for the current transaction, in seconds.
+	 *
+	 * @param seconds The number of seconds before a time out should occur.
+	 */
+	public void setTransactionTimeOut(int seconds);
+
 }

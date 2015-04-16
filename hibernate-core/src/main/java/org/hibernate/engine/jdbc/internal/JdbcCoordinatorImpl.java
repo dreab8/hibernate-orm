@@ -23,6 +23,9 @@
  */
 package org.hibernate.engine.jdbc.internal;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -48,6 +51,7 @@ import org.hibernate.engine.jdbc.spi.ResultSetReturn;
 import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
 import org.hibernate.engine.jdbc.spi.StatementPreparer;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.engine.transaction.spi.TransactionContext;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.jdbc.WorkExecutor;
 import org.hibernate.jdbc.WorkExecutorVisitable;
@@ -57,6 +61,7 @@ import org.hibernate.resource.jdbc.internal.LogicalConnectionProvidedImpl;
 import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
 import org.hibernate.resource.jdbc.spi.LogicalConnectionImplementor;
 import org.hibernate.resource.transaction.TransactionCoordinator;
+import org.hibernate.resource.transaction.backend.store.spi.DataStoreTransaction;
 
 import org.jboss.logging.Logger;
 
@@ -77,7 +82,6 @@ public class JdbcCoordinatorImpl implements JdbcCoordinator {
 
 	private boolean closed;
 
-//	private transient TransactionCoordinator transactionCoordinator;
 	private transient LogicalConnectionImplementor logicalConnection;
 	private transient JdbcSessionOwner owner;
 	private final transient ConnectionReleaseMode connectionReleaseMode;
@@ -493,4 +497,11 @@ public class JdbcCoordinatorImpl implements JdbcCoordinator {
 	public JdbcSessionOwner getJdbcSessionOwner() {
 		return this.owner;
 	}
+
+	@Override
+	public DataStoreTransaction getResourceLocalTransaction() {
+		return logicalConnection.getPhysicalJdbcTransaction();
+	}
+
+
 }

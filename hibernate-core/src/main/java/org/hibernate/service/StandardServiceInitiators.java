@@ -46,6 +46,7 @@ import org.hibernate.id.factory.internal.MutableIdentifierGeneratorFactoryInitia
 import org.hibernate.jmx.internal.JmxServiceInitiator;
 import org.hibernate.persister.internal.PersisterClassResolverInitiator;
 import org.hibernate.persister.internal.PersisterFactoryInitiator;
+import org.hibernate.resource.transaction.internal.TransactionCoordinatorBuilderInitiator;
 import org.hibernate.service.internal.SessionFactoryServiceRegistryFactoryInitiator;
 import org.hibernate.tool.hbm2ddl.ImportSqlCommandExtractorInitiator;
 import org.hibernate.tool.schema.internal.SchemaManagementToolInitiator;
@@ -93,6 +94,8 @@ public final class StandardServiceInitiators {
 		serviceInitiators.add( SessionFactoryServiceRegistryFactoryInitiator.INSTANCE );
 
 		serviceInitiators.add( RegionFactoryInitiator.INSTANCE );
+
+		serviceInitiators.add( TransactionCoordinatorBuilderInitiator.INSTANCE );
 
 		return Collections.unmodifiableList( serviceInitiators );
 	}

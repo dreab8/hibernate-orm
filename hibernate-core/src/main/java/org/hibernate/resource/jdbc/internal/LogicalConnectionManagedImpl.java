@@ -125,8 +125,7 @@ public class LogicalConnectionManagedImpl extends AbstractLogicalConnectionImple
 		if ( closed ) {
 			throw new ResourceClosedException( "Logical connection is closed" );
 		}
-
-		throw new IllegalStateException( "Cannot manually disconnect unless Connection was originally supplied by user" );
+		return physicalConnection;
 	}
 
 	@Override

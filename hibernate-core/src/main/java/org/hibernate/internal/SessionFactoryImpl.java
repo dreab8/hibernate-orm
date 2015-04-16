@@ -92,6 +92,8 @@ import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.engine.jdbc.connections.spi.JdbcConnectionAccess;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
+import org.hibernate.engine.jdbc.internal.JdbcCoordinatorImpl;
+import org.hibernate.engine.jdbc.spi.JdbcCoordinator;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
 import org.hibernate.engine.jndi.spi.JndiService;
@@ -108,6 +110,7 @@ import org.hibernate.engine.spi.NamedSQLQueryDefinition;
 import org.hibernate.engine.spi.SessionBuilderImplementor;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionOwner;
+import org.hibernate.engine.transaction.internal.TransactionImpl;
 import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
 import org.hibernate.engine.transaction.spi.TransactionEnvironment;
 import org.hibernate.event.service.spi.EventListenerGroup;
@@ -1225,6 +1228,14 @@ public final class SessionFactoryImpl
 			return null;
 		}
 
+		protected JdbcCoordinatorImpl getJdbcCoordinator(){
+			return null;
+		}
+
+		protected TransactionImpl getTransactionImpl(){
+			return null;
+		}
+
 		protected ActionQueue.TransactionCompletionProcesses getTransactionCompletionProcesses() {
 			return null;
 		}
@@ -1237,6 +1248,8 @@ public final class SessionFactoryImpl
 					sessionFactory,
 					sessionOwner,
 					getTransactionCoordinator(),
+					getJdbcCoordinator(),
+					getTransactionImpl(),
 					getTransactionCompletionProcesses(),
 					autoJoinTransactions,
 					sessionFactory.settings.getRegionFactory().nextTimestamp(),

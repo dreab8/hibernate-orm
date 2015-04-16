@@ -74,6 +74,8 @@ import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
 import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.hibernate.resource.transaction.TransactionCoordinatorBuilder;
 import org.hibernate.resource.transaction.TransactionCoordinatorBuilderFactory;
+import org.hibernate.resource.transaction.TransactionCoordinatorJtaBuilder;
+import org.hibernate.resource.transaction.internal.TransactionCoordinatorBuilderInitiator;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.Type;
@@ -89,7 +91,7 @@ public abstract class AbstractSessionImpl
 	private final String tenantIdentifier;
 	private boolean closed;
 
-	protected transient TransactionImplementor currentHibernateTransaction;
+	protected transient TransactionImpl currentHibernateTransaction;
 
 	protected AbstractSessionImpl(SessionFactoryImpl factory, String tenantIdentifier) {
 		this.factory = factory;
@@ -330,9 +332,9 @@ public abstract class AbstractSessionImpl
 	public Transaction getTransaction() throws HibernateException {
 		errorIfClosed();
 		if ( this.currentHibernateTransaction == null || this.currentHibernateTransaction.getStatus() != TransactionStatus.ACTIVE ) {
-			getTransactionCoordinator().pulse();
 			this.currentHibernateTransaction = new TransactionImpl( getTransactionCoordinator() );
 		}
+		getTransactionCoordinator().pulse();
 		return currentHibernateTransaction;
 	}
 
@@ -592,17 +594,20 @@ public abstract class AbstractSessionImpl
 
 	@Override
 	public TransactionCoordinatorBuilder getTransactionCoordinatorBuilder() {
-		if ( factory.getSettings().getJtaPlatform() == null ) {
-			return TransactionCoordinatorBuilderFactory.INSTANCE.forResourceLocal();
+		TransactionCoordinatorBuilder transactionCoordinatorBuilder = factory.getServiceRegistry()
+				.getService( TransactionCoordinatorBuilder.class );
+
+		if ( transactionCoordinatorBuilder instanceof TransactionCoordinatorJtaBuilder ) {
+			((TransactionCoordinatorJtaBuilder) transactionCoordinatorBuilder).setJtaPlatform(
+					factory.getSettings()
+							.getJtaPlatform()
+			).setAutoJoinTransactions( shouldAutoJoinTransaction() ).setPerformJtaThreadTracking(
+					factory.getSettings()
+							.isJtaTrackByThread()
+			).setPreferUserTransactions( false );
 		}
-		return TransactionCoordinatorBuilderFactory.INSTANCE.forJta()
-				.setJtaPlatform(
-						factory.getSettings()
-								.getJtaPlatform()
-				).setAutoJoinTransactions( shouldAutoJoinTransaction() ).setPerformJtaThreadTracking(
-						factory.getSettings()
-								.isJtaTrackByThread()
-				).setPreferUserTransactions( false );
+
+		return transactionCoordinatorBuilder;
 	}
 
 }

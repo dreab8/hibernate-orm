@@ -56,6 +56,7 @@ public class ResourceLocalTransactionCoordinatorImpl implements TransactionCoord
 	private final SynchronizationRegistryStandardImpl synchronizationRegistry = new SynchronizationRegistryStandardImpl();
 
 	private TransactionDriverControlImpl physicalTransactionDelegate;
+	private int timeOut = -1;
 
 	/**
 	 * Construct a ResourceLocalTransactionCoordinatorImpl instance.  package-protected to ensure access goes through
@@ -125,9 +126,22 @@ public class ResourceLocalTransactionCoordinatorImpl implements TransactionCoord
 		return this.transactionCoordinatorBuilder;
 	}
 
+	@Override
+	public void setTimeOut(int seconds) {
+		this.timeOut = seconds;
+	}
+
+	@Override
+	public int getTimeOut() {
+		return this.timeOut;
+	}
+
 	// PhysicalTransactionDelegate ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	private void afterBeginCallback() {
+		if(this.timeOut > 0) {
+			transactionCoordinatorOwner.setTransactionTimeOut( this.timeOut );
+		}
 		log.trace( "ResourceLocalTransactionCoordinatorImpl#afterBeginCallback" );
 	}
 

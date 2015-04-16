@@ -53,4 +53,6 @@ public interface JtaTransactionAdapter {
 	public TransactionStatus getStatus();
 
 	public void markRollbackOnly();
+
+	public void setTimeOut(int seconds);
 }

@@ -120,4 +120,9 @@ public class JtaTransactionAdapterTransactionManagerImpl implements JtaTransacti
 			throw new TransactionException( "Could not set transaction to rollback only", e );
 		}
 	}
+
+	@Override
+	public void setTimeOut(int seconds) {
+
+	}
 }

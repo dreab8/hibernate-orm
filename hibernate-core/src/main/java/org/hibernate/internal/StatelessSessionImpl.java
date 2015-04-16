@@ -761,7 +761,7 @@ public class StatelessSessionImpl extends AbstractSessionImpl implements Statele
 
 	@Override
 	public JdbcSessionContext getJdbcSessionContext() {
-		return null;
+		return new JdbcSessionContextImpl( factory, EmptyInterceptor.INSTANCE );
 	}
 
 	@Override

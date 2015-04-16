@@ -103,6 +103,8 @@ import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionOwner;
 import org.hibernate.engine.spi.Status;
+import org.hibernate.engine.transaction.internal.TransactionImpl;
+import org.hibernate.engine.transaction.spi.TransactionImplementor;
 import org.hibernate.engine.transaction.spi.TransactionObserver;
 import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
@@ -158,8 +160,6 @@ import org.hibernate.proxy.LazyInitializer;
 import org.hibernate.resource.jdbc.spi.JdbcSessionContext;
 import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.hibernate.resource.transaction.TransactionCoordinator;
-import org.hibernate.resource.transaction.TransactionCoordinatorBuilder;
-import org.hibernate.resource.transaction.TransactionCoordinatorBuilderFactory;
 import org.hibernate.resource.transaction.backend.jta.internal.JtaTransactionCoordinatorImpl;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.stat.SessionStatistics;
@@ -197,7 +197,7 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 	private transient ActionQueue actionQueue;
 	private transient StatefulPersistenceContext persistenceContext;
 	private transient TransactionCoordinator transactionCoordinator;
-	private transient JdbcCoordinator jdbcCoordinator;
+	private transient JdbcCoordinatorImpl jdbcCoordinator;
 	private transient Interceptor interceptor;
 	private transient EntityNameResolver entityNameResolver = new CoordinatingEntityNameResolver();
 
@@ -240,6 +240,8 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 			final SessionFactoryImpl factory,
 			final SessionOwner sessionOwner,
 			final TransactionCoordinator transactionCoordinator,
+			final JdbcCoordinatorImpl jdbcCoordinator,
+			final TransactionImpl transaction,
 			final ActionQueue.TransactionCompletionProcesses transactionCompletionProcesses,
 			final boolean autoJoinTransactions,
 			final long timestamp,
@@ -264,7 +266,7 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 			this.autoJoinTransactions = autoJoinTransactions;
 
 			this.jdbcCoordinator = new JdbcCoordinatorImpl(connection,this);
-			this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator(jdbcCoordinator);
+			this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator(this.jdbcCoordinator);
 //			this.jdbcCoordinator.getLogicalConnection().addObserver(
 //					new ConnectionObserverStatsBridge( factory )
 //			);
@@ -274,7 +276,8 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 				throw new SessionException( "Cannot simultaneously share transaction context and specify connection" );
 			}
 			this.transactionCoordinator = transactionCoordinator;
-			this.jdbcCoordinator = new JdbcCoordinatorImpl(connection,this);
+			this.jdbcCoordinator = jdbcCoordinator;
+			this.currentHibernateTransaction = transaction;
 			this.isTransactionCoordinatorShared = true;
 			this.autoJoinTransactions = false;
 			if ( transactionCompletionProcesses != null ) {
@@ -431,8 +434,8 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 	@Override
 	public boolean isTransactionInProgress() {
 		checkTransactionSynchStatus();
-		return !isClosed() && transactionCoordinator.isJoined() && transactionCoordinator.getTransactionDriverControl()
-				.getStatus() == TransactionStatus.ACTIVE;
+		return !isClosed() && transactionCoordinator.getTransactionDriverControl()
+						.getStatus() == TransactionStatus.ACTIVE;
 	}
 
 	@Override
@@ -1134,6 +1137,7 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 			return false;
 		}
 		AutoFlushEvent event = new AutoFlushEvent( querySpaces, this );
+		listeners( EventType.AUTO_FLUSH );
 		for ( AutoFlushEventListener listener : listeners( EventType.AUTO_FLUSH ) ) {
 			listener.onAutoFlush( event );
 		}
@@ -2116,7 +2120,7 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 	 * @throws IOException Indicates a general IO stream exception
 	 * @throws ClassNotFoundException Indicates a class resolution issue
 	 */
-	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException, SQLException {
 		LOG.trace( "Deserializing session" );
 
 		ois.defaultReadObject();
@@ -2134,6 +2138,9 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 
 		factory = SessionFactoryImpl.deserialize( ois );
 		sessionOwner = ( SessionOwner ) ois.readObject();
+		Connection connection = getJdbcConnectionAccess().obtainConnection();
+		jdbcCoordinator = new JdbcCoordinatorImpl( connection, this );
+		this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator(jdbcCoordinator);
 
 //		transactionCoordinator = TransactionCoordinatorImpl.deserialize( ois, this );
 
@@ -2177,7 +2184,7 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 
 		factory.serialize( oos );
 		oos.writeObject( sessionOwner );
-
+// jdbcCoordinator.serialize(oos);
 //		transactionCoordinator.serialize( oos );
 
 		persistenceContext.serialize( oos );
@@ -2318,6 +2325,16 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 		@Override
 		protected TransactionCoordinator getTransactionCoordinator() {
 			return shareTransactionContext ? session.transactionCoordinator : super.getTransactionCoordinator();
+		}
+
+		@Override
+		protected JdbcCoordinatorImpl getJdbcCoordinator(){
+			return shareTransactionContext ? session.jdbcCoordinator : super.getJdbcCoordinator();
+		}
+
+		@Override
+		protected TransactionImpl getTransactionImpl(){
+			return shareTransactionContext ? session.currentHibernateTransaction : super.getTransactionImpl();
 		}
 
 		@Override

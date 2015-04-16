@@ -27,6 +27,7 @@ import org.hibernate.ConnectionReleaseMode;
 import org.hibernate.resource.jdbc.spi.JdbcSessionContext;
 import org.hibernate.resource.transaction.TransactionCoordinator;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorOwner;
+import org.hibernate.service.Service;
 
 import static org.hibernate.resource.jdbc.spi.JdbcSessionContext.ConnectionAcquisitionMode;
 
@@ -35,7 +36,7 @@ import static org.hibernate.resource.jdbc.spi.JdbcSessionContext.ConnectionAcqui
  *
  * @author Steve Ebersole
  */
-public interface TransactionCoordinatorBuilder {
+public interface TransactionCoordinatorBuilder extends Service {
 	public TransactionCoordinator buildTransactionCoordinator(TransactionCoordinatorOwner owner);
 
 	public boolean isJta();

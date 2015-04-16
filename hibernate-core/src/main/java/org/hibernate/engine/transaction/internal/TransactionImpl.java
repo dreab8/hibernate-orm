@@ -51,7 +51,6 @@ public class TransactionImpl implements TransactionImplementor {
 	private boolean valid = true;
 
 	private LocalStatus localStatus = LocalStatus.NOT_ACTIVE;
-	private int timeout = -1;
 
 	public TransactionImpl(TransactionCoordinator transactionCoordinator) {
 		this.transactionCoordinator = transactionCoordinator;
@@ -129,12 +128,12 @@ public class TransactionImpl implements TransactionImplementor {
 
 	@Override
 	public void setTimeout(int seconds) {
-		timeout = seconds;
+		this.transactionCoordinator.setTimeOut( seconds );
 	}
 
 	@Override
 	public int getTimeout() {
-		return timeout;
+		return this.transactionCoordinator.getTimeOut();
 	}
 
 	@Override
@@ -142,7 +141,7 @@ public class TransactionImpl implements TransactionImplementor {
 		transactionDriverControl.markRollbackOnly();
 	}
 
-	private void invalidate() {
+	public void invalidate() {
 		valid = false;
 	}
 

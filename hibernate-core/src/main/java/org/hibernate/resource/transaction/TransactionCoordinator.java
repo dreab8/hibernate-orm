@@ -92,6 +92,10 @@ public interface TransactionCoordinator {
 	 */
 	public TransactionCoordinatorBuilder getTransactionCoordinatorBuilder();
 
+	public void setTimeOut(int seconds);
+
+	public int getTimeOut();
+
 	/**
 	 * Provides the means for "local transactions" (as transaction drivers) to control the
 	 * underlying "physical transaction" currently associated with the TransactionCoordinator.

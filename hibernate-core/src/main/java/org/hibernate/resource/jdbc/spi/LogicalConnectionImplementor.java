@@ -25,6 +25,7 @@ package org.hibernate.resource.jdbc.spi;
 
 import java.sql.Connection;
 
+import org.hibernate.engine.jdbc.spi.ConnectionObserver;
 import org.hibernate.resource.jdbc.LogicalConnection;
 
 /**
@@ -71,5 +72,4 @@ public interface LogicalConnectionImplementor extends LogicalConnection {
 	public LogicalConnectionImplementor makeShareableCopy();
 
 	public PhysicalJdbcTransaction getPhysicalJdbcTransaction();
-
 }

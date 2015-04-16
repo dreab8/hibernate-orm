@@ -46,6 +46,7 @@ public class JtaTransactionCoordinatorImpl implements TransactionCoordinator, Sy
 
 	private final SynchronizationRegistryStandardImpl synchronizationRegistry = new SynchronizationRegistryStandardImpl();
 
+	private int timeOut = -1;
 	/**
 	 * Construct a JtaTransactionCoordinatorImpl instance.  package-protected to ensure access goes through
 	 * builder.
@@ -242,6 +243,17 @@ public class JtaTransactionCoordinatorImpl implements TransactionCoordinator, Sy
 	@Override
 	public TransactionCoordinatorBuilder getTransactionCoordinatorBuilder() {
 		return this.transactionCoordinatorBuilder;
+	}
+
+	@Override
+	public void setTimeOut(int seconds) {
+		this.timeOut = seconds;
+		physicalTransactionDelegate.jtaTransactionAdapter.setTimeOut( seconds );
+	}
+
+	@Override
+	public int getTimeOut() {
+		return this.timeOut;
 	}
 
 	// SynchronizationCallbackTarget ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

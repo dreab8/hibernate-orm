@@ -34,6 +34,7 @@ import org.hibernate.jdbc.WorkExecutorVisitable;
 import org.hibernate.resource.jdbc.ResourceRegistry;
 import org.hibernate.resource.jdbc.spi.LogicalConnectionImplementor;
 import org.hibernate.resource.transaction.TransactionCoordinator;
+import org.hibernate.resource.transaction.backend.store.spi.DataStoreTransactionAccess;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorOwner;
 
 /**
@@ -42,7 +43,7 @@ import org.hibernate.resource.transaction.spi.TransactionCoordinatorOwner;
  * @author Steve Ebersole
  * @author Brett Meyer
  */
-public interface JdbcCoordinator extends Serializable, TransactionCoordinatorOwner {
+public interface JdbcCoordinator extends Serializable, TransactionCoordinatorOwner, DataStoreTransactionAccess {
 //	/**
 //	 * Retrieve the transaction coordinator associated with this JDBC coordinator.
 //	 *
@@ -108,7 +109,7 @@ public interface JdbcCoordinator extends Serializable, TransactionCoordinatorOwn
 	 *
 	 * @return The {@link Connection} associated with the managed {@link #getLogicalConnection() logical connection}
 	 *
-	 * @see LogicalConnection#close
+	 * @see org.hibernate.resource.jdbc.spi.LogicalConnectionImplementor#close
 	 */
 	public Connection close();
 
@@ -140,13 +141,6 @@ public interface JdbcCoordinator extends Serializable, TransactionCoordinatorOwn
 	 * Attempt to cancel the last query sent to the JDBC driver.
 	 */
 	public void cancelLastQuery();
-
-	/**
-	 * Set the effective transaction timeout period for the current transaction, in seconds.
-	 *
-	 * @param seconds The number of seconds before a time out should occur.
-	 */
-	public void setTransactionTimeOut(int seconds);
 
     /**
 	 * Calculate the amount of time, in seconds, still remaining before transaction timeout occurs.
