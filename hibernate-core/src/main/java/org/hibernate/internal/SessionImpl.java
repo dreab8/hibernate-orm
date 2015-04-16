@@ -267,9 +267,6 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 
 			this.jdbcCoordinator = new JdbcCoordinatorImpl(connection,this);
 			this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator(this.jdbcCoordinator);
-//			this.jdbcCoordinator.getLogicalConnection().addObserver(
-//					new ConnectionObserverStatsBridge( factory )
-//			);
 		}
 		else {
 			if ( connection != null ) {

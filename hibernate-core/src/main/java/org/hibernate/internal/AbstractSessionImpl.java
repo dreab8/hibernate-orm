@@ -26,6 +26,8 @@ package org.hibernate.internal;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,6 +48,8 @@ import org.hibernate.engine.jdbc.LobCreationContext;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.engine.jdbc.connections.spi.JdbcConnectionAccess;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
+import org.hibernate.engine.jdbc.spi.ConnectionObserver;
+import org.hibernate.engine.jdbc.spi.NonDurableConnectionObserver;
 import org.hibernate.engine.query.spi.HQLQueryPlan;
 import org.hibernate.engine.query.spi.NativeSQLQueryPlan;
 import org.hibernate.engine.query.spi.ParameterMetadata;
@@ -485,11 +489,13 @@ public abstract class AbstractSessionImpl
 		private final SessionFactoryImpl sessionFactory;
 		private final StatementInspector inspector;
 		private final transient ServiceRegistry serviceRegistry;
+		private final transient JdbcObserver jdbcObserver;
 
 		public JdbcSessionContextImpl(SessionFactoryImpl sessionFactory, StatementInspector inspector) {
 			this.sessionFactory = sessionFactory;
 			this.inspector = inspector;
 			this.serviceRegistry = sessionFactory.getServiceRegistry();
+			this.jdbcObserver = new JdbcObserverImpl();
 		}
 
 		@Override
@@ -524,57 +530,7 @@ public abstract class AbstractSessionImpl
 
 		@Override
 		public JdbcObserver getObserver() {
-			return new JdbcObserver() {
-				@Override
-				public void jdbcConnectionAcquisitionStart() {
-
-				}
-
-				@Override
-				public void jdbcConnectionAcquisitionEnd() {
-
-				}
-
-				@Override
-				public void jdbcConnectionReleaseStart() {
-
-				}
-
-				@Override
-				public void jdbcConnectionReleaseEnd() {
-
-				}
-
-				@Override
-				public void jdbcPrepareStatementStart() {
-					getEventListenerManager().jdbcPrepareStatementStart();
-				}
-
-				@Override
-				public void jdbcPrepareStatementEnd() {
-					getEventListenerManager().jdbcPrepareStatementEnd();
-				}
-
-				@Override
-				public void jdbcExecuteStatementStart() {
-					getEventListenerManager().jdbcExecuteStatementStart();
-				}
-
-				@Override
-				public void jdbcExecuteStatementEnd() {
-					getEventListenerManager().jdbcExecuteStatementEnd();
-				}
-
-				@Override
-				public void jdbcExecuteBatchStart() {
-					getEventListenerManager().jdbcExecuteBatchStart();
-				}
-
-				@Override
-				public void jdbcExecuteBatchEnd() {
-					getEventListenerManager().jdbcExecuteBatchEnd();
-				}
-			};
+			return this.jdbcObserver;
 		}
 
 		@Override
@@ -589,6 +545,73 @@ public abstract class AbstractSessionImpl
 
 		private final Settings settings() {
 			return this.sessionFactory.getSettings();
+		}
+	}
+
+	public class JdbcObserverImpl implements JdbcObserver{
+
+		private final transient List<ConnectionObserver> observers;
+
+		public JdbcObserverImpl(){
+			this.observers = new ArrayList<ConnectionObserver>();
+			this.observers.add( new ConnectionObserverStatsBridge( factory ) );
+		}
+
+		@Override
+		public void jdbcConnectionAcquisitionStart() {
+
+		}
+
+		@Override
+		public void jdbcConnectionAcquisitionEnd(Connection connection) {
+			for ( ConnectionObserver observer : observers ) {
+				observer.physicalConnectionObtained( connection );
+			}
+		}
+
+		@Override
+		public void jdbcConnectionReleaseStart() {
+
+		}
+
+		@Override
+		public void jdbcConnectionReleaseEnd() {
+			for ( ConnectionObserver observer : observers ) {
+				observer.physicalConnectionReleased();
+			}
+			observers.clear();
+		}
+
+		@Override
+		public void jdbcPrepareStatementStart() {
+
+		}
+
+		@Override
+		public void jdbcPrepareStatementEnd() {
+			for ( ConnectionObserver observer : observers ) {
+				observer.statementPrepared();
+			}
+		}
+
+		@Override
+		public void jdbcExecuteStatementStart() {
+
+		}
+
+		@Override
+		public void jdbcExecuteStatementEnd() {
+
+		}
+
+		@Override
+		public void jdbcExecuteBatchStart() {
+
+		}
+
+		@Override
+		public void jdbcExecuteBatchEnd() {
+
 		}
 	}
 

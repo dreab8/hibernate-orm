@@ -71,7 +71,7 @@ public class LogicalConnectionManagedImpl extends AbstractLogicalConnectionImple
 				throw sqlExceptionHelper.convert( e, "Unable to acquire JDBC Connection" );
 			}
 			finally {
-				observer.jdbcConnectionAcquisitionEnd();
+				observer.jdbcConnectionAcquisitionEnd( physicalConnection );
 			}
 		}
 		return physicalConnection;

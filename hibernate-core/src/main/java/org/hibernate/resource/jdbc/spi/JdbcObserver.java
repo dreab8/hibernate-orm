@@ -23,12 +23,14 @@
  */
 package org.hibernate.resource.jdbc.spi;
 
+import java.sql.Connection;
+
 /**
  * @author Steve Ebersole
  */
 public interface JdbcObserver {
 	public void jdbcConnectionAcquisitionStart();
-	public void jdbcConnectionAcquisitionEnd();
+	public void jdbcConnectionAcquisitionEnd(Connection connection);
 
 	public void jdbcConnectionReleaseStart();
 	public void jdbcConnectionReleaseEnd();
