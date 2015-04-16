@@ -584,7 +584,7 @@ public abstract class AbstractSessionImpl
 
 		@Override
 		public void jdbcPrepareStatementStart() {
-
+			getEventListenerManager().jdbcPrepareStatementStart();
 		}
 
 		@Override
@@ -592,26 +592,27 @@ public abstract class AbstractSessionImpl
 			for ( ConnectionObserver observer : observers ) {
 				observer.statementPrepared();
 			}
+			getEventListenerManager().jdbcPrepareStatementEnd();
 		}
 
 		@Override
 		public void jdbcExecuteStatementStart() {
-
+			getEventListenerManager().jdbcExecuteStatementStart();
 		}
 
 		@Override
 		public void jdbcExecuteStatementEnd() {
-
+			getEventListenerManager().jdbcExecuteStatementEnd();
 		}
 
 		@Override
 		public void jdbcExecuteBatchStart() {
-
+			getEventListenerManager().jdbcExecuteBatchStart();
 		}
 
 		@Override
 		public void jdbcExecuteBatchEnd() {
-
+			getEventListenerManager().jdbcExecuteBatchEnd();
 		}
 	}
 

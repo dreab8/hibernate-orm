@@ -53,6 +53,7 @@ import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.internal.util.config.ConfigurationHelper;
 import org.hibernate.loader.BatchFetchStyle;
+import org.hibernate.resource.transaction.TransactionCoordinatorBuilder;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.tuple.entity.EntityTuplizerFactory;
 
@@ -185,8 +186,8 @@ public class SettingsFactory implements Serializable {
 		}
 		ConnectionReleaseMode releaseMode;
 		if ( "auto".equals( releaseModeName ) ) {
-//			releaseMode = serviceRegistry.getService( TransactionFactory.class ).getDefaultReleaseMode();
-			releaseMode = ConnectionReleaseMode.AFTER_TRANSACTION;
+			releaseMode = serviceRegistry.getService( TransactionCoordinatorBuilder.class )
+					.getDefaultConnectionReleaseMode();
 		}
 		else {
 			releaseMode = ConnectionReleaseMode.parse( releaseModeName );
