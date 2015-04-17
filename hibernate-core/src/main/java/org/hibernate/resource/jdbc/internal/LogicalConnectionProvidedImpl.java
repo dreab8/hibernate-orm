@@ -39,6 +39,7 @@ public class LogicalConnectionProvidedImpl extends AbstractLogicalConnectionImpl
 
 	private Connection providedConnection;
 	private final boolean initiallyAutoCommit;
+	private boolean closed;
 
 	public LogicalConnectionProvidedImpl(Connection providedConnection) {
 		this( providedConnection, new ResourceRegistryStandardImpl() );
@@ -56,7 +57,7 @@ public class LogicalConnectionProvidedImpl extends AbstractLogicalConnectionImpl
 
 	@Override
 	public boolean isOpen() {
-		return providedConnection != null;
+		return !closed;
 	}
 
 	@Override
@@ -70,19 +71,19 @@ public class LogicalConnectionProvidedImpl extends AbstractLogicalConnectionImpl
 		}
 		finally {
 			providedConnection = null;
+			closed = true;
 			log.trace( "Logical connection closed" );
 		}
 	}
 
 	@Override
 	public boolean isPhysicallyConnected() {
-		return isOpen();
+		return providedConnection != null;
 	}
 
 	@Override
 	public Connection getPhysicalConnection() {
 		errorIfClosed();
-
 		return providedConnection;
 	}
 
