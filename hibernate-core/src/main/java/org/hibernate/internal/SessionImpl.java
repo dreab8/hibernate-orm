@@ -104,7 +104,6 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionOwner;
 import org.hibernate.engine.spi.Status;
 import org.hibernate.engine.transaction.internal.TransactionImpl;
-import org.hibernate.engine.transaction.spi.TransactionImplementor;
 import org.hibernate.engine.transaction.spi.TransactionObserver;
 import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
@@ -268,8 +267,8 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 			this.connectionReleaseMode = connectionReleaseMode;
 			this.autoJoinTransactions = autoJoinTransactions;
 
-			this.jdbcCoordinator = new JdbcCoordinatorImpl(connection,this);
-			this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator(this.jdbcCoordinator);
+			this.jdbcCoordinator = new JdbcCoordinatorImpl( connection, this );
+			this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator( this.jdbcCoordinator );
 		}
 		else {
 			if ( connection != null ) {
@@ -295,17 +294,18 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 								"with sharing JDBC connection between sessions; ignoring"
 				);
 			}
-			this.connectionReleaseMode = this.jdbcCoordinator.getConnectionReleaseMode() ;
+			this.connectionReleaseMode = this.jdbcCoordinator.getConnectionReleaseMode();
 		}
 
 		loadQueryInfluencers = new LoadQueryInfluencers( factory );
 
-		if (factory.getStatistics().isStatisticsEnabled()) {
+		if ( factory.getStatistics().isStatisticsEnabled() ) {
 			factory.getStatisticsImplementor().openSession();
 		}
 
-      if ( TRACE_ENABLED )
-		   LOG.tracef( "Opened session at timestamp: %s", timestamp );
+		if ( TRACE_ENABLED ) {
+			LOG.tracef( "Opened session at timestamp: %s", timestamp );
+		}
 	}
 
 	@Override
@@ -2127,24 +2127,21 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 
 		entityNameResolver = new CoordinatingEntityNameResolver();
 
-		connectionReleaseMode = ConnectionReleaseMode.parse( ( String ) ois.readObject() );
+		connectionReleaseMode = ConnectionReleaseMode.parse( (String) ois.readObject() );
 		autoClear = ois.readBoolean();
 		autoJoinTransactions = ois.readBoolean();
-		flushMode = FlushMode.valueOf( ( String ) ois.readObject() );
-		cacheMode = CacheMode.valueOf( ( String ) ois.readObject() );
+		flushMode = FlushMode.valueOf( (String) ois.readObject() );
+		cacheMode = CacheMode.valueOf( (String) ois.readObject() );
 		flushBeforeCompletionEnabled = ois.readBoolean();
 		autoCloseSessionEnabled = ois.readBoolean();
-		interceptor = ( Interceptor ) ois.readObject();
+		interceptor = (Interceptor) ois.readObject();
 
 		factory = SessionFactoryImpl.deserialize( ois );
 		this.jdbcSessionContext = new JdbcSessionContextImpl( factory, interceptor );
-		sessionOwner = ( SessionOwner ) ois.readObject();
+		sessionOwner = (SessionOwner) ois.readObject();
 		Connection connection = getJdbcConnectionAccess().obtainConnection();
 		jdbcCoordinator = new JdbcCoordinatorImpl( connection, this );
-		this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator(jdbcCoordinator);
-
-
-//		transactionCoordinator = TransactionCoordinatorImpl.deserialize( ois, this );
+		this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator( jdbcCoordinator );
 
 		persistenceContext = StatefulPersistenceContext.deserialize( ois, this );
 		actionQueue = ActionQueue.deserialize( ois, this );
@@ -2166,7 +2163,7 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 	 * @throws IOException Indicates a general IO stream exception
 	 */
 	private void writeObject(ObjectOutputStream oos) throws IOException {
-		if ( ! jdbcCoordinator.isReadyForSerialization() ) {
+		if ( !jdbcCoordinator.isReadyForSerialization() ) {
 			throw new IllegalStateException( "Cannot serialize a session while connected" );
 		}
 
@@ -2186,8 +2183,6 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 
 		factory.serialize( oos );
 		oos.writeObject( sessionOwner );
-// jdbcCoordinator.serialize(oos);
-//		transactionCoordinator.serialize( oos );
 
 		persistenceContext.serialize( oos );
 		actionQueue.serialize( oos );
@@ -2330,7 +2325,7 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 		}
 
 		@Override
-		protected JdbcCoordinatorImpl getJdbcCoordinator(){
+		protected JdbcCoordinatorImpl getJdbcCoordinator() {
 			return shareTransactionContext ? session.jdbcCoordinator : super.getJdbcCoordinator();
 		}
 

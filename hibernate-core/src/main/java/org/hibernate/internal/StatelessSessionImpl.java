@@ -88,7 +88,8 @@ public class StatelessSessionImpl extends AbstractSessionImpl implements Statele
 	private transient JdbcCoordinator jdbcCoordinator;
 	private PersistenceContext temporaryPersistenceContext = new StatefulPersistenceContext( this );
 	private long timestamp;
-	
+	private JdbcSessionContext jdbcSessionContext;
+
 	StatelessSessionImpl(
 			Connection connection,
 			String tenantIdentifier,
@@ -102,10 +103,12 @@ public class StatelessSessionImpl extends AbstractSessionImpl implements Statele
 			SessionFactoryImpl factory,
 			long timestamp) {
 		super( factory, tenantIdentifier );
-		this.jdbcCoordinator = new JdbcCoordinatorImpl(connection,this);
+		this.jdbcSessionContext = new JdbcSessionContextImpl( factory, EmptyInterceptor.INSTANCE );
+		this.jdbcCoordinator = new JdbcCoordinatorImpl( connection, this );
 
-		this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator(jdbcCoordinator);
+		this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator( jdbcCoordinator );
 		this.timestamp = timestamp;
+
 	}
 
 	@Override
@@ -761,7 +764,7 @@ public class StatelessSessionImpl extends AbstractSessionImpl implements Statele
 
 	@Override
 	public JdbcSessionContext getJdbcSessionContext() {
-		return new JdbcSessionContextImpl( factory, EmptyInterceptor.INSTANCE );
+		return this.jdbcSessionContext;
 	}
 
 	@Override

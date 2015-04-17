@@ -27,7 +27,6 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,7 +48,6 @@ import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.engine.jdbc.connections.spi.JdbcConnectionAccess;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.hibernate.engine.jdbc.spi.ConnectionObserver;
-import org.hibernate.engine.jdbc.spi.NonDurableConnectionObserver;
 import org.hibernate.engine.query.spi.HQLQueryPlan;
 import org.hibernate.engine.query.spi.NativeSQLQueryPlan;
 import org.hibernate.engine.query.spi.ParameterMetadata;
@@ -61,10 +59,8 @@ import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.engine.transaction.internal.TransactionImpl;
-import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
 import org.hibernate.engine.transaction.spi.TransactionContext;
 import org.hibernate.engine.transaction.spi.TransactionEnvironment;
-import org.hibernate.engine.transaction.spi.TransactionImplementor;
 import org.hibernate.id.uuid.StandardRandomStrategy;
 import org.hibernate.jdbc.WorkExecutor;
 import org.hibernate.jdbc.WorkExecutorVisitable;
@@ -77,9 +73,7 @@ import org.hibernate.resource.jdbc.spi.JdbcSessionContext;
 import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
 import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.hibernate.resource.transaction.TransactionCoordinatorBuilder;
-import org.hibernate.resource.transaction.TransactionCoordinatorBuilderFactory;
 import org.hibernate.resource.transaction.TransactionCoordinatorJtaBuilder;
-import org.hibernate.resource.transaction.internal.TransactionCoordinatorBuilderInitiator;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.Type;
@@ -548,11 +542,11 @@ public abstract class AbstractSessionImpl
 		}
 	}
 
-	public class JdbcObserverImpl implements JdbcObserver{
+	public class JdbcObserverImpl implements JdbcObserver {
 
 		private final transient List<ConnectionObserver> observers;
 
-		public JdbcObserverImpl(){
+		public JdbcObserverImpl() {
 			this.observers = new ArrayList<ConnectionObserver>();
 			this.observers.add( new ConnectionObserverStatsBridge( factory ) );
 		}
