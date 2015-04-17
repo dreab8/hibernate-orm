@@ -97,6 +97,7 @@ public class LogicalConnectionProvidedImpl extends AbstractLogicalConnectionImpl
 	public Connection manualDisconnect() {
 		errorIfClosed();
 		try {
+			resourceRegistry.releaseResources();
 			return providedConnection;
 		}
 		finally {

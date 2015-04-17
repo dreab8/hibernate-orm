@@ -125,7 +125,9 @@ public class LogicalConnectionManagedImpl extends AbstractLogicalConnectionImple
 		if ( closed ) {
 			throw new ResourceClosedException( "Logical connection is closed" );
 		}
-		return physicalConnection;
+		final Connection c = physicalConnection;
+		releaseConnection();
+		return c;
 	}
 
 	@Override
@@ -155,6 +157,8 @@ public class LogicalConnectionManagedImpl extends AbstractLogicalConnectionImple
 		}
 		finally {
 			observer.jdbcConnectionReleaseEnd();
+			physicalConnection = null;
+			getResourceRegistry().releaseResources();
 		}
 	}
 
