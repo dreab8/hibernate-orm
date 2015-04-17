@@ -99,6 +99,7 @@ public class SelectLockingStrategy extends AbstractSelectLockingStrategy {
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 
 		}

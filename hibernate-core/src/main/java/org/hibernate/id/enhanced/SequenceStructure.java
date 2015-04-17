@@ -128,6 +128,7 @@ public class SequenceStructure implements DatabaseStructure {
 					}
 					finally {
 						session.getJdbcCoordinator().getResourceRegistry().release( st );
+						session.getJdbcCoordinator().afterStatementExecution();
 					}
 
 				}

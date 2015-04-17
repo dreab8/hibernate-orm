@@ -203,6 +203,7 @@ public class ValidityAuditStrategy implements AuditStrategy {
 										sessionImplementor.getJdbcCoordinator().getResourceRegistry().release(
 												preparedStatement
 										);
+										sessionImplementor.getJdbcCoordinator().afterStatementExecution();
 									}
 								}
 							}

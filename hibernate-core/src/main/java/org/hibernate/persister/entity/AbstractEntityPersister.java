@@ -952,6 +952,7 @@ public abstract class AbstractEntityPersister
 			finally {
 				if ( ps != null ) {
 					session.getJdbcCoordinator().getResourceRegistry().release( ps );
+					session.getJdbcCoordinator().afterStatementExecution();
 				}
 			}
 
@@ -1207,6 +1208,7 @@ public abstract class AbstractEntityPersister
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( ps );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch ( SQLException e ) {
@@ -1258,6 +1260,7 @@ public abstract class AbstractEntityPersister
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( ps );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch ( SQLException e ) {
@@ -1500,6 +1503,7 @@ public abstract class AbstractEntityPersister
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch ( SQLException sqle ) {
@@ -1558,6 +1562,7 @@ public abstract class AbstractEntityPersister
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch ( SQLException e ) {
@@ -2574,6 +2579,7 @@ public abstract class AbstractEntityPersister
 		finally {
 			if ( sequentialSelect != null ) {
 				session.getJdbcCoordinator().getResourceRegistry().release( sequentialSelect );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 	}
@@ -2727,6 +2733,7 @@ public abstract class AbstractEntityPersister
 			finally {
 				if ( !useBatch ) {
 					session.getJdbcCoordinator().getResourceRegistry().release( insert );
+					session.getJdbcCoordinator().afterStatementExecution();
 				}
 			}
 		}
@@ -2885,6 +2892,7 @@ public abstract class AbstractEntityPersister
 			finally {
 				if ( !useBatch ) {
 					session.getJdbcCoordinator().getResourceRegistry().release( update );
+					session.getJdbcCoordinator().afterStatementExecution();
 				}
 			}
 
@@ -3003,6 +3011,7 @@ public abstract class AbstractEntityPersister
 			finally {
 				if ( !useBatch ) {
 					session.getJdbcCoordinator().getResourceRegistry().release( delete );
+					session.getJdbcCoordinator().afterStatementExecution();
 				}
 			}
 
@@ -4477,6 +4486,7 @@ public abstract class AbstractEntityPersister
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( ps );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch( SQLException e ) {
@@ -4590,6 +4600,7 @@ public abstract class AbstractEntityPersister
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( ps );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch ( SQLException e ) {
@@ -4649,6 +4660,7 @@ public abstract class AbstractEntityPersister
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( ps );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch ( SQLException e ) {

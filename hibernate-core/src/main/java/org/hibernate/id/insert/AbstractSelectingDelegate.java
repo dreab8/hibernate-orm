@@ -62,6 +62,7 @@ public abstract class AbstractSelectingDelegate implements InsertGeneratedIdenti
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( insert );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch ( SQLException sqle ) {
@@ -92,6 +93,7 @@ public abstract class AbstractSelectingDelegate implements InsertGeneratedIdenti
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( idSelect );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 
 		}

@@ -115,6 +115,7 @@ public class PessimisticWriteUpdateLockingStrategy implements LockingStrategy {
 				}
 				finally {
 					session.getJdbcCoordinator().getResourceRegistry().release( st );
+					session.getJdbcCoordinator().afterStatementExecution();
 				}
 			}
 			catch ( SQLException e ) {

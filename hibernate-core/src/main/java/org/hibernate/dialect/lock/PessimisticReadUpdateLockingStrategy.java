@@ -116,6 +116,7 @@ public class PessimisticReadUpdateLockingStrategy implements LockingStrategy {
 				}
 				finally {
 					session.getJdbcCoordinator().getResourceRegistry().release( st );
+					session.getJdbcCoordinator().afterStatementExecution();
 				}
 
 			}

@@ -264,6 +264,7 @@ public class DynamicBatchingEntityLoaderBuilder extends BatchingEntityLoaderBuil
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 	}

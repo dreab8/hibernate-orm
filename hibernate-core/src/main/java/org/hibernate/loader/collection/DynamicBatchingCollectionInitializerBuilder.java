@@ -262,6 +262,7 @@ public class DynamicBatchingCollectionInitializerBuilder extends BatchingCollect
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 

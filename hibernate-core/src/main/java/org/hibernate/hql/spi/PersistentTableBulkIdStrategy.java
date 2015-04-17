@@ -281,6 +281,7 @@ public class PersistentTableBulkIdStrategy implements MultiTableBulkIdStrategy {
 				if ( ps != null ) {
 					try {
 						session.getJdbcCoordinator().getResourceRegistry().release( ps );
+						session.getJdbcCoordinator().afterStatementExecution();
 					}
 					catch( Throwable ignore ) {
 						// ignore

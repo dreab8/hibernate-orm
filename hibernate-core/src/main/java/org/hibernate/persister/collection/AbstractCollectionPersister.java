@@ -1225,6 +1225,7 @@ public abstract class AbstractCollectionPersister
 				finally {
 					if ( !useBatch ) {
 						session.getJdbcCoordinator().getResourceRegistry().release( st );
+						session.getJdbcCoordinator().afterStatementExecution();
 					}
 				}
 
@@ -1337,6 +1338,7 @@ public abstract class AbstractCollectionPersister
 						finally {
 							if ( !useBatch ) {
 								session.getJdbcCoordinator().getResourceRegistry().release( st );
+								session.getJdbcCoordinator().afterStatementExecution();
 							}
 						}
 
@@ -1457,6 +1459,7 @@ public abstract class AbstractCollectionPersister
 					finally {
 						if ( !useBatch ) {
 							session.getJdbcCoordinator().getResourceRegistry().release( st );
+							session.getJdbcCoordinator().afterStatementExecution();
 						}
 					}
 
@@ -1569,6 +1572,7 @@ public abstract class AbstractCollectionPersister
 					finally {
 						if ( !useBatch ) {
 							session.getJdbcCoordinator().getResourceRegistry().release( st );
+							session.getJdbcCoordinator().afterStatementExecution();
 						}
 					}
 				}
@@ -1952,6 +1956,7 @@ public abstract class AbstractCollectionPersister
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch ( SQLException sqle ) {
@@ -1996,6 +2001,7 @@ public abstract class AbstractCollectionPersister
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch ( SQLException sqle ) {
@@ -2033,6 +2039,7 @@ public abstract class AbstractCollectionPersister
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch ( SQLException sqle ) {

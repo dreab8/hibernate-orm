@@ -109,6 +109,7 @@ public class DbTimestampType extends TimestampType {
 		finally {
 			if ( ps != null ) {
 				session.getJdbcCoordinator().getResourceRegistry().release( ps );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 	}
@@ -138,6 +139,7 @@ public class DbTimestampType extends TimestampType {
 		finally {
 			if ( cs != null ) {
 				session.getJdbcCoordinator().getResourceRegistry().release( cs );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 	}

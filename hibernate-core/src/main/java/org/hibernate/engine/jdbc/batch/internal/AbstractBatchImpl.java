@@ -173,6 +173,7 @@ public abstract class AbstractBatchImpl implements Batch {
 		for ( PreparedStatement statement : getStatements().values() ) {
 			clearBatch( statement );
 			jdbcCoordinator.getResourceRegistry().release( statement );
+			jdbcCoordinator.afterStatementExecution();
 		}
 		getStatements().clear();
 	}

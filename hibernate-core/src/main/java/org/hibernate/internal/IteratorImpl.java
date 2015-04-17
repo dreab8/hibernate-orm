@@ -86,6 +86,7 @@ public final class IteratorImpl implements HibernateIterator {
 		if (ps!=null) {
 			LOG.debug("Closing iterator");
 			session.getJdbcCoordinator().getResourceRegistry().release( ps );
+			session.getJdbcCoordinator().afterStatementExecution();
 			ps = null;
 			rs = null;
 			hasNext = false;

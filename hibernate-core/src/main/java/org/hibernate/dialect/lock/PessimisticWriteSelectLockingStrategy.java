@@ -100,6 +100,7 @@ public class PessimisticWriteSelectLockingStrategy extends AbstractSelectLocking
 				}
 				finally {
 					session.getJdbcCoordinator().getResourceRegistry().release( st );
+					session.getJdbcCoordinator().afterStatementExecution();
 				}
 			}
 			catch ( SQLException e ) {

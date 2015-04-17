@@ -922,6 +922,7 @@ public abstract class Loader {
 		}
 		finally {
 			session.getJdbcCoordinator().getResourceRegistry().release( st );
+			session.getJdbcCoordinator().afterStatementExecution();
 		}
 
 	}
@@ -1934,10 +1935,12 @@ public abstract class Loader {
 		}
 		catch ( SQLException sqle ) {
 			session.getJdbcCoordinator().getResourceRegistry().release( st );
+			session.getJdbcCoordinator().afterStatementExecution();
 			throw sqle;
 		}
 		catch ( HibernateException he ) {
 			session.getJdbcCoordinator().getResourceRegistry().release( st );
+			session.getJdbcCoordinator().afterStatementExecution();
 			throw he;
 		}
 
@@ -2075,6 +2078,7 @@ public abstract class Loader {
 		}
 		catch ( SQLException sqle ) {
 			session.getJdbcCoordinator().getResourceRegistry().release( st );
+			session.getJdbcCoordinator().afterStatementExecution();
 			throw sqle;
 		}
 	}

@@ -146,6 +146,7 @@ public class TableBasedUpdateHandlerImpl
 				finally {
 					if ( ps != null ) {
 						session.getJdbcCoordinator().getResourceRegistry().release( ps );
+						session.getJdbcCoordinator().afterStatementExecution();
 					}
 				}
 			}
@@ -173,6 +174,7 @@ public class TableBasedUpdateHandlerImpl
 					finally {
 						if ( ps != null ) {
 							session.getJdbcCoordinator().getResourceRegistry().release( ps );
+							session.getJdbcCoordinator().afterStatementExecution();
 						}
 					}
 				}

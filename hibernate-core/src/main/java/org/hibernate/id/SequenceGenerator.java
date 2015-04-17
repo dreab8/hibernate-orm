@@ -135,6 +135,7 @@ public class SequenceGenerator
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 
 		}

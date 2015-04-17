@@ -219,6 +219,8 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 
 	private SessionEventListenerManagerImpl sessionEventsManager = new SessionEventListenerManagerImpl();
 
+	private transient JdbcSessionContext jdbcSessionContext;
+
 	/**
 	 * Constructor used for openSession(...) processing, as well as construction
 	 * of sessions for getCurrentSession().
@@ -259,6 +261,7 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 
 		this.autoCloseSessionEnabled = autoCloseSessionEnabled;
 		this.flushBeforeCompletionEnabled = flushBeforeCompletionEnabled;
+		this.jdbcSessionContext = new JdbcSessionContextImpl( factory, getStatementInspector() );
 
 		if ( transactionCoordinator == null ) {
 			this.isTransactionCoordinatorShared = false;
@@ -2134,10 +2137,12 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 		interceptor = ( Interceptor ) ois.readObject();
 
 		factory = SessionFactoryImpl.deserialize( ois );
+		this.jdbcSessionContext = new JdbcSessionContextImpl( factory, interceptor );
 		sessionOwner = ( SessionOwner ) ois.readObject();
 		Connection connection = getJdbcConnectionAccess().obtainConnection();
 		jdbcCoordinator = new JdbcCoordinatorImpl( connection, this );
 		this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator(jdbcCoordinator);
+
 
 //		transactionCoordinator = TransactionCoordinatorImpl.deserialize( ois, this );
 
@@ -2208,7 +2213,7 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 
 	@Override
 	public JdbcSessionContext getJdbcSessionContext() {
-		return new JdbcSessionContextImpl( factory, getStatementInspector() );
+		return this.jdbcSessionContext;
 	}
 
 	private StatementInspector getStatementInspector() {

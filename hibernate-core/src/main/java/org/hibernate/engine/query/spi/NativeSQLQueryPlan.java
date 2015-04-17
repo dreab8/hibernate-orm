@@ -213,6 +213,7 @@ public class NativeSQLQueryPlan implements Serializable {
 			finally {
 				if ( ps != null ) {
 					session.getJdbcCoordinator().getResourceRegistry().release( ps );
+					session.getJdbcCoordinator().afterStatementExecution();
 				}
 			}
 		}

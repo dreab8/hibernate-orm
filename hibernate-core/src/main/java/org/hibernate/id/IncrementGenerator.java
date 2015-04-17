@@ -141,6 +141,7 @@ public class IncrementGenerator implements IdentifierGenerator, Configurable {
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch (SQLException sqle) {

@@ -71,6 +71,7 @@ public class GUIDGenerator implements IdentifierGenerator {
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
 		catch (SQLException sqle) {

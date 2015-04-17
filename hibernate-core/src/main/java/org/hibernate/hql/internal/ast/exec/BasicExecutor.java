@@ -111,6 +111,7 @@ public class BasicExecutor implements StatementExecutor {
 			finally {
 				if ( st != null ) {
 					session.getJdbcCoordinator().getResourceRegistry().release( st );
+					session.getJdbcCoordinator().afterStatementExecution();
 				}
 			}
 		}

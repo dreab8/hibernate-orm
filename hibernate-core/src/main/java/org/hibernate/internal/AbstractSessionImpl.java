@@ -579,7 +579,6 @@ public abstract class AbstractSessionImpl
 			for ( ConnectionObserver observer : observers ) {
 				observer.physicalConnectionReleased();
 			}
-			observers.clear();
 		}
 
 		@Override

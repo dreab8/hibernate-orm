@@ -117,6 +117,7 @@ public class UpdateLockingStrategy implements LockingStrategy {
 			}
 			finally {
 				session.getJdbcCoordinator().getResourceRegistry().release( st );
+				session.getJdbcCoordinator().afterStatementExecution();
 			}
 
 		}

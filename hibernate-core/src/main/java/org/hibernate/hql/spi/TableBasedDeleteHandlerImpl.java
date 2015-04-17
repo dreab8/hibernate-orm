@@ -146,6 +146,7 @@ public class TableBasedDeleteHandlerImpl
 				finally {
 					if ( ps != null ) {
 						session.getJdbcCoordinator().getResourceRegistry().release( ps );
+						session.getJdbcCoordinator().afterStatementExecution();
 					}
 				}
 			}
@@ -167,6 +168,7 @@ public class TableBasedDeleteHandlerImpl
 					finally {
 						if ( ps != null ) {
 							session.getJdbcCoordinator().getResourceRegistry().release( ps );
+							session.getJdbcCoordinator().afterStatementExecution();
 						}
 					}
 				}
