@@ -93,15 +93,25 @@ public class ResourceRegistryStandardImpl implements ResourceRegistry {
 			}
 		}
 		if ( statement != null ) {
-			release( statement );
+			final Set<ResultSet> resultSets = xref.get( statement );
+			if ( resultSets == null ) {
+				log.unregisteredStatement();
+			}
+			else {
+				resultSets.remove( resultSet );
+				if ( resultSets.isEmpty() ) {
+					xref.remove( statement );
+				}
+			}
 		}
 		else {
 			final boolean removed = unassociatedResultSets.remove( resultSet );
 			if ( !removed ) {
 				log.unregisteredResultSetWithoutStatement();
 			}
-			close( resultSet );
+
 		}
+		close( resultSet );
 	}
 
 	protected void closeAll(Set<ResultSet> resultSets) {

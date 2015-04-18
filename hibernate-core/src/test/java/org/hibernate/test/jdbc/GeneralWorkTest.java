@@ -65,6 +65,7 @@ public class GeneralWorkTest extends BaseCoreFunctionalTestCase {
 						// in this current form, users must handle try/catches themselves for proper resource release
 						Statement statement = null;
 						try {
+							statement = ((SessionImplementor)session).getJdbcCoordinator().getStatementPreparer().createStatement();
 							ResultSet resultSet = null;
 							try {
 								
