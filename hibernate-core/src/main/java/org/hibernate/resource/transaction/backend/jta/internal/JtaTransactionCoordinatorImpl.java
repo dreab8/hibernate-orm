@@ -4,12 +4,16 @@ import javax.transaction.Status;
 import javax.transaction.TransactionManager;
 import javax.transaction.UserTransaction;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jboss.logging.Logger;
 
 import org.hibernate.TransactionException;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
 import org.hibernate.engine.transaction.spi.IsolationDelegate;
+import org.hibernate.engine.transaction.spi.TransactionObserver;
 import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
 import org.hibernate.resource.transaction.SynchronizationRegistry;
 import org.hibernate.resource.transaction.TransactionCoordinator;
@@ -47,6 +51,9 @@ public class JtaTransactionCoordinatorImpl implements TransactionCoordinator, Sy
 	private final SynchronizationRegistryStandardImpl synchronizationRegistry = new SynchronizationRegistryStandardImpl();
 
 	private int timeOut = -1;
+
+	private final transient List<TransactionObserver> observers;
+
 	/**
 	 * Construct a JtaTransactionCoordinatorImpl instance.  package-protected to ensure access goes through
 	 * builder.
@@ -64,6 +71,7 @@ public class JtaTransactionCoordinatorImpl implements TransactionCoordinator, Sy
 			boolean autoJoinTransactions,
 			boolean preferUserTransactions,
 			boolean performJtaThreadTracking) {
+		this.observers = new ArrayList<TransactionObserver>();
 		this.transactionCoordinatorBuilder = transactionCoordinatorBuilder;
 		this.transactionCoordinatorOwner = owner;
 		this.jtaPlatform = jtaPlatform;
@@ -276,6 +284,15 @@ public class JtaTransactionCoordinatorImpl implements TransactionCoordinator, Sy
 		}
 		physicalTransactionDelegate = null;
 		synchronizationRegistered = false;
+	}
+
+	public void addObserver(TransactionObserver observer) {
+		observers.add( observer );
+	}
+
+	@Override
+	public void removeObserver(TransactionObserver observer) {
+		observers.remove( observer );
 	}
 
 

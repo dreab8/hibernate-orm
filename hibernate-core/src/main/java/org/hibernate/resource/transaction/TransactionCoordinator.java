@@ -24,6 +24,7 @@
 package org.hibernate.resource.transaction;
 
 import org.hibernate.engine.transaction.spi.IsolationDelegate;
+import org.hibernate.engine.transaction.spi.TransactionObserver;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
 
 /**
@@ -85,6 +86,24 @@ public interface TransactionCoordinator {
 	 * @return An isolation delegate.
 	 */
 	public IsolationDelegate createIsolationDelegate();
+
+
+	/**
+	 * Adds an observer to the coordinator.
+	 * <p/>
+	 * Unlike synchronizations added to the {@link #getSynchronizationRegistry() registry}, observers are not to be
+	 * cleared on transaction completion.
+	 *
+	 * @param observer The observer to add.
+	 */
+	public void addObserver(TransactionObserver observer);
+
+	/**
+	 * Removed an observer from the coordinator.
+	 *
+	 * @param observer The observer to remove.
+	 */
+	public void removeObserver(TransactionObserver observer);
 
 	/**
 	 *

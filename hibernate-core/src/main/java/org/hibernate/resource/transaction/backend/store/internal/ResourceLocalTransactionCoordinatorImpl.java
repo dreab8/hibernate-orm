@@ -25,8 +25,12 @@ package org.hibernate.resource.transaction.backend.store.internal;
 
 import javax.transaction.Status;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.transaction.spi.IsolationDelegate;
+import org.hibernate.engine.transaction.spi.TransactionObserver;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
 import org.hibernate.resource.transaction.SynchronizationRegistry;
@@ -56,7 +60,10 @@ public class ResourceLocalTransactionCoordinatorImpl implements TransactionCoord
 	private final SynchronizationRegistryStandardImpl synchronizationRegistry = new SynchronizationRegistryStandardImpl();
 
 	private TransactionDriverControlImpl physicalTransactionDelegate;
+
 	private int timeOut = -1;
+
+	private final transient List<TransactionObserver> observers;
 
 	/**
 	 * Construct a ResourceLocalTransactionCoordinatorImpl instance.  package-protected to ensure access goes through
@@ -68,6 +75,7 @@ public class ResourceLocalTransactionCoordinatorImpl implements TransactionCoord
 			TransactionCoordinatorBuilder transactionCoordinatorBuilder,
 			TransactionCoordinatorOwner owner,
 			DataStoreTransactionAccess dataStoreTransactionAccess) {
+		this.observers = new ArrayList<TransactionObserver>();
 		this.transactionCoordinatorBuilder = transactionCoordinatorBuilder;
 		this.dataStoreTransactionAccess = dataStoreTransactionAccess;
 		this.transactionCoordinatorOwner = owner;
@@ -142,6 +150,9 @@ public class ResourceLocalTransactionCoordinatorImpl implements TransactionCoord
 		if(this.timeOut > 0) {
 			transactionCoordinatorOwner.setTransactionTimeOut( this.timeOut );
 		}
+		for ( TransactionObserver observer : observers ) {
+			observer.afterBegin();
+		}
 		log.trace( "ResourceLocalTransactionCoordinatorImpl#afterBeginCallback" );
 	}
 
@@ -149,6 +160,9 @@ public class ResourceLocalTransactionCoordinatorImpl implements TransactionCoord
 		log.trace( "ResourceLocalTransactionCoordinatorImpl#beforeCompletionCallback" );
 		transactionCoordinatorOwner.beforeTransactionCompletion();
 		synchronizationRegistry.notifySynchronizationsBeforeTransactionCompletion();
+		for ( TransactionObserver observer : observers ) {
+			observer.beforeCompletion();
+		}
 	}
 
 	private void afterCompletionCallback(boolean successful) {
@@ -157,7 +171,9 @@ public class ResourceLocalTransactionCoordinatorImpl implements TransactionCoord
 		synchronizationRegistry.notifySynchronizationsAfterTransactionCompletion( statusToSend );
 
 		transactionCoordinatorOwner.afterTransactionCompletion( successful );
-
+		for ( TransactionObserver observer : observers ) {
+			observer.afterCompletion( successful );
+		}
 		invalidateDelegate();
 	}
 
@@ -168,6 +184,15 @@ public class ResourceLocalTransactionCoordinatorImpl implements TransactionCoord
 
 		physicalTransactionDelegate.invalidate();
 		physicalTransactionDelegate = null;
+	}
+
+	public void addObserver(TransactionObserver observer) {
+		observers.add( observer );
+	}
+
+	@Override
+	public void removeObserver(TransactionObserver observer) {
+		observers.remove( observer );
 	}
 
 	/**

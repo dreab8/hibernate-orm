@@ -36,6 +36,7 @@ import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.NClob;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -106,6 +107,7 @@ import org.hibernate.engine.spi.SessionOwner;
 import org.hibernate.engine.spi.Status;
 import org.hibernate.engine.transaction.internal.TransactionImpl;
 import org.hibernate.engine.transaction.internal.jta.JtaStatusHelper;
+import org.hibernate.engine.transaction.spi.TransactionImplementor;
 import org.hibernate.engine.transaction.spi.TransactionObserver;
 import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
@@ -260,6 +262,8 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 		this.actionQueue = new ActionQueue( this );
 		this.persistenceContext = new StatefulPersistenceContext( this );
 
+
+
 		this.autoCloseSessionEnabled = autoCloseSessionEnabled;
 		this.flushBeforeCompletionEnabled = flushBeforeCompletionEnabled;
 		this.jdbcSessionContext = new JdbcSessionContextImpl( factory, getStatementInspector() );
@@ -297,6 +301,37 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 				);
 			}
 			this.connectionReleaseMode = this.jdbcCoordinator.getConnectionReleaseMode();
+
+			transactionObserver = new TransactionObserver() {
+				@Override
+				public void afterBegin() {
+				}
+
+				@Override
+				public void beforeCompletion() {
+					if ( isOpen() && flushBeforeCompletionEnabled ) {
+						SessionImpl.this.managedFlush();
+					}
+					actionQueue.beforeTransactionCompletion();
+					try {
+						interceptor.beforeTransactionCompletion( currentHibernateTransaction );
+					}
+					catch (Throwable t) {
+						LOG.exceptionInBeforeTransactionCompletionInterceptor( t );
+					}
+				}
+
+				@Override
+				public void afterCompletion(boolean successful) {
+					afterTransactionCompletion( successful );
+					if ( isOpen() && autoCloseSessionEnabled ) {
+						managedClose();
+					}
+//					transactionCoordinator.removeObserver( this );
+				}
+			};
+
+			transactionCoordinator.addObserver( transactionObserver );
 		}
 
 		loadQueryInfluencers = new LoadQueryInfluencers( factory );
@@ -2268,8 +2303,7 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 			LOG.exceptionInAfterTransactionCompletionInterceptor( t );
 		}
 
-		if ( shouldAutoClose()
-				&& !isClosed() ) {
+		if ( shouldAutoClose() && !isClosed() ) {
 			managedClose();
 		}
 		else if ( autoClear ) {
@@ -2837,6 +2871,6 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 	@Override
 	public void afterTransactionBegin() {
 		errorIfClosed();
-		interceptor.afterTransactionBegin(currentHibernateTransaction);
+		interceptor.afterTransactionBegin( currentHibernateTransaction );
 	}
 }
