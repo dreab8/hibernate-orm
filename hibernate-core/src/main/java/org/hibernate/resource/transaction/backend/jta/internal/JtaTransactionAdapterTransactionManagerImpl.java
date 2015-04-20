@@ -43,7 +43,8 @@ public class JtaTransactionAdapterTransactionManagerImpl implements JtaTransacti
 
 	private boolean initiator;
 
-	public JtaTransactionAdapterTransactionManagerImpl(TransactionManager transactionManager) {
+	public JtaTransactionAdapterTransactionManagerImpl(TransactionManager transactionManager) throws SystemException {
+		int status = transactionManager.getStatus();
 		this.transactionManager = transactionManager;
 	}
 

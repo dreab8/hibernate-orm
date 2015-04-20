@@ -2255,7 +2255,6 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 		else if ( autoClear ) {
 			internalClear();
 		}
-
 	}
 
 	private static class LobHelperImpl implements LobHelper {

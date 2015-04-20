@@ -28,10 +28,8 @@ import javax.transaction.Synchronization;
 import org.jboss.logging.Logger;
 
 import org.hibernate.HibernateException;
-import org.hibernate.Transaction;
 import org.hibernate.TransactionException;
 import org.hibernate.engine.transaction.spi.IsolationDelegate;
-import org.hibernate.engine.transaction.spi.LocalStatus;
 import org.hibernate.engine.transaction.spi.TransactionImplementor;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.resource.transaction.TransactionCoordinator;
@@ -50,8 +48,6 @@ public class TransactionImpl implements TransactionImplementor {
 
 	private boolean valid = true;
 
-	private LocalStatus localStatus = LocalStatus.NOT_ACTIVE;
-
 	public TransactionImpl(TransactionCoordinator transactionCoordinator) {
 		this.transactionCoordinator = transactionCoordinator;
 		this.transactionDriverControl = transactionCoordinator.getTransactionDriverControl();
@@ -59,25 +55,23 @@ public class TransactionImpl implements TransactionImplementor {
 
 	@Override
 	public void begin() {
+		TransactionStatus status = transactionDriverControl.getStatus();
+
 		if ( !valid ) {
 			throw new TransactionException( "Transaction instance is no longer valid" );
 		}
-		if ( localStatus == LocalStatus.ACTIVE ) {
+		if ( status == TransactionStatus.ACTIVE ) {
 			throw new TransactionException( "nested transactions not supported" );
-		}
-		if ( localStatus != LocalStatus.NOT_ACTIVE ) {
-			throw new TransactionException( "reuse of Transaction instances not supported" );
 		}
 
 		LOG.debug( "begin" );
 		this.transactionDriverControl.begin();
-
-		localStatus = LocalStatus.ACTIVE;
 	}
 
 	@Override
 	public void commit() {
-		if ( localStatus != LocalStatus.ACTIVE ) {
+		TransactionStatus status = transactionDriverControl.getStatus();
+		if ( status != TransactionStatus.ACTIVE ) {
 			throw new TransactionException( "Transaction not successfully started" );
 		}
 
@@ -85,10 +79,8 @@ public class TransactionImpl implements TransactionImplementor {
 
 		try {
 			this.transactionDriverControl.commit();
-			localStatus = LocalStatus.COMMITTED;
 		}
 		catch (Exception e) {
-			localStatus = LocalStatus.FAILED_COMMIT;
 			throw new TransactionException( "commit failed", e );
 		}
 		finally {
@@ -98,12 +90,13 @@ public class TransactionImpl implements TransactionImplementor {
 
 	@Override
 	public void rollback() {
-		if ( localStatus != LocalStatus.ACTIVE && localStatus != LocalStatus.FAILED_COMMIT ) {
+		TransactionStatus status = transactionDriverControl.getStatus();
+		if ( status != TransactionStatus.ACTIVE && status != TransactionStatus.FAILED_COMMIT ) {
 			throw new TransactionException( "Transaction not successfully started" );
 		}
 
 		LOG.debug( "rolling back" );
-		if ( localStatus != LocalStatus.FAILED_COMMIT || allowFailedCommitToPhysicallyRollback() ) {
+		if ( status != TransactionStatus.FAILED_COMMIT || allowFailedCommitToPhysicallyRollback() ) {
 			try {
 				this.transactionDriverControl.rollback();
 			}

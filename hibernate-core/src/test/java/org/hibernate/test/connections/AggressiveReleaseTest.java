@@ -228,7 +228,6 @@ public class AggressiveReleaseTest extends ConnectionManagementTestCase {
 		final Statistics statistics = sessionFactory().getStatistics();
 		prepare();
 		Session s = getSessionUnderTest();
-		s.beginTransaction();
 
 		List<Silly> entities = new ArrayList<Silly>();
 		for ( int i = 0; i < 10; i++ ) {
