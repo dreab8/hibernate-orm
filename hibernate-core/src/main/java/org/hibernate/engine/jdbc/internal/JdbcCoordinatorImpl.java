@@ -84,7 +84,7 @@ public class JdbcCoordinatorImpl implements JdbcCoordinator {
 
 	private transient LogicalConnectionImplementor logicalConnection;
 	private transient JdbcSessionOwner owner;
-	private final transient ConnectionReleaseMode connectionReleaseMode;
+	private final ConnectionReleaseMode connectionReleaseMode;
 
 	private transient Batch currentBatch;
 
@@ -136,6 +136,21 @@ public class JdbcCoordinatorImpl implements JdbcCoordinator {
 				owner.getJdbcSessionContext()
 						.getConnectionReleaseMode()
 		);
+		this.owner = owner;
+		this.exceptionHelper = owner.getJdbcSessionContext()
+				.getServiceRegistry()
+				.getService( JdbcServices.class )
+				.getSqlExceptionHelper();
+	}
+
+	private JdbcCoordinatorImpl(
+			LogicalConnectionImplementor logicalConnection,
+			boolean isUserSuppliedConnection,
+			ConnectionReleaseMode connectionReleaseMode,
+			JdbcSessionOwner owner) {
+		this.logicalConnection = logicalConnection;
+		this.isUserSuppliedConnection = isUserSuppliedConnection;
+		this.connectionReleaseMode = connectionReleaseMode;
 		this.owner = owner;
 		this.exceptionHelper = owner.getJdbcSessionContext()
 				.getServiceRegistry()
@@ -503,5 +518,49 @@ public class JdbcCoordinatorImpl implements JdbcCoordinator {
 		return logicalConnection.getPhysicalJdbcTransaction();
 	}
 
+	/**
+	 * JDK serialization hook
+	 *
+	 * @param oos The stream into which to write our state
+	 *
+	 * @throws IOException Trouble accessing the stream
+	 */
+	public void serialize(ObjectOutputStream oos) throws IOException {
+		if ( ! isReadyForSerialization() ) {
+			throw new HibernateException( "Cannot serialize Session while connected" );
+		}
+		oos.writeBoolean( isUserSuppliedConnection );
+		oos.writeObject( connectionReleaseMode );
+		logicalConnection.serialize( oos );
+	}
 
+	/**
+	 * JDK deserialization hook
+	 *
+	 * @param ois The stream into which to write our state
+	 * @param JdbcSessionOwner The Jdbc Session owner which owns the JdbcCoordinatorImpl to be deserialized.
+	 *
+	 * @return The deserialized JdbcCoordinatorImpl
+	 *
+	 * @throws IOException Trouble accessing the stream
+	 * @throws ClassNotFoundException Trouble reading the stream
+	 */
+	public static JdbcCoordinatorImpl deserialize(
+			ObjectInputStream ois,
+			JdbcSessionOwner owner) throws IOException, ClassNotFoundException {
+		final boolean isUserSuppliedConnection = ois.readBoolean();
+		final ConnectionReleaseMode connectionReleaseMode = (ConnectionReleaseMode) ois.readObject();
+		LogicalConnectionImplementor logicalConnection;
+		if ( isUserSuppliedConnection ) {
+			logicalConnection = LogicalConnectionProvidedImpl.deserialize( ois );
+		}
+		else {
+			logicalConnection = LogicalConnectionManagedImpl.deserialize(
+					ois,
+					owner.getJdbcConnectionAccess(),
+					owner.getJdbcSessionContext()
+			);
+		}
+		return new JdbcCoordinatorImpl( logicalConnection, isUserSuppliedConnection, connectionReleaseMode, owner );
+	}
 }

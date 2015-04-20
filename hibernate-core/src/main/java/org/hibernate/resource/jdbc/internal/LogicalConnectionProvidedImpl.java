@@ -23,10 +23,15 @@
  */
 package org.hibernate.resource.jdbc.internal;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.Connection;
 
+import org.hibernate.engine.jdbc.connections.spi.JdbcConnectionAccess;
 import org.hibernate.resource.jdbc.LogicalConnection;
 import org.hibernate.resource.jdbc.ResourceRegistry;
+import org.hibernate.resource.jdbc.spi.JdbcSessionContext;
 import org.hibernate.resource.jdbc.spi.LogicalConnectionImplementor;
 
 import org.jboss.logging.Logger;
@@ -37,7 +42,7 @@ import org.jboss.logging.Logger;
 public class LogicalConnectionProvidedImpl extends AbstractLogicalConnectionImplementor {
 	private static final Logger log = Logger.getLogger( LogicalConnection.class );
 
-	private Connection providedConnection;
+	private transient Connection providedConnection;
 	private final boolean initiallyAutoCommit;
 	private boolean closed;
 
@@ -53,6 +58,12 @@ public class LogicalConnectionProvidedImpl extends AbstractLogicalConnectionImpl
 
 		this.providedConnection = providedConnection;
 		this.initiallyAutoCommit = determineInitialAutoCommitMode( providedConnection );
+	}
+
+	private LogicalConnectionProvidedImpl(boolean closed, boolean initiallyAutoCommit) {
+		this.resourceRegistry = new ResourceRegistryStandardImpl();
+		this.closed = closed;
+		this.initiallyAutoCommit = initiallyAutoCommit;
 	}
 
 	@Override
@@ -92,6 +103,19 @@ public class LogicalConnectionProvidedImpl extends AbstractLogicalConnectionImpl
 		errorIfClosed();
 
 		return new LogicalConnectionProvidedImpl( providedConnection );
+	}
+
+	@Override
+	public void serialize(ObjectOutputStream oos) throws IOException {
+		oos.writeBoolean( closed );
+		oos.writeBoolean( initiallyAutoCommit );
+	}
+
+	public static LogicalConnectionProvidedImpl deserialize(
+			ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		final boolean isClosed = ois.readBoolean();
+		final boolean initiallyAutoCommit = ois.readBoolean();
+		return new LogicalConnectionProvidedImpl( isClosed, initiallyAutoCommit );
 	}
 
 	@Override

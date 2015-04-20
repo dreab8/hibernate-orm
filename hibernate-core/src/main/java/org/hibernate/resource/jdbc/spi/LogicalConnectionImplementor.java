@@ -23,6 +23,8 @@
  */
 package org.hibernate.resource.jdbc.spi;
 
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.sql.Connection;
 
 import org.hibernate.engine.jdbc.spi.ConnectionObserver;
@@ -72,4 +74,13 @@ public interface LogicalConnectionImplementor extends LogicalConnection {
 	public LogicalConnectionImplementor makeShareableCopy();
 
 	public PhysicalJdbcTransaction getPhysicalJdbcTransaction();
+
+	/**
+	 * Serialization hook
+	 *
+	 * @param oos The stream to write out state to
+	 *
+	 * @throws java.io.IOException Problem accessing stream
+	 */
+	public void serialize(ObjectOutputStream oos) throws IOException;
 }

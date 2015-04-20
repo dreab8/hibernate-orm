@@ -1,5 +1,8 @@
 package org.hibernate.resource.jdbc.internal;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -8,6 +11,7 @@ import org.hibernate.ResourceClosedException;
 import org.hibernate.engine.jdbc.connections.spi.JdbcConnectionAccess;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
+import org.hibernate.engine.transaction.spi.TransactionContext;
 import org.hibernate.resource.jdbc.ResourceRegistry;
 import org.hibernate.resource.jdbc.spi.JdbcObserver;
 import org.hibernate.resource.jdbc.spi.JdbcSessionContext;
@@ -23,12 +27,12 @@ import org.jboss.logging.Logger;
 public class LogicalConnectionManagedImpl extends AbstractLogicalConnectionImplementor {
 	private static final Logger log = Logger.getLogger( LogicalConnectionManagedImpl.class );
 
-	private final JdbcConnectionAccess jdbcConnectionAccess;
-	private final JdbcObserver observer;
-	private final SqlExceptionHelper sqlExceptionHelper;
-	private final ConnectionReleaseMode connectionReleaseMode;
+	private final transient JdbcConnectionAccess jdbcConnectionAccess;
+	private final transient JdbcObserver observer;
+	private final transient SqlExceptionHelper sqlExceptionHelper;
+	private final transient ConnectionReleaseMode connectionReleaseMode;
 
-	private Connection physicalConnection;
+	private transient Connection physicalConnection;
 	private boolean closed;
 
 	public LogicalConnectionManagedImpl(
@@ -59,6 +63,15 @@ public class LogicalConnectionManagedImpl extends AbstractLogicalConnectionImple
 			acquireConnectionIfNeeded();
 		}
 	}
+
+	private LogicalConnectionManagedImpl(
+			JdbcConnectionAccess jdbcConnectionAccess,
+			JdbcSessionContext jdbcSessionContext,
+			boolean closed) {
+		this( jdbcConnectionAccess, jdbcSessionContext, new ResourceRegistryStandardImpl() );
+		this.closed = closed;
+	}
+
 
 	private Connection acquireConnectionIfNeeded() {
 		if ( physicalConnection == null ) {
@@ -168,6 +181,19 @@ public class LogicalConnectionManagedImpl extends AbstractLogicalConnectionImple
 
 		// todo : implement
 		return null;
+	}
+
+	@Override
+	public void serialize(ObjectOutputStream oos) throws IOException {
+		oos.writeBoolean( closed );
+	}
+
+	public static LogicalConnectionManagedImpl deserialize(
+			ObjectInputStream ois,
+			JdbcConnectionAccess jdbcConnectionAccess,
+			JdbcSessionContext jdbcSessionContext) throws IOException, ClassNotFoundException {
+		final boolean isClosed = ois.readBoolean();
+		return new LogicalConnectionManagedImpl( jdbcConnectionAccess, jdbcSessionContext, isClosed );
 	}
 
 	@Override

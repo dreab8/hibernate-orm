@@ -327,7 +327,6 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 					if ( isOpen() && autoCloseSessionEnabled ) {
 						managedClose();
 					}
-//					transactionCoordinator.removeObserver( this );
 				}
 			};
 
@@ -2176,8 +2175,9 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 		factory = SessionFactoryImpl.deserialize( ois );
 		this.jdbcSessionContext = new JdbcSessionContextImpl( factory, interceptor );
 		sessionOwner = (SessionOwner) ois.readObject();
-		Connection connection = getJdbcConnectionAccess().obtainConnection();
-		jdbcCoordinator = new JdbcCoordinatorImpl( connection, this );
+
+		jdbcCoordinator = JdbcCoordinatorImpl.deserialize( ois, this );
+
 		this.transactionCoordinator = getTransactionCoordinatorBuilder().buildTransactionCoordinator( jdbcCoordinator );
 
 		persistenceContext = StatefulPersistenceContext.deserialize( ois, this );
@@ -2220,6 +2220,8 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 
 		factory.serialize( oos );
 		oos.writeObject( sessionOwner );
+
+		jdbcCoordinator.serialize( oos );
 
 		persistenceContext.serialize( oos );
 		actionQueue.serialize( oos );
