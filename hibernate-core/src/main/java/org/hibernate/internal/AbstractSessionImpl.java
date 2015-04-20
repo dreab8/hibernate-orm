@@ -143,7 +143,6 @@ public abstract class AbstractSessionImpl
 	}
 
 	protected void setClosed() {
-		getJdbcCoordinator().close();
 		closed = true;
 	}
 
