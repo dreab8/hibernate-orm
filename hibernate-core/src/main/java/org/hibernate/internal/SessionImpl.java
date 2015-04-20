@@ -24,6 +24,7 @@
 package org.hibernate.internal;
 
 import javax.persistence.EntityNotFoundException;
+import javax.transaction.SystemException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -104,6 +105,7 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionOwner;
 import org.hibernate.engine.spi.Status;
 import org.hibernate.engine.transaction.internal.TransactionImpl;
+import org.hibernate.engine.transaction.internal.jta.JtaStatusHelper;
 import org.hibernate.engine.transaction.spi.TransactionObserver;
 import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
@@ -2217,8 +2219,22 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 
 	@Override
 	public void beforeTransactionCompletion() {
-		boolean flush = !isFlushModeNever() &&
-				!flushBeforeCompletionEnabled;
+		boolean flush = false;
+		try {
+			flush = (!isFlushModeNever() &&
+					!flushBeforeCompletionEnabled) || (
+					!isClosed()
+							&& !isFlushModeNever()
+							&& flushBeforeCompletionEnabled
+							&& !JtaStatusHelper.isRollback(
+							getSessionFactory().getSettings()
+									.getJtaPlatform()
+									.getCurrentStatus()
+					));
+		}
+		catch (SystemException se) {
+			throw new HibernateException( "could not determine transaction status in beforeCompletion()", se );
+		}
 		if ( flush ) {
 			managedFlush();
 		}
@@ -2240,6 +2256,10 @@ public final class SessionImpl extends AbstractSessionImpl implements EventSourc
 		actionQueue.afterTransactionCompletion( successful );
 
 		getEventListenerManager().transactionCompletion( successful );
+
+		if ( factory.getStatistics().isStatisticsEnabled() ) {
+			factory.getStatisticsImplementor().endTransaction( successful );
+		}
 
 		try {
 			interceptor.afterTransactionCompletion( currentHibernateTransaction );

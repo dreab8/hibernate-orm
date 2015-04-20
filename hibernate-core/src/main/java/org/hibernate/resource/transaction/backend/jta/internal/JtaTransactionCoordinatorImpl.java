@@ -111,7 +111,6 @@ public class JtaTransactionCoordinatorImpl implements TransactionCoordinator, Sy
 	private void joinJtaTransaction() {
 		if ( synchronizationRegistered ) {
 			return;
-//			throw new TransactionException( "Hibernate RegisteredSynchronization is already registered for this coordinator" );
 		}
 
 		jtaPlatform.registerSynchronization( new RegisteredSynchronization( getSynchronizationCallbackCoordinator() ) );
