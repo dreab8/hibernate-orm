@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <Package name="org.hibernate.hql.internal.antlr.*" />
+    </Match>
+    <Match>
+        <Package name="org.hibernate.boot.jaxb.cfg.spi.*" />
+    </Match>
+    <Match>
+        <Class name="~org\.hibernate\.cfg\..*" />
+    </Match>
+    <Match>
+        <Class name="~org.hibernate.sql.ordering.antlr.Generated*.*" />
+    </Match>
+    <Match>
+        <Class name="~org.hibernate.sql.ordering.antlr.OrderByTemplateTokenTypes.*" />
+    </Match>
+    <Match>
+        <Class name="~org.hibernate.boot.jaxb.hbm.spi.Jaxb*.*" />
+    </Match>
+    <Match>
+        <Class name="~org.hibernate.boot.jaxb.hbm.spi.Adapter*.*" />
+    </Match>
+    <Match>
+        <Class name="~org.hibernate.boot.jaxb.hbm.spi.ObjectFactory.java" />
+    </Match>
+    <Match>
+        <Class name="~.*\_\$logger.*" />
+    </Match>
+</FindBugsFilter>
