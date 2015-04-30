@@ -27,4 +27,16 @@
     <Match>
         <Class name="~.*\_\$logger.*" />
     </Match>
+    <Match>
+        <!-- to show the DM_CONVERT_CASE we set the reportLevel = 'low',
+                this filter removes all the reported bugs introduced
+                    by this settings except for the DM_CONVERT_CASE -->
+        <Or>
+            <Confidence value="3"/>
+        </Or>
+
+        <Not>
+            <Bug pattern="DM_CONVERT_CASE"/>
+        </Not>
+    </Match>
 </FindBugsFilter>
