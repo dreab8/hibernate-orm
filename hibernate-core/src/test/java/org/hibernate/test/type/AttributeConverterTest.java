@@ -472,6 +472,7 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 
 	@Entity
 	@SuppressWarnings("UnusedDeclaration")
+	@Table(name="IRRELEVANT_INSTANT_ENTITY")
 	public static class IrrelevantInstantEntity {
 		@Id
 		private Long id;

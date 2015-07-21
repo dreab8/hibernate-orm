@@ -6,6 +6,7 @@
  */
 package org.hibernate.test.annotations.lob;
 
+import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.Oracle10gDialect;
 import org.hibernate.id.SequenceIdentityGenerator;
 
@@ -17,4 +18,15 @@ public class OracleSeqIdGenDialect extends Oracle10gDialect {
 	public Class<?> getNativeIdentifierGeneratorClass() {
 		return SequenceIdentityGenerator.class;
 	}
+
+	@Override
+	public boolean supportsIdentityColumns() {
+		return true;
+	}
+
+	protected void registerDefaultProperties() {
+		super.registerDefaultProperties();
+		getDefaultProperties().setProperty( Environment.USE_GET_GENERATED_KEYS, "true" );
+	}
+
 }
