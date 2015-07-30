@@ -22,6 +22,7 @@ import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.tool.hbm2ddl.SchemaValidator;
 import org.hibernate.tool.schema.internal.TargetDatabaseImpl;
+import org.hibernate.tool.schema.spi.SchemaManagementException;
 import org.hibernate.tool.schema.spi.SchemaManagementTool;
 import org.hibernate.tool.schema.spi.Target;
 
@@ -62,8 +63,16 @@ public class TableGeneratorQuotingTest extends BaseUnitTestCase {
 		final ConnectionProvider connectionProvider = serviceRegistry.getService( ConnectionProvider.class );
 		final Target target = new TargetDatabaseImpl( new JdbcConnectionAccessImpl( connectionProvider ) );
 		final SchemaManagementTool tool = serviceRegistry.getService( SchemaManagementTool.class );
-
-		tool.getSchemaDropper( null ).doDrop( metadata, false, target );
+		try {
+			tool.getSchemaDropper( null ).doDrop( metadata, false, target );
+		}
+		catch (SchemaManagementException sme) {
+			if ( metadata.getDatabase().getDialect().supportsIfExistsBeforeTableName() || metadata.getDatabase()
+					.getDialect()
+					.supportsIfExistsAfterConstraintName() ) {
+				throw sme;
+			}
+		}
 		tool.getSchemaCreator( null ).doCreation( metadata, false, target );
 
 		try {
