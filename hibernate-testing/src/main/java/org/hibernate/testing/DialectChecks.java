@@ -165,4 +165,14 @@ abstract public class DialectChecks {
 			return '\"' == dialect.openQuote() && '\"' == dialect.closeQuote();
 		}
 	}
+
+	public static class CanCreateSchema implements DialectCheck {
+		@Override
+		public boolean isMatch(Dialect dialect) { return dialect.canCreateSchema(); }
+	}
+
+	public static class CanCreateCatalog implements DialectCheck {
+		@Override
+		public boolean isMatch(Dialect dialect) { return dialect.canCreateCatalog(); }
+	}
 }
