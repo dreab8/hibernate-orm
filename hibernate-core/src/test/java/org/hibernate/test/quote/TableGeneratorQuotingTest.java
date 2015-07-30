@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 import org.hibernate.HibernateException;
 import org.hibernate.boot.Metadata;
@@ -77,6 +78,7 @@ public class TableGeneratorQuotingTest extends BaseUnitTestCase {
 	}
 
 	@Entity
+	@Table(name = "test_entity")
 	private static class TestEntity {
 		@Id
 		@GeneratedValue(strategy = GenerationType.TABLE)
