@@ -17,7 +17,7 @@
     	</id>
         <property name="name" />
         <component name="component" class="ComponentOwner$Component">
-            <property name="generated" type="int" generated="always" column="GENED"/>
+            <property name="generated" type="int" generated="always" update="false" insert="false" column="GENED"/>
         </component>
 	</class>
 
