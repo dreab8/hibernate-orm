@@ -382,6 +382,11 @@ public class Oracle8iDialect extends Dialect {
 	}
 
 	@Override
+	public boolean canCreateSchema() {
+		return false;
+	}
+
+	@Override
 	public String getDropSequenceString(String sequenceName) {
 		return "drop sequence " + sequenceName;
 	}
