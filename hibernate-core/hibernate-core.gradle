@@ -16,7 +16,6 @@ dependencies {
     compile( libraries.antlr )
     compile( libraries.jandex )
     compile( libraries.classmate )
-    compile( libraries.jta )
 
     // We need dom4j for a number of things temporarily:
     //      1) (unsupported) EntityMode.DOM4J support
@@ -30,6 +29,7 @@ dependencies {
     provided( libraries.ant )
     provided( libraries.jacc )
     provided( libraries.validation )
+    provided( libraries.jta )
 
     testCompile( project(':hibernate-testing') )
     testCompile( libraries.validation )

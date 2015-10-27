@@ -62,6 +62,8 @@ dependencies {
 		exclude group: 'org.eclipse', module: 'org.eclipse.osgi'
 	}
 
+	testCompile libraries.jta
+
 	karafDistro "org.apache.karaf:apache-karaf:${karafVersion}@tar.gz"
 }
 
