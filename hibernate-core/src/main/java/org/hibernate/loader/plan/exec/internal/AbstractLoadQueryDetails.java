@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.internal.util.StringHelper;
 import org.hibernate.loader.plan.build.spi.LoadPlanTreePrinter;
 import org.hibernate.loader.plan.exec.process.internal.ResultSetProcessorImpl;
 import org.hibernate.loader.plan.exec.process.spi.CollectionReferenceInitializer;
@@ -28,6 +29,7 @@ import org.hibernate.loader.plan.spi.Return;
 import org.hibernate.sql.ConditionFragment;
 import org.hibernate.sql.DisjunctionFragment;
 import org.hibernate.sql.InFragment;
+import org.hibernate.sql.Template;
 
 /**
  * @author Gail Badner
@@ -187,26 +189,32 @@ public abstract class AbstractLoadQueryDetails implements LoadQueryDetails {
 	protected abstract void applyRootReturnFilterRestrictions(SelectStatementBuilder selectStatementBuilder);
 	protected abstract void applyRootReturnWhereJoinRestrictions(SelectStatementBuilder selectStatementBuilder);
 	protected abstract void applyRootReturnOrderByFragments(SelectStatementBuilder selectStatementBuilder);
+	protected abstract String[] getRootKeyColumnReaderTemplates();
 
-
-		private static void applyKeyRestriction(SelectStatementBuilder select, String alias, String[] keyColumnNames, int batchSize) {
+	private void applyKeyRestriction(SelectStatementBuilder select, String alias, String[] keyColumnNames, int batchSize) {
 		if ( keyColumnNames.length==1 ) {
 			// NOT A COMPOSITE KEY
 			// 		for batching, use "foo in (?, ?, ?)" for batching
 			//		for no batching, use "foo = ?"
 			// (that distinction is handled inside InFragment)
 			final InFragment in = new InFragment().setColumn( alias, keyColumnNames[0] );
+			String[] rootKeyColumnReaderTemplates = getRootKeyColumnReaderTemplates();
+			if( rootKeyColumnReaderTemplates.length > 0 && rootKeyColumnReaderTemplates[0] != null)
+			in.setFormula( alias, rootKeyColumnReaderTemplates[0] );
 			for ( int i = 0; i < batchSize; i++ ) {
 				in.addValue( "?" );
 			}
 			select.appendRestrictions( in.toFragmentString() );
 		}
 		else {
-			// A COMPOSITE KEY...
-			final ConditionFragment keyRestrictionBuilder = new ConditionFragment()
-					.setTableAlias( alias )
-					.setCondition( keyColumnNames, "?" );
-			final String keyRestrictionFragment = keyRestrictionBuilder.toFragmentString();
+			final String keyRestrictionFragment = new StringBuilder()
+					.append(
+							StringHelper.join(
+									"=? and ",
+									getAliasedRootTableKeyColumns( alias )
+							)
+					)
+					.append( "=?" ).toString();
 
 			StringBuilder restrictions = new StringBuilder();
 			if ( batchSize==1 ) {
@@ -268,5 +276,30 @@ public abstract class AbstractLoadQueryDetails implements LoadQueryDetails {
 		public List<CollectionReferenceInitializer> getNonArrayCollectionReferenceInitializers() {
 			return collectionReferenceInitializers;
 		}
+	}
+
+	public String[] getAliasedRootTableKeyColumns(String tableAlias) {
+		final String[] aliases = new String[keyColumnNames.length];
+		final String[] rootKeyColumnReaderTemplates = getRootKeyColumnReaderTemplates();
+		if(rootKeyColumnReaderTemplates.length == 0){
+			for ( int i = 0; i < aliases.length; i++ ) {
+				aliases[i] = tableAlias + "." +  keyColumnNames[i];
+			}
+			return aliases;
+		}
+		for ( int i = 0; i < aliases.length; i++ ) {
+			if ( getRootKeyColumnReaderTemplates()[i] != null ) {
+				aliases[i] = StringHelper.replace(
+						getRootKeyColumnReaderTemplates()[i],
+						Template.TEMPLATE,
+						tableAlias
+				);
+			}
+			else {
+				aliases[i] = tableAlias + "." +  keyColumnNames[i];
+			}
+		}
+
+		return aliases;
 	}
 }

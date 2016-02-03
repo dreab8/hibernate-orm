@@ -30,6 +30,7 @@ import org.hibernate.loader.plan.exec.spi.EntityReferenceAliases;
 import org.hibernate.loader.plan.spi.EntityReturn;
 import org.hibernate.loader.plan.spi.LoadPlan;
 import org.hibernate.loader.plan.spi.QuerySpace;
+import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
 import org.hibernate.persister.entity.OuterJoinLoadable;
@@ -89,8 +90,17 @@ public class EntityLoadQueryDetails extends AbstractLoadQueryDetails {
 		generate();
 	}
 
+	@Override
+	protected String[] getRootKeyColumnReaderTemplates() {
+		return getEntityPersister().getIdentifierColumnReaderTemplates();
+	}
+
 	private EntityReturn getRootEntityReturn() {
 		return (EntityReturn) getRootReturn();
+	}
+
+	private AbstractEntityPersister getEntityPersister() {
+		return (AbstractEntityPersister) getRootEntityReturn().getEntityPersister();
 	}
 
 	/**

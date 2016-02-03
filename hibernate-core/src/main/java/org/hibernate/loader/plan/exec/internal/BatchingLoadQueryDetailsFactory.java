@@ -13,6 +13,7 @@ import org.hibernate.loader.plan.spi.CollectionReturn;
 import org.hibernate.loader.plan.spi.EntityReturn;
 import org.hibernate.loader.plan.spi.LoadPlan;
 import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.Queryable;
 
 /**
@@ -50,7 +51,6 @@ public class BatchingLoadQueryDetailsFactory {
 		// TODO: how should shouldUseOptionalEntityInformation be used?
 		// final int batchSize = buildingParameters.getBatchSize();
 		// final boolean shouldUseOptionalEntityInformation = batchSize == 1;
-
 		final EntityReturn rootReturn = RootHelper.INSTANCE.extractRootReturn( loadPlan, EntityReturn.class );
 		final String[] keyColumnNamesToUse = keyColumnNames != null
 				? keyColumnNames

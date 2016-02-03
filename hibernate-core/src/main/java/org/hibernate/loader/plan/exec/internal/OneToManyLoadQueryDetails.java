@@ -10,10 +10,10 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.loader.plan.exec.query.internal.SelectStatementBuilder;
 import org.hibernate.loader.plan.exec.query.spi.QueryBuildingParameters;
 import org.hibernate.loader.plan.exec.spi.EntityReferenceAliases;
-import org.hibernate.loader.plan.exec.spi.LoadQueryDetails;
 import org.hibernate.loader.plan.spi.CollectionReturn;
 import org.hibernate.loader.plan.spi.EntityReference;
 import org.hibernate.loader.plan.spi.LoadPlan;
+import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.OuterJoinLoadable;
 
 /**
@@ -79,6 +79,11 @@ public class OneToManyLoadQueryDetails extends AbstractCollectionLoadQueryDetail
 				elementOuterJoinLoadable.fromTableFragment( tableAlias ) +
 						elementOuterJoinLoadable.fromJoinFragment( tableAlias, true, true);
 		selectStatementBuilder.appendFromClauseFragment( fragment );
+	}
+
+	@Override
+	protected String[] getRootKeyColumnReaderTemplates() {
+		return new String[0];
 	}
 
 	private EntityReference getElementEntityReference() {

@@ -10,8 +10,11 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.loader.plan.exec.query.internal.SelectStatementBuilder;
 import org.hibernate.loader.plan.exec.query.spi.QueryBuildingParameters;
+import org.hibernate.loader.plan.spi.CollectionReference;
 import org.hibernate.loader.plan.spi.CollectionReturn;
 import org.hibernate.loader.plan.spi.LoadPlan;
+import org.hibernate.persister.collection.AbstractCollectionPersister;
+import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.persister.entity.OuterJoinLoadable;
 
 /**
@@ -87,4 +90,12 @@ public class BasicCollectionLoadQueryDetails extends AbstractCollectionLoadQuery
 		super.applyRootReturnOrderByFragments( selectStatementBuilder );
 	}
 
+	@Override
+	protected String[] getRootKeyColumnReaderTemplates() {
+		return new String[0];
+	}
+
+	private AbstractCollectionPersister getCollectionPersister() {
+		return (AbstractCollectionPersister) ((CollectionReference) getRootReturn()).getCollectionPersister();
+	}
 }

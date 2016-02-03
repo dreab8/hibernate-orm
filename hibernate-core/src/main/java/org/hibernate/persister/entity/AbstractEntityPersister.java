@@ -79,7 +79,6 @@ import org.hibernate.id.insert.InsertGeneratedIdentifierDelegate;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.FilterHelper;
-import org.hibernate.internal.SessionImpl;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.internal.util.collections.ArrayHelper;
 import org.hibernate.jdbc.Expectation;
@@ -1237,13 +1236,19 @@ public abstract class AbstractEntityPersister
 	}
 
 	public String identifierSelectFragment(String name, String suffix) {
-		return new SelectFragment()
-				.setSuffix( suffix )
-				.addColumns( name, getIdentifierColumnNames(), getIdentifierAliases() )
-				.toFragmentString()
+		final SelectFragment selectFragment = new SelectFragment()
+				.setSuffix( suffix );
+		for ( int i = 0; i < getIdentifierColumnNames().length; i++ ) {
+			if ( getIdentifierColumnReaderTemplates()[i] != null ) {
+				selectFragment.addColumnTemplate( name, getIdentifierColumnReaderTemplates()[i], getIdentifierAliases()[i] );
+			}
+			else {
+				selectFragment.addColumn( name, getIdentifierColumnNames()[i], getIdentifierAliases()[i] );
+			}
+		}
+		return selectFragment.toFragmentString()
 				.substring( 2 ); //strip leading ", "
 	}
-
 
 	public String propertySelectFragment(String tableAlias, String suffix, boolean allProperties) {
 		return propertySelectFragmentFragment( tableAlias, suffix, allProperties ).toFragmentString();
@@ -1574,6 +1579,24 @@ public abstract class AbstractEntityPersister
 		return frag.toFragmentString();
 	}
 
+	public String[] getAliasedRootTableKeyColumns(String tableAlias) {
+		String[] aliases = new String[getIdentifierAliases().length];
+		for ( int i = 0; i < aliases.length; i++ ) {
+			if ( getIdentifierColumnReaderTemplates()[i] != null ) {
+				aliases[i] = StringHelper.replace(
+						getIdentifierColumnReaderTemplates()[i],
+						Template.TEMPLATE,
+						tableAlias
+				);
+			}
+			else {
+				aliases[i] = tableAlias;
+			}
+		}
+
+		return aliases;
+	}
+
 	protected String generateSnapshotSelectString() {
 
 		//TODO: should we use SELECT .. FOR UPDATE?
@@ -1584,8 +1607,9 @@ public abstract class AbstractEntityPersister
 			select.setComment( "get current state " + getEntityName() );
 		}
 
-		String[] aliasedIdColumns = StringHelper.qualify( getRootAlias(), getIdentifierColumnNames() );
-		String selectClause = StringHelper.join( ", ", aliasedIdColumns ) +
+		String[] aliasedIdColumns = getAliasedRootTableKeyColumns( generateTableAlias( getRootAlias(), 0 ) );
+
+		String selectClause = StringHelper.join(",", aliasedIdColumns) +
 				concretePropertySelectFragment( getRootAlias(), getPropertyUpdateability() );
 
 		String fromClause = fromTableFragment( getRootAlias() ) +
@@ -3988,6 +4012,7 @@ public abstract class AbstractEntityPersister
 		}
 
 		final UniqueEntityLoader loader = getAppropriateLoader( lockOptions, session );
+
 		return loader.load( id, optionalObject, session, lockOptions );
 	}
 

@@ -163,6 +163,7 @@ public abstract class AbstractCollectionPersister
 	protected final String[] indexColumnAliases;
 	protected final String[] elementColumnAliases;
 	protected final String[] keyColumnAliases;
+	private String[] keyColumnReaderTemplates;
 
 	protected final String identifierColumnName;
 	private final String identifierColumnAlias;
@@ -298,11 +299,13 @@ public abstract class AbstractCollectionPersister
 		int keySpan = collectionBinding.getKey().getColumnSpan();
 		keyColumnNames = new String[keySpan];
 		keyColumnAliases = new String[keySpan];
+		keyColumnReaderTemplates = new String[keySpan];
 		int k = 0;
 		while ( iter.hasNext() ) {
 			// NativeSQL: collect key column and auto-aliases
 			Column col = ( (Column) iter.next() );
 			keyColumnNames[k] = col.getQuotedName( dialect );
+			keyColumnReaderTemplates[k] = col.getTemplate( dialect,factory.getSqlFunctionRegistry() );
 			keyColumnAliases[k] = col.getAlias( dialect, table );
 			k++;
 		}
@@ -2231,5 +2234,27 @@ public abstract class AbstractCollectionPersister
 				};
 			}
 		};
+	}
+
+	public String[] getIdentifierColumnReaderTemplates(){
+		return keyColumnReaderTemplates;
+	}
+
+	public String[] getAliasedRootTableKeyColumns(String tableAlias) {
+		String[] aliases = new String[keyColumnAliases.length];
+		for ( int i = 0; i < keyColumnAliases.length; i++ ) {
+			if ( keyColumnReaderTemplates[i] != null ) {
+				aliases[i] = StringHelper.replace(
+						keyColumnReaderTemplates[i],
+						Template.TEMPLATE,
+						tableAlias
+				);
+			}
+			else {
+				aliases[i] = tableAlias;
+			}
+		}
+
+		return aliases;
 	}
 }
