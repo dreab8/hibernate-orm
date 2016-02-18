@@ -70,6 +70,8 @@ public class ConcatExpression extends ExpressionImpl<String> implements Serializ
 	}
 
 	public String renderProjection(RenderingContext renderingContext) {
-		return render( renderingContext );
+		return ((Renderable) getString1()).renderProjection( renderingContext )
+				+ " || "
+				+ ((Renderable) getString2()).renderProjection( renderingContext );
 	}
 }

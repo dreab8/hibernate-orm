@@ -78,6 +78,13 @@ public class CoalesceExpression<T> extends ExpressionImpl<T> implements Coalesce
 	}
 
 	public String renderProjection(RenderingContext renderingContext) {
-		return render( renderingContext );
+		StringBuilder buffer = new StringBuilder( "coalesce(" );
+		String sep = "";
+		for ( Expression expression : getExpressions() ) {
+			buffer.append( sep )
+					.append( ((Renderable) expression).renderProjection( renderingContext ) );
+			sep = ", ";
+		}
+		return buffer.append( ")" ).toString();
 	}
 }

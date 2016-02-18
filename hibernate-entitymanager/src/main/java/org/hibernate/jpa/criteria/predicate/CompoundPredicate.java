@@ -115,13 +115,18 @@ public class CompoundPredicate
 		return render( this, renderingContext );
 	}
 
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		return render( this, renderingContext, true);
+	}
+
 	private String operatorTextWithSeparator() {
 		return operatorTextWithSeparator( this.getOperator() );
 	}
 
 	@Override
 	public String renderProjection(RenderingContext renderingContext) {
-		return render( renderingContext );
+		return render( this, renderingContext, true );
 	}
 
 	/**
@@ -145,6 +150,14 @@ public class CompoundPredicate
 	}
 
 	public static String render(PredicateImplementor predicate, RenderingContext renderingContext) {
+		return render( predicate, renderingContext, false );
+	}
+
+	public static String renderProjection(PredicateImplementor predicate, RenderingContext renderingContext) {
+		return render( predicate, renderingContext, true );
+	}
+
+	private static String render(PredicateImplementor predicate, RenderingContext renderingContext, boolean isInsideAProjection) {
 		if ( ! predicate.isJunction() ) {
 			throw new IllegalStateException( "CompoundPredicate.render should only be used to render junctions" );
 		}
@@ -160,16 +173,29 @@ public class CompoundPredicate
 
 		// single valued junction ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		if ( predicate.getExpressions().size() == 1 ) {
-			return ( (Renderable) predicate.getExpressions().get( 0 ) ).render( renderingContext );
+			if(isInsideAProjection) {
+				return ((Renderable) predicate.getExpressions().get( 0 )).renderProjection( renderingContext );
+			}else {
+				return ((Renderable) predicate.getExpressions().get( 0 )).render( renderingContext );
+			}
 		}
 
 		final StringBuilder buffer = new StringBuilder();
 		String sep = "";
 		for ( Expression expression : predicate.getExpressions() ) {
-			buffer.append( sep )
-					.append( "( " )
-					.append( ( (Renderable) expression ).render( renderingContext ) )
-					.append( " )" );
+			String rendered;
+			if ( isInsideAProjection ) {
+				buffer.append( sep )
+						.append( "( " )
+						.append( ((Renderable) expression).renderProjection( renderingContext ) )
+						.append( " )" );
+			}
+			else {
+				buffer.append( sep )
+						.append( "( " )
+						.append( ((Renderable) expression).render( renderingContext ) )
+						.append( " )" );
+			}
 			sep = operatorTextWithSeparator( predicate.getOperator() );
 		}
 		return buffer.toString();

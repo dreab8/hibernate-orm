@@ -43,4 +43,6 @@ public interface PredicateImplementor extends Predicate, Renderable {
 	 * @return The rendered predicate fragment.
 	 */
 	public String render(boolean isNegated, RenderingContext renderingContext);
+
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext);
 }

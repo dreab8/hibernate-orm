@@ -45,6 +45,6 @@ public class SizeOfCollectionExpression<C extends Collection>
 	}
 
 	public String renderProjection(RenderingContext renderingContext) {
-		return render( renderingContext );
+		return "size(" + getCollectionPath().renderProjection( renderingContext ) + ")";
 	}
 }

@@ -99,12 +99,22 @@ public class NegatedPredicateWrapper extends ExpressionImpl<Boolean> implements 
 	}
 
 	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		if ( isJunction() ) {
+			return CompoundPredicate.renderProjection( this, renderingContext );
+		}
+		else {
+			return predicate.renderProjection( isNegated, renderingContext );
+		}
+	}
+
+	@Override
 	public String render(RenderingContext renderingContext) {
 		return render( isNegated(), renderingContext );
 	}
 
 	@Override
 	public String renderProjection(RenderingContext renderingContext) {
-		return render( renderingContext );
+		return renderProjection( isNegated(), renderingContext );
 	}
 }

@@ -78,4 +78,14 @@ public class BetweenPredicate<Y>
 				+ " and "
 				+ ( (Renderable) getUpperBound() ).render( renderingContext );
 	}
+
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		final String operator = isNegated ? " not between " : " between ";
+		return ((Renderable) getExpression()).renderProjection( renderingContext )
+				+ operator
+				+ ((Renderable) getLowerBound()).renderProjection( renderingContext )
+				+ " and "
+				+ ((Renderable) getUpperBound()).renderProjection( renderingContext );
+	}
 }

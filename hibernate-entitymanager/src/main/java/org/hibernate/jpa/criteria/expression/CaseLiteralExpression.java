@@ -7,6 +7,7 @@
 package org.hibernate.jpa.criteria.expression;
 
 import org.hibernate.jpa.criteria.CriteriaBuilderImpl;
+import org.hibernate.jpa.criteria.ValueHandlerFactory;
 import org.hibernate.jpa.criteria.compile.RenderingContext;
 import org.hibernate.jpa.criteria.expression.function.CastFunction;
 
@@ -24,7 +25,8 @@ public class CaseLiteralExpression<T> extends LiteralExpression<T> {
 		// There's no need to cast a boolean value and it actually breaks on
 		// MySQL and MariaDB because they don't support casting to bit.
 		// Skip the cast for a boolean literal.
-		if ( getJavaType() == Boolean.class && Boolean.class.isInstance( getLiteral() ) ) {
+		if ( (getJavaType() == Boolean.class && Boolean.class.isInstance( getLiteral() )) ||
+				ValueHandlerFactory.isNumeric( getLiteral() ) ) {
 			return super.render( renderingContext );
 		}
 

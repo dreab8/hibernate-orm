@@ -171,4 +171,11 @@ public class ComparisonPredicate
 				+ getComparisonOperator( isNegated ).rendered()
 				+ ( (Renderable) getRightHandOperand() ).render( renderingContext );
 	}
+
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		return ((Renderable) getLeftHandOperand()).renderProjection( renderingContext )
+				+ getComparisonOperator( isNegated ).rendered()
+				+ ((Renderable) getRightHandOperand()).renderProjection( renderingContext );
+	}
 }

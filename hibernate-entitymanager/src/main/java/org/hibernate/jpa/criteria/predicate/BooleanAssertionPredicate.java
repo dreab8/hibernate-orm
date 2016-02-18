@@ -61,4 +61,14 @@ public class BooleanAssertionPredicate
 				+ operator
 				+ assertionLiteral;
 	}
+
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		final String operator = isNegated ? " <> " : " = ";
+		final String assertionLiteral = assertedValue ? "true" : "false";
+
+		return ((Renderable) expression).renderProjection( renderingContext )
+				+ operator
+				+ assertionLiteral;
+	}
 }

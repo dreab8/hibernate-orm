@@ -57,6 +57,11 @@ public class NullnessPredicate
 		return ( (Renderable) operand ).render( renderingContext ) + check( isNegated );
 	}
 
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		return ((Renderable) operand).renderProjection( renderingContext ) + check( isNegated );
+	}
+
 	private String check(boolean negated) {
 		return negated ? " is not null" : " is null";
 	}

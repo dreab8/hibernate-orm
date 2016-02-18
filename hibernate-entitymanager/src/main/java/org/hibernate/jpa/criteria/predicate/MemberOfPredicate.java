@@ -69,4 +69,11 @@ public class MemberOfPredicate<E, C extends Collection<E>>
 				+ ( isNegated ? " not" : "" ) + " member of "
 				+ getCollectionPath().render( renderingContext );
 	}
+
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		return ((Renderable) elementExpression).renderProjection( renderingContext )
+				+ (isNegated ? " not" : "") + " member of "
+				+ getCollectionPath().renderProjection( renderingContext );
+	}
 }

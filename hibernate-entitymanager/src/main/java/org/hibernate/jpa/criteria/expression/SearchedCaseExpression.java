@@ -128,6 +128,16 @@ public class SearchedCaseExpression<R>
 	}
 
 	public String renderProjection(RenderingContext renderingContext) {
-		return render( renderingContext );
+		StringBuilder caseStatement = new StringBuilder( "case" );
+		for ( WhenClause whenClause : getWhenClauses() ) {
+			caseStatement.append( " when " )
+					.append( ((Renderable) whenClause.getCondition()).renderProjection( renderingContext ) )
+					.append( " then " )
+					.append( ((Renderable) whenClause.getResult()).renderProjection( renderingContext ) );
+		}
+		caseStatement.append( " else " )
+				.append( ((Renderable) getOtherwiseResult()).renderProjection( renderingContext ) )
+				.append( " end" );
+		return caseStatement.toString();
 	}
 }

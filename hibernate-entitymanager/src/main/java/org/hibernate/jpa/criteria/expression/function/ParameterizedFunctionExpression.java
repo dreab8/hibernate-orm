@@ -108,10 +108,35 @@ public class ParameterizedFunctionExpression<X>
 		return buffer.toString();
 	}
 
+	@Override
+	public String renderProjection(RenderingContext renderingContext) {
+		StringBuilder buffer = new StringBuilder();
+		if ( isStandardJpaFunction() ) {
+			buffer.append( getFunctionName() )
+					.append( "(" );
+		}
+		else {
+			buffer.append( "function('" )
+					.append( getFunctionName() )
+					.append( "', " );
+		}
+		renderProjectionArguments( buffer, renderingContext );
+		buffer.append( ')' );
+		return buffer.toString();
+	}
+
 	protected void renderArguments(StringBuilder buffer, RenderingContext renderingContext) {
 		String sep = "";
 		for ( Expression argument : argumentExpressions ) {
 			buffer.append( sep ).append( ( (Renderable) argument ).render( renderingContext ) );
+			sep = ", ";
+		}
+	}
+
+	protected void renderProjectionArguments(StringBuilder buffer, RenderingContext renderingContext) {
+		String sep = "";
+		for ( Expression argument : argumentExpressions ) {
+			buffer.append( sep ).append( ((Renderable) argument).renderProjection( renderingContext ) );
 			sep = ", ";
 		}
 	}

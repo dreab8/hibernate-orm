@@ -216,6 +216,9 @@ public class BinaryArithmeticOperation<N extends Number>
 
 	@Override
 	public String renderProjection(RenderingContext renderingContext) {
-		return render( renderingContext );
+		return getOperator().apply(
+				((Renderable) getLeftHandOperand()).renderProjection( renderingContext ),
+				((Renderable) getRightHandOperand()).renderProjection( renderingContext )
+		);
 	}
 }

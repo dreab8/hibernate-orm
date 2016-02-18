@@ -120,4 +120,18 @@ public class LikePredicate extends AbstractSimplePredicate implements Serializab
 		}
 		return buffer.toString();
 	}
+
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		final String operator = isNegated ? " not like " : " like ";
+		StringBuilder buffer = new StringBuilder();
+		buffer.append( ((Renderable) getMatchExpression()).renderProjection( renderingContext ) )
+				.append( operator )
+				.append( ((Renderable) getPattern()).renderProjection( renderingContext ) );
+		if ( escapeCharacter != null ) {
+			buffer.append( " escape " )
+					.append( ((Renderable) getEscapeCharacter()).renderProjection( renderingContext ) );
+		}
+		return buffer.toString();
+	}
 }

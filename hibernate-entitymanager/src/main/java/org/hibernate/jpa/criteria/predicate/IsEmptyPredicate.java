@@ -48,4 +48,10 @@ public class IsEmptyPredicate<C extends Collection>
 		final String operator = isNegated ? " is not empty" : " is empty";
 		return getOperand().render( renderingContext ) + operator;
 	}
+
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		final String operator = isNegated ? " is not empty" : " is empty";
+		return getOperand().renderProjection( renderingContext ) + operator;
+	}
 }

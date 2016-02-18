@@ -47,4 +47,9 @@ public class BooleanExpressionPredicate
 	public String render(boolean isNegated, RenderingContext renderingContext) {
 		return ( (Renderable) getExpression() ).render( renderingContext );
 	}
+
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		return ((Renderable) getExpression()).renderProjection( renderingContext );
+	}
 }

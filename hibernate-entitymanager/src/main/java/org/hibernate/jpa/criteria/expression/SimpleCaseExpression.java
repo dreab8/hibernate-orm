@@ -142,6 +142,18 @@ public class SimpleCaseExpression<C,R>
 	}
 
 	public String renderProjection(RenderingContext renderingContext) {
-		return render( renderingContext );
+		StringBuilder caseExpr = new StringBuilder();
+		caseExpr.append( "case " )
+				.append( ((Renderable) getExpression()).renderProjection( renderingContext ) );
+		for ( WhenClause whenClause : getWhenClauses() ) {
+			caseExpr.append( " when " )
+					.append( whenClause.getCondition().renderProjection( renderingContext ) )
+					.append( " then " )
+					.append( ((Renderable) whenClause.getResult()).renderProjection( renderingContext ) );
+		}
+		caseExpr.append( " else " )
+				.append( ((Renderable) getOtherwiseResult()).renderProjection( renderingContext ) )
+				.append( " end" );
+		return caseExpr.toString();
 	}
 }

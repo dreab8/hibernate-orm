@@ -47,4 +47,9 @@ public class BooleanStaticAssertionPredicate
 		return isTrue ? "1=1" : "0=1";
 	}
 
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		return render( isNegated, renderingContext );
+	}
+
 }

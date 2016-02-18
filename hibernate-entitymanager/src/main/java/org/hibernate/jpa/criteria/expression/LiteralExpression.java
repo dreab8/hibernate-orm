@@ -46,14 +46,6 @@ public class LiteralExpression<T> extends ExpressionImpl<T> implements Serializa
 
 	@SuppressWarnings({ "unchecked" })
 	public String render(RenderingContext renderingContext) {
-		if ( ValueHandlerFactory.isNumeric( literal ) ) {
-			return ValueHandlerFactory.determineAppropriateHandler( (Class) literal.getClass() ).render( literal );
-		}
-		else if ( ValueHandlerFactory.isBoolean( literal ) ) {
-			return ValueHandlerFactory.determineAppropriateHandler( (Class) literal.getClass() ).render( literal );
-		}
-
-		// else...
 		final String parameterName = renderingContext.registerLiteralParameterBinding( getLiteral(), getJavaType() );
 		return ':' + parameterName;
 	}

@@ -56,4 +56,11 @@ public class ExplicitTruthValueCheck
 				+ ( isNegated ? " <> " : " = " )
 				+ ( getTruthValue() == TruthValue.TRUE ? "true" : "false" );
 	}
+
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		return ((Renderable) getBooleanExpression()).renderProjection( renderingContext )
+				+ (isNegated ? " <> " : " = ")
+				+ (getTruthValue() == TruthValue.TRUE ? "true" : "false");
+	}
 }

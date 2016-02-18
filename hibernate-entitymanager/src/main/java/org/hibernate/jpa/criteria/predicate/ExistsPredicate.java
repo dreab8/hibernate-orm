@@ -43,4 +43,10 @@ public class ExistsPredicate
 		return ( isNegated ? "not " : "" ) + "exists "
 				+ ( (Renderable) getSubquery() ).render( renderingContext );
 	}
+
+	@Override
+	public String renderProjection(boolean isNegated, RenderingContext renderingContext) {
+		return (isNegated ? "not " : "") + "exists "
+				+ ((Renderable) getSubquery()).renderProjection( renderingContext );
+	}
 }
