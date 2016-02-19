@@ -11,12 +11,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.persistence.Parameter;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.ParameterExpression;
 
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.util.StringHelper;
+import org.hibernate.jpa.criteria.ValueHandlerFactory;
 import org.hibernate.jpa.spi.HibernateEntityManagerImplementor;
 import org.hibernate.type.Type;
 
@@ -106,7 +108,15 @@ public class CriteriaCompiler implements Serializable {
 					}
 
 					public void bind(TypedQuery typedQuery) {
-						typedQuery.setParameter( parameterName, literal );
+						if ( ValueHandlerFactory.isNumeric( literal ) && !javaType.isInstance( typedQuery.getParameter(
+								parameterName ).getParameterType() ) ) {
+							final ValueHandlerFactory.ValueHandler valueHandler = ValueHandlerFactory.determineAppropriateHandler(
+									typedQuery.getParameter( parameterName ).getParameterType() );
+							typedQuery.setParameter( parameterName, valueHandler.convert( literal ) );
+						}
+						else {
+							typedQuery.setParameter( parameterName, literal );
+						}
 					}
 				};
 
