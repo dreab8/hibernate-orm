@@ -16,6 +16,7 @@ import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.spi.descriptor.TypeDescriptorRegistryAccess;
 
 import org.jboss.logging.Logger;
 
@@ -27,11 +28,13 @@ import org.jboss.logging.Logger;
 public class JavaTypeDescriptorRegistry {
 	private static final CoreMessageLogger log = CoreLogging.messageLogger( JavaTypeDescriptorRegistry.class );
 
-	public static final JavaTypeDescriptorRegistry INSTANCE = new JavaTypeDescriptorRegistry();
+	private final TypeDescriptorRegistryAccess scope;
 
 	private ConcurrentHashMap<Class,JavaTypeDescriptor> descriptorsByClass = new ConcurrentHashMap<>();
 
-	public JavaTypeDescriptorRegistry() {
+	public JavaTypeDescriptorRegistry(TypeDescriptorRegistryAccess scope) {
+		this.scope = scope;
+
 		addDescriptorInternal( ByteTypeDescriptor.INSTANCE );
 		addDescriptorInternal( BooleanTypeDescriptor.INSTANCE );
 		addDescriptorInternal( CharacterTypeDescriptor.INSTANCE );
@@ -110,7 +113,7 @@ public class JavaTypeDescriptorRegistry {
 		}
 
 		if ( cls.isEnum() ) {
-			descriptor = new EnumJavaTypeDescriptor( cls );
+			descriptor = new EnumJavaTypeDescriptor( cls, scope );
 			descriptorsByClass.put( cls, descriptor );
 			return descriptor;
 		}
