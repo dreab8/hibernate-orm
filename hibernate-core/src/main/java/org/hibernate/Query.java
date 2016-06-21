@@ -22,7 +22,6 @@ import javax.persistence.Parameter;
 import javax.persistence.TemporalType;
 import javax.persistence.TypedQuery;
 
-import org.hibernate.query.CommonQueryContract;
 import org.hibernate.query.ParameterMetadata;
 import org.hibernate.query.QueryParameter;
 import org.hibernate.transform.ResultTransformer;
@@ -55,7 +54,7 @@ import org.hibernate.type.Type;
  */
 @Deprecated
 @SuppressWarnings("UnusedDeclaration")
-public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
+public interface Query<R> extends org.hibernate.BasicQueryContract, TypedQuery<R> {
 
 	/**
 	 * Get the query string.
@@ -84,9 +83,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 * @see #getHibernateFlushMode()
 	 */
 	@SuppressWarnings("unchecked")
-	default Query<R> setHibernateFlushMode(FlushMode flushMode) {
+	default org.hibernate.query.Query<R> setHibernateFlushMode(FlushMode flushMode) {
 		setFlushMode( flushMode );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -101,7 +100,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 * @deprecated (since 5.2) use {@link #setHibernateFlushMode} instead
 	 */
 	@Deprecated
-	Query<R> setFlushMode(FlushMode flushMode);
+	org.hibernate.query.Query<R> setFlushMode(FlushMode flushMode);
 
 	/**
 	 * For users of the Hibernate native APIs, we've had to rename this method
@@ -136,7 +135,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @see #getCacheMode()
 	 */
-	Query<R> setCacheMode(CacheMode cacheMode);
+	org.hibernate.query.Query<R> setCacheMode(CacheMode cacheMode);
 
 	/**
 	 * Are the results of this query eligible for second level query caching?  This is different that second level
@@ -161,7 +160,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @see #isCacheable
 	 */
-	Query<R> setCacheable(boolean cacheable);
+	org.hibernate.query.Query<R> setCacheable(boolean cacheable);
 
 	/**
 	 * Obtain the name of the second level query cache region in which query results will be stored (if they are
@@ -183,7 +182,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @see #getCacheRegion()
 	 */
-	Query<R> setCacheRegion(String cacheRegion);
+	org.hibernate.query.Query<R> setCacheRegion(String cacheRegion);
 
 	/**
 	 * Obtain the query timeout <b>in seconds</b>.  This value is eventually passed along to the JDBC query via
@@ -208,7 +207,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @see #getTimeout()
 	 */
-	Query<R> setTimeout(int timeout);
+	org.hibernate.query.Query<R> setTimeout(int timeout);
 
 	/**
 	 * Obtain the JDBC fetch size hint in effect for this query.  This value is eventually passed along to the JDBC
@@ -234,7 +233,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @see #getFetchSize()
 	 */
-	Query<R> setFetchSize(int fetchSize);
+	org.hibernate.query.Query<R> setFetchSize(int fetchSize);
 
 	/**
 	 * Should entities and proxies loaded by this Query be put in read-only mode? If the
@@ -280,7 +279,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 * are to be put in read-only mode; {@code false} indicates that entities and proxies
 	 * loaded by the query will be put in modifiable mode
 	 */
-	Query<R> setReadOnly(boolean readOnly);
+	org.hibernate.query.Query<R> setReadOnly(boolean readOnly);
 
 	/**
 	 * Return the Hibernate types of the query results.
@@ -315,7 +314,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @see #getLockOptions()
 	 */
-	Query<R> setLockOptions(LockOptions lockOptions);
+	org.hibernate.query.Query<R> setLockOptions(LockOptions lockOptions);
 
 	/**
 	 * Set the LockMode to use for specific alias (as defined in the query's <tt>FROM</tt> clause).
@@ -334,7 +333,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @see #getLockOptions()
 	 */
-	Query<R> setLockMode(String alias, LockMode lockMode);
+	org.hibernate.query.Query<R> setLockMode(String alias, LockMode lockMode);
 
 	/**
 	 * Obtain the comment currently associated with this query.  Provided SQL commenting is enabled
@@ -355,7 +354,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @see #getComment()
 	 */
-	Query<R> setComment(String comment);
+	org.hibernate.query.Query<R> setComment(String comment);
 
 	/**
 	 * Add a DB query hint to the SQL.  These differ from JPA's {@link javax.persistence.QueryHint}, which is specific
@@ -365,7 +364,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @param hint The database specific query hint to add.
 	 */
-	Query<R> addQueryHint(String hint);
+	org.hibernate.query.Query<R> addQueryHint(String hint);
 
 	/**
 	 * Return the query results as an <tt>Iterator</tt>. If the query
@@ -461,9 +460,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	<T> Query<R> setParameter(QueryParameter<T> parameter, T val);
+	<T> org.hibernate.query.Query<R> setParameter(QueryParameter<T> parameter, T val);
 
-	<T> Query<R> setParameter(Parameter<T> param, T value);
+	<T> org.hibernate.query.Query<R> setParameter(Parameter<T> param, T value);
 
 	/**
 	 * Bind a named query parameter using its inferred Type.  If the parameter is
@@ -477,7 +476,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 * @return {@code this}, for method chaining
 	 */
 	@SuppressWarnings("unchecked")
-	Query<R> setParameter(String name, Object val);
+	org.hibernate.query.Query<R> setParameter(String name, Object val);
 
 	/**
 	 * Bind a positional query parameter using its inferred Type.  If the parameter is
@@ -492,7 +491,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 * @return {@code this}, for method chaining
 	 */
 	@SuppressWarnings("unchecked")
-	Query<R> setParameter(int position, Object val);
+	org.hibernate.query.Query<R> setParameter(int position, Object val);
 
 	/**
 	 * Bind a query parameter using the supplied Type
@@ -503,7 +502,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	<P> Query<R> setParameter(QueryParameter<P> parameter, P val, Type type);
+	<P> org.hibernate.query.Query<R> setParameter(QueryParameter<P> parameter, P val, Type type);
 
 	/**
 	 * Bind a named query parameter using the supplied Type
@@ -514,7 +513,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	Query<R> setParameter(String name, Object val, Type type);
+	org.hibernate.query.Query<R> setParameter(String name, Object val, Type type);
 
 	/**
 	 * Bind a value to a JDBC-style query parameter.
@@ -526,7 +525,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	Query<R> setParameter(int position, Object val, Type type);
+	org.hibernate.query.Query<R> setParameter(int position, Object val, Type type);
 
 	/**
 	 * Bind a query parameter as some form of date/time using the indicated
@@ -538,7 +537,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	<P> Query<R> setParameter(QueryParameter<P> parameter, P val, TemporalType temporalType);
+	<P> org.hibernate.query.Query<R> setParameter(QueryParameter<P> parameter, P val, TemporalType temporalType);
 
 	/**
 	 * Bind a named query parameter as some form of date/time using
@@ -550,7 +549,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	<P> Query<R> setParameter(String name, P val, TemporalType temporalType);
+	<P> org.hibernate.query.Query<R> setParameter(String name, P val, TemporalType temporalType);
 
 	/**
 	 * Bind a positional query parameter as some form of date/time using
@@ -563,7 +562,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	<P> Query<R> setParameter(int position, P val, TemporalType temporalType);
+	<P> org.hibernate.query.Query<R> setParameter(int position, P val, TemporalType temporalType);
 
 
 
@@ -589,7 +588,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	<P> Query<R> setParameterList(QueryParameter<P> parameter, Collection<P> values);
+	<P> org.hibernate.query.Query<R> setParameterList(QueryParameter<P> parameter, Collection<P> values);
 
 	/**
 	 * Bind multiple values to a named query parameter. The Hibernate type of the parameter is
@@ -602,7 +601,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	Query<R> setParameterList(String name, Collection values);
+	org.hibernate.query.Query<R> setParameterList(String name, Collection values);
 
 	/**
 	 * Bind multiple values to a named query parameter. This is useful for binding
@@ -614,7 +613,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	Query<R> setParameterList(String name, Collection values, Type type);
+	org.hibernate.query.Query<R> setParameterList(String name, Collection values, Type type);
 
 	/**
 	 * Bind multiple values to a named query parameter. This is useful for binding
@@ -626,7 +625,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	Query<R> setParameterList(String name, Object[] values, Type type);
+	org.hibernate.query.Query<R> setParameterList(String name, Object[] values, Type type);
 
 	/**
 	 * Bind multiple values to a named query parameter. The Hibernate type of the parameter is
@@ -639,7 +638,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	Query<R> setParameterList(String name, Object[] values);
+	org.hibernate.query.Query<R> setParameterList(String name, Object[] values);
 
 	/**
 	 * Bind the property values of the given bean to named parameters of the query,
@@ -650,7 +649,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	Query<R> setProperties(Object bean);
+	org.hibernate.query.Query<R> setProperties(Object bean);
 
 	/**
 	 * Bind the values of the given Map for each named parameters of the query,
@@ -661,44 +660,44 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	Query<R> setProperties(Map bean);
+	org.hibernate.query.Query<R> setProperties(Map bean);
 
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// covariant overrides
 
 	@Override
-	Query<R> setMaxResults(int maxResult);
+	org.hibernate.query.Query<R> setMaxResults(int maxResult);
 
 	@Override
-	Query<R> setFirstResult(int startPosition);
+	org.hibernate.query.Query<R> setFirstResult(int startPosition);
 
 	@Override
-	Query<R> setHint(String hintName, Object value);
+	org.hibernate.query.Query<R> setHint(String hintName, Object value);
 
 	@Override
-	Query<R> setParameter(Parameter<Calendar> param, Calendar value, TemporalType temporalType);
+	org.hibernate.query.Query<R> setParameter(Parameter<Calendar> param, Calendar value, TemporalType temporalType);
 
 	@Override
-	Query<R> setParameter(Parameter<Date> param, Date value, TemporalType temporalType);
+	org.hibernate.query.Query<R> setParameter(Parameter<Date> param, Date value, TemporalType temporalType);
 
 	@Override
-	Query<R> setParameter(String name, Calendar value, TemporalType temporalType);
+	org.hibernate.query.Query<R> setParameter(String name, Calendar value, TemporalType temporalType);
 
 	@Override
-	Query<R> setParameter(String name, Date value, TemporalType temporalType);
+	org.hibernate.query.Query<R> setParameter(String name, Date value, TemporalType temporalType);
 
 	@Override
-	Query<R> setParameter(int position, Calendar value, TemporalType temporalType);
+	org.hibernate.query.Query<R> setParameter(int position, Calendar value, TemporalType temporalType);
 
 	@Override
-	Query<R> setParameter(int position, Date value, TemporalType temporalType);
+	org.hibernate.query.Query<R> setParameter(int position, Date value, TemporalType temporalType);
 
 	@Override
-	Query<R> setFlushMode(FlushModeType flushMode);
+	org.hibernate.query.Query<R> setFlushMode(FlushModeType flushMode);
 
 	@Override
-	Query<R> setLockMode(LockModeType lockMode);
+	org.hibernate.query.Query<R> setLockMode(LockModeType lockMode);
 
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -717,9 +716,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setString(int position, String val) {
+	default org.hibernate.query.Query<R> setString(int position, String val) {
 		setParameter( position, val, StringType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -735,9 +734,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setCharacter(int position, char val) {
+	default org.hibernate.query.Query<R> setCharacter(int position, char val) {
 		setParameter( position, val, CharacterType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -753,9 +752,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setBoolean(int position, boolean val) {
+	default org.hibernate.query.Query<R> setBoolean(int position, boolean val) {
 		setParameter( position, val, determineProperBooleanType( position, val, BooleanType.INSTANCE ) );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -771,9 +770,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setByte(int position, byte val) {
+	default org.hibernate.query.Query<R> setByte(int position, byte val) {
 		setParameter( position, val, ByteType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -789,9 +788,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setShort(int position, short val) {
+	default org.hibernate.query.Query<R> setShort(int position, short val) {
 		setParameter( position, val, ShortType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -807,9 +806,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setInteger(int position, int val) {
+	default org.hibernate.query.Query<R> setInteger(int position, int val) {
 		setParameter( position, val, IntegerType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -825,9 +824,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setLong(int position, long val) {
+	default org.hibernate.query.Query<R> setLong(int position, long val) {
 		setParameter( position, val, LongType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -843,9 +842,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setFloat(int position, float val) {
+	default org.hibernate.query.Query<R> setFloat(int position, float val) {
 		setParameter( position, val, FloatType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -861,9 +860,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setDouble(int position, double val) {
+	default org.hibernate.query.Query<R> setDouble(int position, double val) {
 		setParameter( position, val, DoubleType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -879,9 +878,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setBinary(int position, byte[] val) {
+	default org.hibernate.query.Query<R> setBinary(int position, byte[] val) {
 		setParameter( position, val, BinaryType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -897,9 +896,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setText(int position, String val) {
+	default org.hibernate.query.Query<R> setText(int position, String val) {
 		setParameter( position, val, TextType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -915,9 +914,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setSerializable(int position, Serializable val) {
+	default org.hibernate.query.Query<R> setSerializable(int position, Serializable val) {
 		setParameter( position, val );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -933,9 +932,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setLocale(int position, Locale val) {
+	default org.hibernate.query.Query<R> setLocale(int position, Locale val) {
 		setParameter( position, val, LocaleType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -951,9 +950,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setBigDecimal(int position, BigDecimal val) {
+	default org.hibernate.query.Query<R> setBigDecimal(int position, BigDecimal val) {
 		setParameter( position, val, BigDecimalType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -969,9 +968,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setBigInteger(int position, BigInteger val) {
+	default org.hibernate.query.Query<R> setBigInteger(int position, BigInteger val) {
 		setParameter( position, val, BigIntegerType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -987,9 +986,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setDate(int position, Date val) {
+	default org.hibernate.query.Query<R> setDate(int position, Date val) {
 		setParameter( position, val, DateType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1005,9 +1004,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setTime(int position, Date val) {
+	default org.hibernate.query.Query<R> setTime(int position, Date val) {
 		setParameter( position, val, TimeType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1023,9 +1022,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setTimestamp(int position, Date val) {
+	default org.hibernate.query.Query<R> setTimestamp(int position, Date val) {
 		setParameter( position, val, TimestampType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1041,9 +1040,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setCalendar(int position, Calendar val) {
+	default org.hibernate.query.Query<R> setCalendar(int position, Calendar val) {
 		setParameter( position, val, TimestampType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1059,9 +1058,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setCalendarDate(int position, Calendar val) {
+	default org.hibernate.query.Query<R> setCalendarDate(int position, Calendar val) {
 		setParameter( position, val, DateType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1077,9 +1076,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setString(String name, String val) {
+	default org.hibernate.query.Query<R> setString(String name, String val) {
 		setParameter( name, val, StringType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1095,9 +1094,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setCharacter(String name, char val) {
+	default org.hibernate.query.Query<R> setCharacter(String name, char val) {
 		setParameter( name, val, CharacterType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1113,9 +1112,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setBoolean(String name, boolean val) {
+	default org.hibernate.query.Query<R> setBoolean(String name, boolean val) {
 		setParameter( name, val, determineProperBooleanType( name, val, BooleanType.INSTANCE ) );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1131,9 +1130,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setByte(String name, byte val) {
+	default org.hibernate.query.Query<R> setByte(String name, byte val) {
 		setParameter( name, val, ByteType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1149,9 +1148,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setShort(String name, short val) {
+	default org.hibernate.query.Query<R> setShort(String name, short val) {
 		setParameter( name, val, ShortType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1167,9 +1166,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setInteger(String name, int val) {
+	default org.hibernate.query.Query<R> setInteger(String name, int val) {
 		setParameter( name, val, IntegerType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1185,9 +1184,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setLong(String name, long val) {
+	default org.hibernate.query.Query<R> setLong(String name, long val) {
 		setParameter( name, val, LongType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1203,9 +1202,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setFloat(String name, float val) {
+	default org.hibernate.query.Query<R> setFloat(String name, float val) {
 		setParameter( name, val, FloatType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1221,9 +1220,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setDouble(String name, double val) {
+	default org.hibernate.query.Query<R> setDouble(String name, double val) {
 		setParameter( name, val, DoubleType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1239,9 +1238,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setBinary(String name, byte[] val) {
+	default org.hibernate.query.Query<R> setBinary(String name, byte[] val) {
 		setParameter( name, val, BinaryType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1257,9 +1256,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setText(String name, String val) {
+	default org.hibernate.query.Query<R> setText(String name, String val) {
 		setParameter( name, val, TextType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1275,9 +1274,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setSerializable(String name, Serializable val) {
+	default org.hibernate.query.Query<R> setSerializable(String name, Serializable val) {
 		setParameter( name, val );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1292,9 +1291,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setLocale(String name, Locale val) {
+	default org.hibernate.query.Query<R> setLocale(String name, Locale val) {
 		setParameter( name, val, TextType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1309,9 +1308,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setBigDecimal(String name, BigDecimal val) {
+	default org.hibernate.query.Query<R> setBigDecimal(String name, BigDecimal val) {
 		setParameter( name, val, BigDecimalType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1326,9 +1325,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setBigInteger(String name, BigInteger val) {
+	default org.hibernate.query.Query<R> setBigInteger(String name, BigInteger val) {
 		setParameter( name, val, BigIntegerType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1344,9 +1343,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setDate(String name, Date val) {
+	default org.hibernate.query.Query<R> setDate(String name, Date val) {
 		setParameter( name, val, DateType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1362,9 +1361,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setTime(String name, Date val) {
+	default org.hibernate.query.Query<R> setTime(String name, Date val) {
 		setParameter( name, val, TimeType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1380,9 +1379,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setTimestamp(String name, Date value) {
+	default org.hibernate.query.Query<R> setTimestamp(String name, Date value) {
 		setParameter( name, value, TimestampType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1398,9 +1397,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setCalendar(String name, Calendar value) {
+	default org.hibernate.query.Query<R> setCalendar(String name, Calendar value) {
 		setParameter( name, value, TimestampType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1416,9 +1415,9 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setCalendarDate(String name, Calendar value) {
+	default org.hibernate.query.Query<R> setCalendarDate(String name, Calendar value) {
 		setParameter( name, value, DateType.INSTANCE );
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 
 	/**
@@ -1436,7 +1435,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	Query<R> setEntity(int position, Object val);
+	org.hibernate.query.Query<R> setEntity(int position, Object val);
 
 	/**
 	 * Bind an instance of a mapped persistent class to a named query parameter.  Use
@@ -1452,7 +1451,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	Query<R> setEntity(String name, Object val);
+	org.hibernate.query.Query<R> setEntity(String name, Object val);
 
 	/**
 	 * @deprecated added only to allow default method definition for deprecated methods here.
@@ -1482,7 +1481,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 * @todo develop a new approach to result transformers
 	 */
 	@Deprecated
-	Query<R> setResultTransformer(ResultTransformer transformer);
+	org.hibernate.query.Query<R> setResultTransformer(ResultTransformer transformer);
 
 	/**
 	 * @deprecated (since 5.2) use {@link javax.persistence.Tuple} if you need access to "result variables".
@@ -1506,12 +1505,12 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	 */
 	@Deprecated
 	@SuppressWarnings("unchecked")
-	default Query<R> setParameters(Object[] values, Type[] types) {
+	default org.hibernate.query.Query<R> setParameters(Object[] values, Type[] types) {
 		assert values.length == types.length;
 		for ( int i = 0; i < values.length; i++ ) {
 			setParameter( i, values[i], types[i] );
 		}
 
-		return this;
+		return (org.hibernate.query.Query) this;
 	}
 }
