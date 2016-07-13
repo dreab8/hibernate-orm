@@ -2384,11 +2384,6 @@ public final class SessionImpl
 	}
 
 	@Override
-	public TypeHelper getTypeHelper() {
-		return getSessionFactory().getTypeHelper();
-	}
-
-	@Override
 	public LobHelper getLobHelper() {
 		if ( lobHelper == null ) {
 			lobHelper = new LobHelperImpl( this );
