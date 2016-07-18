@@ -16,7 +16,7 @@ import org.hibernate.envers.internal.entities.PropertyData;
 import org.hibernate.envers.internal.entities.mapper.ExtendedPropertyMapper;
 import org.hibernate.envers.boot.AuditService;
 import org.hibernate.envers.internal.tools.ArraysTools;
-import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.persister.entity.spi.EntityPersister;
 
 /**
  * @author Adam Warski (adam at warski dot org)

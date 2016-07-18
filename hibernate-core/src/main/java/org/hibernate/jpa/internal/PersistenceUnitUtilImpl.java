@@ -15,8 +15,8 @@ import org.hibernate.engine.spi.EntityEntry;
 import org.hibernate.engine.spi.ManagedEntity;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.jpa.internal.util.PersistenceUtilHelper;
-import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.persister.entity.spi.EntityPersister;
 
 import org.jboss.logging.Logger;
 
