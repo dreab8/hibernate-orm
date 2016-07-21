@@ -47,11 +47,11 @@ import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.LazyInitializer;
-import org.hibernate.type.CollectionType;
-import org.hibernate.type.EntityType;
 import org.hibernate.type.ForeignKeyDirection;
 import org.hibernate.type.OneToOneType;
-import org.hibernate.type.Type;
+import org.hibernate.type.spi.CollectionType;
+import org.hibernate.type.spi.EntityType;
+import org.hibernate.type.spi.Type;
 
 /**
  * Responsible for maintaining the queue of actions related to events.

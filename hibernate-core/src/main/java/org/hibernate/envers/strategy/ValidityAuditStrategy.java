@@ -42,7 +42,7 @@ import org.hibernate.type.ComponentType;
 import org.hibernate.type.MapType;
 import org.hibernate.type.MaterializedClobType;
 import org.hibernate.type.MaterializedNClobType;
-import org.hibernate.type.Type;
+import org.hibernate.type.spi.Type;
 
 import static org.hibernate.envers.internal.entities.mapper.relation.query.QueryConstants.MIDDLE_ENTITY_ALIAS;
 import static org.hibernate.envers.internal.entities.mapper.relation.query.QueryConstants.REVISION_PARAMETER;
@@ -550,7 +550,7 @@ public class ValidityAuditStrategy implements AuditStrategy {
 		 */
 		public int bind(int index, PreparedStatement ps, SessionImplementor session) throws SQLException {
 			type.nullSafeSet( ps, value, index, session );
-			return type.getColumnSpan( session.getSessionFactory() );
+			return type.getColumnSpan();
 		}
 	}
 }

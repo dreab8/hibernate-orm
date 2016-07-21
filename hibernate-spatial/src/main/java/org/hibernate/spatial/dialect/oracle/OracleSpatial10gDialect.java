@@ -28,6 +28,10 @@ import org.hibernate.spatial.HibernateSpatialConfigurationSettings;
 import org.hibernate.spatial.JTSGeometryType;
 import org.hibernate.spatial.SpatialDialect;
 import org.hibernate.spatial.SpatialFunction;
+import org.hibernate.spatial.SpatialRelation;
+import org.hibernate.spatial.dialect.oracle.criterion.OracleSpatialAggregate;
+import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.spi.Type;
 
 /**
  * Spatial Dialect for Oracle10g databases.

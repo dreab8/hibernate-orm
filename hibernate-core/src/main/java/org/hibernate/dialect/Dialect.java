@@ -108,6 +108,7 @@ import org.hibernate.tool.schema.spi.Exporter;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.descriptor.sql.ClobTypeDescriptor;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.spi.Type;
 
 /**
  * Represents a dialect of SQL implemented by a particular RDBMS.  Subclasses implement Hibernate compatibility
@@ -639,11 +640,11 @@ public abstract class Dialect implements ConversionContext {
 	// hibernate type mapping support ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	/**
-	 * Get the name of the Hibernate {@link org.hibernate.type.Type} associated with the given
+	 * Get the name of the Hibernate {@link Type} associated with the given
 	 * {@link java.sql.Types} type code.
 	 *
 	 * @param code The {@link java.sql.Types} type code
-	 * @return The Hibernate {@link org.hibernate.type.Type} name.
+	 * @return The Hibernate {@link Type} name.
 	 * @throws HibernateException If no mapping was specified for that type.
 	 */
 	@SuppressWarnings( {"UnusedDeclaration"})
@@ -668,7 +669,7 @@ public abstract class Dialect implements ConversionContext {
 	}
 
 	/**
-	 * Get the name of the Hibernate {@link org.hibernate.type.Type} associated
+	 * Get the name of the Hibernate {@link Type} associated
 	 * with the given {@link java.sql.Types} typecode with the given storage
 	 * specification parameters.
 	 *
@@ -676,7 +677,7 @@ public abstract class Dialect implements ConversionContext {
 	 * @param length The datatype length
 	 * @param precision The datatype precision
 	 * @param scale The datatype scale
-	 * @return The Hibernate {@link org.hibernate.type.Type} name.
+	 * @return The Hibernate {@link Type} name.
 	 * @throws HibernateException If no mapping was specified for that type.
 	 */
 	public String getHibernateTypeName(int code, int length, int precision, int scale) throws HibernateException {
@@ -694,23 +695,23 @@ public abstract class Dialect implements ConversionContext {
 	}
 
 	/**
-	 * Registers a Hibernate {@link org.hibernate.type.Type} name for the given
+	 * Registers a Hibernate {@link Type} name for the given
 	 * {@link java.sql.Types} type code and maximum column length.
 	 *
 	 * @param code The {@link java.sql.Types} typecode
 	 * @param capacity The maximum length of database type
-	 * @param name The Hibernate {@link org.hibernate.type.Type} name
+	 * @param name The Hibernate {@link Type} name
 	 */
 	protected void registerHibernateType(int code, long capacity, String name) {
 		hibernateTypeNames.put( code, capacity, name );
 	}
 
 	/**
-	 * Registers a Hibernate {@link org.hibernate.type.Type} name for the given
+	 * Registers a Hibernate {@link Type} name for the given
 	 * {@link java.sql.Types} type code.
 	 *
 	 * @param code The {@link java.sql.Types} typecode
-	 * @param name The Hibernate {@link org.hibernate.type.Type} name
+	 * @param name The Hibernate {@link Type} name
 	 */
 	protected void registerHibernateType(int code, String name) {
 		hibernateTypeNames.put( code, name );

@@ -11,7 +11,7 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.query.spi.QueryParameterBindingValidator;
 import org.hibernate.query.spi.QueryParameterListBinding;
-import org.hibernate.type.Type;
+import org.hibernate.type.spi.Type;
 
 /**
  * @author Steve Ebersole
