@@ -15,12 +15,21 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
 import org.hibernate.boot.MetadataSources;
@@ -33,9 +42,10 @@ import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.hbm2ddl.SchemaValidator;
 import org.hibernate.tool.schema.TargetType;
 import org.hibernate.tool.schema.internal.ImprovedSchemaMigratorImpl;
+import org.hibernate.tool.schema.internal.ImprovedSchemaValidatorImpl;
 import org.hibernate.tool.schema.internal.SchemaMigratorImpl;
+import org.hibernate.tool.schema.internal.SchemaValidatorImpl;
 
-import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,14 +59,21 @@ import static org.junit.Assert.assertThat;
  * @author Andrea Boriero
  */
 @RunWith(Parameterized.class)
-public class TableNamesTest extends BaseUnitTestCase {
+public class TableNamesTest {
 	@Parameterized.Parameters
-	public static Collection<String> parameters() {
-		return Arrays.asList( ImprovedSchemaMigratorImpl.class.getName(), SchemaMigratorImpl.class.getName() );
+	public static Collection<String[]> parameters() {
+		return Arrays.asList( new String[][] {
+									  {ImprovedSchemaMigratorImpl.class.getName(), ImprovedSchemaValidatorImpl.class.getName()},
+									  {SchemaMigratorImpl.class.getName(), SchemaValidatorImpl.class.getName()}
+							  }
+		);
 	}
 
 	@Parameterized.Parameter
 	public String schemaMigratorClassName;
+
+	@Parameterized.Parameter(value = 1)
+	public String schemaValidatorClassName;
 
 	private File output;
 	private StandardServiceRegistry ssr;
@@ -69,6 +86,7 @@ public class TableNamesTest extends BaseUnitTestCase {
 		ssr = new StandardServiceRegistryBuilder()
 				.applySetting( AvailableSettings.KEYWORD_AUTO_QUOTING_ENABLED, "true" )
 				.applySetting( AvailableSettings.HBM2DDL_SCHEMA_MIGRATOR, schemaMigratorClassName )
+				.applySetting( AvailableSettings.HBM2DDL_SCHEMA_VALIDATOR, schemaValidatorClassName )
 				.build();
 		final MetadataSources metadataSources = new MetadataSources( ssr );
 		metadataSources.addAnnotatedClass( TestEntity.class );
@@ -76,6 +94,9 @@ public class TableNamesTest extends BaseUnitTestCase {
 		metadataSources.addAnnotatedClass( TestEntity2.class );
 		metadataSources.addAnnotatedClass( TestEntity3.class );
 		metadataSources.addAnnotatedClass( Match.class );
+		metadataSources.addAnnotatedClass( Role.class );
+		metadataSources.addAnnotatedClass( User.class );
+		metadataSources.addAnnotatedClass( Person.class );
 
 		metadata = (MetadataImplementor) metadataSources.buildMetadata();
 		metadata.validate();
@@ -91,7 +112,7 @@ public class TableNamesTest extends BaseUnitTestCase {
 	}
 
 	@Test
-	public void testSchemaUpdateWithQuotedTableName() throws Exception {
+	public void testSchemaUpdateAndValidation() throws Exception {
 
 		new SchemaUpdate().setHaltOnError( true )
 				.execute( EnumSet.of( TargetType.DATABASE ), metadata );
@@ -121,6 +142,7 @@ public class TableNamesTest extends BaseUnitTestCase {
 	@Entity(name = "TestEntity1")
 	public static class TestEntity1 {
 		@Id
+		@Column(name = "`Id`")
 		long id;
 		String field1;
 
@@ -130,6 +152,9 @@ public class TableNamesTest extends BaseUnitTestCase {
 		@OneToMany
 		@JoinColumn
 		private Set<TestEntity2> entitie2s;
+
+		@ManyToOne
+		private TestEntity entity;
 	}
 
 	@Entity(name = "TestEntity2")
@@ -138,10 +163,13 @@ public class TableNamesTest extends BaseUnitTestCase {
 		@Id
 		long id;
 		String field1;
+
+		@ManyToOne
+		TestEntity1 testEntity1;
 	}
 
 	@Entity(name = "TestEntity3")
-	@Table(name = "`TESTentity`", indexes = {@Index( name = "index1", columnList ="`FieLd1`" )})
+	@Table(name = "`TESTentity`", indexes = {@Index(name = "index1", columnList = "`FieLd1`"), @Index(name = "`Index2`", columnList = "`FIELD_2`")})
 	public static class TestEntity3 {
 		@Id
 		long id;
@@ -163,5 +191,29 @@ public class TableNamesTest extends BaseUnitTestCase {
 		@Id
 		long id;
 		String match;
+	}
+
+	@Entity(name = "PersonRole")
+	@Inheritance(strategy = InheritanceType.JOINED)
+	@DiscriminatorColumn(name = "PERSON_ROLE_TYPE", discriminatorType = DiscriminatorType.INTEGER)
+	public static class Role {
+		@Id
+		@GeneratedValue
+		protected Long id;
+	}
+
+	@Entity(name = "User")
+	@DiscriminatorValue("8")
+	@PrimaryKeyJoinColumn(name = "USER_ID", foreignKey = @ForeignKey(name = "FK_PERSON_ROLE"))
+	public static class User extends Role {
+	}
+
+	@Entity(name = "User")
+	@DiscriminatorValue("8")
+	@PrimaryKeyJoinColumn(name = "USER_ID")
+	public static class Person extends Role {
+		@ManyToOne
+		@JoinColumn
+		public Match match;
 	}
 }
