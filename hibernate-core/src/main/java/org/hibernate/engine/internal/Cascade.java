@@ -277,7 +277,7 @@ public final class Cascade {
 	 * @return True if the attribute represents a logical one to one association
 	 */
 	private static boolean isLogicalOneToOne(Type type) {
-		return type.isEntityType() && ( (EntityType) type ).isLogicalOneToOne();
+		return type.getClassification().equals( Type.Classification.ENTITY ) && ( (EntityType) type ).isLogicalOneToOne();
 	}
 
 	private static boolean cascadeAssociationNow(final CascadePoint cascadePoint, AssociationType associationType) {
@@ -333,10 +333,11 @@ public final class Cascade {
 			final CascadeStyle style,
 			final Object anything,
 			final boolean isCascadeDeleteEnabled) {
-		if ( type.isEntityType() || type.isAnyType() ) {
+		if ( type.getClassification().equals( Type.Classification.ENTITY )
+				|| type.getClassification().equals( Type.Classification.ANY ) ) {
 			cascadeToOne( action, eventSource, parent, child, type, style, anything, isCascadeDeleteEnabled );
 		}
-		else if ( type.isCollectionType() ) {
+		else if ( type.getClassification().equals( Type.Classification.COLLECTION ) ) {
 			cascadeCollection(
 					action,
 					cascadePoint,
@@ -373,7 +374,9 @@ public final class Cascade {
 		}
 
 		//cascade to current collection elements
-		if ( elemType.isEntityType() || elemType.isAnyType() || elemType.isComponentType() ) {
+		if ( elemType.getClassification().equals( Type.Classification.ENTITY )
+				|| elemType.getClassification().equals( Type.Classification.ANY )
+				|| elemType.isComponentType() ) {
 			cascadeCollectionElements(
 				action,
 				elementsCascadePoint,
@@ -402,7 +405,7 @@ public final class Cascade {
 			final CascadeStyle style,
 			final Object anything,
 			final boolean isCascadeDeleteEnabled) {
-		final String entityName = type.isEntityType()
+		final String entityName = type.getClassification().equals( Type.Classification.ENTITY )
 				? ( (EntityType) type ).getAssociatedEntityName()
 				: null;
 		if ( style.reallyDoCascade( action ) ) {
@@ -464,7 +467,7 @@ public final class Cascade {
 
 		final boolean deleteOrphans = style.hasOrphanDelete()
 				&& action.deleteOrphans()
-				&& elemType.isEntityType()
+				&& elemType.getClassification().equals( Type.Classification.ENTITY )
 				// a newly instantiated collection can't have orphans
 				&& child instanceof PersistentCollection;
 
