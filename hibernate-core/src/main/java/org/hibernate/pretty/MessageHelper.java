@@ -258,7 +258,7 @@ public final class MessageHelper {
 			// TODO: Is it redundant to attempt to use the collectionKey,
 			// or is always using the owner id sufficient?
 			if ( collectionKey.getClass().isAssignableFrom( 
-					ownerIdentifierType.getReturnedClass() ) ) {
+					ownerIdentifierType.getJavaTypeDescriptor().getJavaType() ) ) {
 				ownerKey = collectionKey;
 			}
 			else {
@@ -356,7 +356,7 @@ public final class MessageHelper {
 		Type ownerIdentifierType = persister.getOwnerEntityPersister()
 				.getIdentifierType();
 		if ( id.getClass().isAssignableFrom( 
-				ownerIdentifierType.getReturnedClass() ) ) {
+				ownerIdentifierType.getJavaTypeDescriptor().getJavaType() ) ) {
 			s.append( ownerIdentifierType.toLoggableString( id, factory ) );
 		}
 		else {
