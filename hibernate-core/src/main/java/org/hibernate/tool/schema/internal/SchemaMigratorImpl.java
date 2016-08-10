@@ -6,8 +6,11 @@
  */
 package org.hibernate.tool.schema.internal;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.hibernate.boot.Metadata;
@@ -161,37 +164,31 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 		final Database database = metadata.getDatabase();
 
 		// Drop all AuxiliaryDatabaseObjects
-		for ( AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects() ) {
-			if ( !auxiliaryDatabaseObject.appliesToDialect( dialect ) ) {
-				continue;
+		database.getAuxiliaryDatabaseObjects().parallelStream().forEach( auxiliaryDatabaseObject -> {
+			if ( auxiliaryDatabaseObject.appliesToDialect( dialect ) ) {
+				applySqlStrings(
+						true,
+						dialect.getAuxiliaryDatabaseObjectExporter()
+								.getSqlDropStrings( auxiliaryDatabaseObject, metadata ),
+						formatter,
+						options,
+						targets
+				);
 			}
-
-			applySqlStrings(
-					true,
-					dialect.getAuxiliaryDatabaseObjectExporter().getSqlDropStrings( auxiliaryDatabaseObject, metadata ),
-					formatter,
-					options,
-					targets
-			);
-		}
+		} );
 
 		// Create beforeQuery-table AuxiliaryDatabaseObjects
-		for ( AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects() ) {
-			if ( auxiliaryDatabaseObject.beforeTablesOnCreation() ) {
-				continue;
+		database.getAuxiliaryDatabaseObjects().parallelStream().forEach( auxiliaryDatabaseObject -> {
+			if ( !auxiliaryDatabaseObject.beforeTablesOnCreation() && auxiliaryDatabaseObject.appliesToDialect( dialect ) ) {
+				applySqlStrings(
+						true,
+						auxiliaryDatabaseObject.sqlCreateStrings( dialect ),
+						formatter,
+						options,
+						targets
+				);
 			}
-			if ( !auxiliaryDatabaseObject.appliesToDialect( dialect ) ) {
-				continue;
-			}
-
-			applySqlStrings(
-					true,
-					auxiliaryDatabaseObject.sqlCreateStrings( dialect ),
-					formatter,
-					options,
-					targets
-			);
-		}
+		} );
 
 		boolean tryToCreateCatalogs = false;
 		boolean tryToCreateSchemas = false;
@@ -204,134 +201,116 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 			}
 		}
 
-		Set<Identifier> exportedCatalogs = new HashSet<Identifier>();
+		Set<Identifier> exportedCatalogs = new HashSet<>();
 		for ( Namespace namespace : database.getNamespaces() ) {
-			if ( !schemaFilter.includeNamespace( namespace ) ) {
-				continue;
-			}
-			if ( tryToCreateCatalogs || tryToCreateSchemas ) {
-				if ( tryToCreateCatalogs ) {
-					final Identifier catalogLogicalName = namespace.getName().getCatalog();
-					final Identifier catalogPhysicalName = namespace.getPhysicalName().getCatalog();
+			if ( schemaFilter.includeNamespace( namespace ) ) {
+				if ( tryToCreateCatalogs || tryToCreateSchemas ) {
+					if ( tryToCreateCatalogs ) {
+						final Identifier catalogLogicalName = namespace.getName().getCatalog();
+						final Identifier catalogPhysicalName = namespace.getPhysicalName().getCatalog();
 
-					if ( catalogPhysicalName != null && !exportedCatalogs.contains( catalogLogicalName )
-							&& !existingDatabase.catalogExists( catalogLogicalName ) ) {
+						if ( catalogPhysicalName != null
+								&& !exportedCatalogs.contains( catalogLogicalName )
+								&& !existingDatabase.catalogExists( catalogLogicalName )
+								) {
+							applySqlStrings(
+									false,
+									dialect.getCreateCatalogCommand( catalogPhysicalName.render( dialect ) ),
+									formatter,
+									options,
+									targets
+							);
+							exportedCatalogs.add( catalogLogicalName );
+						}
+					}
+
+					if ( tryToCreateSchemas
+							&& namespace.getPhysicalName().getSchema() != null
+							&& !existingDatabase.schemaExists( namespace.getName() ) ) {
 						applySqlStrings(
 								false,
-								dialect.getCreateCatalogCommand( catalogPhysicalName.render( dialect ) ),
+								dialect.getCreateSchemaCommand(
+										namespace.getPhysicalName()
+												.getSchema()
+												.render( dialect )
+								),
 								formatter,
 								options,
 								targets
 						);
-						exportedCatalogs.add( catalogLogicalName );
 					}
 				}
+			}
+		}
 
-				if ( tryToCreateSchemas
-						&& namespace.getPhysicalName().getSchema() != null
-						&& !existingDatabase.schemaExists( namespace.getName() ) ) {
+		database.getNamespaces().parallelStream().forEach( namespace -> {
+			namespace.getTables().parallelStream().forEach( table -> {
+				if ( table.isPhysicalTable() && schemaFilter.includeTable( table ) ) {
+					checkExportIdentifier( table, exportIdentifiers );
+					final TableInformation tableInformation = existingDatabase.getTableInformation( table.getQualifiedTableName() );
+					if ( tableInformation != null && tableInformation.isPhysicalTable() ) {
+						migrateTable( table, tableInformation, dialect, metadata, formatter, options, targets );
+					}
+					else if ( tableInformation == null ) {
+						createTable( table, dialect, metadata, formatter, options, targets );
+					}
+				}
+			} );
+
+			namespace.getTables().parallelStream().forEach( table -> {
+				if ( table.isPhysicalTable() && schemaFilter.includeTable( table ) ) {
+					final TableInformation tableInformation = existingDatabase.getTableInformation( table.getQualifiedTableName() );
+					if ( (tableInformation != null && tableInformation.isPhysicalTable()) || tableInformation == null ) {
+						applyIndexes( table, tableInformation, dialect, metadata, formatter, options, targets );
+						applyUniqueKeys( table, tableInformation, dialect, metadata, formatter, options, targets );
+					}
+				}
+			} );
+
+			namespace.getSequences().parallelStream().forEach( sequence -> {
+				checkExportIdentifier( sequence, exportIdentifiers );
+				final SequenceInformation sequenceInformation = existingDatabase.getSequenceInformation( sequence.getName() );
+				if ( sequenceInformation == null ) {
 					applySqlStrings(
 							false,
-							dialect.getCreateSchemaCommand( namespace.getPhysicalName().getSchema().render( dialect ) ),
+							dialect.getSequenceExporter().getSqlCreateStrings(
+									sequence,
+									metadata
+							),
 							formatter,
 							options,
 							targets
 					);
 				}
-			}
+			} );
+		} );
 
-			for ( Table table : namespace.getTables() ) {
-				if ( !table.isPhysicalTable() ) {
-					continue;
-				}
-				if ( !schemaFilter.includeTable( table ) ) {
-					continue;
-				}
-				checkExportIdentifier( table, exportIdentifiers );
-				final TableInformation tableInformation = existingDatabase.getTableInformation( table.getQualifiedTableName() );
-				if ( tableInformation != null && !tableInformation.isPhysicalTable() ) {
-					continue;
-				}
-				if ( tableInformation == null ) {
-					createTable( table, dialect, metadata, formatter, options, targets );
-				}
-				else {
-					migrateTable( table, tableInformation, dialect, metadata, formatter, options, targets );
+		//NOTE : Foreign keys must be created *afterQuery* all tables of all namespaces for cross namespace fks. see HHH-10420
+		database.getNamespaces().parallelStream().forEach( namespace -> {
+			if ( schemaFilter.includeNamespace( namespace ) ) {
+				for ( Table table : namespace.getTables() ) {
+					if ( schemaFilter.includeTable( table ) ) {
+						final TableInformation tableInformation = existingDatabase.getTableInformation( table.getQualifiedTableName() );
+						if ( (tableInformation != null && tableInformation.isPhysicalTable()) || tableInformation == null ) {
+							applyForeignKeys( table, tableInformation, dialect, metadata, formatter, options, targets );
+						}
+					}
 				}
 			}
+		} );
 
-			for ( Table table : namespace.getTables() ) {
-				if ( !table.isPhysicalTable() ) {
-					continue;
-				}
-				if ( !schemaFilter.includeTable( table ) ) {
-					continue;
-				}
-
-				final TableInformation tableInformation = existingDatabase.getTableInformation( table.getQualifiedTableName() );
-				if ( tableInformation != null && !tableInformation.isPhysicalTable() ) {
-					continue;
-				}
-
-				applyIndexes( table, tableInformation, dialect, metadata, formatter, options, targets );
-				applyUniqueKeys( table, tableInformation, dialect, metadata, formatter, options, targets );
-			}
-
-			for ( Sequence sequence : namespace.getSequences() ) {
-				checkExportIdentifier( sequence, exportIdentifiers );
-				final SequenceInformation sequenceInformation = existingDatabase.getSequenceInformation( sequence.getName() );
-				if ( sequenceInformation != null ) {
-					// nothing we really can do...
-					continue;
-				}
-
+		// Create afterQuery-table AuxiliaryDatabaseObjects
+		database.getAuxiliaryDatabaseObjects().parallelStream().forEach( auxiliaryDatabaseObject -> {
+			if ( auxiliaryDatabaseObject.beforeTablesOnCreation() && auxiliaryDatabaseObject.appliesToDialect( dialect ) ) {
 				applySqlStrings(
-						false,
-						dialect.getSequenceExporter().getSqlCreateStrings(
-								sequence,
-								metadata
-						),
+						true,
+						auxiliaryDatabaseObject.sqlCreateStrings( dialect ),
 						formatter,
 						options,
 						targets
 				);
 			}
-		}
-
-		//NOTE : Foreign keys must be created *afterQuery* all tables of all namespaces for cross namespace fks. see HHH-10420
-		for ( Namespace namespace : database.getNamespaces() ) {
-			if ( !schemaFilter.includeNamespace( namespace ) ) {
-				continue;
-			}
-			for ( Table table : namespace.getTables() ) {
-				if ( !schemaFilter.includeTable( table ) ) {
-					continue;
-				}
-				final TableInformation tableInformation = existingDatabase.getTableInformation( table.getQualifiedTableName() );
-				if ( tableInformation != null && !tableInformation.isPhysicalTable() ) {
-					continue;
-				}
-				applyForeignKeys( table, tableInformation, dialect, metadata, formatter, options, targets );
-			}
-		}
-
-		// Create afterQuery-table AuxiliaryDatabaseObjects
-		for ( AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects() ) {
-			if ( !auxiliaryDatabaseObject.beforeTablesOnCreation() ) {
-				continue;
-			}
-			if ( !auxiliaryDatabaseObject.appliesToDialect( dialect ) ) {
-				continue;
-			}
-
-			applySqlStrings(
-					true,
-					auxiliaryDatabaseObject.sqlCreateStrings( dialect ),
-					formatter,
-					options,
-					targets
-			);
-		}
+		} );
 	}
 
 	private void createTable(
@@ -386,28 +365,24 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 			GenerationTarget... targets) {
 		final Exporter<Index> exporter = dialect.getIndexExporter();
 
-		final Iterator<Index> indexItr = table.getIndexIterator();
-		while ( indexItr.hasNext() ) {
-			final Index index = indexItr.next();
-			if ( StringHelper.isEmpty( index.getName() ) ) {
-				continue;
-			}
+		table.getIndexes().parallelStream().forEach( index -> {
+			if ( !StringHelper.isEmpty( index.getName() ) ) {
+				IndexInformation existingIndex = null;
+				if ( tableInformation != null ) {
+					existingIndex = findMatchingIndex( index, tableInformation );
 
-			if ( tableInformation != null ) {
-				final IndexInformation existingIndex = findMatchingIndex( index, tableInformation );
-				if ( existingIndex != null ) {
-					continue;
+				}
+				if ( existingIndex == null ) {
+					applySqlStrings(
+							false,
+							exporter.getSqlCreateStrings( index, metadata ),
+							formatter,
+							options,
+							targets
+					);
 				}
 			}
-
-			applySqlStrings(
-					false,
-					exporter.getSqlCreateStrings( index, metadata ),
-					formatter,
-					options,
-					targets
-			);
-		}
+		} );
 	}
 
 	private IndexInformation findMatchingIndex(Index index, TableInformation tableInformation) {
@@ -432,37 +407,35 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 
 		final Exporter<Constraint> exporter = dialect.getUniqueKeyExporter();
 
-		final Iterator ukItr = table.getUniqueKeyIterator();
-		while ( ukItr.hasNext() ) {
-			final UniqueKey uniqueKey = (UniqueKey) ukItr.next();
+		table.getUniqueKeys().values().parallelStream().forEach( uniqueKey ->{
 			// Skip if index already exists. Most of the time, this
 			// won't work since most Dialects use Constraints. However,
 			// keep it for the few that do use Indexes.
+			IndexInformation indexInfo = null;
 			if ( tableInfo != null && StringHelper.isNotEmpty( uniqueKey.getName() ) ) {
-				final IndexInformation indexInfo = tableInfo.getIndex( Identifier.toIdentifier( uniqueKey.getName() ) );
-				if ( indexInfo != null ) {
-					continue;
-				}
+				indexInfo = tableInfo.getIndex( Identifier.toIdentifier( uniqueKey.getName() ) );
 			}
+			if ( indexInfo == null ) {
 
-			if ( uniqueConstraintStrategy == UniqueConstraintSchemaUpdateStrategy.DROP_RECREATE_QUIETLY ) {
+				if ( uniqueConstraintStrategy == UniqueConstraintSchemaUpdateStrategy.DROP_RECREATE_QUIETLY ) {
+					applySqlStrings(
+							true,
+							exporter.getSqlDropStrings( uniqueKey, metadata ),
+							formatter,
+							options,
+							targets
+					);
+				}
+
 				applySqlStrings(
 						true,
-						exporter.getSqlDropStrings( uniqueKey, metadata ),
+						exporter.getSqlCreateStrings( uniqueKey, metadata ),
 						formatter,
 						options,
 						targets
 				);
 			}
-
-			applySqlStrings(
-					true,
-					exporter.getSqlCreateStrings( uniqueKey, metadata ),
-					formatter,
-					options,
-					targets
-			);
-		}
+		} );
 	}
 
 	private UniqueConstraintSchemaUpdateStrategy determineUniqueConstraintSchemaUpdateStrategy(Metadata metadata) {
@@ -489,37 +462,30 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 
 		final Exporter<ForeignKey> exporter = dialect.getForeignKeyExporter();
 
-		@SuppressWarnings("unchecked")
-		final Iterator<ForeignKey> fkItr = table.getForeignKeyIterator();
-		while ( fkItr.hasNext() ) {
-			final ForeignKey foreignKey = fkItr.next();
-			if ( !foreignKey.isPhysicalConstraint() ) {
-				continue;
-			}
-
-			if ( !foreignKey.isCreationEnabled() ) {
-				continue;
-			}
-
-			if ( tableInformation != null ) {
-				final ForeignKeyInformation existingForeignKey = findMatchingForeignKey( foreignKey, tableInformation );
-				if ( existingForeignKey != null ) {
-					continue;
+		table.getForeignKeys().values().parallelStream().forEach( foreignKey -> {
+			if ( foreignKey.isPhysicalConstraint() && foreignKey.isCreationEnabled() ) {
+				ForeignKeyInformation existingForeignKey = null;
+				if ( tableInformation != null ) {
+					existingForeignKey = findMatchingForeignKey(
+							foreignKey,
+							tableInformation
+					);
 				}
+				if ( existingForeignKey == null ) {
+					applySqlStrings(
+							false,
+							exporter.getSqlCreateStrings( foreignKey, metadata ),
+							formatter,
+							options,
+							targets
+					);
+				}
+				// todo : shouldn't we just drop+recreate if FK exists?
+				//		this follows the existing code from legacy SchemaUpdate which just skipped
+
+				// in old SchemaUpdate code, this was the trigger to "create"
 			}
-
-			// todo : shouldn't we just drop+recreate if FK exists?
-			//		this follows the existing code from legacy SchemaUpdate which just skipped
-
-			// in old SchemaUpdate code, this was the trigger to "create"
-			applySqlStrings(
-					false,
-					exporter.getSqlCreateStrings( foreignKey, metadata ),
-					formatter,
-					options,
-					targets
-			);
-		}
+		} );
 	}
 
 	private ForeignKeyInformation findMatchingForeignKey(ForeignKey foreignKey, TableInformation tableInformation) {
@@ -551,10 +517,9 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 		if ( sqlStrings == null ) {
 			return;
 		}
-
-		for ( String sqlString : sqlStrings ) {
+		Arrays.asList( sqlStrings ).parallelStream().forEach( sqlString -> {
 			applySqlString( quiet, sqlString, formatter, options, targets );
-		}
+		} );
 	}
 
 	private static void applySqlString(
@@ -566,8 +531,7 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 		if ( StringHelper.isEmpty( sqlString ) ) {
 			return;
 		}
-
-		for ( GenerationTarget target : targets ) {
+		Arrays.asList(targets).parallelStream().forEach( target -> {
 			try {
 				target.accept( formatter.format( sqlString ) );
 			}
@@ -577,23 +541,21 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 				}
 				// otherwise ignore the exception
 			}
-		}
+		} );
 	}
 
 	private static void applySqlStrings(
 			boolean quiet,
-			Iterator<String> sqlStrings,
+			List<String> sqlStrings,
 			Formatter formatter,
 			ExecutionOptions options,
 			GenerationTarget... targets) {
 		if ( sqlStrings == null ) {
 			return;
 		}
-
-		while ( sqlStrings.hasNext() ) {
-			final String sqlString = sqlStrings.next();
+		sqlStrings.parallelStream().forEach( sqlString -> {
 			applySqlString( quiet, sqlString, formatter, options, targets );
-		}
+		} );
 	}
 
 	private String getDefaultCatalogName(Database database, Dialect dialect) {

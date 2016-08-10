@@ -7,12 +7,9 @@
 package org.hibernate.mapping;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.*;
+import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.hibernate.HibernateException;
@@ -283,8 +280,16 @@ public class Table implements RelationalModel, Serializable, Exportable {
 		return columns.values().iterator();
 	}
 
+	public Collection getColumns() {
+		return Collections.unmodifiableCollection( columns.values() );
+	}
+
 	public Iterator<Index> getIndexIterator() {
 		return indexes.values().iterator();
+	}
+
+	public Collection<Index> getIndexes() {
+		return Collections.unmodifiableCollection( indexes.values() );
 	}
 
 	public Iterator getForeignKeyIterator() {
@@ -299,7 +304,7 @@ public class Table implements RelationalModel, Serializable, Exportable {
 		return getUniqueKeys().values().iterator();
 	}
 
-	Map<String, UniqueKey> getUniqueKeys() {
+	public Map<String, UniqueKey> getUniqueKeys() {
 		cleanseUniqueKeyMapIfNeeded();
 		return uniqueKeys;
 	}
@@ -436,7 +441,7 @@ public class Table implements RelationalModel, Serializable, Exportable {
 
 	}
 
-	public Iterator sqlAlterStrings(
+	public List<String> sqlAlterStrings(
 			Dialect dialect,
 			Mapping p,
 			TableInformation tableInfo,
@@ -449,7 +454,7 @@ public class Table implements RelationalModel, Serializable, Exportable {
 				.append( dialect.getAddColumnString() );
 
 		Iterator iter = getColumnIterator();
-		List results = new ArrayList();
+		List<String> results = new ArrayList();
 		
 		while ( iter.hasNext() ) {
 			final Column column = (Column) iter.next();
@@ -505,7 +510,7 @@ public class Table implements RelationalModel, Serializable, Exportable {
 			log.debugf( "No alter strings for table : %s", getQuotedName() );
 		}
 
-		return results.iterator();
+		return results;
 	}
 
 	public boolean hasPrimaryKey() {

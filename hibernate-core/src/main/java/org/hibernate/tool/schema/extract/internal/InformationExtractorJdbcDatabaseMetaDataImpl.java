@@ -56,7 +56,7 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 
 	private final ExtractionContext extractionContext;
 
-	private final Map<TableInformation, Map<String, ColumnInformationImpl>> tablesColumns = new HashMap<>();
+	private volatile Map<TableInformation, Map<String, ColumnInformationImpl>> tablesColumns = new HashMap<>();
 
 	public InformationExtractorJdbcDatabaseMetaDataImpl(ExtractionContext extractionContext) {
 		this.extractionContext = extractionContext;

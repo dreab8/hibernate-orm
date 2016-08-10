@@ -76,42 +76,29 @@ public class SchemaValidatorImpl implements SchemaValidator {
 			DatabaseInformation databaseInformation,
 			ExecutionOptions options,
 			Dialect dialect) {
-		for ( Namespace namespace : metadata.getDatabase().getNamespaces() ) {
-			if ( !schemaFilter.includeNamespace( namespace )) {
-				continue;
+		metadata.getDatabase().getNamespaces().parallelStream().forEach( namespace -> {
+			if ( schemaFilter.includeNamespace( namespace ) ) {
+				for ( Table table : namespace.getTables() ) {
+					if ( schemaFilter.includeTable( table ) && table.isPhysicalTable() ) {
+						final TableInformation tableInformation =
+								databaseInformation.getTableInformation( table.getQualifiedTableName() );
+						validateTable( table, tableInformation, metadata, options, dialect );
+					}
+				}
 			}
-			
-			for ( Table table : namespace.getTables() ) {
-				if ( !schemaFilter.includeTable( table )) {
-					continue;
-				}
-				if ( !table.isPhysicalTable() ) {
-					continue;
-				}
+		} );
 
-				final TableInformation tableInformation = databaseInformation.getTableInformation(
-						table.getQualifiedTableName()
-				);
-				validateTable( table, tableInformation, metadata, options, dialect );
-			}
-		}
-
-		for ( Namespace namespace : metadata.getDatabase().getNamespaces() ) {
-			if ( !schemaFilter.includeNamespace( namespace )) {
-				continue;
-			}
-			
-			for ( Sequence sequence : namespace.getSequences() ) {
-				if ( !schemaFilter.includeSequence( sequence )) {
-					continue;
+		metadata.getDatabase().getNamespaces().parallelStream().forEach( namespace -> {
+			if ( schemaFilter.includeNamespace( namespace ) ) {
+				for ( Sequence sequence : namespace.getSequences() ) {
+					if ( schemaFilter.includeSequence( sequence ) ) {
+						final SequenceInformation sequenceInformation =
+								databaseInformation.getSequenceInformation( sequence.getName() );
+						validateSequence( sequence, sequenceInformation );
+					}
 				}
-				
-				final SequenceInformation sequenceInformation = databaseInformation.getSequenceInformation(
-						sequence.getName()
-				);
-				validateSequence( sequence, sequenceInformation );
 			}
-		}
+		} );
 	}
 
 	protected void validateTable(
@@ -122,33 +109,26 @@ public class SchemaValidatorImpl implements SchemaValidator {
 			Dialect dialect) {
 		if ( tableInformation == null ) {
 			throw new SchemaManagementException(
-					String.format(
-							"Schema-validation: missing table [%s]",
-							table.getQualifiedTableName().toString()
-					)
+					String.format( "Schema-validation: missing table [%s]", table.getQualifiedTableName().toString() )
 			);
 		}
 
-		final Iterator selectableItr = table.getColumnIterator();
-		while ( selectableItr.hasNext() ) {
-			final Selectable selectable = (Selectable) selectableItr.next();
-			if ( !Column.class.isInstance( selectable ) ) {
-				continue;
+		table.getColumns().parallelStream().forEach( selectable -> {
+			if ( Column.class.isInstance( selectable ) ) {
+				final Column column = (Column) selectable;
+				final ColumnInformation existingColumn = tableInformation.getColumn( Identifier.toIdentifier( column.getQuotedName() ) );
+				if ( existingColumn == null ) {
+					throw new SchemaManagementException(
+							String.format(
+									"Schema-validation: missing column [%s] in table [%s]",
+									column.getName(),
+									table.getQualifiedTableName()
+							)
+					);
+				}
+				validateColumnType( table, column, existingColumn, metadata, options, dialect );
 			}
-
-			final Column column = (Column) selectable;
-			final ColumnInformation existingColumn = tableInformation.getColumn( Identifier.toIdentifier( column.getQuotedName() ) );
-			if ( existingColumn == null ) {
-				throw new SchemaManagementException(
-						String.format(
-								"Schema-validation: missing column [%s] in table [%s]",
-								column.getName(),
-								table.getQualifiedTableName()
-						)
-				);
-			}
-			validateColumnType( table, column, existingColumn, metadata, options, dialect );
-		}
+		}  );
 	}
 
 	protected void validateColumnType(
