@@ -24,6 +24,7 @@ import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.TargetType;
+import org.hibernate.tool.schema.internal.SchemaDropperImpl;
 
 import org.junit.After;
 import org.junit.Before;
@@ -127,6 +128,11 @@ public class SchemaMigrationPerfTest extends BaseUnitTestCase {
 		stopTime = System.currentTimeMillis();
 		elapsedTime = stopTime - startTime;
 		System.out.println(">>>>>>>>>>>>>>>>>>>>> Elapsed time = " + elapsedTime);
+
+		new SchemaExport().setHaltOnError( true )
+				.setOutputFile( output.getAbsolutePath() )
+				.setFormat( false )
+				.drop( EnumSet.of( TargetType.DATABASE ), metadata );
 	}
 
 	@Entity(name = "TestEntity")
