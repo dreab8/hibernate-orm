@@ -34,7 +34,7 @@ public class TableInformationImpl implements TableInformation {
 	private PrimaryKeyInformation primaryKey;
 	private Map<Identifier, ForeignKeyInformation> foreignKeys;
 	private Map<Identifier, IndexInformation> indexes;
-	private Map<Identifier, ColumnInformation> columns;
+	private Map<Identifier, ColumnInformation> columns = new HashMap<>(  );
 
 	private boolean wasPrimaryKeyLoaded = false; // to avoid multiple db reads since primary key can be null.
 
@@ -48,6 +48,7 @@ public class TableInformationImpl implements TableInformation {
 		this.physicalTable = physicalTable;
 		this.comment = comment;
 	}
+
 
 	@Override
 	public QualifiedTableName getName() {
@@ -66,9 +67,6 @@ public class TableInformationImpl implements TableInformation {
 
 	@Override
 	public ColumnInformation getColumn(Identifier columnIdentifier) {
-		if ( columns == null ) {
-			columns = extractor.getColumns( this );
-		}
 		if ( columnIdentifier.isQuoted() ) {
 			return columns.get( new Identifier( columnIdentifier.getText(), false ) );
 		}
@@ -121,6 +119,11 @@ public class TableInformationImpl implements TableInformation {
 			this.indexes = indexMap;
 		}
 		return indexes;
+	}
+
+	@Override
+	public void addColumn(ColumnInformation columnIdentifier) {
+		columns.put( columnIdentifier.getColumnIdentifier(), columnIdentifier );
 	}
 
 	@Override

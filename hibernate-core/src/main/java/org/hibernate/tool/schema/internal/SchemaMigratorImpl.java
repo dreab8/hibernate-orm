@@ -239,6 +239,7 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 				}
 			}
 
+			final Map<Identifier, TableInformation> tables = existingDatabase.getTableInformation( namespace );
 			for ( Table table : namespace.getTables() ) {
 				if ( !table.isPhysicalTable() ) {
 					continue;
@@ -247,8 +248,10 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 					continue;
 				}
 				checkExportIdentifier( table, exportIdentifiers );
-				final TableInformation tableInformation = existingDatabase.getTableInformation( table.getQualifiedTableName() );
+
+				final TableInformation tableInformation = tables.get( new Identifier( table.getName(), false ) );
 				tablesInformation.put( table.getQualifiedTableName(), tableInformation );
+
 				if ( tableInformation != null && !tableInformation.isPhysicalTable() ) {
 					continue;
 				}

@@ -6,6 +6,8 @@
  */
 package org.hibernate.tool.schema.extract.spi;
 
+import java.util.Map;
+
 import org.hibernate.Incubating;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.relational.Namespace;
@@ -59,6 +61,16 @@ public interface DatabaseInformation {
 	 * @return The table information.  May return {@code null} if not found.
 	 */
 	TableInformation getTableInformation(QualifiedTableName tableName);
+
+	/**
+	 * Obtain reference to all the {@link TableInformation) for a given {@link Namespace}
+	 *
+	 * @param namespace The {@link Namespace} which contains the {@link TableInformation)
+	 *
+	 * @return a {@link Map} where the keys are the {@link Identifier} of the table name
+	 * while the Map values are the {@link TableInformation}
+	 */
+	Map<Identifier,TableInformation> getTableInformation(Namespace namespace);
 
 	/**
 	 * Obtain reference to the named SequenceInformation

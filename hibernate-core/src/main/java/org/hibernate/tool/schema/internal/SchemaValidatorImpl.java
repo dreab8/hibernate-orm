@@ -8,6 +8,7 @@ package org.hibernate.tool.schema.internal;
 
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.model.naming.Identifier;
@@ -85,7 +86,8 @@ public class SchemaValidatorImpl implements SchemaValidator {
 			if ( !schemaFilter.includeNamespace( namespace )) {
 				continue;
 			}
-			
+			final Map<Identifier, TableInformation> tables = databaseInformation.getTableInformation( namespace );
+
 			for ( Table table : namespace.getTables() ) {
 				if ( !schemaFilter.includeTable( table )) {
 					continue;
@@ -94,9 +96,8 @@ public class SchemaValidatorImpl implements SchemaValidator {
 					continue;
 				}
 
-				final TableInformation tableInformation = databaseInformation.getTableInformation(
-						table.getQualifiedTableName()
-				);
+				final TableInformation tableInformation = tables.get( new Identifier( table.getName(), false ) );
+
 				validateTable( table, tableInformation, metadata, options, dialect );
 			}
 		}

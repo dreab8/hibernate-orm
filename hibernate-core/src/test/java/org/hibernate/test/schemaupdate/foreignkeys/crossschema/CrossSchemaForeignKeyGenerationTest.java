@@ -21,6 +21,8 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.config.spi.ConfigurationService;
+import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
+import org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
@@ -46,6 +48,8 @@ import org.hibernate.testing.RequiresDialectFeature;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.hibernate.test.tool.schema.TargetDatabaseImpl;
+import org.hibernate.test.util.DdlTransactionIsolatorTestingImpl;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -136,57 +140,47 @@ public class CrossSchemaForeignKeyGenerationTest extends BaseUnitTestCase {
 		final Database database = metadata.getDatabase();
 		final HibernateSchemaManagementTool tool = (HibernateSchemaManagementTool) ssr.getService( SchemaManagementTool.class );
 
-		DatabaseInformation dbInfo = new DatabaseInformationImpl(
+		final Map configurationValues = ssr.getService( ConfigurationService.class ).getSettings();
+		final ExecutionOptions options = new ExecutionOptions() {
+			@Override
+			public boolean shouldManageNamespaces() {
+				return true;
+			}
+
+			@Override
+			public Map getConfigurationValues() {
+				return configurationValues;
+			}
+
+			@Override
+			public ExceptionHandler getExceptionHandler() {
+				return ExceptionHandlerLoggedImpl.INSTANCE;
+			}
+		};
+
+		final ConnectionProvider connectionProvider = ssr.getService( ConnectionProvider.class );
+
+		final DatabaseInformation dbInfo = new DatabaseInformationImpl(
 				ssr,
 				database.getJdbcEnvironment(),
-				ssr.getService( JdbcServices.class ).getBootstrapJdbcConnectionAccess(),
-				database.getDefaultNamespace().getPhysicalName().getCatalog(),
-				database.getDefaultNamespace().getPhysicalName().getSchema()
+				new DdlTransactionIsolatorTestingImpl(
+						ssr,
+						new JdbcEnvironmentInitiator.ConnectionProviderJdbcConnectionAccess(
+								connectionProvider )
+				), database.getDefaultNamespace().getName()
 		);
-
-		final Map configurationValues = ssr.getService( ConfigurationService.class ).getSettings();
 
 		new SchemaMigratorImpl( tool ).doMigration(
 				metadata,
 				dbInfo,
-				new ExecutionOptions() {
-					@Override
-					public boolean shouldManageNamespaces() {
-						return true;
-					}
-
-					@Override
-					public Map getConfigurationValues() {
-						return configurationValues;
-					}
-
-					@Override
-					public ExceptionHandler getExceptionHandler() {
-						return ExceptionHandlerLoggedImpl.INSTANCE;
-					}
-				},
+				options,
 				ssr.getService( JdbcEnvironment.class ).getDialect(),
 				buildTargets()
 		);
 
 		new SchemaDropperImpl( tool ).doDrop(
 				metadata,
-				new ExecutionOptions() {
-					@Override
-					public boolean shouldManageNamespaces() {
-						return true;
-					}
-
-					@Override
-					public Map getConfigurationValues() {
-						return configurationValues;
-					}
-
-					@Override
-					public ExceptionHandler getExceptionHandler() {
-						return ExceptionHandlerLoggedImpl.INSTANCE;
-					}
-				},
+				options,
 				ssr.getService( JdbcEnvironment.class ).getDialect(),
 				new SourceDescriptor() {
 					@Override

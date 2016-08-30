@@ -58,6 +58,19 @@ public interface InformationExtractor {
 	TableInformation getTable(Identifier catalog, Identifier schema, Identifier tableName);
 
 	/**
+	 * Extract all the tables information.
+	 *
+	 * @param catalog Can be {@code null}, indicating that any catalog may be considered a match.  A
+	 * non-{@code null} value indicates that search should be limited to the passed catalog.
+	 * @param schema Can  be {@code null}, indicating that any schema may be considered a match.  A
+	 * non-{@code null} value indicates that search should be limited to the passed schema .
+	 *
+	 * @return a {@link Map} where the keys are the {@link Identifier} of the table name
+	 * while the Map values are the {@link TableInformation}
+	 */
+	Map<Identifier, TableInformation> getTables(Identifier catalog, Identifier schema);
+
+	/**
 	 * Return information about columns for the given table.  Typically called from the TableInformation itself
 	 * as part of on-demand initialization of its state.
 	 *

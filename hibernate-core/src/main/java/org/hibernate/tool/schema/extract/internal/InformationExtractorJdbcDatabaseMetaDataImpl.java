@@ -193,7 +193,7 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 		return extractionContext.getJdbcEnvironment().getIdentifierHelper().toMetaDataSchemaName( identifierToUse );
 	}
 
-	public TableInformation extractTableInformation(
+	private TableInformation extractTableInformation(
 			Identifier catalog,
 			Identifier schema,
 			Identifier name,
@@ -275,7 +275,7 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 				);
 
 				try {
-					return processGetTableResults(
+					return processTableResults(
 							null,
 							null,
 							tableName,
@@ -292,6 +292,152 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 			}
 			catch (SQLException sqlException) {
 				throw convertSQLException( sqlException, "Error accessing table metadata" );
+			}
+		}
+	}
+
+	public Map<Identifier, TableInformation> getTables(Identifier catalog, Identifier schema) {
+		Identifier catalogToUse = null;
+		Identifier schemaToUse = null;
+
+		String catalogFilter = null;
+		String schemaFilter = null;
+
+		if ( extractionContext.getJdbcEnvironment().getNameQualifierSupport().supportsCatalogs() ) {
+			if ( catalog == null ) {
+				if ( extractionContext.getJdbcEnvironment().getCurrentCatalog() != null ) {
+					// 1) look in current namespace
+					catalogToUse = extractionContext.getJdbcEnvironment().getCurrentCatalog();
+					catalogFilter = toMetaDataObjectName( catalogToUse );
+				}
+				else if ( extractionContext.getDefaultCatalog() != null ) {
+					// 2) look in default namespace
+					catalogToUse = extractionContext.getDefaultCatalog();
+					catalogFilter = toMetaDataObjectName( catalogToUse );
+				}
+				else {
+					catalogFilter = "";
+				}
+			}
+			else {
+				catalogToUse = catalog;
+				catalogFilter = toMetaDataObjectName( catalog );
+			}
+		}
+
+		if ( extractionContext.getJdbcEnvironment().getNameQualifierSupport().supportsSchemas() ) {
+			if ( schema == null ) {
+				if ( extractionContext.getJdbcEnvironment().getCurrentSchema() != null ) {
+					// 1) look in current namespace
+					schemaToUse = extractionContext.getJdbcEnvironment().getCurrentSchema();
+					schemaFilter = toMetaDataObjectName( schemaToUse );
+				}
+				else if ( extractionContext.getDefaultSchema() != null ) {
+					// 2) look in default namespace
+					schemaToUse = extractionContext.getDefaultSchema();
+					schemaFilter = toMetaDataObjectName( schemaToUse );
+				}
+				else {
+					schemaFilter = "";
+				}
+			}
+			else {
+				schemaToUse = schema;
+				schemaFilter = toMetaDataObjectName( schema );
+			}
+		}
+
+		try {
+			ResultSet resultSet = extractionContext.getJdbcDatabaseMetaData().getTables(
+					catalogFilter,
+					schemaFilter,
+					"%",
+					tableTypes
+			);
+
+			final Map<Identifier, TableInformation> tablesInformation = processTableResults(
+					catalogToUse,
+					schemaToUse,
+					resultSet
+			);
+			populateTablesWithColumns( catalogFilter, schemaFilter, tablesInformation );
+			return tablesInformation;
+		}
+		catch (SQLException sqlException) {
+			throw convertSQLException( sqlException, "Error accessing table metadata" );
+		}
+	}
+
+	private void populateTablesWithColumns(
+			String catalogFilter,
+			String schemaFilter,
+			Map<Identifier, TableInformation> tables) {
+		try {
+			ResultSet resultSet = extractionContext.getJdbcDatabaseMetaData().getColumns(
+					catalogFilter,
+					schemaFilter,
+					null,
+					"%"
+			);
+			try {
+				String currentTableName = "";
+				TableInformation currentTable = null;
+				while ( resultSet.next() ) {
+					if ( !currentTableName.equals( resultSet.getString( "TABLE_NAME" ) ) ) {
+						currentTableName = resultSet.getString( "TABLE_NAME" );
+						currentTable = tables.get( new Identifier( currentTableName, false ) );
+					}
+					if ( currentTable != null ) {
+						final String columnName = resultSet.getString( "COLUMN_NAME" );
+						final ColumnInformationImpl columnInformation = new ColumnInformationImpl(
+								currentTable,
+								identifierHelper().toIdentifier( columnName ),
+								resultSet.getInt( "DATA_TYPE" ),
+								new StringTokenizer( resultSet.getString( "TYPE_NAME" ), "() " ).nextToken(),
+								resultSet.getInt( "COLUMN_SIZE" ),
+								resultSet.getInt( "DECIMAL_DIGITS" ),
+								interpretTruthValue( resultSet.getString( "IS_NULLABLE" ) )
+						);
+						currentTable.addColumn( columnInformation );
+					}
+				}
+			}
+			finally {
+				resultSet.close();
+			}
+		}
+		catch (SQLException e) {
+			throw convertSQLException(
+					e,
+					"Error accessing tables metadata"
+			);
+		}
+	}
+
+	private Map<Identifier, TableInformation> processTableResults(
+			Identifier catalog,
+			Identifier schema,
+			ResultSet resultSet) throws SQLException {
+		try {
+			Map<Identifier, TableInformation> tables = new HashMap<>();
+			while ( resultSet.next() ) {
+				final Identifier tableName = Identifier.toIdentifier( resultSet.getString( "TABLE_NAME" ) );
+				final TableInformation tableInformation = extractTableInformation(
+						catalog,
+						schema,
+						tableName,
+						resultSet
+				);
+				tables.put( tableName, tableInformation );
+			}
+
+			return tables;
+		}
+		finally {
+			try {
+				resultSet.close();
+			}
+			catch (SQLException ignore) {
 			}
 		}
 	}
@@ -342,7 +488,7 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 					tableTypes
 			);
 
-			return processGetTableResults(
+			return processTableResults(
 					catalogToUse,
 					schemaToUse,
 					tableName,
@@ -354,7 +500,7 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 		}
 	}
 
-	private TableInformation processGetTableResults(
+	private TableInformation processTableResults(
 			Identifier catalog,
 			Identifier schema,
 			Identifier tableName,
