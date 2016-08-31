@@ -108,7 +108,7 @@ public class Database {
 		return getBuildingOptions().getPhysicalNamingStrategy();
 	}
 
-	public Iterable<Namespace> getNamespaces() {
+	public Collection<Namespace> getNamespaces() {
 		return namespaceMap.values();
 	}
 

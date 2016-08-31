@@ -153,7 +153,7 @@ public class Namespace {
 		return name.hashCode();
 	}
 
-	public Iterable<Sequence> getSequences() {
+	public Collection<Sequence> getSequences() {
 		return sequences.values();
 	}
 

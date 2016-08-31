@@ -6,11 +6,13 @@
  */
 package org.hibernate.tool.schema.internal;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.model.naming.Identifier;
@@ -127,21 +129,16 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 			ExecutionOptions options,
 			Dialect dialect,
 			GenerationTarget... targets) {
-		for ( GenerationTarget target : targets ) {
-			target.prepare();
-		}
-
+		Arrays.stream( targets ).forEach( target -> target.prepare() );
 		try {
 			performMigration( metadata, existingDatabase, options, dialect, targets );
 		}
 		finally {
-			for ( GenerationTarget target : targets ) {
-				try {
-					target.release();
-				}
-				catch (Exception e) {
-					log.debugf( "Problem releasing GenerationTarget [%s] : %s", target, e.getMessage() );
-				}
+			try {
+				Arrays.stream( targets ).parallel().forEach( target -> target.release() );
+			}
+			catch (Exception e) {
+				log.debugf( "Problem releasing GenerationTarget : %s", e.getMessage() );
 			}
 		}
 	}
@@ -192,149 +189,173 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 			);
 		}
 
-		boolean tryToCreateCatalogs = false;
-		boolean tryToCreateSchemas = false;
+		final boolean tryToCreateCatalogs;
+		final boolean tryToCreateSchemas;
 		if ( options.shouldManageNamespaces() ) {
 			if ( dialect.canCreateSchema() ) {
 				tryToCreateSchemas = true;
 			}
+			else {
+				tryToCreateSchemas = false;
+			}
+
 			if ( dialect.canCreateCatalog() ) {
 				tryToCreateCatalogs = true;
 			}
+			else {
+				tryToCreateCatalogs = false;
+			}
 		}
+		else {
+			tryToCreateSchemas = false;
+			tryToCreateCatalogs = false;
+		}
+
 		final Map<QualifiedTableName, TableInformation> tablesInformation = new HashMap<>();
 		Set<Identifier> exportedCatalogs = new HashSet<Identifier>();
-		for ( Namespace namespace : database.getNamespaces() ) {
-			if ( !schemaFilter.includeNamespace( namespace ) ) {
-				continue;
-			}
-			if ( tryToCreateCatalogs || tryToCreateSchemas ) {
-				if ( tryToCreateCatalogs ) {
-					final Identifier catalogLogicalName = namespace.getName().getCatalog();
-					final Identifier catalogPhysicalName = namespace.getPhysicalName().getCatalog();
+		database.getNamespaces().parallelStream()
+				.forEach( namespace -> {
+							  if ( schemaFilter.includeNamespace( namespace ) ) {
+								  if ( tryToCreateCatalogs || tryToCreateSchemas ) {
+									  if ( tryToCreateCatalogs ) {
+										  final Identifier catalogLogicalName = namespace.getName().getCatalog();
+										  final Identifier catalogPhysicalName = namespace.getPhysicalName().getCatalog();
 
-					if ( catalogPhysicalName != null && !exportedCatalogs.contains( catalogLogicalName )
-							&& !existingDatabase.catalogExists( catalogLogicalName ) ) {
-						applySqlStrings(
-								false,
-								dialect.getCreateCatalogCommand( catalogPhysicalName.render( dialect ) ),
-								formatter,
-								options,
-								targets
-						);
-						exportedCatalogs.add( catalogLogicalName );
+										  if ( catalogPhysicalName != null && !exportedCatalogs.contains( catalogLogicalName )
+												  && !existingDatabase.catalogExists( catalogLogicalName ) ) {
+											  applySqlStrings(
+													  false,
+													  dialect.getCreateCatalogCommand( catalogPhysicalName.render( dialect ) ),
+													  formatter,
+													  options,
+													  targets
+											  );
+											  exportedCatalogs.add( catalogLogicalName );
+										  }
+									  }
+
+									  if ( tryToCreateSchemas
+											  && namespace.getPhysicalName().getSchema() != null
+											  && !existingDatabase.schemaExists( namespace.getName() ) ) {
+										  applySqlStrings(
+												  false,
+												  dialect.getCreateSchemaCommand( namespace.getPhysicalName()
+																						  .getSchema()
+																						  .render( dialect ) ),
+												  formatter,
+												  options,
+												  targets
+										  );
+									  }
+								  }
+
+								  final Map<Identifier, TableInformation> tables = existingDatabase.getTableInformation( namespace );
+								  namespace.getTables().stream().forEach( table -> {
+									  if ( table.isPhysicalTable() && schemaFilter.includeTable( table ) ) {
+										  checkExportIdentifier( table, exportIdentifiers );
+
+										  final TableInformation tableInformation = tables.get( new Identifier(
+												  table.getName(),
+												  false
+										  ) );
+										  tablesInformation.put( table.getQualifiedTableName(), tableInformation );
+
+										  if ( tableInformation == null
+												  || ( tableInformation != null && tableInformation.isPhysicalTable() ) ) {
+											  if ( tableInformation == null ) {
+												  createTable( table, dialect, metadata, formatter, options, targets );
+											  }
+											  else {
+												  migrateTable(
+														  table,
+														  tableInformation,
+														  dialect,
+														  metadata,
+														  formatter,
+														  options,
+														  targets
+												  );
+											  }
+										  }
+									  }
+								  } );
+
+								  namespace.getTables().stream().forEach( table -> {
+									  if ( table.isPhysicalTable() && schemaFilter.includeTable( table ) ) {
+										  final TableInformation tableInformation = tablesInformation.get(
+												  new Identifier( table.getName(), false )
+										  );
+										  if ( tableInformation == null
+												  || ( tableInformation != null && tableInformation.isPhysicalTable() ) ) {
+											  applyIndexes(
+													  table,
+													  tableInformation,
+													  dialect,
+													  metadata,
+													  formatter,
+													  options,
+													  targets
+											  );
+											  applyUniqueKeys(
+													  table,
+													  tableInformation,
+													  dialect,
+													  metadata,
+													  formatter,
+													  options,
+													  targets
+											  );
+										  }
+									  }
+
+								  } );
+								  namespace.getSequences().stream().forEach( sequence -> {
+									  checkExportIdentifier( sequence, exportIdentifiers );
+									  final SequenceInformation sequenceInformation = existingDatabase.getSequenceInformation(
+											  sequence.getName() );
+									  if ( sequenceInformation == null ) {
+										  applySqlStrings(
+												  false,
+												  dialect.getSequenceExporter().getSqlCreateStrings(
+														  sequence,
+														  metadata
+												  ),
+												  formatter,
+												  options,
+												  targets
+										  );
+									  }
+								  } );
+							  }
+						  }
+				);
+
+		//NOTE : Foreign keys must be created *afterQuery* all tables of all namespaces for cross namespace fks. see HHH-10420
+		database.getNamespaces().stream().forEach( namespace -> {
+			if ( schemaFilter.includeNamespace( namespace ) ) {
+				namespace.getTables().parallelStream().forEach( table -> {
+					if ( schemaFilter.includeTable( table ) ) {
+						final TableInformation tableInformation = tablesInformation.get( table.getQualifiedTableName() );
+						if ( tableInformation == null || ( tableInformation != null && tableInformation.isPhysicalTable() ) ) {
+							applyForeignKeys( table, tableInformation, dialect, metadata, formatter, options, targets );
+						}
 					}
-				}
-
-				if ( tryToCreateSchemas
-						&& namespace.getPhysicalName().getSchema() != null
-						&& !existingDatabase.schemaExists( namespace.getName() ) ) {
-					applySqlStrings(
-							false,
-							dialect.getCreateSchemaCommand( namespace.getPhysicalName().getSchema().render( dialect ) ),
-							formatter,
-							options,
-							targets
-					);
-				}
+				} );
 			}
+		} );
 
-			final Map<Identifier, TableInformation> tables = existingDatabase.getTableInformation( namespace );
-			for ( Table table : namespace.getTables() ) {
-				if ( !table.isPhysicalTable() ) {
-					continue;
-				}
-				if ( !schemaFilter.includeTable( table ) ) {
-					continue;
-				}
-				checkExportIdentifier( table, exportIdentifiers );
-
-				final TableInformation tableInformation = tables.get( new Identifier( table.getName(), false ) );
-				tablesInformation.put( table.getQualifiedTableName(), tableInformation );
-
-				if ( tableInformation != null && !tableInformation.isPhysicalTable() ) {
-					continue;
-				}
-				if ( tableInformation == null ) {
-					createTable( table, dialect, metadata, formatter, options, targets );
-				}
-				else {
-					migrateTable( table, tableInformation, dialect, metadata, formatter, options, targets );
-				}
-			}
-
-			for ( Table table : namespace.getTables() ) {
-				if ( !table.isPhysicalTable() ) {
-					continue;
-				}
-				if ( !schemaFilter.includeTable( table ) ) {
-					continue;
-				}
-
-				final TableInformation tableInformation = tablesInformation.get( table.getQualifiedTableName() );
-				if ( tableInformation != null && !tableInformation.isPhysicalTable() ) {
-					continue;
-				}
-
-				applyIndexes( table, tableInformation, dialect, metadata, formatter, options, targets );
-				applyUniqueKeys( table, tableInformation, dialect, metadata, formatter, options, targets );
-			}
-
-			for ( Sequence sequence : namespace.getSequences() ) {
-				checkExportIdentifier( sequence, exportIdentifiers );
-				final SequenceInformation sequenceInformation = existingDatabase.getSequenceInformation( sequence.getName() );
-				if ( sequenceInformation != null ) {
-					// nothing we really can do...
-					continue;
-				}
-
+		// Create afterQuery-table AuxiliaryDatabaseObjects
+		database.getAuxiliaryDatabaseObjects().stream().forEach( auxiliaryDatabaseObject -> {
+			if ( auxiliaryDatabaseObject.beforeTablesOnCreation() && auxiliaryDatabaseObject.appliesToDialect( dialect ) ) {
 				applySqlStrings(
-						false,
-						dialect.getSequenceExporter().getSqlCreateStrings(
-								sequence,
-								metadata
-						),
+						true,
+						auxiliaryDatabaseObject.sqlCreateStrings( dialect ),
 						formatter,
 						options,
 						targets
 				);
 			}
-		}
-
-		//NOTE : Foreign keys must be created *afterQuery* all tables of all namespaces for cross namespace fks. see HHH-10420
-		for ( Namespace namespace : database.getNamespaces() ) {
-			if ( !schemaFilter.includeNamespace( namespace ) ) {
-				continue;
-			}
-			for ( Table table : namespace.getTables() ) {
-				if ( !schemaFilter.includeTable( table ) ) {
-					continue;
-				}
-				final TableInformation tableInformation = tablesInformation.get( table.getQualifiedTableName() );
-				if ( tableInformation != null && !tableInformation.isPhysicalTable() ) {
-					continue;
-				}
-				applyForeignKeys( table, tableInformation, dialect, metadata, formatter, options, targets );
-			}
-		}
-
-		// Create afterQuery-table AuxiliaryDatabaseObjects
-		for ( AuxiliaryDatabaseObject auxiliaryDatabaseObject : database.getAuxiliaryDatabaseObjects() ) {
-			if ( !auxiliaryDatabaseObject.beforeTablesOnCreation() ) {
-				continue;
-			}
-			if ( !auxiliaryDatabaseObject.appliesToDialect( dialect ) ) {
-				continue;
-			}
-
-			applySqlStrings(
-					true,
-					auxiliaryDatabaseObject.sqlCreateStrings( dialect ),
-					formatter,
-					options,
-					targets
-			);
-		}
+		} );
 	}
 
 	private void createTable(
@@ -569,17 +590,14 @@ public class SchemaMigratorImpl implements SchemaMigrator {
 		if ( StringHelper.isEmpty( sqlString ) ) {
 			return;
 		}
-
-		for ( GenerationTarget target : targets ) {
-			try {
-				target.accept( formatter.format( sqlString ) );
+		try {
+			Arrays.stream( targets ).parallel().forEach( target -> target.accept( formatter.format( sqlString ) ) );
+		}
+		catch (CommandAcceptanceException e) {
+			if ( !quiet ) {
+				options.getExceptionHandler().handleException( e );
 			}
-			catch (CommandAcceptanceException e) {
-				if ( !quiet ) {
-					options.getExceptionHandler().handleException( e );
-				}
-				// otherwise ignore the exception
-			}
+			// otherwise ignore the exception
 		}
 	}
 
