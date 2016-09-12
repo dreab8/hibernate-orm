@@ -58,7 +58,6 @@ import org.hibernate.hql.internal.QueryExecutionRequestException;
 import org.hibernate.internal.EmptyScrollableResults;
 import org.hibernate.internal.EntityManagerMessageLogger;
 import org.hibernate.internal.HEMLogging;
-import org.hibernate.internal.util.collections.ArrayHelper;
 import org.hibernate.internal.util.collections.EmptyIterator;
 import org.hibernate.jpa.QueryHints;
 import org.hibernate.jpa.TypedParameterValue;
@@ -76,7 +75,6 @@ import org.hibernate.query.spi.QueryImplementor;
 import org.hibernate.query.spi.QueryParameterBinding;
 import org.hibernate.query.spi.QueryParameterListBinding;
 import org.hibernate.query.spi.ScrollableResultsImplementor;
-import org.hibernate.transform.ResultTransformer;
 import org.hibernate.type.spi.Type;
 
 import static org.hibernate.LockOptions.WAIT_FOREVER;
@@ -120,7 +118,6 @@ public abstract class AbstractProducedQuery<R> implements QueryImplementor<R> {
 	private String comment;
 	private final List<String> dbHints = new ArrayList<>();
 
-	private ResultTransformer resultTransformer;
 	private RowSelection queryOptions = new RowSelection();
 
 	private EntityGraphQueryHint entityGraphQueryHint;
@@ -154,11 +151,6 @@ public abstract class AbstractProducedQuery<R> implements QueryImplementor<R> {
 	public QueryImplementor setHibernateFlushMode(FlushMode flushMode) {
 		this.flushMode = flushMode;
 		return this;
-	}
-
-	@Override
-	public QueryImplementor setFlushMode(FlushMode flushMode) {
-		return setHibernateFlushMode( flushMode );
 	}
 
 	@Override
@@ -311,11 +303,6 @@ public abstract class AbstractProducedQuery<R> implements QueryImplementor<R> {
 	}
 
 	@Override
-	public String[] getNamedParameters() {
-		return ArrayHelper.toStringArray( getParameterMetadata().getNamedParameterNames() );
-	}
-
-	@Override
 	public QueryImplementor<R> setParameter(Parameter<Instant> param, Instant value, TemporalType temporalType) {
 		locateBinding( param ).setBindValue( value, temporalType );
 		return this;
@@ -415,10 +402,12 @@ public abstract class AbstractProducedQuery<R> implements QueryImplementor<R> {
 		return queryParameterBindings.getBinding( parameter );
 	}
 
+	@SuppressWarnings("unchecked")
 	private <P> QueryParameterBinding<P> locateBinding(String name) {
 		return queryParameterBindings.getBinding( name );
 	}
 
+	@SuppressWarnings("unchecked")
 	private <P> QueryParameterBinding<P> locateBinding(int position) {
 		return queryParameterBindings.getBinding( position );
 	}
@@ -729,25 +718,24 @@ public abstract class AbstractProducedQuery<R> implements QueryImplementor<R> {
 	@SuppressWarnings("unchecked")
 	public QueryImplementor setProperties(Object bean) {
 		Class clazz = bean.getClass();
-		String[] params = getNamedParameters();
-		for ( String namedParam : params ) {
+		for ( String paramName : getParameterMetadata().getNamedParameterNames() ) {
 			try {
 				final PropertyAccess propertyAccess = BuiltInPropertyAccessStrategies.BASIC.getStrategy().buildPropertyAccess(
 						clazz,
-						namedParam
+						paramName
 				);
 				final Getter getter = propertyAccess.getGetter();
 				final Class retType = getter.getReturnType();
 				final Object object = getter.get( bean );
 				if ( Collection.class.isAssignableFrom( retType ) ) {
-					setParameterList( namedParam, (Collection) object );
+					setParameterList( paramName, (Collection) object );
 				}
 				else if ( retType.isArray() ) {
-					setParameterList( namedParam, (Object[]) object );
+					setParameterList( paramName, (Object[]) object );
 				}
 				else {
-					Type type = determineType( namedParam, retType );
-					setParameter( namedParam, object, type );
+					Type type = determineType( paramName, retType );
+					setParameter( paramName, object, type );
 				}
 			}
 			catch (PropertyNotFoundException pnfe) {
@@ -771,8 +759,7 @@ public abstract class AbstractProducedQuery<R> implements QueryImplementor<R> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public QueryImplementor setProperties(Map map) {
-		final String[] namedParameterNames = getNamedParameters();
-		for ( String paramName : namedParameterNames ) {
+		for ( String paramName : getParameterMetadata().getNamedParameterNames() ) {
 			final Object object = map.get( paramName );
 			if ( object == null ) {
 				if ( map.containsKey( paramName ) ) {
@@ -792,13 +779,6 @@ public abstract class AbstractProducedQuery<R> implements QueryImplementor<R> {
 				}
 			}
 		}
-		return this;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public QueryImplementor setResultTransformer(ResultTransformer transformer) {
-		this.resultTransformer = transformer;
 		return this;
 	}
 
@@ -1145,7 +1125,7 @@ public abstract class AbstractProducedQuery<R> implements QueryImplementor<R> {
 	 * @return {@code true} if the hint was "applied"
 	 */
 	protected boolean applyFlushModeHint(FlushMode flushMode) {
-		setFlushMode( flushMode );
+		setHibernateFlushMode( flushMode );
 		return true;
 	}
 
@@ -1278,7 +1258,7 @@ public abstract class AbstractProducedQuery<R> implements QueryImplementor<R> {
 				optionalObject,
 				optionalEntityName,
 				optionalId,
-				resultTransformer
+				null 	// resultTransformer
 		);
 		queryParameters.setQueryPlan( entityGraphHintedQueryPlan );
 		if ( passDistinctThrough != null ) {
@@ -1545,23 +1525,6 @@ public abstract class AbstractProducedQuery<R> implements QueryImplementor<R> {
 	@Override
 	public void setOptionalObject(Object optionalObject) {
 		this.optionalObject = optionalObject;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public Type determineProperBooleanType(String name, Object value, Type defaultType) {
-		final QueryParameterBinding binding = getQueryParameterBindings().getBinding( name );
-		return binding.getBindType() != null
-				? binding.getBindType()
-				: defaultType;
-	}
-
-	@Override
-	public Type determineProperBooleanType(int position, Object value, Type defaultType) {
-		final QueryParameterBinding binding = getQueryParameterBindings().getBinding( position );
-		return binding.getBindType() != null
-				? binding.getBindType()
-				: defaultType;
 	}
 
 	private boolean isSelect() {
