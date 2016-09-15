@@ -80,7 +80,7 @@ public class NativeQueryOrdinalParametersTest extends BaseEntityManagerFunctiona
 	public void testNativeQueryIndexedOrdinalParameter() {
 		EntityManager em = getOrCreateEntityManager();
 		try {
-			Query query = em.createNativeQuery( "SELECT * FROM Game g WHERE title = ?1" );
+			Query query = em.createNativeQuery( "SELECT * FROM GAME g WHERE title = ?1" );
 			query.setParameter( 1, "Super Mario Brothers" );
 			List list = query.getResultList();
 			assertEquals( 1, list.size() );
@@ -94,7 +94,7 @@ public class NativeQueryOrdinalParametersTest extends BaseEntityManagerFunctiona
 	public void testNativeQueryOrdinalParameter() {
 		EntityManager em = getOrCreateEntityManager();
 		try {
-			Query query = em.createNativeQuery( "SELECT * FROM Game g WHERE title = ?" );
+			Query query = em.createNativeQuery( "SELECT * FROM GAME g WHERE title = ?" );
 			query.setParameter( 1, "Super Mario Brothers" );
 			List list = query.getResultList();
 			assertEquals( 1, list.size() );

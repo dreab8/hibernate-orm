@@ -97,7 +97,7 @@ public class UnexpectedDeleteThreeTestTask extends AbstractEnhancerTestTask {
 
 	// --- //
 
-	@Entity public static class Child {
+	@Entity(name="Child") public static class Child {
 
 		private Long id;
 
@@ -114,7 +114,7 @@ public class UnexpectedDeleteThreeTestTask extends AbstractEnhancerTestTask {
 
 	}
 
-	@Entity public static class Parent {
+	@Entity(name="Parent") public static class Parent {
 
 		private Long id;
 		private Set<String> names;

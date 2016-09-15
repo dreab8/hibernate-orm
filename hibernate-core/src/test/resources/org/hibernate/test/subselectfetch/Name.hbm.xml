@@ -15,7 +15,7 @@
     <id name="id" column="id"/>
     <property  name="name" column="name"/>
 
-    <property name="nameLength" formula="(select length(name) from name where id=name.id)"/>
+    <property name="nameLength" formula="(select length(name) from Name where id=Name.id)"/>
 
     <bag name="values" inverse="true" lazy="false" fetch="subselect">
       <key column="name_id"/>

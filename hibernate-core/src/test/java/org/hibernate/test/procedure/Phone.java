@@ -15,11 +15,13 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
  * @author Vlad Mihalcea
  */
 @Entity
+@Table(name = "phone")
 public class Phone {
 
     @Id

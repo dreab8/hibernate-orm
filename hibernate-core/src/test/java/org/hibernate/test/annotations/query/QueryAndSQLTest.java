@@ -215,12 +215,12 @@ public class QueryAndSQLTest extends BaseCoreFunctionalTestCase {
 		s.flush();
 		s.clear();
 
-		List chaoses = s.createSQLQuery( "select * from Chaos where chaos_size is null or chaos_size = :chaos_size" )
+		List chaoses = s.createSQLQuery( "select * from CHAOS where chaos_size is null or chaos_size = :chaos_size" )
 				.setParameter( "chaos_size", null )
 				.list();
 		assertEquals( 1, chaoses.size() );
 
-		chaoses = s.createSQLQuery( "select * from Chaos where chaos_size = :chaos_size" )
+		chaoses = s.createSQLQuery( "select * from CHAOS where chaos_size = :chaos_size" )
 				.setParameter( "chaos_size", null )
 				.list();
 		// should be no results because null != null
@@ -255,12 +255,12 @@ public class QueryAndSQLTest extends BaseCoreFunctionalTestCase {
 		s.flush();
 		s.clear();
 
-		List chaoses = s.createSQLQuery( "select * from Chaos where chaos_size is null or chaos_size = :chaos_size" )
+		List chaoses = s.createSQLQuery( "select * from CHAOS where chaos_size is null or chaos_size = :chaos_size" )
 				.setParameter( "chaos_size", null, StandardBasicTypes.LONG )
 				.list();
 		assertEquals( 1, chaoses.size() );
 
-		chaoses = s.createSQLQuery( "select * from Chaos where chaos_size = :chaos_size" )
+		chaoses = s.createSQLQuery( "select * from CHAOS where chaos_size = :chaos_size" )
 				.setParameter( "chaos_size", null, StandardBasicTypes.LONG )
 				.list();
 		// should be no results because null != null
