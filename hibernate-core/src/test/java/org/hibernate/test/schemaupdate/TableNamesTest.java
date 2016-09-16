@@ -13,11 +13,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorType;
 import javax.persistence.DiscriminatorValue;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
@@ -169,7 +173,7 @@ public class TableNamesTest {
 	}
 
 	@Entity(name = "TestEntity3")
-	@Table(name = "`TESTentity`", indexes = {@Index(name = "index1", columnList = "`FieLd1`"), @Index(name = "`Index2`", columnList = "`FIELD_2`")})
+	@Table(name = "`TESTentity`", indexes = {@Index(name = "index1", columnList = "`FieLd1`"), @Index(name = "Index2", columnList = "`FIELD_2`")})
 	public static class TestEntity3 {
 		@Id
 		long id;
@@ -191,6 +195,10 @@ public class TableNamesTest {
 		@Id
 		long id;
 		String match;
+
+		@ElementCollection
+ 		@CollectionTable
+ 		private Map<Integer, Integer> timeline = new TreeMap<>();
 	}
 
 	@Entity(name = "PersonRole")

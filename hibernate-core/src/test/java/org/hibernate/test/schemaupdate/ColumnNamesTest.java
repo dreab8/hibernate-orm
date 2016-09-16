@@ -26,7 +26,9 @@ import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.TargetType;
 import org.hibernate.tool.schema.internal.ImprovedSchemaMigratorImpl;
+import org.hibernate.tool.schema.internal.ImprovedSchemaValidatorImpl;
 import org.hibernate.tool.schema.internal.SchemaMigratorImpl;
+import org.hibernate.tool.schema.internal.SchemaValidatorImpl;
 
 import org.junit.After;
 import org.junit.Before;
@@ -43,12 +45,19 @@ import static org.junit.Assert.assertThat;
 @RunWith(Parameterized.class)
 public class ColumnNamesTest {
 	@Parameterized.Parameters
-	public static Collection<String> parameters() {
-		return Arrays.asList( ImprovedSchemaMigratorImpl.class.getName(), SchemaMigratorImpl.class.getName() );
+	public static Collection<String[]> parameters() {
+		return Arrays.asList( new String[][] {
+									  {ImprovedSchemaMigratorImpl.class.getName(), ImprovedSchemaValidatorImpl.class.getName()},
+									  {SchemaMigratorImpl.class.getName(), SchemaValidatorImpl.class.getName()}
+							  }
+		);
 	}
 
 	@Parameterized.Parameter
 	public String schemaMigratorClassName;
+
+	@Parameterized.Parameter(value = 1)
+	public String schemaValidatorClassName;
 
 	private StandardServiceRegistry ssr;
 	private Metadata metadata;
@@ -59,6 +68,7 @@ public class ColumnNamesTest {
 		ssr = new StandardServiceRegistryBuilder()
 				.applySetting( AvailableSettings.KEYWORD_AUTO_QUOTING_ENABLED, "true" )
 				.applySetting( AvailableSettings.HBM2DDL_SCHEMA_MIGRATOR, schemaMigratorClassName )
+				.applySetting( AvailableSettings.HBM2DDL_SCHEMA_VALIDATOR, schemaValidatorClassName )
 				.build();
 		output = File.createTempFile( "update_script", ".sql" );
 		output.deleteOnExit();
