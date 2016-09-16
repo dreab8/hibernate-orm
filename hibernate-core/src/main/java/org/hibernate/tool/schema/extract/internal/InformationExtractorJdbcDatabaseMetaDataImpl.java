@@ -26,7 +26,6 @@ import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.config.spi.StandardConverters;
 import org.hibernate.engine.jdbc.env.spi.IdentifierHelper;
-import org.hibernate.engine.jdbc.env.spi.NameQualifierSupport;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.StringHelper;
@@ -195,13 +194,7 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 	}
 
 	private TableInformation extractTableInformation(ResultSet resultSet) throws SQLException {
-		final Identifier table_cat = identifierHelper().toIdentifier( resultSet.getString( "TABLE_CAT" ) );
-		final Identifier table_schem = identifierHelper().toIdentifier( resultSet.getString( "TABLE_SCHEM" ) );
-		final QualifiedTableName tableName = new QualifiedTableName(
-				table_cat,
-				table_schem,
-				identifierHelper().toIdentifier( resultSet.getString( "TABLE_NAME" ) )
-		);
+		final QualifiedTableName tableName = extractTableName( resultSet );
 
 		final TableInformationImpl tableInformation = new TableInformationImpl(
 				this,
@@ -380,10 +373,9 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 						currentTable = tables.getTableInformation( currentTableName );
 					}
 					if ( currentTable != null ) {
-						final String columnName = resultSet.getString( "COLUMN_NAME" );
 						final ColumnInformationImpl columnInformation = new ColumnInformationImpl(
 								currentTable,
-								identifierHelper().toIdentifier( columnName ),
+								DatabaseIdentifier.toIdentifier( resultSet.getString( "COLUMN_NAME" ) ),
 								resultSet.getInt( "DATA_TYPE" ),
 								new StringTokenizer( resultSet.getString( "TYPE_NAME" ), "() " ).nextToken(),
 								resultSet.getInt( "COLUMN_SIZE" ),
@@ -580,7 +572,7 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 					final String columnName = resultSet.getString( "COLUMN_NAME" );
 					final ColumnInformationImpl columnInformation = new ColumnInformationImpl(
 							tableInformation,
-							identifierHelper().toIdentifier( columnName ),
+							DatabaseIdentifier.toIdentifier( columnName ),
 							resultSet.getInt( "DATA_TYPE" ),
 							new StringTokenizer( resultSet.getString( "TYPE_NAME" ), "() " ).nextToken(),
 							resultSet.getInt( "COLUMN_SIZE" ),
@@ -651,7 +643,7 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 					final String currentPkName = resultSet.getString( "PK_NAME" );
 					final Identifier currentPkIdentifier = currentPkName == null
 							? null
-							: identifierHelper().toIdentifier( currentPkName );
+							: DatabaseIdentifier.toIdentifier( currentPkName );
 					if ( firstPass ) {
 						pkIdentifier = currentPkIdentifier;
 						firstPass = false;
@@ -668,9 +660,10 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 					}
 
 					final int columnPosition = resultSet.getInt( "KEY_SEQ" );
-					final String columnName = resultSet.getString( "COLUMN_NAME" );
 
-					final Identifier columnIdentifier = identifierHelper().toIdentifier( columnName );
+					final Identifier columnIdentifier = DatabaseIdentifier.toIdentifier(
+							resultSet.getString( "COLUMN_NAME" )
+					);
 					final ColumnInformation column = tableInformation.getColumn( columnIdentifier );
 					pkColumns.add( columnPosition-1, column );
 				}
@@ -739,10 +732,8 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 						continue;
 					}
 
-					final Identifier indexIdentifier = identifierHelper().toIdentifier(
-							resultSet.getString(
-									"INDEX_NAME"
-							)
+					final Identifier indexIdentifier = DatabaseIdentifier.toIdentifier(
+							resultSet.getString( "INDEX_NAME" )
 					);
 					IndexInformationImpl.Builder builder = builders.get( indexIdentifier );
 					if ( builder == null ) {
@@ -750,7 +741,7 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 						builders.put( indexIdentifier, builder );
 					}
 
-					final Identifier columnIdentifier = identifierHelper().toIdentifier( resultSet.getString( "COLUMN_NAME" ) );
+					final Identifier columnIdentifier = DatabaseIdentifier.toIdentifier( resultSet.getString( "COLUMN_NAME" ) );
 					final ColumnInformation columnInformation = tableInformation.getColumn( columnIdentifier );
 					if ( columnInformation == null ) {
 						// See HHH-10191: this may happen when dealing with Oracle/PostgreSQL function indexes
@@ -817,7 +808,7 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 			try {
 				while ( resultSet.next() ) {
 					// IMPL NOTE : The builder is mainly used to collect the column reference mappings
-					final Identifier fkIdentifier = identifierHelper().toIdentifier(
+					final Identifier fkIdentifier = DatabaseIdentifier.toIdentifier(
 							resultSet.getString( "FK_NAME" )
 					);
 					ForeignKeyBuilder fkBuilder = fkBuilders.get( fkIdentifier );
@@ -839,10 +830,10 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 						continue;
 					}
 
-					final Identifier fkColumnIdentifier = identifierHelper().toIdentifier(
+					final Identifier fkColumnIdentifier = DatabaseIdentifier.toIdentifier(
 							resultSet.getString( "FKCOLUMN_NAME" )
 					);
-					final Identifier pkColumnIdentifier = identifierHelper().toIdentifier(
+					final Identifier pkColumnIdentifier = DatabaseIdentifier.toIdentifier(
 							resultSet.getString( "PKCOLUMN_NAME" )
 					);
 
@@ -912,6 +903,18 @@ public class InformationExtractorJdbcDatabaseMetaDataImpl implements Information
 		final String incomingCatalogName = resultSet.getString( prefix + "TABLE_CAT" );
 		final String incomingSchemaName = resultSet.getString( prefix + "TABLE_SCHEM" );
 		final String incomingTableName = resultSet.getString( prefix + "TABLE_NAME" );
+
+		final DatabaseIdentifier catalog = DatabaseIdentifier.toIdentifier( incomingCatalogName );
+		final DatabaseIdentifier schema = DatabaseIdentifier.toIdentifier( incomingSchemaName );
+		final DatabaseIdentifier table = DatabaseIdentifier.toIdentifier( incomingTableName );
+
+		return new QualifiedTableName( catalog, schema, table );
+	}
+
+	private QualifiedTableName extractTableName(ResultSet resultSet) throws SQLException {
+		final String incomingCatalogName = resultSet.getString( "TABLE_CAT" );
+		final String incomingSchemaName = resultSet.getString( "TABLE_SCHEM" );
+		final String incomingTableName = resultSet.getString( "TABLE_NAME" );
 
 		final DatabaseIdentifier catalog = DatabaseIdentifier.toIdentifier( incomingCatalogName );
 		final DatabaseIdentifier schema = DatabaseIdentifier.toIdentifier( incomingSchemaName );
