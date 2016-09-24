@@ -10,8 +10,8 @@ import java.util.Collection;
 import javax.persistence.TemporalType;
 
 import org.hibernate.Incubating;
-import org.hibernate.query.internal.QueryParameterBindingsImpl;
 import org.hibernate.type.spi.Type;
+import org.hibernate.query.internal.old.QueryParameterBindingsImpl;
 
 /**
  * Represents a "parameter list" binding: aka the binding of a collection of values for a single
