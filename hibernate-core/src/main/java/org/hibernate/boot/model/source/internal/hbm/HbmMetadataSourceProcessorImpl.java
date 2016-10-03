@@ -15,6 +15,7 @@ import org.hibernate.boot.jaxb.hbm.spi.JaxbHbmHibernateMapping;
 import org.hibernate.boot.jaxb.spi.Binding;
 import org.hibernate.boot.model.process.spi.ManagedResources;
 import org.hibernate.boot.model.source.spi.MetadataSourceProcessor;
+import org.hibernate.boot.model.type.internal.HbmManagedJavaTypeDescriptorBuilder;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 
 import org.jboss.logging.Logger;
@@ -31,7 +32,7 @@ public class HbmMetadataSourceProcessorImpl implements MetadataSourceProcessor {
 	private Collection<MappingDocument> mappingDocuments;
 
 	private final ModelBinder modelBinder;
-
+	private final HbmManagedJavaTypeDescriptorBuilder javaTypeDescriptorBuilder;
 	private List<EntityHierarchySourceImpl> entityHierarchies;
 
 	public HbmMetadataSourceProcessorImpl(
@@ -64,6 +65,7 @@ public class HbmMetadataSourceProcessorImpl implements MetadataSourceProcessor {
 		}
 
 		entityHierarchies = hierarchyBuilder.buildHierarchies();
+		javaTypeDescriptorBuilder = new HbmManagedJavaTypeDescriptorBuilder( rootBuildingContext );
 		modelBinder = ModelBinder.prepare( rootBuildingContext );
 	}
 
@@ -140,7 +142,7 @@ public class HbmMetadataSourceProcessorImpl implements MetadataSourceProcessor {
 					continue hierarchy_loop;
 				}
 			}
-
+			javaTypeDescriptorBuilder.buildEntityHierarchy( entityHierarchy );
 			modelBinder.bindEntityHierarchy( entityHierarchy );
 			processedEntityNames.addAll( entityHierarchy.getContainedEntityNames() );
 		}
