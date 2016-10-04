@@ -8,11 +8,15 @@ package org.hibernate.type.descriptor.spi.java.managed;
 
 import javax.persistence.metamodel.Attribute;
 
+import org.hibernate.type.descriptor.spi.java.JavaTypeDescriptor;
+
 /**
  * @author Steve Ebersole
  */
 public interface AttributeBuilder<T extends Attribute> {
 	String getAttributeName();
+
+	void setType(JavaTypeDescriptor type);
 
 	T build();
 

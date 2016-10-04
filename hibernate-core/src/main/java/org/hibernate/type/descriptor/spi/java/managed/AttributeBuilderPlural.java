@@ -8,8 +8,11 @@ package org.hibernate.type.descriptor.spi.java.managed;
 
 import javax.persistence.metamodel.PluralAttribute;
 
+import org.hibernate.type.descriptor.spi.java.JavaTypeDescriptor;
+
 /**
  * @author Steve Ebersole
  */
 public interface AttributeBuilderPlural extends AttributeBuilder<PluralAttribute> {
+	void setCollectionType(JavaTypeDescriptor collectionType);
 }

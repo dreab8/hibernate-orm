@@ -170,7 +170,7 @@ public class JavaTypeDescriptorRegistry implements JavaTypeDescriptorBaseline.Ba
 		}
 	}
 
-	public JavaTypeDescriptorEntityImplementor getEntityDescriptor(String typeName) {
+	private JavaTypeDescriptorEntityImplementor getEntityDescriptor(String typeName) {
 		throw new NotYetImplementedException();
 	}
 

@@ -25,6 +25,7 @@ import org.hibernate.boot.internal.MetadataBuildingContextRootImpl;
 import org.hibernate.boot.jaxb.spi.Binding;
 import org.hibernate.boot.model.process.spi.ManagedResources;
 import org.hibernate.boot.model.source.spi.MetadataSourceProcessor;
+import org.hibernate.boot.model.type.internal.AnnotationManagedJavaTypeDescriptorBuilder;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.spi.JpaOrmXmlPersistenceUnitDefaultAware;
 import org.hibernate.boot.spi.JpaOrmXmlPersistenceUnitDefaultAware.JpaOrmXmlPersistenceUnitDefaults;
@@ -48,6 +49,7 @@ public class AnnotationMetadataSourceProcessorImpl implements MetadataSourceProc
 	private static final Logger log = Logger.getLogger( AnnotationMetadataSourceProcessorImpl.class );
 
 	private final MetadataBuildingContextRootImpl rootMetadataBuildingContext;
+	private final AnnotationManagedJavaTypeDescriptorBuilder javaTypeDescriptorBuilder;
 
 	@SuppressWarnings("FieldCanBeLocal")
 	private final IndexView jandexView;
@@ -107,6 +109,8 @@ public class AnnotationMetadataSourceProcessorImpl implements MetadataSourceProc
 		for ( Class annotatedClass : managedResources.getAnnotatedClassReferences() ) {
 			categorizeAnnotatedClass( annotatedClass, attributeConverterManager );
 		}
+
+		javaTypeDescriptorBuilder = new AnnotationManagedJavaTypeDescriptorBuilder( rootMetadataBuildingContext );
 	}
 
 	private void categorizeAnnotatedClass(Class annotatedClass, AttributeConverterManager attributeConverterManager) {
@@ -235,6 +239,7 @@ public class AnnotationMetadataSourceProcessorImpl implements MetadataSourceProc
 				rootMetadataBuildingContext
 		);
 
+		javaTypeDescriptorBuilder.build( orderedClasses, inheritanceStatePerClass );
 
 		for ( XClass clazz : orderedClasses ) {
 			if ( processedEntityNames.contains( clazz.getName() ) ) {

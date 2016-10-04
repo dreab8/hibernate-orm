@@ -8,6 +8,7 @@ package org.hibernate.type.descriptor.internal.java.managed.attribute;
 
 import javax.persistence.metamodel.Attribute;
 
+import org.hibernate.type.descriptor.spi.java.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.spi.java.managed.AttributeBuilder;
 import org.hibernate.type.descriptor.spi.java.managed.AttributeDeclarer;
 
@@ -18,6 +19,7 @@ public abstract class AbstractAttributeBuilder<T extends Attribute> implements A
 	private final AttributeDeclarer attributeDeclarer;
 	private final String attributeName;
 
+	private JavaTypeDescriptor type;
 	private T builtAttribute;
 
 	public AbstractAttributeBuilder(AttributeDeclarer attributeDeclarer, String attributeName) {
@@ -28,6 +30,11 @@ public abstract class AbstractAttributeBuilder<T extends Attribute> implements A
 	@Override
 	public String getAttributeName() {
 		return attributeName;
+	}
+
+	@Override
+	public void setType(JavaTypeDescriptor type) {
+		this.type = type;
 	}
 
 	@Override
