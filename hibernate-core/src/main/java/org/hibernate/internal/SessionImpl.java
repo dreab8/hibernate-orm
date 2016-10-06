@@ -370,6 +370,7 @@ public final class SessionImpl
 
 	@Override
 	public void clear() {
+		//ok
 		checkOpen();
 
 		// Do not call checkTransactionSynchStatus() here -- if a delayed
@@ -404,9 +405,7 @@ public final class SessionImpl
 		if ( getSessionFactory().getSessionFactoryOptions().isJpaBootstrap() ) {
 			// Original hibernate-entitymanager EM#close behavior
 			checkSessionFactoryOpen();
-			if ( !waitingForAutoClose ) {
-				checkOpen();
-			}
+			checkOpenOrWaitingForAutoClose();
 			if ( discardOnClose || !isTransactionInProgress() ) {
 				super.close();
 			}
@@ -450,7 +449,7 @@ public final class SessionImpl
 		checkSessionFactoryOpen();
 		checkTransactionSynchStatus();
 		try {
-			return !isClosed() && !waitingForAutoClose ;
+			return !isClosed();
 		}
 		catch (HibernateException he) {
 			throw exceptionConverter.convert( he );
@@ -587,7 +586,7 @@ public final class SessionImpl
 
 	@Override
 	public Object getEntityUsingInterceptor(EntityKey key) throws HibernateException {
-		checkOpen();
+		checkOpenOrWaitingForAutoClose();
 		// todo : should this get moved to PersistentContext?
 		// logically, is PersistentContext the "thing" to which an interceptor gets attached?
 		final Object result = persistenceContext.getEntity( key );
@@ -819,7 +818,7 @@ public final class SessionImpl
 	}
 
 	private void firePersistOnFlush(Map copiedAlready, PersistEvent event) {
-		checkOpen();
+		checkOpenOrWaitingForAutoClose();
 		checkTransactionSynchStatus();
 		for ( PersistEventListener listener : listeners( EventType.PERSIST_ONFLUSH ) ) {
 			listener.onPersist( event, copiedAlready );
@@ -1435,8 +1434,8 @@ public final class SessionImpl
 					entityEntry.getPersister().getEntityName()
 			);
 		}
-
-		flush();
+		checkOpenOrWaitingForAutoClose();
+		doFlush();
 	}
 
 	@Override
@@ -1585,7 +1584,7 @@ public final class SessionImpl
 	 */
 	@Override
 	public Object instantiate(EntityPersister persister, Serializable id) throws HibernateException {
-		checkOpen();
+		checkOpenOrWaitingForAutoClose();
 		checkTransactionSynchStatus();
 		Object result = getInterceptor().instantiate(
 				persister.getEntityName(),
@@ -1601,7 +1600,7 @@ public final class SessionImpl
 
 	@Override
 	public EntityPersister getEntityPersister(final String entityName, final Object object) {
-		checkOpen();
+		checkOpenOrWaitingForAutoClose();
 		if ( entityName == null ) {
 			return getFactory().getMetamodel().entityPersister( guessEntityName( object ) );
 		}
@@ -1652,7 +1651,7 @@ public final class SessionImpl
 	 */
 	@Override
 	public Serializable getContextEntityIdentifier(Object object) {
-		checkOpen();
+		checkOpenOrWaitingForAutoClose();
 		if ( object instanceof HibernateProxy ) {
 			return getProxyIdentifier( object );
 		}
@@ -2145,7 +2144,7 @@ public final class SessionImpl
 
 	@Override
 	public void initializeCollection(PersistentCollection collection, boolean writing) {
-		checkOpen();
+		checkOpenOrWaitingForAutoClose();
 		checkTransactionSynchStatus();
 		InitializeCollectionEvent event = new InitializeCollectionEvent( collection, this );
 		for ( InitializeCollectionEventListener listener : listeners( EventType.INIT_COLLECTION ) ) {
@@ -2234,18 +2233,14 @@ public final class SessionImpl
 
 	@Override
 	public ActionQueue getActionQueue() {
-		if ( !waitingForAutoClose ) {
-			checkOpen();
-		}
+		checkOpenOrWaitingForAutoClose();
 //		checkTransactionSynchStatus();
 		return actionQueue;
 	}
 
 	@Override
 	public PersistenceContext getPersistenceContext() {
-		if ( !waitingForAutoClose ) {
-			checkOpen();
-		}
+		checkOpenOrWaitingForAutoClose();
 //		checkTransactionSynchStatus();
 		return persistenceContext;
 	}
@@ -2333,6 +2328,7 @@ public final class SessionImpl
 
 	@Override
 	public Filter enableFilter(String filterName) {
+		//ok
 		checkOpen();
 		checkTransactionSynchStatus();
 		return loadQueryInfluencers.enableFilter( filterName );
@@ -2340,6 +2336,7 @@ public final class SessionImpl
 
 	@Override
 	public void disableFilter(String filterName) {
+		//ok
 		checkOpen();
 		checkTransactionSynchStatus();
 		loadQueryInfluencers.disableFilter( filterName );
@@ -3156,7 +3153,7 @@ public final class SessionImpl
 
 	@Override
 	public void afterTransactionBegin() {
-		checkOpen();
+		checkOpenOrWaitingForAutoClose();
 		getInterceptor().afterTransactionBegin( getCurrentTransaction() );
 	}
 
@@ -3315,6 +3312,7 @@ public final class SessionImpl
 
 	@Override
 	public void remove(Object entity) {
+		//ok
 		checkOpen();
 
 		try {
@@ -3346,6 +3344,7 @@ public final class SessionImpl
 
 	@Override
 	public <T> T find(Class<T> entityClass, Object primaryKey, LockModeType lockModeType, Map<String, Object> properties) {
+		//ok
 		checkOpen();
 
 		LockOptions lockOptions = null;
@@ -3433,6 +3432,7 @@ public final class SessionImpl
 
 	@Override
 	public <T> T getReference(Class<T> entityClass, Object primaryKey) {
+		//ok
 		checkOpen();
 
 		try {
@@ -3453,6 +3453,7 @@ public final class SessionImpl
 
 	@Override
 	public void lock(Object entity, LockModeType lockModeType, Map<String, Object> properties) {
+		//ok
 		checkOpen();
 		checkTransactionNeeded();
 
@@ -3481,6 +3482,7 @@ public final class SessionImpl
 
 	@Override
 	public void refresh(Object entity, LockModeType lockModeType, Map<String, Object> properties) {
+		//ok
 		checkOpen();
 
 		final CacheMode previousCacheMode = getCacheMode();
@@ -3519,6 +3521,7 @@ public final class SessionImpl
 
 	@Override
 	public void detach(Object entity) {
+		//ok
 		checkOpen();
 		try {
 			evict( entity );
@@ -3530,6 +3533,7 @@ public final class SessionImpl
 
 	@Override
 	public LockModeType getLockMode(Object entity) {
+		//ok
 		checkOpen();
 
 		if ( !isTransactionInProgress() ) {
@@ -3546,6 +3550,7 @@ public final class SessionImpl
 
 	@Override
 	public void setProperty(String propertyName, Object value) {
+		//ok
 		checkOpen();
 
 		if ( ENTITY_MANAGER_SPECIFIC_PROPERTIES.contains( propertyName ) ) {
@@ -3575,6 +3580,7 @@ public final class SessionImpl
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> QueryImplementor<T> createQuery(CriteriaQuery<T> criteriaQuery) {
+		//ok
 		checkOpen();
 		try {
 			return (QueryImplementor<T>) criteriaCompiler().compile( (CompilableCriteria) criteriaQuery );
@@ -3586,6 +3592,7 @@ public final class SessionImpl
 
 	@Override
 	public QueryImplementor createQuery(CriteriaUpdate criteriaUpdate) {
+		//ok
 		checkOpen();
 		try {
 			return criteriaCompiler().compile( (CompilableCriteria) criteriaUpdate );
@@ -3597,6 +3604,7 @@ public final class SessionImpl
 
 	@Override
 	public QueryImplementor createQuery(CriteriaDelete criteriaDelete) {
+		//ok
 		checkOpen();
 		try {
 			return criteriaCompiler().compile( (CompilableCriteria) criteriaDelete );
@@ -3665,6 +3673,7 @@ public final class SessionImpl
 
 	@Override
 	public StoredProcedureQuery createNamedStoredProcedureQuery(String name) {
+		//ok
 		checkOpen();
 		try {
 			final ProcedureCallMemento memento = getFactory().getNamedQueryRepository().getNamedProcedureCallMemento( name );
@@ -3700,6 +3709,7 @@ public final class SessionImpl
 
 	@Override
 	public StoredProcedureQuery createStoredProcedureQuery(String procedureName, String... resultSetMappings) {
+		//ok
 		checkOpen();
 		try {
 			try {
@@ -3716,6 +3726,7 @@ public final class SessionImpl
 
 	@Override
 	public void joinTransaction() {
+		//ok
 		checkOpen();
 		joinTransaction( true );
 	}
@@ -3741,6 +3752,7 @@ public final class SessionImpl
 
 	@Override
 	public boolean isJoinedToTransaction() {
+		//ok
 		checkOpen();
 		return getTransactionCoordinator().isJoined();
 	}
@@ -3748,6 +3760,7 @@ public final class SessionImpl
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> T unwrap(Class<T> clazz) {
+		//ok
 		checkOpen();
 
 		if ( Session.class.isAssignableFrom( clazz ) ) {
@@ -3788,12 +3801,14 @@ public final class SessionImpl
 
 	@Override
 	public <T> EntityGraph<T> createEntityGraph(Class<T> rootType) {
+		//ok
 		checkOpen();
 		return new EntityGraphImpl<T>( null, getMetamodel().entity( rootType ), getEntityManagerFactory() );
 	}
 
 	@Override
 	public EntityGraph<?> createEntityGraph(String graphName) {
+		//ok
 		checkOpen();
 		final EntityGraph named = getEntityManagerFactory().findEntityGraphByName( graphName );
 		if ( named == null ) {
@@ -3811,6 +3826,7 @@ public final class SessionImpl
 	@Override
 	@SuppressWarnings("unchecked")
 	public EntityGraph<?> getEntityGraph(String graphName) {
+		//ok
 		checkOpen();
 		final EntityGraph named = getEntityManagerFactory().findEntityGraphByName( graphName );
 		if ( named == null ) {
@@ -3821,6 +3837,7 @@ public final class SessionImpl
 
 	@Override
 	public <T> List<EntityGraph<? super T>> getEntityGraphs(Class<T> entityClass) {
+		//ok
 		checkOpen();
 		return getEntityManagerFactory().findEntityGraphsByType( entityClass );
 	}
