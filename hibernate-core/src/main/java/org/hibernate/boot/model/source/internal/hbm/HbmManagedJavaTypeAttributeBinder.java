@@ -6,17 +6,20 @@
  */
 package org.hibernate.boot.model.source.internal.hbm;
 
+import org.hibernate.MappingException;
 import org.hibernate.boot.model.source.spi.AttributeSource;
 import org.hibernate.boot.model.source.spi.IdentifiableTypeSource;
 import org.hibernate.boot.model.source.spi.InheritanceType;
 import org.hibernate.boot.model.source.spi.PluralAttributeElementSource;
 import org.hibernate.boot.model.source.spi.PluralAttributeElementSourceBasic;
+import org.hibernate.boot.model.source.spi.PluralAttributeElementSourceEmbedded;
+import org.hibernate.boot.model.source.spi.PluralAttributeElementSourceManyToAny;
 import org.hibernate.boot.model.source.spi.PluralAttributeElementSourceManyToMany;
 import org.hibernate.boot.model.source.spi.PluralAttributeElementSourceOneToMany;
 import org.hibernate.boot.model.source.spi.PluralAttributeSource;
 import org.hibernate.boot.model.source.spi.SingularAttributeSource;
+import org.hibernate.boot.model.source.spi.SingularAttributeSourceEmbedded;
 import org.hibernate.boot.spi.MetadataBuildingContext;
-import org.hibernate.cfg.NotYetImplementedException;
 import org.hibernate.type.descriptor.spi.java.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.spi.java.managed.AttributeBuilderPlural;
 import org.hibernate.type.descriptor.spi.java.managed.AttributeBuilderSingular;
@@ -64,10 +67,30 @@ public class HbmManagedJavaTypeAttributeBinder {
 	}
 
 	private void bindSingularAttribute(JavaTypeDescriptorEntityImplementor entityDescriptor, SingularAttributeSource attributeSource) {
-		final JavaTypeDescriptor attributeDescriptor = metadataBuildingContext.getBootstrapContext()
-				.getTypeConfiguration()
-				.getJavaTypeDescriptorRegistry()
-				.getDescriptor( attributeSource.getTypeInformation().getName() );
+		final JavaTypeDescriptor attributeDescriptor;
+		if ( attributeSource instanceof SingularAttributeSourceEmbedded ) {
+			JavaTypeDescriptor embeddableDescriptor = metadataBuildingContext.getBootstrapContext()
+					.getTypeConfiguration()
+					.getJavaTypeDescriptorRegistry()
+					.getDescriptor( attributeSource.getTypeInformation().getName() );
+
+			if ( embeddableDescriptor == null ) {
+				embeddableDescriptor = metadataBuildingContext.getBootstrapContext()
+						.getTypeConfiguration()
+						.getJavaTypeDescriptorRegistry()
+						.makeEmbeddableDescriptor(
+								attributeSource.getTypeInformation().getName(),
+								null
+						);
+			}
+			attributeDescriptor = embeddableDescriptor;
+		}
+		else {
+			attributeDescriptor = metadataBuildingContext.getBootstrapContext()
+					.getTypeConfiguration()
+					.getJavaTypeDescriptorRegistry()
+					.getDescriptor( attributeSource.getTypeInformation().getName() );
+		}
 
 		final AttributeBuilderSingular attributeBuilder = entityDescriptor.getInitializationAccess()
 				.getSingularAttributeBuilder( attributeSource.getName() );
@@ -76,10 +99,28 @@ public class HbmManagedJavaTypeAttributeBinder {
 	}
 
 	private void bindPluralAttribute(JavaTypeDescriptorEntityImplementor entityDescriptor, PluralAttributeSource attributeSource) {
-		final JavaTypeDescriptor elementTypeDescriptor = metadataBuildingContext.getBootstrapContext()
-				.getTypeConfiguration()
-				.getJavaTypeDescriptorRegistry()
-				.getDescriptor( getPluralAttributeElementType( attributeSource ) );
+		final String pluralAttributeElementTypeName = getPluralAttributeElementType( attributeSource );
+
+		final JavaTypeDescriptor elementTypeDescriptor;
+		if ( attributeSource.getElementSource() instanceof PluralAttributeElementSourceEmbedded ) {
+			JavaTypeDescriptor embeddableDescriptor = metadataBuildingContext.getBootstrapContext()
+					.getTypeConfiguration()
+					.getJavaTypeDescriptorRegistry()
+					.getDescriptor( pluralAttributeElementTypeName );
+			if ( embeddableDescriptor == null ) {
+				embeddableDescriptor = metadataBuildingContext.getBootstrapContext()
+						.getTypeConfiguration()
+						.getJavaTypeDescriptorRegistry()
+						.makeEmbeddableDescriptor( pluralAttributeElementTypeName, null );
+			}
+			elementTypeDescriptor = embeddableDescriptor;
+		}
+		else {
+			elementTypeDescriptor = metadataBuildingContext.getBootstrapContext()
+					.getTypeConfiguration()
+					.getJavaTypeDescriptorRegistry()
+					.getDescriptor( getPluralAttributeElementType( attributeSource ) );
+		}
 
 		final JavaTypeDescriptor attributeDescriptor = metadataBuildingContext.getBootstrapContext()
 				.getTypeConfiguration()
@@ -95,8 +136,6 @@ public class HbmManagedJavaTypeAttributeBinder {
 
 	private String getPluralAttributeElementType(PluralAttributeSource attributeSource) {
 		final PluralAttributeElementSource elementSource = attributeSource.getElementSource();
-
-		// todo: add support for MANY_TO_ANY, AGGREGATE
 		switch ( elementSource.getNature() ) {
 			case ONE_TO_MANY: {
 				return ( (PluralAttributeElementSourceOneToMany) elementSource ).getReferencedEntityName();
@@ -107,8 +146,14 @@ public class HbmManagedJavaTypeAttributeBinder {
 			case BASIC: {
 				return ( (PluralAttributeElementSourceBasic) elementSource ).getExplicitHibernateTypeSource().getName();
 			}
+			case AGGREGATE: {
+				return ( (PluralAttributeElementSourceEmbedded) elementSource ).getEmbeddableSource().getTypeDescriptor().getName();
+			}
+			case MANY_TO_ANY: {
+				return ( (PluralAttributeElementSourceManyToAny) elementSource ).getDiscriminatorSource().getTypeSource().getName();
+			}
 			default: {
-				throw new NotYetImplementedException( "PluralAttributeElementSourceNature not yet supported" );
+				throw new MappingException( "Unknown PluralAttributeElementSourceNature: " + elementSource.getNature() );
 			}
 		}
 	}

@@ -20,6 +20,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.annotations.common.reflection.XClass;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.hibernate.type.descriptor.internal.java.JavaTypeDescriptorBasicAdaptorImpl;
+import org.hibernate.type.descriptor.internal.java.managed.EmbeddableDescriptor;
 import org.hibernate.type.descriptor.internal.java.managed.EntityDescriptor;
 import org.hibernate.type.descriptor.internal.java.managed.IdentifiableTypeDescriptor;
 import org.hibernate.type.descriptor.internal.java.managed.ManagedTypeDescriptor;
@@ -199,6 +200,17 @@ public class JavaTypeDescriptorRegistry implements JavaTypeDescriptorBaseline.Ba
 		return descriptor;
 	}
 
+	public JavaTypeDescriptorEmbeddableImplementor makeEmbeddableDescriptor(
+			String typeName,
+			MappedSuperclassTypeDescriptor javaTypeDescriptor) {
+		if ( descriptorsByName.containsKey( typeName ) ) {
+			throw new IllegalStateException( "Embeddable descriptor already registered under that name [" + typeName + "]." );
+		}
+		final EmbeddableDescriptor descriptor = new EmbeddableDescriptor( typeName, null, javaTypeDescriptor );
+		performInjections( descriptor );
+		descriptorsByName.put( typeName, descriptor );
+		return descriptor;
+	}
 
 	/**
 	 * Legacy code here always worked on the Class for MappedSuperclass; continue that, for now...
