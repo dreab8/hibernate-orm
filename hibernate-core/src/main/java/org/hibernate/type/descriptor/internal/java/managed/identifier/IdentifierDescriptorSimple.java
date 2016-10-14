@@ -14,28 +14,28 @@ import org.hibernate.type.descriptor.spi.java.managed.IdentifierDescriptor;
 /**
  * @author Andrea Boriero
  */
-public class IdentifierDescriptorSimple<T>
+public class IdentifierDescriptorSimple
 		implements IdentifierDescriptor {
 
 	private final String name;
 
-	private final Type<T> type;
+	private final Type type;
+
+	public IdentifierDescriptorSimple(String name, Type type) {
+		this.name = name;
+		this.type = type;
+	}
 
 	@Override
 	public EntityIdentifierNature getNature() {
 		return EntityIdentifierNature.SIMPLE;
 	}
 
-	public IdentifierDescriptorSimple(String name, Type<T> type) {
-		this.name = name;
-		this.type = type;
-	}
-
 	public String getName() {
 		return name;
 	}
 
-	Type<T> getType() {
+	public Type getType() {
 		return type;
 	}
 }

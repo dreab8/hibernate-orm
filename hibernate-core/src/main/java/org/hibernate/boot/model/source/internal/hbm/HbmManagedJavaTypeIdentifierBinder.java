@@ -6,8 +6,11 @@
  */
 package org.hibernate.boot.model.source.internal.hbm;
 
+import java.util.List;
 import javax.persistence.metamodel.EmbeddableType;
 
+import org.hibernate.boot.model.source.spi.AttributeSource;
+import org.hibernate.boot.model.source.spi.EmbeddableSource;
 import org.hibernate.boot.model.source.spi.IdentifierSource;
 import org.hibernate.boot.model.source.spi.IdentifierSourceAggregatedComposite;
 import org.hibernate.boot.model.source.spi.IdentifierSourceNonAggregatedComposite;
@@ -18,6 +21,7 @@ import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.hibernate.id.EntityIdentifierNature;
 import org.hibernate.type.descriptor.internal.java.managed.identifier.IdentifierDescriptorBuilderAggregatedCompositeImpl;
+import org.hibernate.type.descriptor.internal.java.managed.identifier.IdentifierDescriptorBuilderNonAggregatedCompositeImpl;
 import org.hibernate.type.descriptor.internal.java.managed.identifier.IdentifierDescriptorBuilderSimpleImpl;
 import org.hibernate.type.descriptor.internal.java.managed.identifier.IdentifierDescriptorSimple;
 import org.hibernate.type.descriptor.spi.java.JavaTypeDescriptor;
@@ -68,7 +72,15 @@ public class HbmManagedJavaTypeIdentifierBinder extends AbstractJavaTypeDescript
 				break;
 			}
 			case NON_AGGREGATED_COMPOSITE: {
-				buildNonAggregatedCompositeIdentiferType( (IdentifierSourceNonAggregatedComposite)identifierSource );
+				final IdentifierDescriptorBuilderNonAggregatedCompositeImpl identifierDescriptorBuilder =
+						(IdentifierDescriptorBuilderNonAggregatedCompositeImpl) initializationAccess.getIdentifierDescriptorBuilder(
+								EntityIdentifierNature.NON_AGGREGATED_COMPOSITE );
+				final IdentifierSourceNonAggregatedComposite identifierSourceNonAggregatedComposite = (IdentifierSourceNonAggregatedComposite) identifierSource;
+				bindNonAggregatedCompositeIdentiferType(
+						identifierSourceNonAggregatedComposite.getIdClassSource(),
+						identifierSourceNonAggregatedComposite.getAttributeSourcesMakingUpIdentifier(),
+						identifierDescriptorBuilder
+				);
 				break;
 			}
 		}
@@ -77,21 +89,32 @@ public class HbmManagedJavaTypeIdentifierBinder extends AbstractJavaTypeDescript
 	private void bindSimpleIdentifierType(
 			final SingularAttributeSource identifierAttributeSource,
 			final IdentifierDescriptorBuilderSimpleImpl identifierDescriptorBuilder) {
-		final JavaTypeDescriptor idJavaTypeDescriptor = getJavaTypeDescriptorRegistry()
-				.getDescriptor( identifierAttributeSource.getTypeInformation().getName() );
-		identifierDescriptorBuilder.setName( identifierAttributeSource.getName() ).setType( idJavaTypeDescriptor );
+		final JavaTypeDescriptor javaTypeDescriptor = getJavaTypeDescriptor( identifierAttributeSource );
+		identifierDescriptorBuilder.setName( identifierAttributeSource.getName() ).setType( javaTypeDescriptor );
 	}
 
 	private void bindAggregatedCompositeIdentifierType(final SingularAttributeSourceEmbedded identifierAttributeSource,
 													   final IdentifierDescriptorBuilderAggregatedCompositeImpl identifierDescriptorBuilder) {
-		final JavaTypeDescriptor idJavaTypeDescriptor = getJavaTypeDescriptorRegistry()
-				.getDescriptor( identifierAttributeSource.getTypeInformation().getName() );
-		identifierDescriptorBuilder.setName( identifierAttributeSource.getName() ).setType( (EmbeddableType) idJavaTypeDescriptor );
+		final JavaTypeDescriptor javaTypeDescriptor = getJavaTypeDescriptor( identifierAttributeSource );
+		identifierDescriptorBuilder.setName( identifierAttributeSource.getName() ).setType( (EmbeddableType) javaTypeDescriptor );
 	}
 
+	private void bindNonAggregatedCompositeIdentiferType(
+			final EmbeddableSource idClassSource,
+			final List<SingularAttributeSource> attributeSources,
+			final IdentifierDescriptorBuilderNonAggregatedCompositeImpl identifierDescriptorBuilder) {
+		if ( idClassSource != null ) {
+			identifierDescriptorBuilder.setIdClassType( idClassSource.getClass() );
+		}
+		attributeSources.stream().forEach( attributeSource -> {
+			JavaTypeDescriptor javaTypeDescriptor = getJavaTypeDescriptor( attributeSource );
+			identifierDescriptorBuilder.addId( attributeSource.getName(), javaTypeDescriptor );
 
-	private void buildNonAggregatedCompositeIdentiferType(final IdentifierSourceNonAggregatedComposite hierarchySource) {
-		// todo: need to create an IdentifierTypeDescriptor here
-		throw new NotYetImplementedException();
+		} );
+	}
+
+	private JavaTypeDescriptor getJavaTypeDescriptor(AttributeSource identifierAttributeSource) {
+		return getJavaTypeDescriptorRegistry()
+				.getDescriptor( identifierAttributeSource.getTypeInformation().getName() );
 	}
 }

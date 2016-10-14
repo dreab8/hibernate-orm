@@ -18,27 +18,34 @@ import org.hibernate.type.descriptor.spi.java.managed.IdentifierDescriptor;
  */
 public class IdentifierDescriptorNonAggregatedComposite implements IdentifierDescriptor {
 
-	private Class idClassType;
-	private Map<String, Type> ids;
+	private final Class idClassType;
+	private final Map<String, Type> ids;
+
+	public IdentifierDescriptorNonAggregatedComposite(
+			Class idClassType,
+			Map<String, Type> ids) {
+		this.idClassType = idClassType;
+		this.ids = ids;
+	}
 
 	@Override
 	public EntityIdentifierNature getNature() {
 		return EntityIdentifierNature.NON_AGGREGATED_COMPOSITE;
 	}
 
-	Class getIdClassJavaType(){
+	public Class getIdClassJavaType(){
 		return idClassType;
 	}
 
-	boolean hasIdClass() {
+	public boolean hasIdClass() {
 		return idClassType != null;
 	}
 
-	Collection<String> getIdNames(){
+	public Collection<String> getIdNames(){
 		return ids.keySet();
 	}
 
-	Type getType(String name){
+	public Type getType(String name){
 		return ids.get( name );
 	}
 }

@@ -14,13 +14,13 @@ import org.hibernate.type.descriptor.spi.java.managed.IdentifierDescriptor;
 /**
  * @author Andrea Boriero
  */
-public class IdentifierDescriptorAggregatedComposite<T> implements IdentifierDescriptor {
+public class IdentifierDescriptorAggregatedComposite implements IdentifierDescriptor {
 
 	private final String name;
 
-	private final EmbeddableType<T> type;
+	private final EmbeddableType type;
 
-	public IdentifierDescriptorAggregatedComposite(String name, EmbeddableType<T> type) {
+	public IdentifierDescriptorAggregatedComposite(String name, EmbeddableType type) {
 		this.name = name;
 		this.type = type;
 	}
@@ -34,7 +34,7 @@ public class IdentifierDescriptorAggregatedComposite<T> implements IdentifierDes
 		return name;
 	}
 
-	EmbeddableType<T> getType() {
+	public EmbeddableType getType() {
 		return type;
 	}
 }
