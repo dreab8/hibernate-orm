@@ -31,9 +31,7 @@ import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.ImplicitBasicColumnNameSource;
 import org.hibernate.boot.model.naming.ImplicitCollectionTableNameSource;
 import org.hibernate.boot.model.naming.ImplicitEntityNameSource;
-import org.hibernate.boot.model.naming.ImplicitIdentifierColumnNameSource;
 import org.hibernate.boot.model.naming.ImplicitIndexColumnNameSource;
-import org.hibernate.boot.model.naming.ImplicitJoinColumnNameSource;
 import org.hibernate.boot.model.naming.ImplicitMapKeyColumnNameSource;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategy;
 import org.hibernate.boot.model.naming.ImplicitUniqueKeyNameSource;
@@ -45,18 +43,14 @@ import org.hibernate.boot.model.source.spi.AnyMappingSource;
 import org.hibernate.boot.model.source.spi.AttributePath;
 import org.hibernate.boot.model.source.spi.AttributeRole;
 import org.hibernate.boot.model.source.spi.AttributeSource;
-import org.hibernate.boot.model.source.spi.CascadeStyleSource;
 import org.hibernate.boot.model.source.spi.CollectionIdSource;
 import org.hibernate.boot.model.source.spi.ColumnSource;
-import org.hibernate.boot.model.source.spi.CompositeIdentifierSource;
 import org.hibernate.boot.model.source.spi.EmbeddableSource;
 import org.hibernate.boot.model.source.spi.EntitySource;
 import org.hibernate.boot.model.source.spi.FilterSource;
 import org.hibernate.boot.model.source.spi.HibernateTypeSource;
 import org.hibernate.boot.model.source.spi.IdentifiableTypeSource;
-import org.hibernate.boot.model.source.spi.IdentifierSourceAggregatedComposite;
 import org.hibernate.boot.model.source.spi.IdentifierSourceNonAggregatedComposite;
-import org.hibernate.boot.model.source.spi.IdentifierSourceSimple;
 import org.hibernate.boot.model.source.spi.InLineViewSource;
 import org.hibernate.boot.model.source.spi.LocalMetadataBuildingContext;
 import org.hibernate.boot.model.source.spi.NaturalIdMutability;
@@ -77,7 +71,6 @@ import org.hibernate.boot.model.source.spi.PluralAttributeSourceArray;
 import org.hibernate.boot.model.source.spi.RelationalValueSource;
 import org.hibernate.boot.model.source.spi.RelationalValueSourceContainer;
 import org.hibernate.boot.model.source.spi.SecondaryTableSource;
-import org.hibernate.boot.model.source.spi.SingularAttributeSource;
 import org.hibernate.boot.model.source.spi.SingularAttributeSourceAny;
 import org.hibernate.boot.model.source.spi.SingularAttributeSourceBasic;
 import org.hibernate.boot.model.source.spi.SingularAttributeSourceEmbedded;
@@ -98,7 +91,6 @@ import org.hibernate.engine.FetchStyle;
 import org.hibernate.engine.FetchTiming;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.spi.FilterDefinition;
-import org.hibernate.id.PersistentIdentifierGenerator;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.log.DeprecationLogger;
@@ -139,7 +131,6 @@ import org.hibernate.mapping.Table;
 import org.hibernate.mapping.UnionSubclass;
 import org.hibernate.mapping.UniqueKey;
 import org.hibernate.mapping.Value;
-import org.hibernate.tuple.GeneratedValueGeneration;
 import org.hibernate.tuple.GenerationTiming;
 import org.hibernate.type.DiscriminatorType;
 import org.hibernate.type.ForeignKeyDirection;
@@ -149,33 +140,41 @@ import org.hibernate.type.ForeignKeyDirection;
  *
  * @author Steve Ebersole
  */
-public class ModelBinder {
+public class ModelBinder extends AbstractEntityIdentifierBinder{
 	private static final CoreMessageLogger log = CoreLogging.messageLogger( ModelBinder.class );
 	private static final boolean debugEnabled = log.isDebugEnabled();
 
 	private final MetadataBuildingContext metadataBuildingContext;
 
-	private final Database database;
-	private final ObjectNameNormalizer objectNameNormalizer;
 	private final ImplicitNamingStrategy implicitNamingStrategy;
 	private final RelationalObjectBinder relationalObjectBinder;
+	private final SimpleValueBuilder simpleValueBuilder;
+	private final SimpleEntityIdentifierBinder simpleEntityIdentifierBinder;
+	private final AggregatedCompositeEntityIdentifierBinder aggregatedCompositeEntityIdentifierBinder;
 
 	public static ModelBinder prepare(MetadataBuildingContext context) {
 		return new ModelBinder( context );
 	}
 
 	public ModelBinder(final MetadataBuildingContext context) {
-		this.metadataBuildingContext = context;
-
-		this.database = context.getMetadataCollector().getDatabase();
-		this.objectNameNormalizer = new ObjectNameNormalizer() {
+		super(context.getMetadataCollector().getDatabase(),new ObjectNameNormalizer() {
 			@Override
 			protected MetadataBuildingContext getBuildingContext() {
 				return context;
 			}
-		};
+		});
+		this.metadataBuildingContext = context;
+
 		this.implicitNamingStrategy = context.getBuildingOptions().getImplicitNamingStrategy();
 		this.relationalObjectBinder = new RelationalObjectBinder( context );
+		this.simpleValueBuilder = new SimpleValueBuilder( this.relationalObjectBinder );
+		this.simpleEntityIdentifierBinder = new SimpleEntityIdentifierBinder(
+				database,
+				simpleValueBuilder,
+				objectNameNormalizer
+		);
+		this.aggregatedCompositeEntityIdentifierBinder = new AggregatedCompositeEntityIdentifierBinder( database,
+																										objectNameNormalizer );
 	}
 
 	public void finishUp(MetadataBuildingContext context) {
@@ -341,7 +340,7 @@ public class ModelBinder {
 			RootClass rootEntityDescriptor) {
 		switch ( hierarchySource.getIdentifierSource().getNature() ) {
 			case SIMPLE: {
-				bindSimpleEntityIdentifier(
+				simpleEntityIdentifierBinder.bind(
 						mappingDocument,
 						hierarchySource,
 						rootEntityDescriptor
@@ -349,7 +348,7 @@ public class ModelBinder {
 				break;
 			}
 			case AGGREGATED_COMPOSITE: {
-				bindAggregatedCompositeEntityIdentifier(
+				aggregatedCompositeEntityIdentifierBinder.bind(
 						mappingDocument,
 						hierarchySource,
 						rootEntityDescriptor
@@ -689,181 +688,6 @@ public class ModelBinder {
 		bindUnionSubclassEntities( entitySource, entityDescriptor );
 	}
 
-	private void bindSimpleEntityIdentifier(
-			MappingDocument sourceDocument,
-			final EntityHierarchySourceImpl hierarchySource,
-			RootClass rootEntityDescriptor) {
-		final IdentifierSourceSimple idSource = (IdentifierSourceSimple) hierarchySource.getIdentifierSource();
-		final String propertyName = idSource.getIdentifierAttributeSource().getName();
-		final SimpleValue idValue = buildSimpleValue( sourceDocument,
-													  rootEntityDescriptor.getTable(),
-													  idSource.getIdentifierAttributeSource().getTypeInformation(),
-													  ( (RelationalValueSourceContainer) idSource.getIdentifierAttributeSource() ).getRelationalValueSources(),
-													  false,
-													  new RelationalObjectBinder.ColumnNamingDelegate() {
-														  @Override
-														  public Identifier determineImplicitName(final LocalMetadataBuildingContext context) {
-															  context.getBuildingOptions().getImplicitNamingStrategy().determineIdentifierColumnName(
-																	  new ImplicitIdentifierColumnNameSource() {
-																		  @Override
-																		  public EntityNaming getEntityNaming() {
-																			  return hierarchySource.getRoot().getEntityNamingSource();
-																		  }
-
-																		  @Override
-																		  public AttributePath getIdentifierAttributePath() {
-																			  return idSource.getIdentifierAttributeSource().getAttributePath();
-																		  }
-
-																		  @Override
-																		  public MetadataBuildingContext getBuildingContext() {
-																			  return context;
-																		  }
-																	  }
-															  );
-															  return database.toIdentifier( propertyName );
-														  }
-													  });
-
-		rootEntityDescriptor.setIdentifier( idValue );
-
-
-		if ( propertyName == null || !rootEntityDescriptor.hasPojoRepresentation() ) {
-			if ( !idValue.isTypeSpecified() ) {
-				throw new MappingException(
-						"must specify an identifier type: " + rootEntityDescriptor.getEntityName(),
-						sourceDocument.getOrigin()
-				);
-			}
-		}
-		else {
-			idValue.setTypeUsingReflection( rootEntityDescriptor.getClassName(), propertyName );
-		}
-
-		if ( propertyName != null ) {
-			Property prop = new Property();
-			prop.setValue( idValue );
-			bindProperty(
-					sourceDocument,
-					idSource.getIdentifierAttributeSource(),
-					prop
-			);
-			rootEntityDescriptor.setIdentifierProperty( prop );
-			rootEntityDescriptor.setDeclaredIdentifierProperty( prop );
-		}
-
-		makeIdentifier(
-				sourceDocument,
-				idSource.getIdentifierGeneratorDescriptor(),
-				idSource.getUnsavedValue(),
-				idValue
-		);
-	}
-
-	private void makeIdentifier(
-			final MappingDocument sourceDocument,
-			IdentifierGeneratorDefinition generator,
-			String unsavedValue,
-			SimpleValue identifierValue) {
-		if ( generator != null ) {
-			String generatorName = generator.getStrategy();
-			Properties params = new Properties();
-
-			// see if the specified generator name matches a registered <identifier-generator/>
-			IdentifierGeneratorDefinition generatorDef = sourceDocument.getMetadataCollector().getIdentifierGenerator( generatorName );
-			if ( generatorDef != null ) {
-				generatorName = generatorDef.getStrategy();
-				params.putAll( generatorDef.getParameters() );
-			}
-
-			identifierValue.setIdentifierGeneratorStrategy( generatorName );
-
-			// YUCK!  but cannot think of a clean way to do this given the string-config based scheme
-			params.put( PersistentIdentifierGenerator.IDENTIFIER_NORMALIZER, objectNameNormalizer);
-
-			if ( database.getDefaultNamespace().getPhysicalName().getSchema() != null ) {
-				params.setProperty(
-						PersistentIdentifierGenerator.SCHEMA,
-						database.getDefaultNamespace().getPhysicalName().getSchema().render( database.getDialect() )
-				);
-			}
-			if ( database.getDefaultNamespace().getPhysicalName().getCatalog() != null ) {
-				params.setProperty(
-						PersistentIdentifierGenerator.CATALOG,
-						database.getDefaultNamespace().getPhysicalName().getCatalog().render( database.getDialect() )
-				);
-			}
-
-			params.putAll( generator.getParameters() );
-
-			identifierValue.setIdentifierGeneratorProperties( params );
-		}
-
-		identifierValue.getTable().setIdentifierValue( identifierValue );
-
-		if ( StringHelper.isNotEmpty( unsavedValue ) ) {
-			identifierValue.setNullValue( unsavedValue );
-		}
-		else {
-			if ( "assigned".equals( identifierValue.getIdentifierGeneratorStrategy() ) ) {
-				identifierValue.setNullValue( "undefined" );
-			}
-			else {
-				identifierValue.setNullValue( null );
-			}
-		}
-	}
-
-	private void bindAggregatedCompositeEntityIdentifier(
-			MappingDocument mappingDocument,
-			EntityHierarchySourceImpl hierarchySource,
-			RootClass rootEntityDescriptor) {
-
-		// an aggregated composite-id is a composite-id that defines a singular
-		// (composite) attribute as part of the entity to represent the id.
-
-		final IdentifierSourceAggregatedComposite identifierSource
-				= (IdentifierSourceAggregatedComposite) hierarchySource.getIdentifierSource();
-
-		final Component cid = new Component( mappingDocument.getMetadataCollector(), rootEntityDescriptor );
-		cid.setKey( true );
-		rootEntityDescriptor.setIdentifier( cid );
-
-		final String idClassName = extractIdClassName( identifierSource );
-
-		final String idPropertyName = identifierSource.getIdentifierAttributeSource().getName();
-		final String pathPart = idPropertyName == null ? "<id>" : idPropertyName;
-
-		bindComponent(
-				mappingDocument,
-				hierarchySource.getRoot().getAttributeRoleBase().append( pathPart ).getFullPath(),
-				identifierSource.getEmbeddableSource(),
-				cid,
-				idClassName,
-				rootEntityDescriptor.getClassName(),
-				idPropertyName,
-				idClassName == null && idPropertyName == null,
-				identifierSource.getEmbeddableSource().isDynamic(),
-				identifierSource.getIdentifierAttributeSource().getXmlNodeName()
-		);
-
-		finishBindingCompositeIdentifier(
-				mappingDocument,
-				rootEntityDescriptor,
-				identifierSource,
-				cid,
-				idPropertyName
-		);
-	}
-
-	private String extractIdClassName(IdentifierSourceAggregatedComposite identifierSource) {
-		if ( identifierSource.getEmbeddableSource().getTypeDescriptor() == null ) {
-			return null;
-		}
-
-		return identifierSource.getEmbeddableSource().getTypeDescriptor().getName();
-	}
-
 	private static final String ID_MAPPER_PATH_PART = '<' + PropertyPath.IDENTIFIER_MAPPER_PROPERTY + '>';
 
 	private void bindNonAggregatedCompositeEntityIdentifier(
@@ -935,51 +759,13 @@ public class ModelBinder {
 		return identifierSource.getIdClassSource().getTypeDescriptor().getName();
 	}
 
-	private void finishBindingCompositeIdentifier(
-			MappingDocument sourceDocument,
-			RootClass rootEntityDescriptor,
-			CompositeIdentifierSource identifierSource,
-			Component cid,
-			String propertyName) {
-		if ( propertyName == null ) {
-			rootEntityDescriptor.setEmbeddedIdentifier( cid.isEmbedded() );
-			if ( cid.isEmbedded() ) {
-				// todo : what is the implication of this?
-				cid.setDynamic( !rootEntityDescriptor.hasPojoRepresentation() );
-				/*
-				 * Property prop = new Property(); prop.setName("id");
-				 * prop.setPropertyAccessorName("embedded"); prop.setValue(id);
-				 * entity.setIdentifierProperty(prop);
-				 */
-			}
-		}
-		else {
-			Property prop = new Property();
-			prop.setValue( cid );
-			bindProperty(
-					sourceDocument,
-					( (IdentifierSourceAggregatedComposite) identifierSource ).getIdentifierAttributeSource(),
-					prop
-			);
-			rootEntityDescriptor.setIdentifierProperty( prop );
-			rootEntityDescriptor.setDeclaredIdentifierProperty( prop );
-		}
-
-		makeIdentifier(
-				sourceDocument,
-				identifierSource.getIdentifierGeneratorDescriptor(),
-				null,
-				cid
-		);
-	}
-
 	private void bindEntityVersion(
 			MappingDocument sourceDocument,
 			EntityHierarchySourceImpl hierarchySource,
 			RootClass rootEntityDescriptor) {
 		final VersionAttributeSource versionAttributeSource = hierarchySource.getVersionAttributeSource();
 
-		final SimpleValue versionValue = buildVersionValue(
+		final SimpleValue versionValue = simpleValueBuilder.buildVersionValue(
 				sourceDocument,
 				rootEntityDescriptor.getTable(),
 				versionAttributeSource.getTypeInformation()
@@ -1000,7 +786,7 @@ public class ModelBinder {
 
 		Property prop = new Property();
 		prop.setValue( versionValue );
-		bindProperty(
+		PropertyBinder.bind(
 				sourceDocument,
 				versionAttributeSource,
 				prop
@@ -1038,7 +824,7 @@ public class ModelBinder {
 			typeName = "string";
 		}
 
-		final SimpleValue discriminatorValue = buildSimpleValue(
+		final SimpleValue discriminatorValue = simpleValueBuilder.buildSimpleValue(
 				sourceDocument,
 				rootEntityDescriptor.getTable(),
 				new HibernateTypeSourceImpl( typeName ),
@@ -1127,7 +913,7 @@ public class ModelBinder {
 					final Property attribute = createBasicAttribute(
 							mappingDocument,
 							basicAttributeSource,
-							buildSimpleValue(
+							simpleValueBuilder.buildSimpleValue(
 									mappingDocument,
 									table,
 									attributeSource.getTypeInformation(),
@@ -1417,7 +1203,7 @@ public class ModelBinder {
 
 		final Property attribute = new Property();
 		attribute.setValue( collectionBinding );
-		bindProperty(
+		PropertyBinder.bind(
 				sourceDocument,
 				attributeSource,
 				attribute
@@ -1851,7 +1637,7 @@ public class ModelBinder {
 			attribute = new Property();
 		}
 		attribute.setValue( componentBinding );
-		bindProperty(
+		PropertyBinder.bind(
 				sourceDocument,
 				embeddedSource,
 				attribute
@@ -1902,7 +1688,7 @@ public class ModelBinder {
 
 		Property property = new Property();
 		property.setValue( value );
-		bindProperty(
+		PropertyBinder.bind(
 				sourceDocument,
 				attributeSource,
 				property
@@ -1941,7 +1727,7 @@ public class ModelBinder {
 
 		Property prop = new Property();
 		prop.setValue( oneToOneBinding );
-		bindProperty(
+		PropertyBinder.bind(
 				sourceDocument,
 				oneToOneSource,
 				prop
@@ -2122,7 +1908,7 @@ public class ModelBinder {
 
 		Property prop = new Property();
 		prop.setValue( manyToOneBinding );
-		bindProperty(
+		PropertyBinder.bind(
 				sourceDocument,
 				manyToOneSource,
 				prop
@@ -2241,7 +2027,7 @@ public class ModelBinder {
 
 		Property prop = new Property();
 		prop.setValue( anyBinding );
-		bindProperty(
+		PropertyBinder.bind(
 				sourceDocument,
 				anyMapping,
 				prop
@@ -2384,91 +2170,6 @@ public class ModelBinder {
 		}
 	}
 
-	private void bindProperty(
-			MappingDocument mappingDocument,
-			AttributeSource propertySource,
-			Property property) {
-		property.setName( propertySource.getName() );
-
-		if ( StringHelper.isNotEmpty( propertySource.getXmlNodeName() ) ) {
-			DeprecationLogger.DEPRECATION_LOGGER.logDeprecationOfDomEntityModeSupport();
-		}
-
-		property.setPropertyAccessorName(
-				StringHelper.isNotEmpty( propertySource.getPropertyAccessorName() )
-						? propertySource.getPropertyAccessorName()
-						: mappingDocument.getMappingDefaults().getImplicitPropertyAccessorName()
-		);
-
-		if ( propertySource instanceof CascadeStyleSource ) {
-			final CascadeStyleSource cascadeStyleSource = (CascadeStyleSource) propertySource;
-
-			property.setCascade(
-					StringHelper.isNotEmpty( cascadeStyleSource.getCascadeStyleName() )
-							? cascadeStyleSource.getCascadeStyleName()
-							: mappingDocument.getMappingDefaults().getImplicitCascadeStyleName()
-			);
-		}
-
-		property.setOptimisticLocked( propertySource.isIncludedInOptimisticLocking() );
-
-		if ( propertySource.isSingular() ) {
-			final SingularAttributeSource singularAttributeSource = (SingularAttributeSource) propertySource;
-
-			property.setInsertable( singularAttributeSource.isInsertable() );
-			property.setUpdateable( singularAttributeSource.isUpdatable() );
-
-			// NOTE : Property#is refers to whether a property is lazy via bytecode enhancement (not proxies)
-			property.setLazy( singularAttributeSource.isBytecodeLazy() );
-
-			final GenerationTiming generationTiming = singularAttributeSource.getGenerationTiming();
-			if ( generationTiming == GenerationTiming.ALWAYS || generationTiming == GenerationTiming.INSERT ) {
-				// we had generation specified...
-				//   	HBM only supports "database generated values"
-				property.setValueGenerationStrategy( new GeneratedValueGeneration( generationTiming ) );
-
-				// generated properties can *never* be insertable...
-				if ( property.isInsertable() ) {
-					log.debugf(
-							"Property [%s] specified %s generation, setting insertable to false : %s",
-							propertySource.getName(),
-							generationTiming.name(),
-							mappingDocument.getOrigin()
-					);
-					property.setInsertable( false );
-				}
-
-				// properties generated on update can never be updatable...
-				if ( property.isUpdateable() && generationTiming == GenerationTiming.ALWAYS ) {
-					log.debugf(
-							"Property [%s] specified ALWAYS generation, setting updateable to false : %s",
-							propertySource.getName(),
-							mappingDocument.getOrigin()
-					);
-					property.setUpdateable( false );
-				}
-			}
-		}
-
-		property.setMetaAttributes( propertySource.getToolingHintContext().getMetaAttributeMap() );
-
-		if ( log.isDebugEnabled() ) {
-			final StringBuilder message = new StringBuilder()
-					.append( "Mapped property: " )
-					.append( propertySource.getName() )
-					.append( " -> [" );
-			final Iterator itr = property.getValue().getColumnIterator();
-			while ( itr.hasNext() ) {
-				message.append( ( (Selectable) itr.next() ).getText() );
-				if ( itr.hasNext() ) {
-					message.append( ", " );
-				}
-			}
-			message.append( "]" );
-			log.debug( message.toString() );
-		}
-	}
-
 	private void bindComponent(
 			MappingDocument sourceDocument,
 			EmbeddableSource embeddableSource,
@@ -2502,241 +2203,9 @@ public class ModelBinder {
 		return embeddableSource.getTypeDescriptor().getName();
 	}
 
-	private void bindComponent(
-			MappingDocument sourceDocument,
-			String role,
-			EmbeddableSource embeddableSource,
-			Component componentBinding,
-			String explicitComponentClassName,
-			String containingClassName,
-			String propertyName,
-			boolean isVirtual,
-			boolean isDynamic,
-			String xmlNodeName) {
 
-		componentBinding.setMetaAttributes( embeddableSource.getToolingHintContext().getMetaAttributeMap() );
 
-		componentBinding.setRoleName( role );
-
-		componentBinding.setEmbedded( isVirtual );
-
-		// todo : better define the conditions in this if/else
-		if ( isDynamic ) {
-			// dynamic is represented as a Map
-			log.debugf( "Binding dynamic-component [%s]", role );
-			componentBinding.setDynamic( true );
-		}
-		else if ( isVirtual ) {
-			// virtual (what used to be called embedded) is just a conceptual composition...
-			// <properties/> for example
-			if ( componentBinding.getOwner().hasPojoRepresentation() ) {
-				log.debugf( "Binding virtual component [%s] to owner class [%s]", role, componentBinding.getOwner().getClassName() );
-				componentBinding.setComponentClassName( componentBinding.getOwner().getClassName() );
-			}
-			else {
-				log.debugf( "Binding virtual component [%s] as dynamic", role );
-				componentBinding.setDynamic( true );
-			}
-		}
-		else {
-			log.debugf( "Binding component [%s]", role );
-			if ( StringHelper.isNotEmpty( explicitComponentClassName ) ) {
-				log.debugf( "Binding component [%s] to explicitly specified class", role, explicitComponentClassName );
-				componentBinding.setComponentClassName( explicitComponentClassName );
-			}
-			else if ( componentBinding.getOwner().hasPojoRepresentation() ) {
-				log.tracef( "Attempting to determine component class by reflection %s", role );
-				final Class reflectedComponentClass;
-				if ( StringHelper.isNotEmpty( containingClassName ) && StringHelper.isNotEmpty( propertyName ) ) {
-					reflectedComponentClass = Helper.reflectedPropertyClass(
-							sourceDocument,
-							containingClassName,
-							propertyName
-					);
-				}
-				else {
-					reflectedComponentClass = null;
-				}
-
-				if ( reflectedComponentClass == null ) {
-					log.debugf(
-							"Unable to determine component class name via reflection, and explicit " +
-									"class name not given; role=[%s]",
-							role
-					);
-				}
-				else {
-					componentBinding.setComponentClassName( reflectedComponentClass.getName() );
-				}
-			}
-			else {
-				componentBinding.setDynamic( true );
-			}
-		}
-
-		String nodeName = xmlNodeName;
-		if ( StringHelper.isNotEmpty( nodeName ) ) {
-			DeprecationLogger.DEPRECATION_LOGGER.logDeprecationOfDomEntityModeSupport();
-		}
-
-		// todo : anything else to pass along?
-		bindAllCompositeAttributes(
-				sourceDocument,
-				embeddableSource,
-				componentBinding
-		);
-
-		if ( embeddableSource.getParentReferenceAttributeName() != null ) {
-			componentBinding.setParentProperty( embeddableSource.getParentReferenceAttributeName() );
-		}
-
-		if ( embeddableSource.isUnique() ) {
-			final ArrayList<Column> cols = new ArrayList<Column>();
-			final Iterator itr = componentBinding.getColumnIterator();
-			while ( itr.hasNext() ) {
-				final Object selectable = itr.next();
-				// skip formulas.  ugh, yes terrible naming of these methods :(
-				if ( !Column.class.isInstance( selectable ) ) {
-					continue;
-				}
-				cols.add( (Column) selectable );
-			}
-			// todo : we may need to delay this
-			componentBinding.getOwner().getTable().createUniqueKey( cols );
-		}
-
-		if ( embeddableSource.getTuplizerClassMap() != null ) {
-			if ( embeddableSource.getTuplizerClassMap().size() > 1 ) {
-				DeprecationLogger.DEPRECATION_LOGGER.logDeprecationOfMultipleEntityModeSupport();
-			}
-			for ( Map.Entry<EntityMode,String> tuplizerEntry : embeddableSource.getTuplizerClassMap().entrySet() ) {
-				componentBinding.addTuplizer(
-						tuplizerEntry.getKey(),
-						tuplizerEntry.getValue()
-				);
-			}
-		}
-	}
-
-	private void prepareComponentType(
-			MappingDocument sourceDocument,
-			String fullRole,
-			Component componentBinding,
-			String explicitComponentClassName,
-			String containingClassName,
-			String propertyName,
-			boolean isVirtual,
-			boolean isDynamic) {
-	}
-
-	private void bindAllCompositeAttributes(
-			MappingDocument sourceDocument,
-			EmbeddableSource embeddableSource,
-			Component component) {
-
-		for ( AttributeSource attributeSource : embeddableSource.attributeSources() ) {
-			Property attribute = null;
-
-			if ( SingularAttributeSourceBasic.class.isInstance( attributeSource ) ) {
-				final SingularAttributeSourceBasic singularAttributeSource = (SingularAttributeSourceBasic) attributeSource;
-				attribute = createBasicAttribute(
-						sourceDocument,
-						singularAttributeSource,
-						buildSimpleValue(
-								sourceDocument,
-								component.getTable(),
-								attributeSource.getTypeInformation(),
-								singularAttributeSource.getRelationalValueSources(),
-								singularAttributeSource.areValuesNullableByDefault(),
-								new RelationalObjectBinder.ColumnNamingDelegate() {
-									@Override
-									public Identifier determineImplicitName(LocalMetadataBuildingContext context) {
-										return implicitNamingStrategy.determineBasicColumnName( singularAttributeSource );
-									}
-								}
-						),
-						component.getComponentClassName()
-				);
-			}
-			else if ( SingularAttributeSourceEmbedded.class.isInstance( attributeSource ) ) {
-				attribute = createEmbeddedAttribute(
-						sourceDocument,
-						(SingularAttributeSourceEmbedded) attributeSource,
-						new Component( sourceDocument.getMetadataCollector(), component ),
-						component.getComponentClassName()
-				);
-			}
-			else if ( SingularAttributeSourceManyToOne.class.isInstance( attributeSource ) ) {
-				attribute = createManyToOneAttribute(
-						sourceDocument,
-						(SingularAttributeSourceManyToOne) attributeSource,
-						new ManyToOne( sourceDocument.getMetadataCollector(), component.getTable() ),
-						component.getComponentClassName()
-				);
-			}
-			else if ( SingularAttributeSourceOneToOne.class.isInstance( attributeSource ) ) {
-				attribute = createOneToOneAttribute(
-						sourceDocument,
-						(SingularAttributeSourceOneToOne) attributeSource,
-						new OneToOne( sourceDocument.getMetadataCollector(), component.getTable(), component.getOwner() ),
-						component.getComponentClassName()
-				);
-			}
-			else if ( SingularAttributeSourceAny.class.isInstance( attributeSource ) ) {
-				attribute = createAnyAssociationAttribute(
-						sourceDocument,
-						(SingularAttributeSourceAny) attributeSource,
-						new Any( sourceDocument.getMetadataCollector(), component.getTable() ),
-						component.getComponentClassName()
-				);
-			}
-			else if ( PluralAttributeSource.class.isInstance( attributeSource ) ) {
-				attribute = createPluralAttribute(
-						sourceDocument,
-						(PluralAttributeSource) attributeSource,
-						component.getOwner()
-				);
-			}
-			else {
-				throw new AssertionFailure(
-						String.format(
-								Locale.ENGLISH,
-								"Unexpected AttributeSource sub-type [%s] as part of composite [%s]",
-								attributeSource.getClass().getName(),
-								attributeSource.getAttributeRole().getFullPath()
-						)
-
-				);
-			}
-
-			component.addProperty( attribute );
-		}
-	}
-
-	private static void bindSimpleValueType(
-			MappingDocument mappingDocument,
-			HibernateTypeSource typeSource,
-			SimpleValue simpleValue) {
-		if ( mappingDocument.getBuildingOptions().useNationalizedCharacterData() ) {
-			simpleValue.makeNationalized();
-		}
-
-		final TypeResolution typeResolution = resolveType( mappingDocument, typeSource );
-		if ( typeResolution == null ) {
-			// no explicit type info was found
-			return;
-		}
-
-		if ( CollectionHelper.isNotEmpty( typeResolution.parameters ) ) {
-			simpleValue.setTypeParameters( typeResolution.parameters );
-		}
-
-		if ( typeResolution.typeName != null ) {
-			simpleValue.setTypeName( typeResolution.typeName );
-		}
-	}
-
-	private static class TypeResolution {
+	public static class TypeResolution {
 		private final String typeName;
 		private final Properties parameters;
 
@@ -2744,9 +2213,17 @@ public class ModelBinder {
 			this.typeName = typeName;
 			this.parameters = parameters;
 		}
+
+		public String getTypeName() {
+			return typeName;
+		}
+
+		public Properties getParameters() {
+			return parameters;
+		}
 	}
 
-	private static TypeResolution resolveType(
+	public static TypeResolution resolveType(
 			MappingDocument sourceDocument,
 			HibernateTypeSource typeSource) {
 		if ( StringHelper.isEmpty( typeSource.getName() ) ) {
@@ -3335,7 +2812,7 @@ public class ModelBinder {
 			if ( idSource != null ) {
 				final IdentifierCollection idBagBinding = (IdentifierCollection) getCollectionBinding();
 
-				final SimpleValue idBinding = buildIdentifierValue(
+				final SimpleValue idBinding = simpleValueBuilder.buildIdentifierValue(
 						mappingDocument,
 						idBagBinding.getCollectionTable(),
 						idSource.getTypeInformation(),
@@ -3366,7 +2843,7 @@ public class ModelBinder {
 			if ( getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceBasic ) {
 				final PluralAttributeElementSourceBasic elementSource =
 						(PluralAttributeElementSourceBasic) getPluralAttributeSource().getElementSource();
-				final SimpleValue elementBinding = buildSimpleValue(
+				final SimpleValue elementBinding = simpleValueBuilder.buildSimpleValue(
 						getMappingDocument(),
 						getCollectionBinding().getCollectionTable(),
 						elementSource.getExplicitHibernateTypeSource(),
@@ -3767,7 +3244,7 @@ public class ModelBinder {
 				(PluralAttributeSequentialIndexSource) attributeSource.getIndexSource();
 
 
-		SimpleValue indexBinding = buildSimpleValue(
+		SimpleValue indexBinding = simpleValueBuilder.buildSimpleValue(
 				mappingDocument,
 				collectionBinding.getCollectionTable(),
 				indexSource.getTypeInformation(),
@@ -3805,7 +3282,7 @@ public class ModelBinder {
 		if ( pluralAttributeSource.getIndexSource() instanceof PluralAttributeMapKeySourceBasic ) {
 			final PluralAttributeMapKeySourceBasic mapKeySource =
 					(PluralAttributeMapKeySourceBasic) pluralAttributeSource.getIndexSource();
-			final SimpleValue value = buildSimpleValue(
+			final SimpleValue value = simpleValueBuilder.buildSimpleValue(
 					mappingDocument,
 					collectionBinding.getCollectionTable(),
 					mapKeySource.getTypeInformation(),
@@ -3901,65 +3378,7 @@ public class ModelBinder {
 		}
 	}
 
-	private SimpleValue buildSimpleValue(
-			MappingDocument mappingDocument,
-			Table table,
-			HibernateTypeSource typeSource,
-			List<RelationalValueSource> relationalValueSources,
-			boolean areColumnsNullableByDefault,
-			RelationalObjectBinder.ColumnNamingDelegate columnNamingDelegate
-			) {
-		final SimpleValue value = new SimpleValue(
-				mappingDocument.getMetadataCollector(),
-				table
-		);
-		bindSimpleValueType( mappingDocument, typeSource, value );
 
-		relationalObjectBinder.bindColumnsAndFormulas(
-				mappingDocument,
-				relationalValueSources,
-				value,
-				areColumnsNullableByDefault,
-				columnNamingDelegate
-		);
-		return value;
-	}
-
-	private SimpleValue buildIdentifierValue(
-			MappingDocument mappingDocument,
-			Table table,
-			HibernateTypeSource typeSource,
-			ColumnSource columnSource,
-			RelationalObjectBinder.ColumnNamingDelegate columnNamingDelegate
-			) {
-		final SimpleValue value = new SimpleValue(
-				mappingDocument.getMetadataCollector(),
-				table
-		);
-		bindSimpleValueType( mappingDocument, typeSource, value );
-
-		relationalObjectBinder.bindColumn(
-				mappingDocument,
-				columnSource,
-				value,
-				false,
-				columnNamingDelegate
-		);
-		return value;
-	}
-
-	private SimpleValue buildVersionValue(
-			MappingDocument mappingDocument,
-			Table table,
-			HibernateTypeSource typeSource) {
-		final SimpleValue value = new SimpleValue(
-				mappingDocument.getMetadataCollector(),
-				table
-		);
-		bindSimpleValueType( mappingDocument, typeSource, value );
-		value.makeVersion();
-		return value;
-	}
 
 	private class ManyToOneColumnBinder implements ImplicitColumnNamingSecondPass {
 		private final MappingDocument mappingDocument;
