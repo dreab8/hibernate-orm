@@ -66,7 +66,7 @@ import org.hibernate.query.spi.QueryImplementor;
 import org.hibernate.query.spi.QueryParameterBinding;
 import org.hibernate.query.spi.QueryParameterBindings;
 import org.hibernate.query.spi.ScrollableResultsImplementor;
-import org.hibernate.type.mapper.spi.Type;
+import org.hibernate.type.spi.Type;
 
 import static org.hibernate.LockOptions.WAIT_FOREVER;
 import static org.hibernate.cfg.AvailableSettings.JPA_LOCK_SCOPE;
@@ -92,7 +92,7 @@ import static org.hibernate.jpa.QueryHints.SPEC_HINT_TIMEOUT;
  * @author Steve Ebersole
  */
 public abstract class AbstractQuery<R> implements QueryImplementor<R> {
-	private static final EntityManagerMessageLogger log = HEMLogging.messageLogger( AbstractProducedQuery.class );
+	private static final EntityManagerMessageLogger log = HEMLogging.messageLogger( AbstractQuery.class );
 
 	private final SharedSessionContractImplementor producer;
 

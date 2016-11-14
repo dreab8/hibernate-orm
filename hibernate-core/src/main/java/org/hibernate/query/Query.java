@@ -36,10 +36,7 @@ import org.hibernate.LockOptions;
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
-import org.hibernate.engine.spi.RowSelection;
-import org.hibernate.sql.sqm.exec.spi.QueryOptions;
 import org.hibernate.transform.ResultTransformer;
-import org.hibernate.type.mapper.spi.Type;
 
 /**
  * Represents an HQL/JPQL query or a compiled Criteria query.  Also acts as the Hibernate
