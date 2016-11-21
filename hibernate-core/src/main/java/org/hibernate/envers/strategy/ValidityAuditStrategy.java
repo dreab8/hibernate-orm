@@ -174,7 +174,7 @@ public class ValidityAuditStrategy implements AuditStrategy {
 						originalIdEntry.getValue()
 				);
 			}
-		} 
+		}
 
 		if ( isNonIdentifierWhereConditionsRequired( entityName, propertyName, (SessionImplementor) session ) ) {
 			addNonIdentifierWhereConditions( qb, persistentCollectionChangeData.getData(), originalIdPropName );
@@ -197,7 +197,7 @@ public class ValidityAuditStrategy implements AuditStrategy {
 							qb.getRootParameters().addNullRestriction( dataEntry.getKey(), true );
 						}
 					}
-				} 
+				}
 			}
 		}
 
