@@ -23,6 +23,7 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.type.spi.Type;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * A type for persistent arrays.
@@ -33,8 +34,8 @@ public class ArrayType extends CollectionType {
 	private final Class elementClass;
 	private final Class arrayClass;
 
-	public ArrayType(TypeFactory.TypeScope typeScope, String role, String propertyRef, Class elementClass) {
-		super( typeScope, role, propertyRef );
+	public ArrayType(TypeConfiguration typeConfiguration, String role, String propertyRef, Class elementClass) {
+		super( typeConfiguration, role, propertyRef );
 		this.elementClass = elementClass;
 		arrayClass = Array.newInstance(elementClass, 0).getClass();
 	}
