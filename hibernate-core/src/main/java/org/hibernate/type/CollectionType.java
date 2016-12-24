@@ -38,7 +38,7 @@ import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.MarkerObject;
 import org.hibernate.internal.util.collections.ArrayHelper;
 import org.hibernate.internal.util.collections.CollectionHelper;
-import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.persister.collection.spi.CollectionPersister;
 import org.hibernate.persister.collection.QueryableCollection;
 import org.hibernate.persister.entity.spi.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
@@ -199,8 +199,6 @@ public abstract class CollectionType extends AbstractType implements Association
 		if ( !Hibernate.isInitialized( value ) ) {
 			return "<uninitialized>";
 		}
-
-	protected String renderLoggableString(Object value, SessionFactoryImplementor factory) throws HibernateException {
 		final List<String> list = new ArrayList<>();
 		Type elemType = getElementType( factory );
 		Iterator itr = getElementsIterator( value );

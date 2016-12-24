@@ -148,7 +148,7 @@ import org.hibernate.loader.criteria.CriteriaLoader;
 import org.hibernate.loader.custom.CustomLoader;
 import org.hibernate.loader.custom.CustomQuery;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
-import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.persister.collection.spi.CollectionPersister;
 import org.hibernate.persister.entity.MultiLoadOptions;
 import org.hibernate.persister.entity.OuterJoinLoadable;
 import org.hibernate.persister.entity.spi.EntityPersister;
