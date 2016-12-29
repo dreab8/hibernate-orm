@@ -159,9 +159,7 @@ import org.hibernate.procedure.UnknownSqlResultSetMappingException;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.LazyInitializer;
 import org.hibernate.query.Query;
-import org.hibernate.query.criteria.internal.compile.CompilableCriteria;
-import org.hibernate.query.criteria.internal.compile.CriteriaCompiler;
-import org.hibernate.query.internal.old.CollectionFilterImpl;
+import org.hibernate.query.internal.sqm.QuerySqmImpl;
 import org.hibernate.query.spi.QueryImplementor;
 import org.hibernate.query.spi.ScrollableResultsImplementor;
 import org.hibernate.resource.transaction.TransactionRequiredForJoinException;
@@ -171,6 +169,7 @@ import org.hibernate.resource.transaction.backend.jta.internal.synchronization.E
 import org.hibernate.resource.transaction.backend.jta.internal.synchronization.ManagedFlushChecker;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
+import org.hibernate.sqm.SemanticQueryInterpreter;
 import org.hibernate.stat.SessionStatistics;
 import org.hibernate.stat.internal.SessionStatisticsImpl;
 
@@ -1576,17 +1575,7 @@ public final class SessionImpl
 
 	@Override
 	public org.hibernate.query.Query createFilter(Object collection, String queryString) {
-		checkOpen();
-		checkTransactionSynchStatus();
-		CollectionFilterImpl filter = new CollectionFilterImpl(
-				queryString,
-				collection,
-				this,
-				getFilterQueryPlan( collection, queryString, null, false ).getParameterMetadata()
-		);
-		filter.setComment( queryString );
-		delayedAfterCompletion();
-		return filter;
+		throw new UnsupportedOperationException( "Session#createFilter is no longer supported" );
 	}
 
 
@@ -3535,22 +3524,18 @@ public final class SessionImpl
 		return Collections.unmodifiableMap( properties );
 	}
 
-	private CriteriaCompiler criteriaCompiler;
-
-	@SuppressWarnings("WeakerAccess")
-	protected CriteriaCompiler criteriaCompiler() {
-		if ( criteriaCompiler == null ) {
-			criteriaCompiler = new CriteriaCompiler( this );
-		}
-		return criteriaCompiler;
-	}
-
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T> QueryImplementor<T> createQuery(CriteriaQuery<T> criteriaQuery) {
 		checkOpen();
+
 		try {
-			return (QueryImplementor<T>) criteriaCompiler().compile( (CompilableCriteria) criteriaQuery );
+			return new QuerySqmImpl<>(
+					"<criteria>",
+					SemanticQueryInterpreter.interpret( criteriaQuery, getSessionFactory() ),
+					criteriaQuery.getResultType(),
+					this
+			);
 		}
 		catch ( RuntimeException e ) {
 			throw exceptionConverter.convert( e );
@@ -3561,7 +3546,12 @@ public final class SessionImpl
 	public QueryImplementor createQuery(CriteriaUpdate criteriaUpdate) {
 		checkOpen();
 		try {
-			return criteriaCompiler().compile( (CompilableCriteria) criteriaUpdate );
+			return new QuerySqmImpl<>(
+					"<criteria>",
+					SemanticQueryInterpreter.interpret( criteriaUpdate, getSessionFactory() ),
+					null,
+					this
+			);
 		}
 		catch ( RuntimeException e ) {
 			throw exceptionConverter.convert( e );
@@ -3572,7 +3562,12 @@ public final class SessionImpl
 	public QueryImplementor createQuery(CriteriaDelete criteriaDelete) {
 		checkOpen();
 		try {
-			return criteriaCompiler().compile( (CompilableCriteria) criteriaDelete );
+			return new QuerySqmImpl<>(
+					"<criteria>",
+					SemanticQueryInterpreter.interpret( criteriaDelete, getSessionFactory() ),
+					null,
+					this
+			);
 		}
 		catch ( RuntimeException e ) {
 			throw exceptionConverter.convert( e );
