@@ -14,26 +14,28 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.EntityType;
 
+import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
 import org.hibernate.query.criteria.internal.CriteriaSubqueryImpl;
-import org.hibernate.query.criteria.internal.FromImplementor;
-import org.hibernate.query.criteria.internal.PathSource;
+import org.hibernate.query.criteria.JpaFromImplementor;
+import org.hibernate.query.criteria.JpaPathSourceImplementor;
+import org.hibernate.sqm.parser.criteria.tree.from.JpaRoot;
 
 /**
  * Hibernate implementation of the JPA {@link Root} contract
  *
  * @author Steve Ebersole
  */
-public class RootImpl<X> extends AbstractFromImpl<X,X> implements Root<X>, Serializable {
+public class RootImpl<X> extends AbstractFromImpl<X,X> implements JpaRoot<X>, Serializable {
 	private final EntityType<X> entityType;
 	private final boolean allowJoins;
 	private final Set<TreatedRoot<? extends X>> treats = new LinkedHashSet<>();
 
-	public RootImpl(CriteriaBuilderImpl criteriaBuilder, EntityType<X> entityType) {
+	public RootImpl(HibernateCriteriaBuilder criteriaBuilder, EntityType<X> entityType) {
 		this( criteriaBuilder, entityType, true );
 	}
 
-	public RootImpl(CriteriaBuilderImpl criteriaBuilder, EntityType<X> entityType, boolean allowJoins) {
+	public RootImpl(HibernateCriteriaBuilder criteriaBuilder, EntityType<X> entityType, boolean allowJoins) {
 		super( criteriaBuilder, entityType.getJavaType() );
 		this.entityType = entityType;
 		this.allowJoins = allowJoins;
@@ -48,7 +50,7 @@ public class RootImpl<X> extends AbstractFromImpl<X,X> implements Root<X>, Seria
 	}
 
 	@Override
-	protected FromImplementor<X, X> createCorrelationDelegate() {
+	protected JpaFromImplementor<X, X> createCorrelationDelegate() {
 		return new RootImpl<X>( criteriaBuilder(), getEntityType() );
 	}
 
@@ -118,7 +120,7 @@ public class RootImpl<X> extends AbstractFromImpl<X,X> implements Root<X>, Seria
 		}
 
 		@Override
-		protected PathSource getPathSourceForSubPaths() {
+		protected JpaPathSourceImplementor getPathSourceForSubPaths() {
 			return this;
 		}
 	}

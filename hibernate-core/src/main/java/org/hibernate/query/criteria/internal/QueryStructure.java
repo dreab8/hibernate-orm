@@ -25,8 +25,15 @@ import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.EntityType;
 
+import org.hibernate.query.criteria.FromClauseImpl;
+import org.hibernate.query.criteria.JpaFromImplementor;
+import org.hibernate.query.criteria.JpaSelectClauseImpl;
 import org.hibernate.query.criteria.internal.path.RootImpl;
-import org.hibernate.query.criteria.internal.path.RootImpl.TreatedRoot;
+import org.hibernate.sqm.parser.criteria.tree.JpaExpression;
+import org.hibernate.sqm.parser.criteria.tree.JpaOrder;
+import org.hibernate.sqm.parser.criteria.tree.JpaPredicate;
+import org.hibernate.sqm.parser.criteria.tree.JpaQuerySpec;
+import org.hibernate.sqm.parser.criteria.tree.JpaSubquery;
 
 /**
  * Models basic query structure.  Used as a delegate in implementing both
@@ -39,7 +46,7 @@ import org.hibernate.query.criteria.internal.path.RootImpl.TreatedRoot;
  *
  * @author Steve Ebersole
  */
-public class QueryStructure<T> implements Serializable {
+public class QueryStructure<T> implements JpaQuerySpec<T> {
 	private final AbstractQuery<T> owner;
 	private final CriteriaBuilderImpl criteriaBuilder;
 	private final boolean isSubQuery;
@@ -50,14 +57,13 @@ public class QueryStructure<T> implements Serializable {
 		this.isSubQuery = Subquery.class.isInstance( owner );
 	}
 
-	private boolean distinct;
-	private Selection<? extends T> selection;
-	private Set<Root<?>> roots = new LinkedHashSet<Root<?>>();
-	private Set<FromImplementor> correlationRoots;
-	private Predicate restriction;
-	private List<Expression<?>> groupings = Collections.emptyList();
-	private Predicate having;
-	private List<Subquery<?>> subqueries;
+	private JpaSelectClauseImpl<T> jpaSelectClause = new JpaSelectClauseImpl<>();
+	private FromClauseImpl fromClause = new FromClauseImpl();
+	private JpaPredicate restriction;
+	private List<JpaExpression<?>> groupings = Collections.emptyList();
+	private JpaPredicate having;
+	private List<JpaOrder> jpaOrderByList;
+	private List<JpaSubquery<?>> subqueries;
 
 
 	// PARAMETERS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -135,12 +141,12 @@ public class QueryStructure<T> implements Serializable {
 
 	// CORRELATION ROOTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	public void addCorrelationRoot(FromImplementor fromImplementor) {
+	public void addCorrelationRoot(JpaFromImplementor fromImplementor) {
 		if ( !isSubQuery ) {
 			throw new IllegalStateException( "Query is not identified as sub-query" );
 		}
 		if ( correlationRoots == null ) {
-			correlationRoots = new HashSet<FromImplementor>();
+			correlationRoots = new HashSet<JpaFromImplementor>();
 		}
 		correlationRoots.add( fromImplementor );
 	}
@@ -152,7 +158,7 @@ public class QueryStructure<T> implements Serializable {
 		final Set<Join<?, ?>> correlatedJoins;
 		if ( correlationRoots != null ) {
 			correlatedJoins = new HashSet<Join<?,?>>();
-			for ( FromImplementor<?,?> correlationRoot : correlationRoots ) {
+			for ( JpaFromImplementor<?,?> correlationRoot : correlationRoots ) {
 				if (correlationRoot instanceof Join<?,?> && correlationRoot.isCorrelated()) {
 					correlatedJoins.add( (Join<?,?>) correlationRoot );
 				}
