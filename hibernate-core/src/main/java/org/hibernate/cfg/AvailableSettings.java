@@ -10,6 +10,7 @@ import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.registry.classloading.internal.TcclLookupPrecedence;
 import org.hibernate.boot.spi.SessionFactoryOptions;
 import org.hibernate.query.ParameterMetadata;
+import org.hibernate.query.QueryLiteralRendering;
 import org.hibernate.resource.cdi.spi.ManagedBeanRegistry;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
@@ -1030,7 +1031,25 @@ public interface AvailableSettings {
 	String USE_DIRECT_REFERENCE_CACHE_ENTRIES = "hibernate.cache.use_reference_entries";
 
 
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// Query settings
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+	/**
+	 * Names the {@link QueryLiteralRendering} to use.  Can be either:<ul>
+	 *     <li>
+	 *         A QueryLiteralRendering instance
+	 *     </li>
+	 *     <li>
+	 *         An Object whose toString case-insensitively resolves to one of the QueryLiteralRendering#toExternalForm names:<ul>
+	 *             <li>literal</li>
+	 *             <li>param</li>
+	 *             <li>param-outside-select</li>
+	 *         </ul>
+	 *     </li>
+	 * </ul>
+	 */
+	String QUERY_LITERAL_RENDERING = "hibernate.query.literal_rendering";
 
 
 
