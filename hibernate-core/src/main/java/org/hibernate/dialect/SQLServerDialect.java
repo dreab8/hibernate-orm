@@ -20,7 +20,7 @@ import org.hibernate.dialect.pagination.LegacyLimitHandler;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.dialect.pagination.TopLimitHandler;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.spi.descriptor.sql.SmallIntTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SmallIntSqlDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
@@ -196,7 +196,7 @@ public class SQLServerDialect extends AbstractTransactSQLDialect {
 	@Override
 	protected SqlTypeDescriptor getSqlTypeDescriptorOverride(int sqlCode) {
 		return sqlCode == Types.TINYINT ?
-				SmallIntTypeDescriptor.INSTANCE :
+				SmallIntSqlDescriptor.INSTANCE :
 				super.getSqlTypeDescriptorOverride( sqlCode );
 	}
 
