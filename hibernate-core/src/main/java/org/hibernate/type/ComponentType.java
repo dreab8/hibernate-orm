@@ -32,7 +32,7 @@ import org.hibernate.tuple.ValueGeneration;
 import org.hibernate.tuple.component.ComponentMetamodel;
 import org.hibernate.tuple.component.ComponentTuplizer;
 import org.hibernate.type.spi.ColumnMapping;
-import org.hibernate.type.spi.CompositeType;
+import org.hibernate.type.spi.EmbeddedType;
 import org.hibernate.type.spi.Type;
 import org.hibernate.type.spi.TypeConfiguration;
 
@@ -41,7 +41,7 @@ import org.hibernate.type.spi.TypeConfiguration;
  *
  * @author Gavin King
  */
-public class ComponentType extends AbstractType implements CompositeType, ProcedureParameterExtractionAware {
+public class ComponentType extends AbstractType implements EmbeddedType, ProcedureParameterExtractionAware {
 
 	private final TypeConfiguration typeConfiguration;
 	private final String[] propertyNames;

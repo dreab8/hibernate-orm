@@ -44,7 +44,7 @@ import org.hibernate.tuple.Instantiator;
 import org.hibernate.tuple.NonIdentifierAttribute;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.ComponentType;
-import org.hibernate.type.spi.CompositeType;
+import org.hibernate.type.spi.EmbeddedType;
 import org.hibernate.type.spi.EntityType;
 import org.hibernate.type.spi.Type;
 
@@ -73,7 +73,7 @@ public abstract class AbstractEntityTuplizer implements EntityTuplizer {
 	protected final boolean hasCustomAccessors;
 	private final Instantiator instantiator;
 	private final ProxyFactory proxyFactory;
-	private final CompositeType identifierMapperType;
+	private final EmbeddedType identifierMapperType;
 
 	public Type getIdentifierMapperType() {
 		return identifierMapperType;
@@ -175,7 +175,7 @@ public abstract class AbstractEntityTuplizer implements EntityTuplizer {
 			mappedIdentifierValueMarshaller = null;
 		}
 		else {
-			identifierMapperType = (CompositeType) mapper.getType();
+			identifierMapperType = (EmbeddedType) mapper.getType();
 			mappedIdentifierValueMarshaller = buildMappedIdentifierValueMarshaller(
 					getFactory(),
 					(ComponentType) entityMetamodel.getIdentifierProperty().getType(),
@@ -257,7 +257,7 @@ public abstract class AbstractEntityTuplizer implements EntityTuplizer {
 	public void setIdentifier(Object entity, Serializable id, SharedSessionContractImplementor session) {
 		if ( entityMetamodel.getIdentifierProperty().isEmbedded() ) {
 			if ( entity != id ) {
-				CompositeType copier = (CompositeType) entityMetamodel.getIdentifierProperty().getType();
+				EmbeddedType copier = (EmbeddedType) entityMetamodel.getIdentifierProperty().getType();
 				copier.setPropertyValues( entity, copier.getPropertyValues( id, getEntityMode() ), getEntityMode() );
 			}
 		}

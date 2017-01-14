@@ -44,7 +44,7 @@ apply from: "./databases.gradle"
 allprojects {
     repositories {
         mavenCentral()
-        mavenLocal()
+//        mavenLocal()
 
         maven {
             name 'jboss-nexus'

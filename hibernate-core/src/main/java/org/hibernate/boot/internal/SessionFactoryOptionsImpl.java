@@ -28,6 +28,7 @@ import org.hibernate.dialect.function.SQLFunction;
 import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
 import org.hibernate.loader.BatchFetchStyle;
 import org.hibernate.proxy.EntityNotFoundDelegate;
+import org.hibernate.query.QueryLiteralRendering;
 import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
 import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.hibernate.tuple.entity.EntityTuplizerFactory;
@@ -127,6 +128,7 @@ public class SessionFactoryOptionsImpl implements SessionFactoryOptions {
 	private final TimeZone jdbcTimeZone;
 
 	private final Map<String, SQLFunction> sqlFunctions;
+	private final QueryLiteralRendering queryLiteralRendering;
 
 	public SessionFactoryOptionsImpl(SessionFactoryOptionsState state) {
 		this.serviceRegistry = state.getServiceRegistry();
@@ -183,6 +185,7 @@ public class SessionFactoryOptionsImpl implements SessionFactoryOptions {
 		this.collectionJoinSubqueryRewriteEnabled = state.isCollectionJoinSubqueryRewriteEnabled();
 		this.nonJpaNativeQueryOrdinalParameterBase = state.getNonJpaNativeQueryOrdinalParameterBase();
 		this.useOfJdbcNamedParametersEnabled = state.isUseOfJdbcNamedParametersEnabled();
+		this.queryLiteralRendering = state.getQueryLiteralRendering();
 
 		this.secondLevelCacheEnabled = state.isSecondLevelCacheEnabled();
 		this.queryCacheEnabled = state.isQueryCacheEnabled();
@@ -540,5 +543,10 @@ public class SessionFactoryOptionsImpl implements SessionFactoryOptions {
 	@Override
 	public boolean isUseOfJdbcNamedParametersEnabled() {
 		return useOfJdbcNamedParametersEnabled;
+	}
+
+	@Override
+	public QueryLiteralRendering getQueryLiteralRendering() {
+		return queryLiteralRendering;
 	}
 }
