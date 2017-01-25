@@ -119,8 +119,8 @@ public abstract class AbstractPropertyHolder implements PropertyHolder {
 
 	protected AttributeConverterDescriptor makeAttributeConverterDescriptor(AttributeConversionInfo conversion) {
 		try {
-			AttributeConverterDefinition definition = new AttributeConverterDefinition( conversion.getConverterClass().newInstance(), false );
-			return AttributeConverterDescriptorImpl.create( definition, context.getMetadataCollector().getClassmateContext() );
+			AttributeConverterDefinition definition = AttributeConverterDefinition.from(context.getBootstrapContext().getClassmateContext(), conversion.getConverterClass(), false );
+			return AttributeConverterDescriptorImpl.create( definition, context.getMetadataCollector().getBootstrapContext().getClassmateContext() );
 		}
 		catch (Exception e) {
 			throw new AnnotationException( "Unable to create AttributeConverter instance", e );
@@ -379,7 +379,7 @@ public abstract class AbstractPropertyHolder implements PropertyHolder {
 		Map<String, JoinColumn[]> joinColumnOverride = new HashMap<String, JoinColumn[]>();
 		Map<String, JoinTable> joinTableOverride = new HashMap<String, JoinTable>();
 		Map<String, ForeignKey> foreignKeyOverride = new HashMap<String, ForeignKey>();
-		while ( current != null && !context.getBuildingOptions().getReflectionManager().toXClass( Object.class ).equals( current ) ) {
+		while ( current != null && !context.getBootstrapContext().getReflectionManager().toXClass( Object.class ).equals( current ) ) {
 			if ( current.isAnnotationPresent( Entity.class ) || current.isAnnotationPresent( MappedSuperclass.class )
 					|| current.isAnnotationPresent( Embeddable.class ) ) {
 				//FIXME is embeddable override?

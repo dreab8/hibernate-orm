@@ -133,7 +133,10 @@ public class MapBinder extends CollectionBinder {
 					mapProperty.getPersistentClass() :
 					associatedClass;
 			Value indexValue = createFormulatedValue(
-					mapProperty.getValue(), map, targetPropertyName, associatedClass, targetPropertyPersistentClass, buildingContext
+					mapProperty.getValue(),
+					map,
+					associatedClass,
+					targetPropertyPersistentClass
 			);
 			map.setIndex( indexValue );
 		}
@@ -179,7 +182,7 @@ public class MapBinder extends CollectionBinder {
 				}
 				else {
 					try {
-						keyXClass = buildingContext.getBuildingOptions().getReflectionManager().classForName( mapKeyType );
+						keyXClass = buildingContext.getBootstrapContext().getReflectionManager().classForName( mapKeyType );
 					}
 					catch (ClassLoadingException e) {
 						throw new AnnotationException( "Unable to find class: " + mapKeyType, e );
@@ -266,7 +269,7 @@ public class MapBinder extends CollectionBinder {
 						column.setLength( Ejb3Column.DEFAULT_COLUMN_LENGTH );
 						column.setLogicalColumnName( Collection.DEFAULT_KEY_COLUMN_NAME );
 						//TODO create an EMPTY_JOINS collection
-						column.setJoins( new HashMap<String, Join>() );
+						column.setJoins( new HashMap<>() );
 						column.setBuildingContext( buildingContext );
 						column.bind();
 						elementColumns[0] = column;
@@ -361,10 +364,8 @@ public class MapBinder extends CollectionBinder {
 	protected Value createFormulatedValue(
 			Value value,
 			Collection collection,
-			String targetPropertyName,
 			PersistentClass associatedClass,
-			PersistentClass targetPropertyPersistentClass,
-			MetadataBuildingContext buildingContext) {
+			PersistentClass targetPropertyPersistentClass) {
 		Value element = collection.getElement();
 		String fromAndWhere = null;
 		if ( !( element instanceof OneToMany ) ) {
@@ -430,8 +431,7 @@ public class MapBinder extends CollectionBinder {
 				newProperty.setSelectable( current.isSelectable() );
 				newProperty.setValue(
 						createFormulatedValue(
-								current.getValue(), collection, targetPropertyName, associatedClass, associatedClass, buildingContext
-						)
+								current.getValue(), collection, associatedClass, associatedClass )
 				);
 				indexComponent.addProperty( newProperty );
 			}

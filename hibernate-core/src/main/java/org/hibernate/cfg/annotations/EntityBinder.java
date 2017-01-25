@@ -15,7 +15,6 @@ import javax.persistence.Access;
 import javax.persistence.Cacheable;
 import javax.persistence.ConstraintMode;
 import javax.persistence.Entity;
-import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.NamedEntityGraph;
@@ -125,12 +124,12 @@ public class EntityBinder {
 	private String where;
 	// todo : we should defer to InFlightMetadataCollector.EntityTableXref for secondary table tracking;
 	//		atm we use both from here; HBM binding solely uses InFlightMetadataCollector.EntityTableXref
-	private java.util.Map<String, Join> secondaryTables = new HashMap<String, Join>();
-	private java.util.Map<String, Object> secondaryTableJoins = new HashMap<String, Object>();
+	private java.util.Map<String, Join> secondaryTables = new HashMap<>();
+	private java.util.Map<String, Object> secondaryTableJoins = new HashMap<>();
 	private String cacheConcurrentStrategy;
 	private String cacheRegion;
 	private String naturalIdCacheRegion;
-	private List<Filter> filters = new ArrayList<Filter>();
+	private List<Filter> filters = new ArrayList<>();
 	private InheritanceState inheritanceState;
 	private boolean ignoreIdAnnotations;
 	private boolean cacheLazyProperty;
@@ -321,7 +320,7 @@ public class EntityBinder {
 			org.hibernate.annotations.Entity entityAnn = annotatedClass.getAnnotation( org.hibernate.annotations.Entity.class );
 			if ( entityAnn != null && !BinderHelper.isEmptyAnnotationValue( entityAnn.persister() ) ) {
 				try {
-					persister = context.getClassLoaderAccess().classForName( entityAnn.persister() );
+					persister = context.getBootstrapContext().getClassLoaderAccess().classForName( entityAnn.persister() );
 				}
 				catch (ClassLoadingException e) {
 					throw new AnnotationException( "Could not find persister class: " + entityAnn.persister(), e );
@@ -517,7 +516,7 @@ public class EntityBinder {
 				proxyClass = null;
 			}
 			else {
-				final ReflectionManager reflectionManager = context.getBuildingOptions().getReflectionManager();
+				final ReflectionManager reflectionManager = context.getBootstrapContext().getReflectionManager();
 				if ( AnnotationBinder.isDefault( reflectionManager.toXClass( proxy.proxyClass() ), context ) ) {
 					proxyClass = annotatedClass;
 				}

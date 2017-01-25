@@ -733,7 +733,7 @@ public class ModelBinder {
 					}
 
 					@Override
-					public JavaTypeDescriptor getJavaTypeDescriptor() {
+					public BasicJavaDescriptor getJavaTypeDescriptor() {
 						return null;
 					}
 
@@ -1226,7 +1226,7 @@ public class ModelBinder {
 					}
 
 					@Override
-					public JavaTypeDescriptor getJavaTypeDescriptor() {
+					public BasicJavaDescriptor getJavaTypeDescriptor() {
 						return null;
 					}
 
@@ -2399,7 +2399,7 @@ public class ModelBinder {
 			referencedEntityName = manyToOneSource.getReferencedEntityName();
 		}
 		else {
-			Class reflectedPropertyClass = Helper.reflectedPropertyClass( sourceDocument, containingClassName, attributeName );
+			Class reflectedPropertyClass = Helper.reflectedPropertyClass( sourceDocument.getBootstrapContext(), containingClassName, attributeName );
 			if ( reflectedPropertyClass != null ) {
 				referencedEntityName = reflectedPropertyClass.getName();
 			}
@@ -2838,7 +2838,7 @@ public class ModelBinder {
 				final Class reflectedComponentClass;
 				if ( StringHelper.isNotEmpty( containingClassName ) && StringHelper.isNotEmpty( propertyName ) ) {
 					reflectedComponentClass = Helper.reflectedPropertyClass(
-							sourceDocument,
+							sourceDocument.getBootstrapContext(),
 							containingClassName,
 							propertyName
 					);
@@ -3603,7 +3603,7 @@ public class ModelBinder {
 							}
 
 							@Override
-							public JavaTypeDescriptor getJavaTypeDescriptor() {
+							public BasicJavaDescriptor getJavaTypeDescriptor() {
 								return null;
 							}
 
@@ -3711,7 +3711,7 @@ public class ModelBinder {
 							}
 
 							@Override
-							public JavaTypeDescriptor getJavaTypeDescriptor() {
+							public BasicJavaDescriptor getJavaTypeDescriptor() {
 								return null;
 							}
 
@@ -4266,8 +4266,8 @@ public class ModelBinder {
 					}
 
 					@Override
-					public JavaTypeDescriptor getJavaTypeDescriptor() {
-						return getTypeConfiguration().getJavaTypeDescriptorRegistry().getDescriptor( Integer.class );
+					public BasicJavaDescriptor getJavaTypeDescriptor() {
+						return (BasicJavaDescriptor) getTypeConfiguration().getJavaTypeDescriptorRegistry().getDescriptor( Integer.class );
 					}
 
 					@Override
@@ -4378,7 +4378,7 @@ public class ModelBinder {
 						}
 
 						@Override
-						public JavaTypeDescriptor getJavaTypeDescriptor() {
+						public BasicJavaDescriptor getJavaTypeDescriptor() {
 							return null;
 						}
 
