@@ -147,6 +147,7 @@ import org.hibernate.mapping.Value;
 import org.hibernate.tuple.GeneratedValueGeneration;
 import org.hibernate.tuple.GenerationTiming;
 import org.hibernate.type.ForeignKeyDirection;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.spi.TypeConfiguration;
 import org.hibernate.type.converter.spi.AttributeConverterDefinition;
@@ -1094,7 +1095,7 @@ public class ModelBinder {
 					}
 
 					@Override
-					public JavaTypeDescriptor getJavaTypeDescriptor() {
+					public BasicJavaDescriptor getJavaTypeDescriptor() {
 						return null;
 					}
 
@@ -1670,7 +1671,10 @@ public class ModelBinder {
 		Map typeParameters = new HashMap();
 		if ( typeName != null ) {
 			// see if there is a corresponding type-def
-			final TypeDefinition typeDef = mappingDocument.getMetadataCollector().getTypeDefinition( typeName );
+			final TypeDefinition typeDef = mappingDocument.getMetadataCollector()
+					.getBootstrapContext()
+					.getBasicTypeProducerRegistry()
+					.getTypeDefinition( typeName );
 			if ( typeDef != null ) {
 				typeName = typeDef.getTypeImplementorClass().getName();
 				if ( typeDef.getParameters() != null ) {
@@ -2115,7 +2119,7 @@ public class ModelBinder {
 					}
 
 					@Override
-					public JavaTypeDescriptor getJavaTypeDescriptor() {
+					public BasicJavaDescriptor getJavaTypeDescriptor() {
 						return null;
 					}
 
