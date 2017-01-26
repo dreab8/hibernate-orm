@@ -14,10 +14,10 @@ import java.util.function.Predicate;
 
 import org.hibernate.Session;
 import org.hibernate.boot.Metadata;
-import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cache.infinispan.util.FutureUpdate;
 import org.hibernate.cache.infinispan.util.TombstoneUpdate;
 import org.hibernate.cache.internal.SimpleCacheKeysFactory;
+import org.hibernate.boot.spi.InFlightMetadataCollector;
 import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cfg.AvailableSettings;
@@ -161,7 +161,7 @@ public abstract class AbstractFunctionalTest extends BaseNonConfigCoreFunctional
 				RootClass rootClazz = clazz.getRootClass();
 				Property versionProperty = new Property();
 				versionProperty.setName("version");
-				SimpleValue value = new SimpleValue((MetadataImplementor) metadata, rootClazz.getTable());
+				SimpleValue value = new SimpleValue( (InFlightMetadataCollector) metadata, rootClazz.getTable());
 				value.setTypeName("long");
 				Column column = new Column();
 				column.setValue(value);
