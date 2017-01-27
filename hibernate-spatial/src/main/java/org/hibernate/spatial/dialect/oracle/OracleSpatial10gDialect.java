@@ -113,5 +113,4 @@ public class OracleSpatial10gDialect extends Oracle10gDialect implements Spatial
 		return (getFunctions().get( function.toString() ) != null);
 	}
 
-
 }
