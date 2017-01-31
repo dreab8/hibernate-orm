@@ -1157,6 +1157,7 @@ public final class StandardBasicTypes {
 				BasicTypeRegistry.Key.from( basicType )
 		);
 
+		// we add these
 		if ( StringHelper.isNotEmpty( legacyTypeClassName ) ) {
 			basicTypeProducerRegistry.register(
 					basicType,
