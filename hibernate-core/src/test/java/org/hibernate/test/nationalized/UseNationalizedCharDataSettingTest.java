@@ -22,7 +22,7 @@ import org.hibernate.mapping.Property;
 import org.hibernate.type.CharacterNCharType;
 import org.hibernate.type.CharacterType;
 import org.hibernate.type.StringNVarcharType;
-import org.hibernate.type.StringType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
@@ -53,7 +53,7 @@ public class UseNationalizedCharDataSettingTest extends BaseUnitTestCase {
 			final Property nameAttribute = pc.getProperty( "name" );
 			if(metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ){
 				// See issue HHH-10693
-				assertSame( StringType.INSTANCE, nameAttribute.getType() );
+				assertSame( StandardSpiBasicTypes.STRING, nameAttribute.getType() );
 			}else {
 				assertSame( StringNVarcharType.INSTANCE, nameAttribute.getType() );
 			}
