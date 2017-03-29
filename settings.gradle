@@ -33,7 +33,7 @@ include 'release'
 
 include 'metamodel-generator'
 project(':metamodel-generator').projectDir = new File(rootProject.projectDir, "tooling/metamodel-generator")
-project(':metamodel-generator').name = 'hibernate-jpamodelgen'
+project(':metamodel-generator').name = 'hibernate-orm-jpamodelgen'
 
 include 'hibernate-gradle-plugin'
 project(':hibernate-gradle-plugin').projectDir = new File(rootProject.projectDir, "tooling/hibernate-gradle-plugin")
