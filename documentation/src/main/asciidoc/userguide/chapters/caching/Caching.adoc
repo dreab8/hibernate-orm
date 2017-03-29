@@ -639,7 +639,7 @@ http://www.ehcache.org/documentation/2.8/integrations/hibernate#optional[Ehcache
 
 [NOTE]
 ====
-Use of the build-in integration for http://infinispan.org/[Infinispan] requires that the `hibernate-infinispan module` jar (and all of its dependencies) are on the classpath.
+Use of the build-in integration for http://infinispan.org/[Infinispan] requires that the `hibernate-orm-infinispan module` jar (and all of its dependencies) are on the classpath.
 ====
 
 How to configure Infinispan to be the second level cache provider varies slightly depending on the deployment scenario:
