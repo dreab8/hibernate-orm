@@ -63,6 +63,7 @@ import org.hibernate.type.descriptor.java.internal.OffsetDateTimeJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.OffsetTimeJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.PrimitiveByteArrayJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.PrimitiveCharacterArrayJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.RowVersionJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.SerializableJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.ShortJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
@@ -634,6 +635,15 @@ public final class StandardSpiBasicTypes {
 			VarcharSqlDescriptor.INSTANCE
 	);
 
+	/**
+	 * The standard Hibernate type for mapping {@code byte[]} to JDBC {@link java.sql.Types#VARBINARY VARBINARY}
+	 * specifically for entity versions/timestamps.
+	 */
+	public static final BasicType<byte[]> ROW_VERSION = new BasicTypeImpl<byte[]>(
+			RowVersionJavaDescriptor.INSTANCE,
+			VarbinarySqlDescriptor.INSTANCE
+	);
+
 
 	public static void prime(TypeConfiguration typeConfiguration, BasicTypeProducerRegistry basicTypeProducerRegistry) {
 
@@ -924,6 +934,14 @@ public final class StandardSpiBasicTypes {
 				typeConfiguration,
 				basicTypeProducerRegistry,
 				"materialized_nclob_char_array"
+		);
+
+		handle(
+				ROW_VERSION,
+				"org.hibernate.type.RowVersionType",
+				typeConfiguration,
+				basicTypeProducerRegistry,
+				"row_version"
 		);
 
 

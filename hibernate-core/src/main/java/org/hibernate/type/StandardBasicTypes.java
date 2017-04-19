@@ -387,10 +387,18 @@ public final class StandardBasicTypes {
 	 * The standard Hibernate type for mapping {@link java.util.TimeZone} to JDBC {@link java.sql.Types#VARCHAR VARCHAR}.
 	 */
 	public static final Type<TimeZone> TIMEZONE = StandardSpiBasicTypes.TIMEZONE;
+
 	/**
 	 * The standard Hibernate type for mapping {@link java.net.URL} to JDBC {@link java.sql.Types#VARCHAR VARCHAR}.
 	 */
 	public static final Type<java.net.URL> URL = StandardSpiBasicTypes.URL;
+
+	/**
+	 * The standard Hibernate type for mapping {@code byte[]} to JDBC {@link java.sql.Types#VARBINARY VARBINARY}
+	 * specifically for entity versions/timestamps.
+	 */
+	public static final Type<byte[]> ROW_VERSION = StandardSpiBasicTypes.ROW_VERSION;
+
 
 	public static void prime(TypeConfiguration typeConfiguration, BasicTypeProducerRegistry basicTypeProducerRegistry) {
 		StandardSpiBasicTypes.prime( typeConfiguration, basicTypeProducerRegistry );
