@@ -207,6 +207,9 @@ public abstract class AbstractSharedSessionContract implements SharedSessionCont
 	protected void addSharedSessionTransactionObserver(TransactionCoordinator transactionCoordinator) {
 	}
 
+	protected void removeSharedSessionTransactionObserver(TransactionCoordinator transactionCoordinator) {
+	}
+
 	@Override
 	public boolean shouldAutoJoinTransaction() {
 		return autoJoinTransactions;
@@ -299,8 +302,11 @@ public abstract class AbstractSharedSessionContract implements SharedSessionCont
 			currentHibernateTransaction.invalidate();
 		}
 
+		removeSharedSessionTransactionObserver( transactionCoordinator );
+
 		try {
 			if ( shouldCloseJdbcCoordinatorOnClose( isTransactionCoordinatorShared ) ) {
+
 				jdbcCoordinator.close();
 			}
 		}

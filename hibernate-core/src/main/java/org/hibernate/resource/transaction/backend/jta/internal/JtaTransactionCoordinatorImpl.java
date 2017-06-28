@@ -74,7 +74,7 @@ public class JtaTransactionCoordinatorImpl implements TransactionCoordinator, Sy
 			TransactionCoordinatorBuilder transactionCoordinatorBuilder,
 			TransactionCoordinatorOwner owner,
 			boolean autoJoinTransactions) {
-		this.observers = new ArrayList<TransactionObserver>();
+		this.observers = new ArrayList<>();
 		this.transactionCoordinatorBuilder = transactionCoordinatorBuilder;
 		this.transactionCoordinatorOwner = owner;
 		this.autoJoinTransactions = autoJoinTransactions;
@@ -100,7 +100,7 @@ public class JtaTransactionCoordinatorImpl implements TransactionCoordinator, Sy
 			boolean preferUserTransactions,
 			boolean performJtaThreadTracking,
 			TransactionObserver... observers) {
-		this.observers = new ArrayList<TransactionObserver>();
+		this.observers = new ArrayList<>();
 		this.transactionCoordinatorBuilder = transactionCoordinatorBuilder;
 		this.transactionCoordinatorOwner = owner;
 		this.autoJoinTransactions = autoJoinTransactions;
@@ -348,7 +348,8 @@ public class JtaTransactionCoordinatorImpl implements TransactionCoordinator, Sy
 
 		transactionCoordinatorOwner.afterTransactionCompletion( successful, delayed );
 
-		for ( TransactionObserver observer : observers ) {
+		final ArrayList<TransactionObserver> transactionObservers = new ArrayList<>( observers );
+		for ( TransactionObserver observer : transactionObservers ) {
 			observer.afterCompletion( successful, delayed );
 		}
 
@@ -368,7 +369,6 @@ public class JtaTransactionCoordinatorImpl implements TransactionCoordinator, Sy
 	public void removeObserver(TransactionObserver observer) {
 		observers.remove( observer );
 	}
-
 
 	/**
 	 * Implementation of the LocalInflow for this TransactionCoordinator.  Allows the

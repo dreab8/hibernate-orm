@@ -8,6 +8,7 @@ package org.hibernate.resource.transaction.backend.jdbc.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.transaction.Status;
 
 import org.hibernate.TransactionException;
@@ -59,7 +60,7 @@ public class JdbcResourceLocalTransactionCoordinatorImpl implements TransactionC
 			TransactionCoordinatorBuilder transactionCoordinatorBuilder,
 			TransactionCoordinatorOwner owner,
 			JdbcResourceTransactionAccess jdbcResourceTransactionAccess) {
-		this.observers = new ArrayList<TransactionObserver>();
+		this.observers = new ArrayList<>();
 		this.transactionCoordinatorBuilder = transactionCoordinatorBuilder;
 		this.jdbcResourceTransactionAccess = jdbcResourceTransactionAccess;
 		this.transactionCoordinatorOwner = owner;
@@ -164,9 +165,11 @@ public class JdbcResourceLocalTransactionCoordinatorImpl implements TransactionC
 		synchronizationRegistry.notifySynchronizationsAfterTransactionCompletion( statusToSend );
 
 		transactionCoordinatorOwner.afterTransactionCompletion( successful, false );
-		for ( TransactionObserver observer : observers ) {
+		final ArrayList<TransactionObserver> transactionObservers = new ArrayList<>( observers );
+		for ( TransactionObserver observer : transactionObservers ) {
 			observer.afterCompletion( successful, false );
 		}
+
 	}
 
 	public void addObserver(TransactionObserver observer) {
