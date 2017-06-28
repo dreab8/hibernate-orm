@@ -14,9 +14,12 @@ import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.event.spi.PostInsertEventListener;
+import org.hibernate.internal.util.SerializationHelper;
 import org.hibernate.persister.entity.EntityPersister;
 
 import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
+import org.hibernate.resource.transaction.spi.TransactionCoordinator;
+
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 import org.junit.Test;
@@ -124,23 +127,23 @@ public class SessionWithSharedConnectionTest extends BaseCoreFunctionalTestCase 
 
 	}
 
-//	@Test
-//	@TestForIssue( jiraKey = "HHH-7090" )
-//	public void testSharedTransactionContextAutoJoining() {
-//		Session session = sessionFactory().openSession();
-//		session.getTransaction().begin();
-//
-//		Session secondSession = session.sessionWithOptions()
-//				.transactionContext()
-//				.autoJoinTransactions( true )
-//				.openSession();
-//
-//		// directly assert state of the second session
-//		assertFalse( ((SessionImplementor) secondSession).shouldAutoJoinTransaction() );
-//
-//		secondSession.close();
-//		session.close();
-//	}
+	@Test
+	@TestForIssue( jiraKey = "HHH-7090" )
+	public void testSharedTransactionContextAutoJoining() {
+		Session session = sessionFactory().openSession();
+		session.getTransaction().begin();
+
+		Session secondSession = session.sessionWithOptions()
+				.transactionContext()
+				.autoJoinTransactions( true )
+				.openSession();
+
+		// directly assert state of the second session
+		assertFalse( ((SessionImplementor) secondSession).shouldAutoJoinTransaction() );
+
+		secondSession.close();
+		session.close();
+	}
 
 	@Test
 	@TestForIssue( jiraKey = "HHH-7090" )
@@ -250,31 +253,15 @@ public class SessionWithSharedConnectionTest extends BaseCoreFunctionalTestCase 
 
 	@Test
 	@TestForIssue(jiraKey = "HHH-11830")
-	public void testSharedSessionTransactionObserver() throws Exception {
+	public void testTransactionObserverIsReleasedWhenSecondarySessionIsClosed() throws Exception {
 		Session session = openSession();
-
 		session.getTransaction().begin();
 
-		Field field = null;
-		Class<?> clazz = ((JdbcSessionOwner) session).getTransactionCoordinator().getClass();
-		while (clazz != null) {
-			try {
-				field = clazz.getDeclaredField("observers");
-				field.setAccessible(true);
-				break;
-			} catch (NoSuchFieldException e) {
-				clazz = clazz.getSuperclass();
-			} catch (Exception e) {
-				throw new IllegalStateException(e);
-			}
-		}
-		assertNotNull("Observers field was not found", field);
-
-		assertEquals(0, ((Collection) field.get(((SessionImplementor) session).getTransactionCoordinator())).size());
+		assertEquals( "No transactionObserver should be registered", 0, getTransactionCoordinatorObservers( session ) );
 
 		//open secondary sessions with managed options and immediately close
 		Session secondarySession;
-		for (int i = 0; i < 10; i++){
+		for ( int i = 0; i < 10; i++ ) {
 			secondarySession = session.sessionWithOptions()
 					.connection()
 					.flushMode( FlushMode.COMMIT )
@@ -282,13 +269,35 @@ public class SessionWithSharedConnectionTest extends BaseCoreFunctionalTestCase 
 					.openSession();
 
 			//when the shared session is opened it should register an observer
-			assertEquals(1, ((Collection) field.get(((JdbcSessionOwner) session).getTransactionCoordinator())).size());
+			assertEquals(
+					"One transactionObserver should be registered",
+					1,
+					getTransactionCoordinatorObservers( session )
+			);
 
 			//observer should be released
 			secondarySession.close();
 
-			assertEquals(0, ((Collection) field.get(((JdbcSessionOwner) session).getTransactionCoordinator())).size());
+			assertEquals(
+					"TransactionObserver should be released",
+					0,
+					getTransactionCoordinatorObservers( session )
+			);
 		}
+	}
+
+	private int getTransactionCoordinatorObservers(Session session) throws Exception {
+		return getTransactionCoordinatorObservers(( (SessionImplementor) session ).getTransactionCoordinator()).size();
+	}
+
+	private Collection getTransactionCoordinatorObservers(TransactionCoordinator transactionCoordinator)
+			throws Exception {
+		Field field;
+		Class<?> transactionCoordinatorClass = transactionCoordinator.getClass();
+			field = transactionCoordinatorClass.getDeclaredField( "observers" );
+			assertNotNull( "Observers field was not found", field );
+			field.setAccessible( true );
+		return (Collection) field.get( transactionCoordinator );
 	}
 
 
