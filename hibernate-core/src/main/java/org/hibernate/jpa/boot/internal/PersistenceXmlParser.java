@@ -118,7 +118,10 @@ public class PersistenceXmlParser {
 				transactionType
 		);
 
-		final Map<String,ParsedPersistenceXmlDescriptor> persistenceUnits = parser.parsePersistenceXml( persistenceXmlUrl, integration );
+		final Map<String, ParsedPersistenceXmlDescriptor> persistenceUnits = parser.parsePersistenceXml(
+				persistenceXmlUrl,
+				integration
+		);
 		assert persistenceUnits.size() == 1;
 
 		return persistenceUnits.values().iterator().next();
@@ -212,38 +215,34 @@ public class PersistenceXmlParser {
 		return parser.doResolve( integration );
 	}
 
-
 	private final ClassLoaderService classLoaderService;
 	private final PersistenceUnitTransactionType defaultTransactionType;
+	private final Map<String,ParsedPersistenceXmlDescriptor> persistenceUnits = new ConcurrentHashMap<>();
 
 	private PersistenceXmlParser(ClassLoaderService classLoaderService, PersistenceUnitTransactionType defaultTransactionType) {
 		this.classLoaderService = classLoaderService;
 		this.defaultTransactionType = defaultTransactionType;
 	}
 
-	private Map<String,ParsedPersistenceXmlDescriptor> doResolve(Map integration) {
-		final Map<String,ParsedPersistenceXmlDescriptor> persistenceUnits = new ConcurrentHashMap<>();
-
+	private Map<String, ParsedPersistenceXmlDescriptor> doResolve(Map integration) {
 		final List<URL> xmlUrls = classLoaderService.locateResources( "META-INF/persistence.xml" );
 		if ( xmlUrls.isEmpty() ) {
 			LOG.unableToFindPersistenceXmlInClasspath();
 		}
 		else {
 			for ( URL xmlUrl : xmlUrls ) {
-				persistenceUnits.putAll( parsePersistenceXml( xmlUrl, integration ) );
+				parsePersistenceXml( xmlUrl, integration );
 			}
 		}
 
 		return persistenceUnits;
 	}
 
-	private Map<String,ParsedPersistenceXmlDescriptor> parsePersistenceXml(URL xmlUrl, Map integration) {
+	private Map<String, ParsedPersistenceXmlDescriptor> parsePersistenceXml(URL xmlUrl, Map integration) {
 		LOG.tracef( "Attempting to parse persistence.xml file : %s", xmlUrl.toExternalForm() );
 
 		final Document doc = loadUrl( xmlUrl );
 		final Element top = doc.getDocumentElement();
-
-		final Map<String,ParsedPersistenceXmlDescriptor> persistenceUnits = new ConcurrentHashMap<>();
 
 		final NodeList children = top.getChildNodes();
 		for ( int i = 0; i < children.getLength() ; i++ ) {
