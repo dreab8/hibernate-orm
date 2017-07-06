@@ -27,6 +27,7 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.internal.util.ReflectHelper;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.Component;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
@@ -56,7 +57,7 @@ public class CollectionCompositeElementExplicitConversionTest extends BaseUnitTe
 	@Before
 	public void setUp() throws Exception {
 		ssr = new StandardServiceRegistryBuilder().build();
-		simpleValueAttributeConverterDescriptorField = ReflectHelper.findField( SimpleValue.class, "attributeConverterDescriptor" );
+		simpleValueAttributeConverterDescriptorField = ReflectHelper.findField( BasicValue.class, "attributeConverterDescriptor" );
 	}
 
 	@After
@@ -90,12 +91,12 @@ public class CollectionCompositeElementExplicitConversionTest extends BaseUnitTe
 	private void checkComposite(Component composite) throws Exception {
 		// check `eyeColor`
 		final Property eyeColorProperty = composite.getProperty( "eyeColor" );
-		final SimpleValue eyeColorValueMapping = (SimpleValue) eyeColorProperty.getValue();
+		final BasicValue eyeColorValueMapping = (BasicValue) eyeColorProperty.getValue();
 		assertThat( simpleValueAttributeConverterDescriptorField.get( eyeColorValueMapping ), CoreMatchers.notNullValue() );
 
 		// check `hairColor`
 		final Property hairColorProperty = composite.getProperty( "hairColor" );
-		final SimpleValue hairColorValueMapping = (SimpleValue) hairColorProperty.getValue();
+		final BasicValue hairColorValueMapping = (BasicValue) hairColorProperty.getValue();
 		assertThat( simpleValueAttributeConverterDescriptorField.get( hairColorValueMapping ), CoreMatchers.notNullValue() );
 
 	}

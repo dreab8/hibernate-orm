@@ -32,6 +32,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.hql.internal.ast.tree.JavaConstantNode;
 import org.hibernate.internal.util.ConfigHelper;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
 import org.hibernate.mapping.SimpleValue;
@@ -96,13 +97,13 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 
 		try {
 			MetadataImplementor metadata = (MetadataImplementor) new MetadataSources( ssr ).buildMetadata();
-			SimpleValue simpleValue = new SimpleValue( metadata );
+			BasicValue simpleValue = new BasicValue( metadata, null );
 			simpleValue.setJpaAttributeConverterDescriptor(
 					new AttributeConverterDescriptorNonAutoApplicableImpl( new StringClobConverter() )
 			);
 			simpleValue.setTypeUsingReflection( IrrelevantEntity.class.getName(), "name" );
 
-			Type type = simpleValue.getType();
+			BasicType type = simpleValue.getType();
 			assertNotNull( type );
 			if ( !AttributeConverterTypeAdapter.class.isInstance( type ) ) {
 				fail( "AttributeConverter not applied" );

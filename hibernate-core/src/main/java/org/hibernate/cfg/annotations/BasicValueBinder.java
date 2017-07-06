@@ -62,8 +62,8 @@ import org.jboss.logging.Logger;
 /**
  * @author Emmanuel Bernard
  */
-public class SimpleValueBinder {
-	private static final CoreMessageLogger LOG = Logger.getMessageLogger(CoreMessageLogger.class, SimpleValueBinder.class.getName());
+public class BasicValueBinder {
+	private static final CoreMessageLogger LOG = Logger.getMessageLogger(CoreMessageLogger.class, BasicValueBinder.class.getName());
 
 	private MetadataBuildingContext buildingContext;
 

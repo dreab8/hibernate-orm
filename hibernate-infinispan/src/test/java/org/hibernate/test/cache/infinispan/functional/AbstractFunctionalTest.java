@@ -24,6 +24,7 @@ import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Environment;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
@@ -161,7 +162,7 @@ public abstract class AbstractFunctionalTest extends BaseNonConfigCoreFunctional
 				RootClass rootClazz = clazz.getRootClass();
 				Property versionProperty = new Property();
 				versionProperty.setName("version");
-				SimpleValue value = new SimpleValue((MetadataImplementor) metadata, rootClazz.getTable());
+				BasicValue value = new BasicValue( (MetadataImplementor) metadata, rootClazz.getTable());
 				value.setTypeName("long");
 				Column column = new Column();
 				column.setValue(value);

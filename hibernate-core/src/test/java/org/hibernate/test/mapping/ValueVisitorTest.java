@@ -14,6 +14,7 @@ import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.mapping.Any;
 import org.hibernate.mapping.Array;
 import org.hibernate.mapping.Bag;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.Component;
 import org.hibernate.mapping.DependantValue;
 import org.hibernate.mapping.IdentifierBag;
@@ -77,7 +78,7 @@ public class ValueVisitorTest extends BaseUnitTestCase {
 		new OneToOne( metadata, tbl, rootClass ).accept( vv );
 		new PrimitiveArray( metadata, rootClass ).accept( vv );
 		new Set( metadata, rootClass ).accept( vv );
-		new SimpleValue( metadata ).accept( vv );
+		new BasicValue( metadata, null ).accept( vv );
 	}
 
 	static public class ValueVisitorValidator implements ValueVisitor {
@@ -149,5 +150,9 @@ public class ValueVisitorTest extends BaseUnitTestCase {
 			return validate( OneToOne.class, oto );
 		}
 
+		@Override
+		public Object accept(BasicValue value) {
+			return validate(BasicValue.class, value);
+		}
 	}
 }

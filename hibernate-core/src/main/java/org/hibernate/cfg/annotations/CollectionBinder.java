@@ -1515,7 +1515,7 @@ public abstract class CollectionBinder {
 			else {
 				holder.prepare( property );
 
-				SimpleValueBinder elementBinder = new SimpleValueBinder();
+				BasicValueBinder elementBinder = new BasicValueBinder();
 				elementBinder.setBuildingContext( buildingContext );
 				elementBinder.setReturnedClassName( collType.getName() );
 				if ( elementColumns == null || elementColumns.length == 0 ) {

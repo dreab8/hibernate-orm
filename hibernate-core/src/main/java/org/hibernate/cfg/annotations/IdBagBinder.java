@@ -56,7 +56,7 @@ public class IdBagBinder extends BagBinder {
 		);
 		CollectionId collectionIdAnn = property.getAnnotation( CollectionId.class );
 		if ( collectionIdAnn != null ) {
-			SimpleValueBinder simpleValue = new SimpleValueBinder();
+			BasicValueBinder simpleValue = new BasicValueBinder();
 
 			PropertyData propertyData = new WrappedInferredData(
 					new PropertyInferredData(

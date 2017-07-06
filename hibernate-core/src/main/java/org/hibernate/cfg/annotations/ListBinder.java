@@ -116,7 +116,7 @@ public class ListBinder extends CollectionBinder {
 			List list = (List) this.collection;
 			if ( !list.isOneToMany() ) indexColumn.forceNotNull();
 			indexColumn.setPropertyHolder( valueHolder );
-			SimpleValueBinder value = new SimpleValueBinder();
+			BasicValueBinder value = new BasicValueBinder();
 			value.setColumns( new Ejb3Column[] { indexColumn } );
 			value.setExplicitType( "integer" );
 			value.setBuildingContext( getBuildingContext() );

@@ -61,6 +61,8 @@ public interface ValueVisitor {
 	
 	Object accept(ManyToOne mto);
 	Object accept(OneToOne oto);
+
+	Object accept(BasicValue value);
 	
 
 }

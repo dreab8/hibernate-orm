@@ -7,7 +7,6 @@
 package org.hibernate.mapping;
 
 import java.io.Serializable;
-import java.lang.annotation.Annotation;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,10 +17,8 @@ import javax.persistence.AttributeConverter;
 
 import org.hibernate.FetchMode;
 import org.hibernate.MappingException;
-import org.hibernate.annotations.common.reflection.XProperty;
 import org.hibernate.boot.internal.AttributeConverterDescriptorNonAutoApplicableImpl;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
-import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
 import org.hibernate.boot.spi.AttributeConverterDescriptor;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.AvailableSettings;
@@ -38,8 +35,6 @@ import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.BinaryType;
-import org.hibernate.type.RowVersionType;
 import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.JdbcTypeNameMapper;
 import org.hibernate.type.descriptor.converter.AttributeConverterSqlTypeDescriptorAdapter;
@@ -51,47 +46,42 @@ import org.hibernate.type.descriptor.sql.LobTypeMappings;
 import org.hibernate.type.descriptor.sql.NationalizedTypeMappings;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptorRegistry;
-import org.hibernate.usertype.DynamicParameterizedType;
 
 /**
  * Any value that maps to columns.
  * @author Gavin King
  */
-public class SimpleValue implements KeyValue {
+public abstract class SimpleValue implements KeyValue {
 	private static final CoreMessageLogger log = CoreLogging.messageLogger( SimpleValue.class );
 
 	public static final String DEFAULT_ID_GEN_STRATEGY = "assigned";
 
 	private final MetadataImplementor metadata;
 
-	private final List<Selectable> columns = new ArrayList<Selectable>();
-	private final List<Boolean> insertability = new ArrayList<Boolean>();
-	private final List<Boolean> updatability = new ArrayList<Boolean>();
+	protected final List<Selectable> columns = new ArrayList<Selectable>();
+	protected final List<Boolean> insertability = new ArrayList<Boolean>();
+	protected final List<Boolean> updatability = new ArrayList<Boolean>();
 
-	private String typeName;
-	private Properties typeParameters;
-	private boolean isVersion;
+	protected String typeName;
+	protected Properties typeParameters;
+	protected boolean isVersion;
+	protected Table table;
 	private boolean isNationalized;
 	private boolean isLob;
 
 	private Properties identifierGeneratorProperties;
 	private String identifierGeneratorStrategy = DEFAULT_ID_GEN_STRATEGY;
 	private String nullValue;
-	private Table table;
 	private String foreignKeyName;
 	private String foreignKeyDefinition;
 	private boolean alternateUniqueKey;
 	private boolean cascadeDeleteEnabled;
 
-	private AttributeConverterDescriptor attributeConverterDescriptor;
+	protected AttributeConverterDescriptor attributeConverterDescriptor;
 	private Type type;
 
-	public SimpleValue(MetadataImplementor metadata) {
-		this.metadata = metadata;
-	}
-
 	public SimpleValue(MetadataImplementor metadata, Table table) {
-		this( metadata );
+		this.metadata = metadata;
 		this.table = table;
 	}
 
@@ -422,42 +412,6 @@ public class SimpleValue implements KeyValue {
 		return getColumnSpan()==getType().getColumnSpan(mapping);
 	}
 
-	public Type getType() throws MappingException {
-		if ( type != null ) {
-			return type;
-		}
-
-		if ( typeName == null ) {
-			throw new MappingException( "No type name" );
-		}
-
-		if ( typeParameters != null
-				&& Boolean.valueOf( typeParameters.getProperty( DynamicParameterizedType.IS_DYNAMIC ) )
-				&& typeParameters.get( DynamicParameterizedType.PARAMETER_TYPE ) == null ) {
-			createParameterImpl();
-		}
-
-		Type result = metadata.getTypeResolver().heuristicType( typeName, typeParameters );
-		// if this is a byte[] version/timestamp, then we need to use RowVersionType
-		// instead of BinaryType (HHH-10413)
-		if ( isVersion && BinaryType.class.isInstance( result ) ) {
-			log.debug( "version is BinaryType; changing to RowVersionType" );
-			result = RowVersionType.INSTANCE;
-		}
-		if ( result == null ) {
-			String msg = "Could not determine type for: " + typeName;
-			if ( table != null ) {
-				msg += ", at table: " + table.getName();
-			}
-			if ( columns != null && columns.size() > 0 ) {
-				msg += ", for columns: " + columns;
-			}
-			throw new MappingException( msg );
-		}
-
-		return result;
-	}
-
 	public void setTypeUsingReflection(String className, String propertyName) throws MappingException {
 		// NOTE : this is called as the last piece in setting SimpleValue type information, and implementations
 		// rely on that fact, using it as a signal that all information it is going to get is defined at this point...
@@ -653,101 +607,5 @@ public class SimpleValue implements KeyValue {
 
 	public void setJpaAttributeConverterDescriptor(AttributeConverterDescriptor attributeConverterDescriptor) {
 		this.attributeConverterDescriptor = attributeConverterDescriptor;
-	}
-
-	private void createParameterImpl() {
-		try {
-			String[] columnsNames = new String[columns.size()];
-			for ( int i = 0; i < columns.size(); i++ ) {
-				Selectable column = columns.get(i);
-				if (column instanceof Column){
-					columnsNames[i] = ((Column) column).getName();
-				}
-			}
-
-			final XProperty xProperty = (XProperty) typeParameters.get( DynamicParameterizedType.XPROPERTY );
-			// todo : not sure this works for handling @MapKeyEnumerated
-			final Annotation[] annotations = xProperty == null
-					? null
-					: xProperty.getAnnotations();
-
-			final ClassLoaderService classLoaderService = getMetadata().getMetadataBuildingOptions()
-					.getServiceRegistry()
-					.getService( ClassLoaderService.class );
-			typeParameters.put(
-					DynamicParameterizedType.PARAMETER_TYPE,
-					new ParameterTypeImpl(
-							classLoaderService.classForName(
-									typeParameters.getProperty( DynamicParameterizedType.RETURNED_CLASS )
-							),
-							annotations,
-							table.getCatalog(),
-							table.getSchema(),
-							table.getName(),
-							Boolean.valueOf( typeParameters.getProperty( DynamicParameterizedType.IS_PRIMARY_KEY ) ),
-							columnsNames
-					)
-			);
-		}
-		catch ( ClassLoadingException e ) {
-			throw new MappingException( "Could not create DynamicParameterizedType for type: " + typeName, e );
-		}
-	}
-
-	private static final class ParameterTypeImpl implements DynamicParameterizedType.ParameterType {
-
-		private final Class returnedClass;
-		private final Annotation[] annotationsMethod;
-		private final String catalog;
-		private final String schema;
-		private final String table;
-		private final boolean primaryKey;
-		private final String[] columns;
-
-		private ParameterTypeImpl(Class returnedClass, Annotation[] annotationsMethod, String catalog, String schema,
-				String table, boolean primaryKey, String[] columns) {
-			this.returnedClass = returnedClass;
-			this.annotationsMethod = annotationsMethod;
-			this.catalog = catalog;
-			this.schema = schema;
-			this.table = table;
-			this.primaryKey = primaryKey;
-			this.columns = columns;
-		}
-
-		@Override
-		public Class getReturnedClass() {
-			return returnedClass;
-		}
-
-		@Override
-		public Annotation[] getAnnotationsMethod() {
-			return annotationsMethod;
-		}
-
-		@Override
-		public String getCatalog() {
-			return catalog;
-		}
-
-		@Override
-		public String getSchema() {
-			return schema;
-		}
-
-		@Override
-		public String getTable() {
-			return table;
-		}
-
-		@Override
-		public boolean isPrimaryKey() {
-			return primaryKey;
-		}
-
-		@Override
-		public String[] getColumns() {
-			return columns;
-		}
 	}
 }

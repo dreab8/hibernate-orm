@@ -110,6 +110,7 @@ import org.hibernate.mapping.Array;
 import org.hibernate.mapping.AttributeContainer;
 import org.hibernate.mapping.Backref;
 import org.hibernate.mapping.Bag;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.Component;
@@ -694,7 +695,7 @@ public class ModelBinder {
 			RootClass rootEntityDescriptor) {
 		final IdentifierSourceSimple idSource = (IdentifierSourceSimple) hierarchySource.getIdentifierSource();
 
-		final SimpleValue idValue = new SimpleValue(
+		final BasicValue idValue = new BasicValue(
 				sourceDocument.getMetadataCollector(),
 				rootEntityDescriptor.getTable()
 		);
@@ -989,7 +990,7 @@ public class ModelBinder {
 			RootClass rootEntityDescriptor) {
 		final VersionAttributeSource versionAttributeSource = hierarchySource.getVersionAttributeSource();
 
-		final SimpleValue versionValue = new SimpleValue(
+		final BasicValue versionValue = new BasicValue(
 				sourceDocument.getMetadataCollector(),
 				rootEntityDescriptor.getTable()
 		);
@@ -1051,7 +1052,7 @@ public class ModelBinder {
 			MappingDocument sourceDocument,
 			final EntityHierarchySourceImpl hierarchySource,
 			RootClass rootEntityDescriptor) {
-		final SimpleValue discriminatorValue = new SimpleValue(
+		final BasicValue discriminatorValue = new BasicValue(
 				sourceDocument.getMetadataCollector(),
 				rootEntityDescriptor.getTable()
 		);
@@ -1153,7 +1154,7 @@ public class ModelBinder {
 					final Property attribute = createBasicAttribute(
 							mappingDocument,
 							basicAttributeSource,
-							new SimpleValue( mappingDocument.getMetadataCollector(), table ),
+							new BasicValue( mappingDocument.getMetadataCollector(), table ),
 							entityDescriptor.getClassName()
 					);
 
@@ -2675,7 +2676,7 @@ public class ModelBinder {
 				attribute = createBasicAttribute(
 						sourceDocument,
 						(SingularAttributeSourceBasic) attributeSource,
-						new SimpleValue( sourceDocument.getMetadataCollector(), component.getTable() ),
+						new BasicValue( sourceDocument.getMetadataCollector(), component.getTable() ),
 						component.getComponentClassName()
 				);
 			}
@@ -3364,7 +3365,7 @@ public class ModelBinder {
 			final CollectionIdSource idSource = getPluralAttributeSource().getCollectionIdSource();
 			if ( idSource != null ) {
 				final IdentifierCollection idBagBinding = (IdentifierCollection) getCollectionBinding();
-				final SimpleValue idBinding = new SimpleValue(
+				final BasicValue idBinding = new BasicValue(
 						mappingDocument.getMetadataCollector(),
 						idBagBinding.getCollectionTable()
 				);
@@ -3406,7 +3407,7 @@ public class ModelBinder {
 			if ( getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceBasic ) {
 				final PluralAttributeElementSourceBasic elementSource =
 						(PluralAttributeElementSourceBasic) getPluralAttributeSource().getElementSource();
-				final SimpleValue elementBinding = new SimpleValue(
+				final BasicValue elementBinding = new BasicValue(
 						getMappingDocument().getMetadataCollector(),
 						getCollectionBinding().getCollectionTable()
 				);
@@ -3895,7 +3896,7 @@ public class ModelBinder {
 		final PluralAttributeSequentialIndexSource indexSource =
 				(PluralAttributeSequentialIndexSource) attributeSource.getIndexSource();
 
-		final SimpleValue indexBinding = new SimpleValue(
+		final BasicValue indexBinding = new BasicValue(
 				mappingDocument.getMetadataCollector(),
 				collectionBinding.getCollectionTable()
 		);
@@ -3942,7 +3943,7 @@ public class ModelBinder {
 		if ( pluralAttributeSource.getIndexSource() instanceof PluralAttributeMapKeySourceBasic ) {
 			final PluralAttributeMapKeySourceBasic mapKeySource =
 					(PluralAttributeMapKeySourceBasic) pluralAttributeSource.getIndexSource();
-			final SimpleValue value = new SimpleValue(
+			final BasicValue value = new BasicValue(
 					mappingDocument.getMetadataCollector(),
 					collectionBinding.getCollectionTable()
 			);

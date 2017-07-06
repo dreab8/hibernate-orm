@@ -41,6 +41,7 @@ import org.hibernate.cfg.PropertyPreloadedData;
 import org.hibernate.cfg.SecondPass;
 import org.hibernate.dialect.HSQLDialect;
 import org.hibernate.internal.util.StringHelper;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.Component;
@@ -253,7 +254,7 @@ public class MapBinder extends CollectionBinder {
 					mapValue.setIndex( component );
 				}
 				else {
-					SimpleValueBinder elementBinder = new SimpleValueBinder();
+					BasicValueBinder elementBinder = new BasicValueBinder();
 					elementBinder.setBuildingContext( buildingContext );
 					elementBinder.setReturnedClassName( mapKeyType );
 
@@ -448,10 +449,14 @@ public class MapBinder extends CollectionBinder {
 				//targetValue.setIgnoreNotFound( ); does not make sense for a map key
 				targetManyToOne.setReferencedEntityName( sourceManyToOne.getReferencedEntityName() );
 				targetValue = targetManyToOne;
+			}else if(value instanceof BasicValue){
+				targetValue = new BasicValue(getBuildingContext().getMetadataCollector(), collection.getCollectionTable()  );
+				((BasicValue)targetValue).copyTypeFrom( (BasicValue)sourceValue );
 			}
 			else {
-				targetValue = new SimpleValue( getBuildingContext().getMetadataCollector(), collection.getCollectionTable() );
-				targetValue.copyTypeFrom( sourceValue );
+//				targetValue = new SimpleValue( getBuildingContext().getMetadataCollector(), collection.getCollectionTable() );
+//				targetValue.copyTypeFrom( sourceValue );
+				throw new AssertionFailure( "Unknown type encounters for map key: " + value.getClass() );
 			}
 			Iterator columns = sourceValue.getColumnIterator();
 			Random random = new Random();
