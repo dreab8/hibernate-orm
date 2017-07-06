@@ -43,7 +43,7 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.StringHelper;
-import org.hibernate.mapping.SimpleValue;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.Table;
 import org.hibernate.type.CharacterArrayClobType;
 import org.hibernate.type.CharacterArrayNClobType;
@@ -78,7 +78,7 @@ public class SimpleValueBinder {
 	private boolean isLob;
 
 	private Table table;
-	private SimpleValue simpleValue;
+	private BasicValue simpleValue;
 	private boolean isVersion;
 	private String timeStampVersionType;
 	//is a Map key
@@ -405,14 +405,14 @@ public class SimpleValueBinder {
 		Ejb3Column.checkPropertyConsistency( columns, propertyName );
 	}
 
-	public SimpleValue make() {
+	public BasicValue make() {
 
 		validate();
 		LOG.debugf( "building SimpleValue for %s", propertyName );
 		if ( table == null ) {
 			table = columns[0].getTable();
 		}
-		simpleValue = new SimpleValue( buildingContext.getMetadataCollector(), table );
+		simpleValue = new BasicValue( buildingContext.getMetadataCollector(), table );
 		if ( isVersion ) {
 			simpleValue.makeVersion();
 		}
