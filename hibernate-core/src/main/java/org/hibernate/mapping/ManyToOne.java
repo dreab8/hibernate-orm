@@ -87,7 +87,7 @@ public class ManyToOne extends ToOne {
 
 	public void createPropertyRefConstraints(Map persistentClasses) {
 		if (referencedPropertyName!=null) {
-			PersistentClass pc = (PersistentClass) persistentClasses.get(getReferencedEntityName() );
+			PersistentClass pc = (PersistentClass) persistentClasses.get( getReferencedEntityName() );
 			
 			Property property = pc.getReferencedProperty( getReferencedPropertyName() );
 			

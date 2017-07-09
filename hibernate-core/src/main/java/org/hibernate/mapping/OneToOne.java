@@ -11,7 +11,6 @@ import java.util.Iterator;
 
 import org.hibernate.MappingException;
 import org.hibernate.boot.spi.MetadataImplementor;
-import org.hibernate.type.EntityType;
 import org.hibernate.type.ForeignKeyDirection;
 import org.hibernate.type.Type;
 
@@ -76,10 +75,57 @@ public class OneToOne extends ToOne {
 		}
 	}
 
+	public void addColumn(Column column, boolean isInsertable, boolean isUpdatable) {
+		int index = columns.indexOf( column );
+		if ( index == -1 ) {
+			columns.add(column);
+			insertability.add( isInsertable );
+			updatability.add( isUpdatable );
+		}
+		else {
+			if ( insertability.get( index ) != isInsertable ) {
+				throw new IllegalStateException( "Same column is added more than once with different values for isInsertable" );
+			}
+			if ( updatability.get( index ) != isUpdatable ) {
+				throw new IllegalStateException( "Same column is added more than once with different values for isUpdatable" );
+			}
+		}
+		column.setSqlTypeCodeResolver( new ColumnSqlTypeCodeResolverImpl( columns.size() - 1  ) );
+	}
+
+	public class ColumnSqlTypeCodeResolverImpl implements ColumnSqlTypeCodeResolver{
+
+		private int index;
+
+		public ColumnSqlTypeCodeResolverImpl(int index) {
+			this.index = index;
+		}
+
+		@Override
+		public int resolveCode() {
+			if ( getColumnIterator().hasNext() ) {
+				final PersistentClass referencedPersistentClass = getMetadata().getEntityBinding(
+						getReferencedEntityName() );
+				if ( referenceToPrimaryKey || referencedPropertyName == null ) {
+					return ( (Column) referencedPersistentClass.getIdentifier().getColumn( index ) ).getSqlTypeCode(
+							getMetadata() );
+				}
+				else {
+					final Property referencedProperty = referencedPersistentClass.getReferencedProperty(
+							getReferencedPropertyName() );
+					return ( (Column) referencedProperty.getValue()
+							.getColumn( index ) ).getSqlTypeCode( getMetadata() );
+				}
+			}else{
+				throw new IllegalStateException( "No SqlType code to resolve for "  + entityName);
+			}
+		}
+	}
+
 	public void createForeignKey() throws MappingException {
 		if ( constrained && referencedPropertyName==null) {
 			//TODO: handle the case of a foreign key to something other than the pk
-			createForeignKeyOfEntity( ( (EntityType) getType() ).getAssociatedEntityName() );
+			createForeignKeyOfEntity( getReferencedEntityName() );
 		}
 	}
 
