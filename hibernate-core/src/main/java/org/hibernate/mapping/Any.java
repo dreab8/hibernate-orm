@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.hibernate.MappingException;
 import org.hibernate.boot.spi.MetadataImplementor;
+import org.hibernate.type.BasicType;
 import org.hibernate.type.MetaType;
 import org.hibernate.type.Type;
 
@@ -36,12 +37,47 @@ public class Any extends SimpleValue {
 	}
 
 	public Type getType() throws MappingException {
-		final Type metaType = getMetadata().getTypeResolver().heuristicType( metaTypeName );
+		final BasicType metaType = (BasicType) getMetadata().getTypeResolver().heuristicType( metaTypeName );
 
 		return getMetadata().getTypeResolver().getTypeFactory().any(
 				metaValues == null ? metaType : new MetaType( metaValues, metaType ),
 				getMetadata().getTypeResolver().heuristicType( identifierTypeName )
 		);
+	}
+
+	public void addColumn(Column column, boolean isInsertable, boolean isUpdatable) {
+		int index = columns.indexOf( column );
+		if ( index == -1 ) {
+			columns.add(column);
+			insertability.add( isInsertable );
+			updatability.add( isUpdatable );
+		}
+		else {
+			if ( insertability.get( index ) != isInsertable ) {
+				throw new IllegalStateException( "Same column is added more than once with different values for isInsertable" );
+			}
+			if ( updatability.get( index ) != isUpdatable ) {
+				throw new IllegalStateException( "Same column is added more than once with different values for isUpdatable" );
+			}
+		}
+		column.setSqlTypeCodeResolver( new ColumnSqlTypeCodeResolverImpl( columns.size() - 1  ) );
+	}
+
+	public class ColumnSqlTypeCodeResolverImpl implements ColumnSqlTypeCodeResolver {
+		BasicType[] basicTypes = new BasicType[2];
+
+		private int index;
+
+		public ColumnSqlTypeCodeResolverImpl(int index) {
+			this.index = index;
+			basicTypes[0] = (BasicType) getMetadata().getTypeResolver().heuristicType( metaTypeName );
+			basicTypes[1] = (BasicType) getMetadata().getTypeResolver().heuristicType( identifierTypeName );
+		}
+
+		@Override
+		public int resolveCode() {
+			return basicTypes[index].getColumnSpan( getMetadata() );
+		}
 	}
 
 	public String getMetaType() {

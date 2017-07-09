@@ -8,7 +8,6 @@ package org.hibernate.mapping;
 
 import org.hibernate.MappingException;
 import org.hibernate.boot.spi.MetadataImplementor;
-import org.hibernate.type.BasicType;
 import org.hibernate.type.Type;
 
 /**
@@ -19,17 +18,48 @@ import org.hibernate.type.Type;
  * @author Gavin King
  */
 public class DependantValue extends SimpleValue {
-	private KeyValue wrappedValue;
+	private SimpleValue wrappedValue;
 	private boolean nullable;
 	private boolean updateable;
 
 	public DependantValue(MetadataImplementor metadata, Table table, KeyValue prototype) {
 		super( metadata, table );
-		this.wrappedValue = prototype;
+		this.wrappedValue = (SimpleValue) prototype;
+	}
+
+	public void addColumn(Column column, boolean isInsertable, boolean isUpdatable) {
+		int index = columns.indexOf( column );
+		if ( index == -1 ) {
+			columns.add(column);
+			insertability.add( isInsertable );
+			updatability.add( isUpdatable );
+		}
+		else {
+			if ( insertability.get( index ) != isInsertable ) {
+				throw new IllegalStateException( "Same column is added more than once with different values for isInsertable" );
+			}
+			if ( updatability.get( index ) != isUpdatable ) {
+				throw new IllegalStateException( "Same column is added more than once with different values for isUpdatable" );
+			}
+		}
+		column.setSqlTypeCodeResolver( new ColumnSqlTypeCodeResolverImpl(columns.size() - 1) );
+	}
+
+	public class ColumnSqlTypeCodeResolverImpl implements ColumnSqlTypeCodeResolver {
+		private int index;
+
+		public ColumnSqlTypeCodeResolverImpl(int index) {
+			this.index = index;
+		}
+
+		@Override
+		public int resolveCode() {
+			return ( (Column) wrappedValue.getColumn( index ) ).getSqlTypeCode( getMetadata() );
+		}
 	}
 
 	public Type getType() throws MappingException {
-		return (Type) wrappedValue.getType();
+		return wrappedValue.getType();
 	}
 
 	public void setTypeUsingReflection(String className, String propertyName) {}
@@ -40,7 +70,6 @@ public class DependantValue extends SimpleValue {
 
 	public boolean isNullable() {
 		return nullable;
-	
 	}
 	
 	public void setNullable(boolean nullable) {

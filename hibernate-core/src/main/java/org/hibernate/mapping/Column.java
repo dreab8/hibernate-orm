@@ -63,13 +63,15 @@ public class Column implements Selectable, Serializable, Cloneable {
 		this.length = length;
 	}
 
-	public Table getTable(){
-		if(value != null){
+	public Table getTable() {
+		if ( value != null ) {
 			return value.getTable();
-		}else {
+		}
+		else {
 			return table;
 		}
 	}
+
 	public void setValue(Value value) {
 		this.value = value;
 	}
@@ -198,31 +200,8 @@ public class Column implements Selectable, Serializable, Cloneable {
 
 	public int getSqlTypeCode(Mapping mapping) throws MappingException {
 		if ( sqlTypeCode == null ) {
-			if ( sqlTypeCodeResolver != null ) {
-				sqlTypeCode = sqlTypeCodeResolver.resolveCode();
-				return sqlTypeCode;
-			}
-			else {
-				org.hibernate.type.Type type = value.getType();
-				try {
-					int sqlTypeCode = type.sqlTypes( mapping )[getTypeIndex()];
-					if ( getSqlTypeCode() != null && getSqlTypeCode() != sqlTypeCode ) {
-						throw new MappingException( "SQLType code's does not match. mapped as " + sqlTypeCode + " but is " + getSqlTypeCode() );
-					}
-					return sqlTypeCode;
-				}
-				catch (Exception e) {
-					throw new MappingException(
-							"Could not determine type for column " +
-									name +
-									" of type " +
-									type.getClass().getName() +
-									": " +
-									e.getClass().getName(),
-							e
-					);
-				}
-			}
+			sqlTypeCode = sqlTypeCodeResolver.resolveCode();
+			return sqlTypeCode;
 		}
 		else {
 			return sqlTypeCode;
