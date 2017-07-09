@@ -108,7 +108,6 @@ public class RelationalObjectBinder {
 		Table table = simpleValue.getTable();
 
 		final Column column = new Column();
-		column.setValue( simpleValue );
 
 		// resolve column name
 		final Identifier logicalName;

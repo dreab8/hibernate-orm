@@ -165,8 +165,8 @@ public abstract class AbstractFunctionalTest extends BaseNonConfigCoreFunctional
 				BasicValue value = new BasicValue( (MetadataImplementor) metadata, rootClazz.getTable());
 				value.setTypeName("long");
 				Column column = new Column();
-				column.setValue(value);
 				column.setName("version");
+				column.setSqlTypeCode( value.getType().sqlTypes( metadata )[0] );
 				value.addColumn(column);
 				rootClazz.getTable().addColumn(column);
 				versionProperty.setValue(value);

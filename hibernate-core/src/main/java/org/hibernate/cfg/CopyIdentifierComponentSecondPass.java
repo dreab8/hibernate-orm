@@ -201,7 +201,6 @@ public class CopyIdentifierComponentSecondPass implements SecondPass {
 				if ( joinColumn != null ) {
 					joinColumn.linkWithValue( value );
 				}
-				column.setValue( value );
 			}
 		}
 		return property;

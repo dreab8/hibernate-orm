@@ -6,21 +6,12 @@
  */
 package org.hibernate.id;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
-import org.hibernate.FetchMode;
 import org.hibernate.MappingException;
 import org.hibernate.boot.model.relational.Database;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.mapping.Column;
-import org.hibernate.mapping.Selectable;
 import org.hibernate.mapping.Table;
-import org.hibernate.mapping.Value;
-import org.hibernate.mapping.ValueVisitor;
-import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.BasicType;
-import org.hibernate.type.Type;
 
 /**
  * @author Steve Ebersole
@@ -46,7 +37,6 @@ public class ExportableColumn extends Column {
 			BasicType type,
 			String dbTypeDeclaration) {
 		super( name );
-		setValue( new ValueImpl( this, table, type, database ) );
 		setSqlType( dbTypeDeclaration );
 		this.type = type;
 	}
@@ -54,130 +44,5 @@ public class ExportableColumn extends Column {
 	@Override
 	public int getSqlTypeCode(Mapping mapping) throws MappingException {
 		return type.sqlTypes( mapping )[0];
-	}
-
-	public static class ValueImpl implements Value {
-		private final ExportableColumn column;
-		private final Table table;
-		private final BasicType type;
-		private final Database database;
-
-		public ValueImpl(ExportableColumn column, Table table, BasicType type, Database database) {
-			this.column = column;
-			this.table = table;
-			this.type = type;
-			this.database = database;
-		}
-
-		@Override
-		public int getColumnSpan() {
-			return 1;
-		}
-
-		@Override
-		public Iterator<Selectable> getColumnIterator() {
-			return new ColumnIterator( column );
-		}
-
-		@Override
-		public Selectable getColumn(int index) {
-			return column;
-		}
-
-		@Override
-		public Type getType() throws MappingException {
-			return type;
-		}
-
-		@Override
-		public FetchMode getFetchMode() {
-			return null;
-		}
-
-		@Override
-		public Table getTable() {
-			return table;
-		}
-
-		@Override
-		public boolean hasFormula() {
-			return false;
-		}
-
-		@Override
-		public boolean isAlternateUniqueKey() {
-			return false;
-		}
-
-		@Override
-		public boolean isNullable() {
-			return false;
-		}
-
-		@Override
-		public boolean[] getColumnUpdateability() {
-			return new boolean[] { true };
-		}
-
-		@Override
-		public boolean[] getColumnInsertability() {
-			return new boolean[] { true };
-		}
-
-		@Override
-		public void createForeignKey() throws MappingException {
-		}
-
-		@Override
-		public boolean isSimpleValue() {
-			return true;
-		}
-
-		@Override
-		public boolean isValid(Mapping mapping) throws MappingException {
-			return false;
-		}
-
-		@Override
-		public void setTypeUsingReflection(String className, String propertyName) throws MappingException {
-		}
-
-		@Override
-		public Object accept(ValueVisitor visitor) {
-			return null;
-		}
-
-		@Override
-		public ServiceRegistry getServiceRegistry() {
-			return database.getBuildingOptions().getServiceRegistry();
-		}
-	}
-
-	public static class ColumnIterator implements Iterator<Selectable> {
-		private final ExportableColumn column;
-		private int count = 0;
-
-		public ColumnIterator(ExportableColumn column) {
-			this.column = column;
-		}
-
-		@Override
-		public boolean hasNext() {
-			return count == 0;
-		}
-
-		@Override
-		public ExportableColumn next() {
-			if ( count > 0 ) {
-				throw new NoSuchElementException( "The single element has already been read" );
-			}
-			count++;
-			return column;
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException( "Cannot remove" );
-		}
 	}
 }

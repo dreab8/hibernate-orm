@@ -85,7 +85,12 @@ public class Component extends SimpleValue implements MetaAttributable {
 
 	@Override
 	public void addColumn(Column column) {
-		throw new UnsupportedOperationException("Cant add a column to a component");
+		throw new UnsupportedOperationException( "Cant add a column to a component" );
+	}
+
+	@Override
+	public void addColumn(Column column, boolean isInsertable, boolean isUpdatable) {
+		throw new UnsupportedOperationException( "Cant add a column to a component" );
 	}
 
 	@Override

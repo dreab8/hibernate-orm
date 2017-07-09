@@ -31,8 +31,6 @@ public class Column implements Selectable, Serializable, Cloneable {
 	private int length = DEFAULT_LENGTH;
 	private int precision = DEFAULT_PRECISION;
 	private int scale = DEFAULT_SCALE;
-	private Value value;
-	private int typeIndex;
 	private String name;
 	private boolean nullable = true;
 	private boolean unique;
@@ -64,16 +62,7 @@ public class Column implements Selectable, Serializable, Cloneable {
 	}
 
 	public Table getTable() {
-		if ( value != null ) {
-			return value.getTable();
-		}
-		else {
-			return table;
-		}
-	}
-
-	public void setValue(Value value) {
-		this.value = value;
+		return table;
 	}
 
 	public void setTable(Table table) {
@@ -157,14 +146,6 @@ public class Column implements Selectable, Serializable, Cloneable {
 
 	public void setNullable(boolean nullable) {
 		this.nullable = nullable;
-	}
-
-	public int getTypeIndex() {
-		return typeIndex;
-	}
-
-	public void setTypeIndex(int typeIndex) {
-		this.typeIndex = typeIndex;
 	}
 
 	public boolean isUnique() {
@@ -359,8 +340,6 @@ public class Column implements Selectable, Serializable, Cloneable {
 		Column copy = new Column();
 		copy.setLength( length );
 		copy.setScale( scale );
-		copy.setValue( value );
-		copy.setTypeIndex( typeIndex );
 		copy.setName( getQuotedName() );
 		copy.setNullable( nullable );
 		copy.setPrecision( precision );

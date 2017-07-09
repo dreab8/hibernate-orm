@@ -184,20 +184,8 @@ public class OneToOneSecondPass implements SecondPass {
 					prop.setValue( manyToOne );
 					Iterator otherSideJoinKeyColumns = otherSideJoin.getKey().getColumnIterator();
 					while ( otherSideJoinKeyColumns.hasNext() ) {
-						Column column = (Column) otherSideJoinKeyColumns.next();
-						Column copy = new Column();
-						copy.setLength( column.getLength() );
-						copy.setScale( column.getScale() );
-						copy.setValue( manyToOne );
-						copy.setName( column.getQuotedName() );
-						copy.setNullable( column.isNullable() );
-						copy.setPrecision( column.getPrecision() );
-						copy.setUnique( column.isUnique() );
-						copy.setSqlType( column.getSqlType() );
-						copy.setCheckConstraint( column.getCheckConstraint() );
-						copy.setComment( column.getComment() );
-						copy.setDefaultValue( column.getDefaultValue() );
-						manyToOne.addColumn( copy );
+						final Column column = (Column) otherSideJoinKeyColumns.next();
+						manyToOne.addColumn( column.clone() );
 					}
 					mappedByJoin.addProperty( prop );
 				}
@@ -291,20 +279,8 @@ public class OneToOneSecondPass implements SecondPass {
 		key.setCascadeDeleteEnabled( false );
 		Iterator mappedByColumns = otherSideProperty.getValue().getColumnIterator();
 		while ( mappedByColumns.hasNext() ) {
-			Column column = (Column) mappedByColumns.next();
-			Column copy = new Column();
-			copy.setLength( column.getLength() );
-			copy.setScale( column.getScale() );
-			copy.setValue( key );
-			copy.setName( column.getQuotedName() );
-			copy.setNullable( column.isNullable() );
-			copy.setPrecision( column.getPrecision() );
-			copy.setUnique( column.isUnique() );
-			copy.setSqlType( column.getSqlType() );
-			copy.setCheckConstraint( column.getCheckConstraint() );
-			copy.setComment( column.getComment() );
-			copy.setDefaultValue( column.getDefaultValue() );
-			key.addColumn( copy );
+			final Column column = (Column) mappedByColumns.next();
+			key.addColumn( column.clone() );
 		}
 		persistentClass.addJoin( join );
 		return join;
