@@ -8,6 +8,7 @@ package org.hibernate.mapping;
 
 import org.hibernate.MappingException;
 import org.hibernate.boot.spi.MetadataImplementor;
+import org.hibernate.type.BasicType;
 import org.hibernate.type.Type;
 
 /**
@@ -28,7 +29,7 @@ public class DependantValue extends SimpleValue {
 	}
 
 	public Type getType() throws MappingException {
-		return wrappedValue.getType();
+		return (Type) wrappedValue.getType();
 	}
 
 	public void setTypeUsingReflection(String className, String propertyName) {}

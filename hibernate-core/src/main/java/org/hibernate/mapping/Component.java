@@ -111,6 +111,18 @@ public class Component extends SimpleValue implements MetaAttributable {
 		return new JoinedIterator( iters );
 	}
 
+	@Override
+	public Selectable getColumn(int index) {
+		java.util.List<Selectable> columns = new ArrayList<>(  );
+		for(Property p : properties){
+			final Iterator columnIterator = p.getColumnIterator();
+			while ( columnIterator.hasNext() ){
+				columns.add( (Selectable) columnIterator.next()  );
+			}
+		}
+		return columns.get( index );
+	}
+
 	public boolean isEmbedded() {
 		return embedded;
 	}

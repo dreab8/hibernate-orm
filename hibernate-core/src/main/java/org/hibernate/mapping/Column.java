@@ -38,6 +38,7 @@ public class Column implements Selectable, Serializable, Cloneable {
 	private boolean unique;
 	private String sqlType;
 	private Integer sqlTypeCode;
+	private BasicValue.ColumnSqlTypeCodeResolver sqlTypeCodeResolver;
 	private boolean quoted;
 	int uniqueInteger;
 	private String checkConstraint;
@@ -45,6 +46,7 @@ public class Column implements Selectable, Serializable, Cloneable {
 	private String defaultValue;
 	private String customWrite;
 	private String customRead;
+	private Table table;
 
 	public Column() {
 	}
@@ -61,12 +63,19 @@ public class Column implements Selectable, Serializable, Cloneable {
 		this.length = length;
 	}
 
-	public Value getValue() {
-		return value;
+	public Table getTable(){
+		if(value != null){
+			return value.getTable();
+		}else {
+			return table;
+		}
 	}
-
 	public void setValue(Value value) {
 		this.value = value;
+	}
+
+	public void setTable(Table table) {
+		this.table = table;
 	}
 
 	public String getName() {
@@ -188,24 +197,35 @@ public class Column implements Selectable, Serializable, Cloneable {
 	}
 
 	public int getSqlTypeCode(Mapping mapping) throws MappingException {
-		org.hibernate.type.Type type = getValue().getType();
-		try {
-			int sqlTypeCode = type.sqlTypes( mapping )[getTypeIndex()];
-			if ( getSqlTypeCode() != null && getSqlTypeCode() != sqlTypeCode ) {
-				throw new MappingException( "SQLType code's does not match. mapped as " + sqlTypeCode + " but is " + getSqlTypeCode() );
+		if ( sqlTypeCode == null ) {
+			if ( sqlTypeCodeResolver != null ) {
+				sqlTypeCode = sqlTypeCodeResolver.resolveCode();
+				return sqlTypeCode;
 			}
-			return sqlTypeCode;
+			else {
+				org.hibernate.type.Type type = value.getType();
+				try {
+					int sqlTypeCode = type.sqlTypes( mapping )[getTypeIndex()];
+					if ( getSqlTypeCode() != null && getSqlTypeCode() != sqlTypeCode ) {
+						throw new MappingException( "SQLType code's does not match. mapped as " + sqlTypeCode + " but is " + getSqlTypeCode() );
+					}
+					return sqlTypeCode;
+				}
+				catch (Exception e) {
+					throw new MappingException(
+							"Could not determine type for column " +
+									name +
+									" of type " +
+									type.getClass().getName() +
+									": " +
+									e.getClass().getName(),
+							e
+					);
+				}
+			}
 		}
-		catch (Exception e) {
-			throw new MappingException(
-					"Could not determine type for column " +
-							name +
-							" of type " +
-							type.getClass().getName() +
-							": " +
-							e.getClass().getName(),
-					e
-			);
+		else {
+			return sqlTypeCode;
 		}
 	}
 
@@ -373,8 +393,12 @@ public class Column implements Selectable, Serializable, Cloneable {
 		copy.setComment( comment );
 		copy.setDefaultValue( defaultValue );
 		copy.setCustomRead( customRead );
+		copy.setSqlTypeCodeResolver( sqlTypeCodeResolver );
 		copy.setCustomWrite( customWrite );
 		return copy;
 	}
 
+	public void setSqlTypeCodeResolver(SimpleValue.ColumnSqlTypeCodeResolver sqlTypeCodeResolver) {
+		this.sqlTypeCodeResolver = sqlTypeCodeResolver;
+	}
 }

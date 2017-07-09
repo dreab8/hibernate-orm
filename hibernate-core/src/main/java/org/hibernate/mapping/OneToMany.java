@@ -71,6 +71,11 @@ public class OneToMany implements Value {
 		return associatedClass.getKey().getColumnIterator();
 	}
 
+	@Override
+	public Selectable getColumn(int index) {
+		return associatedClass.getKey().getColumn( index );
+	}
+
 	public int getColumnSpan() {
 		return associatedClass.getKey().getColumnSpan();
 	}

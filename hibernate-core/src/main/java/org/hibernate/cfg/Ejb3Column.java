@@ -365,7 +365,7 @@ public class Ejb3Column {
 			value.addFormula( formula );
 		}
 		else {
-			getMappingColumn().setValue( value );
+//			getMappingColumn().setValue( value );
 			value.addColumn( getMappingColumn(), insertable, updatable );
 			value.getTable().addColumn( getMappingColumn() );
 			addColumnBinding( value );

@@ -203,7 +203,7 @@ public class ForeignKey extends Constraint {
 	/**
 	 * Returns the referenced columns if the foreignkey does not refer to the primary key
 	 */
-	public List getReferencedColumns() {
+	public List<Column> getReferencedColumns() {
 		return referencedColumns;
 	}
 

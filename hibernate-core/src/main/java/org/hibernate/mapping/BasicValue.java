@@ -18,6 +18,7 @@ import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
+import org.hibernate.engine.spi.Mapping;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
@@ -49,7 +50,13 @@ public class BasicValue extends SimpleValue{
 		this.table = table;
 	}
 
+	public void addColumn(Column column) {
+		addColumn( column, true, true );
+	}
+
+
 	public void addColumn(Column column, boolean isInsertable, boolean isUpdatable) {
+
 		int index = columns.indexOf( column );
 
 		if ( index == -1 ) {
@@ -65,8 +72,24 @@ public class BasicValue extends SimpleValue{
 				throw new IllegalStateException( "Same column is added more than once with different values for isUpdatable" );
 			}
 		}
-		column.setValue( this );
-		column.setTypeIndex( columns.size() - 1 );
+		column.setSqlTypeCodeResolver( new ColumnSqlTypeCodeResolverImpl( columns.size() - 1, getMetadata() ) );
+		column.setTable( table );
+	}
+
+	public class ColumnSqlTypeCodeResolverImpl implements ColumnSqlTypeCodeResolver{
+
+		private final int index;
+		private final Mapping mapping;
+
+		public ColumnSqlTypeCodeResolverImpl(int index, Mapping mapping) {
+			this.index = index;
+			this.mapping = mapping;
+		}
+
+		@Override
+		public int resolveCode() {
+			return getType().sqlTypes( mapping )[index];
+		}
 	}
 
 	public BasicType getType() throws MappingException {
@@ -314,8 +337,9 @@ public class BasicValue extends SimpleValue{
 		private final boolean primaryKey;
 		private final String[] columns;
 
-		private ParameterTypeImpl(Class returnedClass, Annotation[] annotationsMethod, String catalog, String schema,
-								  String table, boolean primaryKey, String[] columns) {
+		private ParameterTypeImpl(
+				Class returnedClass, Annotation[] annotationsMethod, String catalog, String schema,
+				String table, boolean primaryKey, String[] columns) {
 			this.returnedClass = returnedClass;
 			this.annotationsMethod = annotationsMethod;
 			this.catalog = catalog;

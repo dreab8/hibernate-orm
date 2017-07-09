@@ -44,8 +44,6 @@ public class Any extends SimpleValue {
 		);
 	}
 
-	public void setTypeByReflection(String propertyClass, String propertyName) {}
-
 	public String getMetaType() {
 		return metaTypeName;
 	}

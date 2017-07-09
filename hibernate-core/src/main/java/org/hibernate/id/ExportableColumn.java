@@ -72,6 +72,11 @@ public class ExportableColumn extends Column {
 		}
 
 		@Override
+		public Selectable getColumn(int index) {
+			return column;
+		}
+
+		@Override
 		public Type getType() throws MappingException {
 			return type;
 		}
