@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.jpa.test.criteria;
+package org.hibernate.jpa.test.mapping;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -28,7 +28,14 @@ public class EmbeddedIdTest extends BaseCoreFunctionalTestCase {
 
 	@Override
 	protected Class<?>[] getAnnotatedClasses() {
-		return new Class[] {MyEntity6.class};
+		return new Class[] {
+				MyEntity.class,
+				MyEntity2.class,
+				MyEntity3.class,
+				MyEntity4.class,
+				MyEntity5.class,
+				MyEntity6.class
+		};
 	}
 
 	@Test
@@ -52,8 +59,8 @@ public class EmbeddedIdTest extends BaseCoreFunctionalTestCase {
 		private Integer embeddedIdClass_Id_3;
 
 
-//		@ManyToOne
-//		private MyEntity3 embeddedIdClass_Id_4;
+		@ManyToOne
+		private MyEntity3 embeddedIdClass_Id_4;
 	}
 
 	@Entity
@@ -81,14 +88,14 @@ public class EmbeddedIdTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Entity
-	public static class MyEntity35 {
+	public static class MyEntity5 {
 		@Id
 		@ManyToOne
 		MyEntity3 myEntity_3_Id;
 	}
 
 	@Entity
-	public static class MyEntity6{
+	public static class MyEntity6 {
 
 		@Id
 		Long id;
