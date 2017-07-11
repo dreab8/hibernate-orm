@@ -186,10 +186,6 @@ public class Column implements Selectable, Serializable, Cloneable {
 		return sqlTypeDescriptor;
 	}
 
-	public void setSqlTypeCode(Integer typeCode) {
-		sqlTypeCode = typeCode;
-	}
-
 	public String getSqlType(Dialect dialect) throws HibernateException {
 		if ( sqlType == null ) {
 			sqlType = dialect.getTypeName( getSqlTypeDescriptor().getSqlType(), getLength(), getPrecision(), getScale() );
