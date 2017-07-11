@@ -169,7 +169,7 @@ public abstract class AbstractFunctionalTest extends BaseNonConfigCoreFunctional
 				Column column = new Column();
 				column.setName("version");
 				column.setSqlTypeCode( value.getType().sqlTypes( metadata )[0] );
-				column.setSqlTypeCodeResolver( new SimpleValue.ColumnSqlTypeCodeResolver() {
+				column.setSqlTypeCodeResolver( new SimpleValue.SqlTypeDescriptorResolver() {
 					@Override
 					public SqlTypeDescriptor resolveSqlTypeDescriptor() {
 						return BigIntTypeDescriptor.INSTANCE;

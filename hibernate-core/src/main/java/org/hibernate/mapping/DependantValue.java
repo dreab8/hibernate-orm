@@ -43,13 +43,13 @@ public class DependantValue extends SimpleValue {
 				throw new IllegalStateException( "Same column is added more than once with different values for isUpdatable" );
 			}
 		}
-		column.setSqlTypeCodeResolver( new ColumnSqlTypeCodeResolverImpl(columns.size() - 1) );
+		column.setSqlTypeCodeResolver( new SqlTypeDescriptorResolverImpl( columns.size() - 1) );
 	}
 
-	public class ColumnSqlTypeCodeResolverImpl implements ColumnSqlTypeCodeResolver {
+	public class SqlTypeDescriptorResolverImpl implements SqlTypeDescriptorResolver {
 		private int index;
 
-		public ColumnSqlTypeCodeResolverImpl(int index) {
+		public SqlTypeDescriptorResolverImpl(int index) {
 			this.index = index;
 		}
 

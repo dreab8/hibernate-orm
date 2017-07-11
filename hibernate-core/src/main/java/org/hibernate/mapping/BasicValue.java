@@ -29,7 +29,6 @@ import org.hibernate.type.CompositeCustomType;
 import org.hibernate.type.CustomType;
 import org.hibernate.type.ObjectType;
 import org.hibernate.type.RowVersionType;
-import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.JdbcTypeNameMapper;
 import org.hibernate.type.descriptor.converter.AttributeConverterSqlTypeDescriptorAdapter;
 import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
@@ -78,16 +77,16 @@ public class BasicValue extends SimpleValue{
 				throw new IllegalStateException( "Same column is added more than once with different values for isUpdatable" );
 			}
 		}
-		column.setSqlTypeCodeResolver( new ColumnSqlTypeCodeResolverImpl( columns.size() - 1, getMetadata() ) );
+		column.setSqlTypeCodeResolver( new SqlTypeDescriptorResolverImpl( columns.size() - 1, getMetadata() ) );
 		column.setTable( table );
 	}
 
-	public class ColumnSqlTypeCodeResolverImpl implements ColumnSqlTypeCodeResolver {
+	public class SqlTypeDescriptorResolverImpl implements SqlTypeDescriptorResolver {
 
 		private final int index;
 		private final Mapping mapping;
 
-		public ColumnSqlTypeCodeResolverImpl(int index, Mapping mapping) {
+		public SqlTypeDescriptorResolverImpl(int index, Mapping mapping) {
 			this.index = index;
 			this.mapping = mapping;
 		}

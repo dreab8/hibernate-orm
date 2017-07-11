@@ -13,7 +13,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.function.SQLFunctionRegistry;
-import org.hibernate.engine.spi.Mapping;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.sql.Template;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
@@ -36,9 +35,8 @@ public class Column implements Selectable, Serializable, Cloneable {
 	private boolean nullable = true;
 	private boolean unique;
 	private String sqlType;
-	private Integer sqlTypeCode;
 	private SqlTypeDescriptor sqlTypeDescriptor;
-	private BasicValue.ColumnSqlTypeCodeResolver sqlTypeCodeResolver;
+	private SimpleValue.SqlTypeDescriptorResolver sqlTypeCodeResolver;
 	private boolean quoted;
 	int uniqueInteger;
 	private String checkConstraint;
@@ -341,7 +339,7 @@ public class Column implements Selectable, Serializable, Cloneable {
 		return copy;
 	}
 
-	public void setSqlTypeCodeResolver(SimpleValue.ColumnSqlTypeCodeResolver sqlTypeCodeResolver) {
+	public void setSqlTypeCodeResolver(SimpleValue.SqlTypeDescriptorResolver sqlTypeCodeResolver) {
 		this.sqlTypeCodeResolver = sqlTypeCodeResolver;
 	}
 }
