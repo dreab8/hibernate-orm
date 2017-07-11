@@ -181,10 +181,6 @@ public class Column implements Selectable, Serializable, Cloneable {
 				name.equalsIgnoreCase( column.name );
 	}
 
-	public int getSqlTypeCode(Mapping mapping) throws MappingException {
-		return getSqlTypeDescriptor().getSqlType();
-	}
-
 	public SqlTypeDescriptor getSqlTypeDescriptor() {
 		if ( sqlTypeDescriptor == null ) {
 			sqlTypeDescriptor = sqlTypeCodeResolver.resolveSqlTypeDescriptor();
@@ -196,9 +192,9 @@ public class Column implements Selectable, Serializable, Cloneable {
 		sqlTypeCode = typeCode;
 	}
 
-	public String getSqlType(Dialect dialect, Mapping mapping) throws HibernateException {
+	public String getSqlType(Dialect dialect) throws HibernateException {
 		if ( sqlType == null ) {
-			sqlType = dialect.getTypeName( getSqlTypeCode( mapping ), getLength(), getPrecision(), getScale() );
+			sqlType = dialect.getTypeName( getSqlTypeDescriptor().getSqlType(), getLength(), getPrecision(), getScale() );
 		}
 		return sqlType;
 	}

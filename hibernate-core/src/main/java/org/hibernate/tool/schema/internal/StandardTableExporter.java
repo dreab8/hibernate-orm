@@ -87,13 +87,14 @@ public class StandardTableExporter implements Exporter<Table> {
 			if ( isPrimaryKeyIdentity && colName.equals( pkColName ) ) {
 				// to support dialects that have their own identity data type
 				if ( dialect.getIdentityColumnSupport().hasDataTypeInIdentityColumn() ) {
-					buf.append( col.getSqlType( dialect, metadata ) );
+					buf.append( col.getSqlType( dialect ) );
 				}
 				buf.append( ' ' )
-						.append( dialect.getIdentityColumnSupport().getIdentityColumnString( col.getSqlTypeCode( metadata ) ) );
+						.append( dialect.getIdentityColumnSupport()
+										 .getIdentityColumnString( col.getSqlTypeDescriptor().getSqlType() ) );
 			}
 			else {
-				buf.append( col.getSqlType( dialect, metadata )  );
+				buf.append( col.getSqlType( dialect )  );
 
 				String defaultValue = col.getDefaultValue();
 				if ( defaultValue != null ) {

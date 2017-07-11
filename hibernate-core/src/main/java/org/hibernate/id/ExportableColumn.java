@@ -11,7 +11,9 @@ import org.hibernate.boot.model.relational.Database;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.Table;
+import org.hibernate.type.AbstractStandardBasicType;
 import org.hibernate.type.BasicType;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -42,7 +44,7 @@ public class ExportableColumn extends Column {
 	}
 
 	@Override
-	public int getSqlTypeCode(Mapping mapping) throws MappingException {
-		return type.sqlTypes( mapping )[0];
+	public SqlTypeDescriptor getSqlTypeDescriptor() {
+		return ((AbstractStandardBasicType)type).getSqlTypeDescriptor();
 	}
 }

@@ -113,8 +113,7 @@ public class BasicValue extends SimpleValue{
 					type = (BasicType) objectType.getIdentifierType();
 				}
 			}
-			AbstractStandardBasicType abstractStandardBasicType = (AbstractStandardBasicType) type;
-			return abstractStandardBasicType.getSqlTypeDescriptor();
+			return ((AbstractStandardBasicType) type).getSqlTypeDescriptor();
 		}
 	}
 

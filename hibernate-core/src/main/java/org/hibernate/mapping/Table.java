@@ -421,16 +421,16 @@ public class Table implements RelationalModel, Serializable, Exportable {
 				throw new HibernateException( "Missing column: " + col.getName() + " in " + Table.qualify( tableInfo.getCatalog(), tableInfo.getSchema(), tableInfo.getName()));
 			}
 			else {
-				final boolean typesMatch = col.getSqlType( dialect, mapping ).toLowerCase(Locale.ROOT)
+				final boolean typesMatch = col.getSqlType( dialect ).toLowerCase(Locale.ROOT)
 						.startsWith( columnInfo.getTypeName().toLowerCase(Locale.ROOT) )
-						|| columnInfo.getTypeCode() == col.getSqlTypeCode( mapping );
+						|| columnInfo.getTypeCode() == col.getSqlTypeDescriptor().getSqlType();
 				if ( !typesMatch ) {
 					throw new HibernateException(
 							"Wrong column type in " +
 							Table.qualify( tableInfo.getCatalog(), tableInfo.getSchema(), tableInfo.getName()) +
 							" for column " + col.getName() +
 							". Found: " + columnInfo.getTypeName().toLowerCase(Locale.ROOT) +
-							", expected: " + col.getSqlType( dialect, mapping )
+							", expected: " + col.getSqlType( dialect )
 					);
 				}
 			}
@@ -469,7 +469,7 @@ public class Table implements RelationalModel, Serializable, Exportable {
 						.append( ' ' )
 						.append( column.getQuotedName( dialect ) )
 						.append( ' ' )
-						.append( column.getSqlType( dialect, metadata ) );
+						.append( column.getSqlType( dialect ) );
 
 				String defaultValue = column.getDefaultValue();
 				if ( defaultValue != null ) {
@@ -544,14 +544,15 @@ public class Table implements RelationalModel, Serializable, Exportable {
 			if ( identityColumn && col.getQuotedName( dialect ).equals( pkname ) ) {
 				// to support dialects that have their own identity data type
 				if ( dialect.getIdentityColumnSupport().hasDataTypeInIdentityColumn() ) {
-					buf.append( col.getSqlType( dialect, p ) );
+					buf.append( col.getSqlType( dialect ) );
 				}
 				buf.append( ' ' )
-						.append( dialect.getIdentityColumnSupport().getIdentityColumnString( col.getSqlTypeCode( p ) ) );
+						.append( dialect.getIdentityColumnSupport()
+										 .getIdentityColumnString( col.getSqlTypeDescriptor().getSqlType() ) );
 			}
 			else {
 
-				buf.append( col.getSqlType( dialect, p ) );
+				buf.append( col.getSqlType( dialect ) );
 
 				String defaultValue = col.getDefaultValue();
 				if ( defaultValue != null ) {
