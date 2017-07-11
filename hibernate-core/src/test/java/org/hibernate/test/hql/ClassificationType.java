@@ -15,6 +15,8 @@ import java.sql.Types;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.TinyIntTypeDescriptor;
 import org.hibernate.usertype.EnhancedUserType;
 
 /**
@@ -27,6 +29,11 @@ import org.hibernate.usertype.EnhancedUserType;
  * @author Steve Ebersole
  */
 public class ClassificationType implements EnhancedUserType {
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{TinyIntTypeDescriptor.INSTANCE};
+	}
 
 	@Override
 	public int[] sqlTypes() {

@@ -23,6 +23,7 @@ import org.hibernate.type.Type;
 import org.hibernate.type.UUIDBinaryType;
 import org.hibernate.type.UUIDCharType;
 import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
 import org.hibernate.usertype.CompositeUserType;
 import org.hibernate.usertype.UserType;
@@ -118,6 +119,11 @@ public class BasicTypeRegistryTest extends BaseUnitTestCase {
 	public static class TotallyIrrelevantUserType implements UserType {
 
 		@Override
+		public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+			return new SqlTypeDescriptor[0];
+		}
+
+		@Override
 		public int[] sqlTypes() {
 			return new int[0];
 		}
@@ -173,6 +179,11 @@ public class BasicTypeRegistryTest extends BaseUnitTestCase {
 	}
 
 	public static class TotallyIrrelevantCompositeUserType implements CompositeUserType {
+		@Override
+		public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+			return new SqlTypeDescriptor[0];
+		}
+
 		@Override
 		public String[] getPropertyNames() {
 			return new String[0];

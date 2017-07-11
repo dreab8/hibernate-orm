@@ -15,6 +15,8 @@ import java.util.Properties;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.descriptor.sql.IntegerTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 
@@ -28,6 +30,11 @@ public class DefaultValueIntegerType implements UserType, ParameterizedType, Ser
 	private static final Logger log = Logger.getLogger( DefaultValueIntegerType.class );
 
 	private Integer defaultValue;
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{IntegerTypeDescriptor.INSTANCE};
+	}
 
 	public int[] sqlTypes() {
 		return new int[] {Types.INTEGER};

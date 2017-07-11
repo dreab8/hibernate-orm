@@ -11,6 +11,7 @@ import java.util.Objects;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StringType;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.UserType;
 
 import org.jboss.logging.Logger;
@@ -24,6 +25,11 @@ public class BitSetUserType implements UserType {
 	public static final BitSetUserType INSTANCE = new BitSetUserType();
 
     private static final Logger log = Logger.getLogger( BitSetUserType.class );
+
+    @Override
+    public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+        return new SqlTypeDescriptor[] {StringType.INSTANCE.getSqlTypeDescriptor()};
+    }
 
     @Override
     public int[] sqlTypes() {

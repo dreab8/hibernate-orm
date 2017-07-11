@@ -16,6 +16,7 @@ import org.hibernate.dialect.function.SQLFunctionRegistry;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.sql.Template;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 /**
  * A column of a relational database table
@@ -36,6 +37,7 @@ public class Column implements Selectable, Serializable, Cloneable {
 	private boolean unique;
 	private String sqlType;
 	private Integer sqlTypeCode;
+	private SqlTypeDescriptor sqlTypeDescriptor;
 	private BasicValue.ColumnSqlTypeCodeResolver sqlTypeCodeResolver;
 	private boolean quoted;
 	int uniqueInteger;
@@ -180,26 +182,14 @@ public class Column implements Selectable, Serializable, Cloneable {
 	}
 
 	public int getSqlTypeCode(Mapping mapping) throws MappingException {
-		if ( sqlTypeCode == null ) {
-			sqlTypeCode = sqlTypeCodeResolver.resolveCode();
-			return sqlTypeCode;
-		}
-		else {
-			return sqlTypeCode;
-		}
+		return getSqlTypeDescriptor().getSqlType();
 	}
 
-	/**
-	 * Returns the underlying columns sqltypecode.
-	 * If null, it is because the sqltype code is unknown.
-	 * <p/>
-	 * Use #getSqlTypeCode(Mapping) to retrieve the sqltypecode used
-	 * for the columns associated Value/Type.
-	 *
-	 * @return sqlTypeCode if it is set, otherwise null.
-	 */
-	public Integer getSqlTypeCode() {
-		return sqlTypeCode;
+	public SqlTypeDescriptor getSqlTypeDescriptor() {
+		if ( sqlTypeDescriptor == null ) {
+			sqlTypeDescriptor = sqlTypeCodeResolver.resolveSqlTypeDescriptor();
+		}
+		return sqlTypeDescriptor;
 	}
 
 	public void setSqlTypeCode(Integer typeCode) {
@@ -345,7 +335,6 @@ public class Column implements Selectable, Serializable, Cloneable {
 		copy.setPrecision( precision );
 		copy.setUnique( unique );
 		copy.setSqlType( sqlType );
-		copy.setSqlTypeCode( sqlTypeCode );
 		copy.uniqueInteger = uniqueInteger; //usually useless
 		copy.setCheckConstraint( checkConstraint );
 		copy.setComment( comment );

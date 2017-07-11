@@ -19,12 +19,21 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.CompositeUserType;
 
 /**
  * @author Emmanuel Bernard
  */
 public class MonetaryAmountUserType implements CompositeUserType {
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[] {
+				StandardBasicTypes.BIG_DECIMAL.getSqlTypeDescriptor(),
+				StandardBasicTypes.CURRENCY.getSqlTypeDescriptor()
+		};
+	}
 
 	public String[] getPropertyNames() {
 		return new String[]{"amount", "currency"};

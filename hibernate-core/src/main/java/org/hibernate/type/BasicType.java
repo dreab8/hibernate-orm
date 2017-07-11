@@ -6,6 +6,9 @@
  */
 package org.hibernate.type;
 
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+
 /**
  * Marker interface for basic types.
  *

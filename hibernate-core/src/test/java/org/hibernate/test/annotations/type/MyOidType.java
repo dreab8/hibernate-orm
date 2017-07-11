@@ -15,6 +15,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.CompositeUserType;
 
 /**
@@ -28,6 +29,16 @@ public class MyOidType implements CompositeUserType {
 	public static final Type[] TYPES = new Type[]{
 			StandardBasicTypes.INTEGER, StandardBasicTypes.INTEGER, StandardBasicTypes.INTEGER, StandardBasicTypes.INTEGER
 	};
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[] {
+				StandardBasicTypes.INTEGER.getSqlTypeDescriptor(),
+				StandardBasicTypes.INTEGER.getSqlTypeDescriptor(),
+				StandardBasicTypes.INTEGER.getSqlTypeDescriptor(),
+				StandardBasicTypes.INTEGER.getSqlTypeDescriptor()
+		};
+	}
 
 	public String[] getPropertyNames() {
 		return PROPERTY_NAMES;

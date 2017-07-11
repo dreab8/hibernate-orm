@@ -456,7 +456,7 @@ public class MapBinder extends CollectionBinder {
 			else {
 //				targetValue = new SimpleValue( getBuildingContext().getMetadataCollector(), collection.getCollectionTable() );
 //				targetValue.copyTypeFrom( sourceValue );
-				throw new AssertionFailure( "Unknown type encounters for map key: " + value.getClass() );
+				throw new AssertionFailure( "Unknown type encountered for map key: " + value.getClass() );
 			}
 			Iterator columns = sourceValue.getColumnIterator();
 			Random random = new Random();

@@ -16,6 +16,7 @@ import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.boot.model.TypeContributor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.service.ServiceRegistry;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.UserType;
 
 
@@ -31,6 +32,11 @@ public class TestTypeContributor implements TypeContributor {
 	}
 
 	public static class TestType implements UserType {
+		@Override
+		public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+			return new SqlTypeDescriptor[0];
+		}
+
 		@Override
 		public int[] sqlTypes() {
 			return new int[0];

@@ -10,9 +10,11 @@ import java.util.Map;
 
 import org.hibernate.MappingException;
 import org.hibernate.boot.spi.MetadataImplementor;
+import org.hibernate.type.AbstractStandardBasicType;
 import org.hibernate.type.BasicType;
 import org.hibernate.type.MetaType;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 /**
  * A Hibernate "any" type (ie. polymorphic association to
@@ -64,19 +66,19 @@ public class Any extends SimpleValue {
 	}
 
 	public class ColumnSqlTypeCodeResolverImpl implements ColumnSqlTypeCodeResolver {
-		BasicType[] basicTypes = new BasicType[2];
+		AbstractStandardBasicType[] basicTypes = new AbstractStandardBasicType[2];
 
 		private int index;
 
 		public ColumnSqlTypeCodeResolverImpl(int index) {
 			this.index = index;
-			basicTypes[0] = (BasicType) getMetadata().getTypeResolver().heuristicType( metaTypeName );
-			basicTypes[1] = (BasicType) getMetadata().getTypeResolver().heuristicType( identifierTypeName );
+			basicTypes[0] = (AbstractStandardBasicType) getMetadata().getTypeResolver().heuristicType( metaTypeName );
+			basicTypes[1] = (AbstractStandardBasicType) getMetadata().getTypeResolver().heuristicType( identifierTypeName );
 		}
 
 		@Override
-		public int resolveCode() {
-			return basicTypes[index].getColumnSpan( getMetadata() );
+		public SqlTypeDescriptor resolveSqlTypeDescriptor() {
+			return basicTypes[index].getSqlTypeDescriptor();
 		}
 	}
 

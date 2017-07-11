@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 /**
  * A <tt>UserType</tt> that may be dereferenced in a query.
@@ -37,6 +38,8 @@ import org.hibernate.type.Type;
  * @author Gavin King
  */
 public interface CompositeUserType {
+
+	SqlTypeDescriptor[] getSqlTypeDescriptors();
 
 	/**
 	 * Get the "property names" that may be used in a

@@ -13,6 +13,7 @@ import org.hibernate.MappingException;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.type.ForeignKeyDirection;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 /**
  * A one-to-one association mapping
@@ -102,19 +103,18 @@ public class OneToOne extends ToOne {
 		}
 
 		@Override
-		public int resolveCode() {
+		public SqlTypeDescriptor resolveSqlTypeDescriptor() {
 			if ( getColumnIterator().hasNext() ) {
 				final PersistentClass referencedPersistentClass = getMetadata().getEntityBinding(
 						getReferencedEntityName() );
 				if ( referenceToPrimaryKey || referencedPropertyName == null ) {
-					return ( (Column) referencedPersistentClass.getIdentifier().getColumn( index ) ).getSqlTypeCode(
-							getMetadata() );
+					return ( (Column) referencedPersistentClass.getIdentifier().getColumn( index ) ).getSqlTypeDescriptor();
 				}
 				else {
 					final Property referencedProperty = referencedPersistentClass.getReferencedProperty(
 							getReferencedPropertyName() );
 					return ( (Column) referencedProperty.getValue()
-							.getColumn( index ) ).getSqlTypeCode( getMetadata() );
+							.getColumn( index ) ).getSqlTypeDescriptor();
 				}
 			}else{
 				throw new IllegalStateException( "No SqlType code to resolve for "  + entityName);

@@ -14,6 +14,8 @@ import java.sql.Types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
 import org.hibernate.usertype.UserType;
 
 /**
@@ -22,6 +24,11 @@ import org.hibernate.usertype.UserType;
  * @author Sharath Reddy 
  */
 public class PhoneNumberType implements UserType {
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{VarcharTypeDescriptor.INSTANCE};
+	}
 
 	public int[] sqlTypes() {
 		return new int[]{Types.VARCHAR};

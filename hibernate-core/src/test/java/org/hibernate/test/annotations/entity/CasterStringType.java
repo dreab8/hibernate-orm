@@ -18,6 +18,8 @@ import java.util.Properties;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 
@@ -29,6 +31,11 @@ import org.hibernate.usertype.UserType;
 public class CasterStringType implements UserType, ParameterizedType {
 	private static final String CAST = "cast";
 	private Properties parameters;
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{VarcharTypeDescriptor.INSTANCE};
+	}
 
 	public int[] sqlTypes() {
 		return new int[]{Types.VARCHAR};

@@ -28,6 +28,8 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.jpa.TypedParameterValue;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
 import org.hibernate.type.CustomType;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
 import org.hibernate.usertype.UserType;
 
 import org.junit.Before;
@@ -178,6 +180,11 @@ public class TypedValueParametersTest extends BaseEntityManagerFunctionalTestCas
 			}
 
 			return list;
+		}
+
+		@Override
+		public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+			return new SqlTypeDescriptor[]{VarcharTypeDescriptor.INSTANCE};
 		}
 
 		public int[] sqlTypes() {

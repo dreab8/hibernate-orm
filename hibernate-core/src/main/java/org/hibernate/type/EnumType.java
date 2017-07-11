@@ -24,6 +24,9 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.internal.util.config.ConfigurationHelper;
+import org.hibernate.type.descriptor.sql.IntegerTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
 import org.hibernate.usertype.DynamicParameterizedType;
 import org.hibernate.usertype.EnhancedUserType;
 import org.hibernate.usertype.LoggableUserType;
@@ -204,6 +207,11 @@ public class EnumType implements EnhancedUserType, DynamicParameterizedType,Logg
 	}
 
 	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return enumValueMapper.getSqlTypeDescriptor();
+	}
+
+	@Override
 	public int[] sqlTypes() {
 		return new int[] { sqlType };
 	}
@@ -299,6 +307,10 @@ public class EnumType implements EnhancedUserType, DynamicParameterizedType,Logg
 		String objectToSQLString(Enum value);
 		String toXMLString(Enum value);
 		Enum fromXMLString(String xml);
+
+		SqlTypeDescriptor[] getSqlTypeDescriptor();
+
+
 	}
 
 	public abstract class EnumValueMapperSupport implements EnumValueMapper {
@@ -391,6 +403,11 @@ public class EnumType implements EnhancedUserType, DynamicParameterizedType,Logg
 		}
 
 		@Override
+		public SqlTypeDescriptor[] getSqlTypeDescriptor() {
+			return new SqlTypeDescriptor[]{IntegerTypeDescriptor.INSTANCE};
+		}
+
+		@Override
 		protected Object extractJdbcValue(Enum value) {
 			return value.ordinal();
 		}
@@ -452,6 +469,11 @@ public class EnumType implements EnhancedUserType, DynamicParameterizedType,Logg
 		@Override
 		public Enum fromXMLString(String xml) {
 			return fromName( xml );
+		}
+
+		@Override
+		public SqlTypeDescriptor[] getSqlTypeDescriptor() {
+			return new SqlTypeDescriptor[]{VarcharTypeDescriptor.INSTANCE};
 		}
 
 		@Override

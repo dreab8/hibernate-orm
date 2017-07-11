@@ -17,6 +17,8 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.envers.RevisionType;
 import org.hibernate.internal.util.compare.EqualsHelper;
 import org.hibernate.type.IntegerType;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.TinyIntTypeDescriptor;
 import org.hibernate.usertype.UserType;
 
 /**
@@ -28,6 +30,11 @@ public class RevisionTypeType implements UserType, Serializable {
 	private static final long serialVersionUID = -1053201518229282688L;
 
 	private static final int[] SQL_TYPES = {Types.TINYINT};
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{TinyIntTypeDescriptor.INSTANCE};
+	}
 
 	@Override
 	public int[] sqlTypes() {

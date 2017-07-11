@@ -33,6 +33,8 @@ import org.hibernate.mapping.SimpleValue;
 import org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorBuilderImpl;
 import org.hibernate.resource.transaction.backend.jta.internal.JtaTransactionCoordinatorBuilderImpl;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
+import org.hibernate.type.descriptor.sql.BigIntTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 import org.hibernate.test.cache.infinispan.util.ExpectingInterceptor;
 import org.hibernate.testing.BeforeClassOnce;
@@ -167,6 +169,12 @@ public abstract class AbstractFunctionalTest extends BaseNonConfigCoreFunctional
 				Column column = new Column();
 				column.setName("version");
 				column.setSqlTypeCode( value.getType().sqlTypes( metadata )[0] );
+				column.setSqlTypeCodeResolver( new SimpleValue.ColumnSqlTypeCodeResolver() {
+					@Override
+					public SqlTypeDescriptor resolveSqlTypeDescriptor() {
+						return BigIntTypeDescriptor.INSTANCE;
+					}
+				} );
 				value.addColumn(column);
 				rootClazz.getTable().addColumn(column);
 				versionProperty.setValue(value);

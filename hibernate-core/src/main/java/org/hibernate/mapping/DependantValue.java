@@ -9,6 +9,7 @@ package org.hibernate.mapping;
 import org.hibernate.MappingException;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 /**
  * A value which is "typed" by reference to some other
@@ -53,8 +54,8 @@ public class DependantValue extends SimpleValue {
 		}
 
 		@Override
-		public int resolveCode() {
-			return ( (Column) wrappedValue.getColumn( index ) ).getSqlTypeCode( getMetadata() );
+		public SqlTypeDescriptor resolveSqlTypeDescriptor() {
+			return ( (Column) wrappedValue.getColumn( index ) ).getSqlTypeDescriptor();
 		}
 	}
 

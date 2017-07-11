@@ -111,7 +111,7 @@ public abstract class SimpleValue implements KeyValue {
 	public abstract void addColumn(Column column, boolean isInsertable, boolean isUpdatable);
 
 	public interface ColumnSqlTypeCodeResolver{
-		int resolveCode();
+		SqlTypeDescriptor resolveSqlTypeDescriptor();
 	}
 
 	public void addFormula(Formula formula) {

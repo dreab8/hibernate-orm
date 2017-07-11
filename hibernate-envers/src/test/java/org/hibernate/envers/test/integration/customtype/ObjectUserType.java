@@ -21,6 +21,9 @@ import java.sql.Types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.descriptor.sql.BlobTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
 import org.hibernate.usertype.UserType;
 
 /**
@@ -32,6 +35,11 @@ import org.hibernate.usertype.UserType;
  */
 public class ObjectUserType implements UserType {
 	private static final int[] TYPES = new int[] {Types.VARCHAR, Types.BLOB};
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{VarcharTypeDescriptor.INSTANCE, BlobTypeDescriptor.DEFAULT};
+	}
 
 	@Override
 	public int[] sqlTypes() {

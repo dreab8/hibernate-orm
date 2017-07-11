@@ -16,12 +16,19 @@ import java.sql.Types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.descriptor.sql.IntegerTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.UserType;
 
 /**
  * @author Emmanuel Bernard
  */
 public class StateType implements UserType {
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{IntegerTypeDescriptor.INSTANCE};
+	}
+
 	public int[] sqlTypes() {
 		return new int[] {
 			Types.INTEGER

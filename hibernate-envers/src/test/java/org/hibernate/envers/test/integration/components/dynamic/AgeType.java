@@ -14,9 +14,15 @@ import java.sql.SQLException;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.IntegerType;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.UserType;
 
 public class AgeType implements UserType {
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{IntegerType.INSTANCE.getSqlTypeDescriptor()};
+	}
 
 	@Override
 	public int[] sqlTypes() {

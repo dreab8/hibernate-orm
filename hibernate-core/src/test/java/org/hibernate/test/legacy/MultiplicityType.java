@@ -24,6 +24,7 @@ import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeFactory;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.CompositeUserType;
 
 public class MultiplicityType implements CompositeUserType {
@@ -48,6 +49,12 @@ public class MultiplicityType implements CompositeUserType {
 					Glarch.class.getName()
 			)
 	};
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{IntegerType.INSTANCE.getSqlTypeDescriptor(),
+				StringType.INSTANCE.getSqlTypeDescriptor()};
+	}
 
 	public String[] getPropertyNames() {
 		return PROP_NAMES;

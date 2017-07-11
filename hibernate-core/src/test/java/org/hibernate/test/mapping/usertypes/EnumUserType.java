@@ -16,6 +16,8 @@ import java.util.Properties;
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.descriptor.sql.CharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 
@@ -52,6 +54,11 @@ public class EnumUserType implements UserType, ParameterizedType {
 	}
 
 	private static final int[] SQL_TYPES = {Types.CHAR};
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{CharTypeDescriptor.INSTANCE};
+	}
 
 	public int[] sqlTypes() {
 		return SQL_TYPES;

@@ -78,7 +78,7 @@ public class BasicValueBinder {
 	private boolean isLob;
 
 	private Table table;
-	private BasicValue simpleValue;
+	private BasicValue basicValue;
 	private boolean isVersion;
 	private String timeStampVersionType;
 	//is a Map key
@@ -99,8 +99,8 @@ public class BasicValueBinder {
 
 	public void setVersion(boolean isVersion) {
 		this.isVersion = isVersion;
-		if ( isVersion && simpleValue != null ) {
-			simpleValue.makeVersion();
+		if ( isVersion && basicValue != null ) {
+			basicValue.makeVersion();
 		}
 	}
 
@@ -412,15 +412,15 @@ public class BasicValueBinder {
 		if ( table == null ) {
 			table = columns[0].getTable();
 		}
-		simpleValue = new BasicValue( buildingContext.getMetadataCollector(), table );
+		basicValue = new BasicValue( buildingContext.getMetadataCollector(), table );
 		if ( isVersion ) {
-			simpleValue.makeVersion();
+			basicValue.makeVersion();
 		}
 		if ( isNationalized ) {
-			simpleValue.makeNationalized();
+			basicValue.makeNationalized();
 		}
 		if ( isLob ) {
-			simpleValue.makeLob();
+			basicValue.makeLob();
 		}
 
 		linkWithValue();
@@ -434,20 +434,20 @@ public class BasicValueBinder {
 			//We are already in second pass
 			fillSimpleValue();
 		}
-		return simpleValue;
+		return basicValue;
 	}
 
 	public void linkWithValue() {
 		if ( columns[0].isNameDeferred() && !buildingContext.getMetadataCollector().isInSecondPass() && referencedEntityName != null ) {
 			buildingContext.getMetadataCollector().addSecondPass(
 					new PkDrivenByDefaultMapsIdSecondPass(
-							referencedEntityName, (Ejb3JoinColumn[]) columns, simpleValue
+							referencedEntityName, (Ejb3JoinColumn[]) columns, basicValue
 					)
 			);
 		}
 		else {
 			for ( Ejb3Column column : columns ) {
-				column.linkWithValue( simpleValue );
+				column.linkWithValue( basicValue );
 			}
 		}
 	}
@@ -472,7 +472,7 @@ public class BasicValueBinder {
 					persistentClassName,
 					propertyName
 			);
-			simpleValue.setJpaAttributeConverterDescriptor( attributeConverterDescriptor );
+			basicValue.setJpaAttributeConverterDescriptor( attributeConverterDescriptor );
 		}
 		else {
 			String type;
@@ -497,18 +497,18 @@ public class BasicValueBinder {
 
 			if ( typeDef != null ) {
 				type = typeDef.getTypeImplementorClass().getName();
-				simpleValue.setTypeParameters( typeDef.getParametersAsProperties() );
+				basicValue.setTypeParameters( typeDef.getParametersAsProperties() );
 			}
 			if ( typeParameters != null && typeParameters.size() != 0 ) {
 				//explicit type params takes precedence over type def params
-				simpleValue.setTypeParameters( typeParameters );
+				basicValue.setTypeParameters( typeParameters );
 			}
-			simpleValue.setTypeName( type );
+			basicValue.setTypeName( type );
 		}
 
 		if ( persistentClassName != null || attributeConverterDescriptor != null ) {
 			try {
-				simpleValue.setTypeUsingReflection( persistentClassName, propertyName );
+				basicValue.setTypeUsingReflection( persistentClassName, propertyName );
 			}
 			catch (Exception e) {
 				throw new MappingException(
@@ -523,22 +523,22 @@ public class BasicValueBinder {
 			}
 		}
 
-		if ( !simpleValue.isTypeSpecified() && isVersion() ) {
-			simpleValue.setTypeName( "integer" );
+		if ( !basicValue.isTypeSpecified() && isVersion() ) {
+			basicValue.setTypeName( "integer" );
 		}
 
 		// HHH-5205
 		if ( timeStampVersionType != null ) {
-			simpleValue.setTypeName( timeStampVersionType );
+			basicValue.setTypeName( timeStampVersionType );
 		}
 		
-		if ( simpleValue.getTypeName() != null && simpleValue.getTypeName().length() > 0
-				&& simpleValue.getMetadata().getTypeResolver().basic( simpleValue.getTypeName() ) == null ) {
+		if ( basicValue.getTypeName() != null && basicValue.getTypeName().length() > 0
+				&& basicValue.getMetadata().getTypeResolver().basic( basicValue.getTypeName() ) == null ) {
 			try {
-				Class typeClass = buildingContext.getClassLoaderAccess().classForName( simpleValue.getTypeName() );
+				Class typeClass = buildingContext.getClassLoaderAccess().classForName( basicValue.getTypeName() );
 
 				if ( typeClass != null && DynamicParameterizedType.class.isAssignableFrom( typeClass ) ) {
-					Properties parameters = simpleValue.getTypeParameters();
+					Properties parameters = basicValue.getTypeParameters();
 					if ( parameters == null ) {
 						parameters = new Properties();
 					}
@@ -550,11 +550,11 @@ public class BasicValueBinder {
 					parameters.put( DynamicParameterizedType.XPROPERTY, xproperty );
 					parameters.put( DynamicParameterizedType.PROPERTY, xproperty.getName() );
 					parameters.put( DynamicParameterizedType.ACCESS_TYPE, accessType.getType() );
-					simpleValue.setTypeParameters( parameters );
+					basicValue.setTypeParameters( parameters );
 				}
 			}
 			catch (ClassLoadingException e) {
-				throw new MappingException( "Could not determine type for: " + simpleValue.getTypeName(), e );
+				throw new MappingException( "Could not determine type for: " + basicValue.getTypeName(), e );
 			}
 		}
 

@@ -16,12 +16,19 @@ import java.sql.Types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.SerializableType;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.UserType;
 
 /**
  * @author Gavin King
  */
 public class RowIdType implements UserType {
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{SerializableType.INSTANCE.getSqlTypeDescriptor()};
+	}
 
 	public int[] sqlTypes() {
 		return new int[] { Types.JAVA_OBJECT };

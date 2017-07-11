@@ -22,9 +22,14 @@ import org.hibernate.engine.spi.Mapping;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
+import org.hibernate.type.AbstractStandardBasicType;
 import org.hibernate.type.BasicType;
 import org.hibernate.type.BinaryType;
+import org.hibernate.type.CompositeCustomType;
+import org.hibernate.type.CustomType;
+import org.hibernate.type.ObjectType;
 import org.hibernate.type.RowVersionType;
+import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.JdbcTypeNameMapper;
 import org.hibernate.type.descriptor.converter.AttributeConverterSqlTypeDescriptorAdapter;
 import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
@@ -36,6 +41,7 @@ import org.hibernate.type.descriptor.sql.NationalizedTypeMappings;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptorRegistry;
 import org.hibernate.usertype.DynamicParameterizedType;
+import org.hibernate.usertype.UserType;
 
 /**
  * @author Andrea Boriero
@@ -76,7 +82,7 @@ public class BasicValue extends SimpleValue{
 		column.setTable( table );
 	}
 
-	public class ColumnSqlTypeCodeResolverImpl implements ColumnSqlTypeCodeResolver{
+	public class ColumnSqlTypeCodeResolverImpl implements ColumnSqlTypeCodeResolver {
 
 		private final int index;
 		private final Mapping mapping;
@@ -87,8 +93,28 @@ public class BasicValue extends SimpleValue{
 		}
 
 		@Override
-		public int resolveCode() {
-			return getType().sqlTypes( mapping )[index];
+		public SqlTypeDescriptor resolveSqlTypeDescriptor() {
+			BasicType type = getType();
+			if ( type instanceof CompositeCustomType ) {
+				return ( (CompositeCustomType) type ).getUserType().getSqlTypeDescriptors()[index];
+			}
+			else if(type instanceof CustomType){
+				return ((CustomType)type).getUserType().getSqlTypeDescriptors()[index];
+			}
+			else if(type instanceof UserType){
+				return ((UserType)type).getSqlTypeDescriptors()[index];
+			}
+			else if ( type instanceof ObjectType ) {
+				ObjectType objectType = ( (ObjectType) type );
+				if ( index == 0 ) {
+					type = (BasicType) objectType.getDiscriminatorType();
+				}
+				else {
+					type = (BasicType) objectType.getIdentifierType();
+				}
+			}
+			AbstractStandardBasicType abstractStandardBasicType = (AbstractStandardBasicType) type;
+			return abstractStandardBasicType.getSqlTypeDescriptor();
 		}
 	}
 

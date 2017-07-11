@@ -16,6 +16,8 @@ import java.util.Properties;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StringType;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 
@@ -57,6 +59,11 @@ public class ParametrizedTestUserType implements UserType, ParameterizedType {
 		else {
 			StringType.INSTANCE.nullSafeSet( st, null, index, session );
 		}
+	}
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{VarcharTypeDescriptor.INSTANCE};
 	}
 
 	public int[] sqlTypes() {

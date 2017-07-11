@@ -16,6 +16,7 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.CompositeUserType;
 
 /**
@@ -23,6 +24,14 @@ import org.hibernate.usertype.CompositeUserType;
  * @author Adam Warski (adam at warski dot org)
  */
 public class CompositeTestUserType implements CompositeUserType {
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[] {
+				StringType.INSTANCE.getSqlTypeDescriptor(),
+				IntegerType.INSTANCE.getSqlTypeDescriptor()
+		};
+	}
+
 	public String[] getPropertyNames() {
 		return new String[] {"prop1", "prop2"};
 	}

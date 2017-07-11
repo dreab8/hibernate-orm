@@ -13,6 +13,7 @@ import java.util.Map;
 import org.hibernate.MappingException;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 /**
  * A many-to-one association mapping
@@ -56,7 +57,7 @@ public class ManyToOne extends ToOne {
 		column.setSqlTypeCodeResolver( new ColumnSqlTypeCodeResolverImpl( columns.size() - 1  ) );
 	}
 
-	public class ColumnSqlTypeCodeResolverImpl implements ColumnSqlTypeCodeResolver{
+	public class ColumnSqlTypeCodeResolverImpl implements ColumnSqlTypeCodeResolver {
 
 		private int index;
 
@@ -65,14 +66,15 @@ public class ManyToOne extends ToOne {
 		}
 
 		@Override
-		public int resolveCode() {
+		public SqlTypeDescriptor resolveSqlTypeDescriptor() {
 			final PersistentClass referencedPersistentClass = getMetadata().getEntityBinding( getReferencedEntityName() );
 			if ( referenceToPrimaryKey || referencedPropertyName == null ) {
-				return ( (Column) referencedPersistentClass.getIdentifier().getColumn( index ) ).getSqlTypeCode( getMetadata() );
+				return ( (Column) referencedPersistentClass.getIdentifier().getColumn( index ) ).getSqlTypeDescriptor();
 			}
 			else {
-				final Property referencedProperty = referencedPersistentClass.getReferencedProperty( getReferencedPropertyName() );
-				return ( (Column) referencedProperty.getValue().getColumn( index ) ).getSqlTypeCode( getMetadata() );
+				final Property referencedProperty = referencedPersistentClass.getReferencedProperty(
+						getReferencedPropertyName() );
+				return ( (Column) referencedProperty.getValue().getColumn( index ) ).getSqlTypeDescriptor();
 			}
 		}
 	}

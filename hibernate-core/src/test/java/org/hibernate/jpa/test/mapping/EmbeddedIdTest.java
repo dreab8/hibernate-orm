@@ -88,7 +88,7 @@ public class EmbeddedIdTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Entity
-	public static class MyEntity5 {
+	public static class MyEntity5 implements Serializable {
 		@Id
 		@ManyToOne
 		MyEntity3 myEntity_3_Id;

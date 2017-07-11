@@ -33,6 +33,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.CompositeUserType;
 
 /**
@@ -41,6 +42,18 @@ import org.hibernate.usertype.CompositeUserType;
  * @author Etienne Miret
  */
 public class CompositeDateTimeUserType implements CompositeUserType {
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[] {
+				StandardBasicTypes.INTEGER.getSqlTypeDescriptor(),
+				StandardBasicTypes.INTEGER.getSqlTypeDescriptor(),
+				StandardBasicTypes.INTEGER.getSqlTypeDescriptor(),
+				StandardBasicTypes.INTEGER.getSqlTypeDescriptor(),
+				StandardBasicTypes.INTEGER.getSqlTypeDescriptor(),
+				StandardBasicTypes.INTEGER.getSqlTypeDescriptor()
+		};
+	}
 
 	@Override
 	public String[] getPropertyNames() {

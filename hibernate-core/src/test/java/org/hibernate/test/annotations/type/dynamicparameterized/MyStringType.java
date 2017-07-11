@@ -32,6 +32,7 @@ import java.util.Properties;
 import org.hibernate.annotations.common.reflection.XProperty;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StringType;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.DynamicParameterizedType;
 import org.hibernate.usertype.UserType;
 
@@ -103,6 +104,11 @@ public class MyStringType implements UserType, DynamicParameterizedType {
 	@Override
 	public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws SQLException {
 		return rs.getString( names[0] );
+	}
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{StringType.INSTANCE.getSqlTypeDescriptor()};
 	}
 
 	@Override

@@ -14,12 +14,19 @@ import java.sql.Types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.descriptor.sql.DateTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.usertype.UserType;
 
 /**
  * @author Chris Pheby
  */
 public class MyDateUserType implements UserType {
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{DateTypeDescriptor.INSTANCE};
+	}
 
 	@Override
 	public int[] sqlTypes() {

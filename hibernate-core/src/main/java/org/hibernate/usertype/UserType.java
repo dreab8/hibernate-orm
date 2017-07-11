@@ -13,6 +13,7 @@ import java.sql.SQLException;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 /**
  * This interface should be implemented by user-defined "types".
@@ -48,6 +49,9 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
  * @author Gavin King
  */
 public interface UserType {
+
+
+	SqlTypeDescriptor[] getSqlTypeDescriptors();
 
 	/**
 	 * Return the SQL type codes for the columns mapped by this type. The
