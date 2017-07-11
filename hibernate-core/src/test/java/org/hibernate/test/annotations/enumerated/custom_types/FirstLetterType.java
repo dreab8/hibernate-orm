@@ -13,6 +13,8 @@ import java.sql.Types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
 
 /**
  * @author Janario Oliveira
@@ -22,6 +24,11 @@ public class FirstLetterType extends org.hibernate.type.EnumType {
 	@Override
 	public int[] sqlTypes() {
 		return new int[] { Types.VARCHAR };
+	}
+
+	@Override
+	public SqlTypeDescriptor[] getSqlTypeDescriptors() {
+		return new SqlTypeDescriptor[]{VarcharTypeDescriptor.INSTANCE};
 	}
 
 	@Override

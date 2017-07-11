@@ -99,7 +99,7 @@ public class BasicValue extends SimpleValue{
 				return ( (CompositeCustomType) type ).getUserType().getSqlTypeDescriptors()[index];
 			}
 			else if(type instanceof CustomType){
-				return ((CustomType)type).getUserType().getSqlTypeDescriptors()[index];
+				return ((CustomType)type).getSqlTypeDescriptors()[index];
 			}
 			else if(type instanceof UserType){
 				return ((UserType)type).getSqlTypeDescriptors()[index];
