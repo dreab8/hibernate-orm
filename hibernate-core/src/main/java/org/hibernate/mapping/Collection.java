@@ -369,8 +369,8 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 	}
 
 	@Override
-	public Selectable getColumn(int index) {
-		return null;
+	public java.util.List<Selectable> getColumns() {
+		return Collections.emptyList();
 	}
 
 	public int getColumnSpan() {

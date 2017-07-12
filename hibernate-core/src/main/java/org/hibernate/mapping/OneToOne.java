@@ -108,13 +108,13 @@ public class OneToOne extends ToOne {
 				final PersistentClass referencedPersistentClass = getMetadata().getEntityBinding(
 						getReferencedEntityName() );
 				if ( referenceToPrimaryKey || referencedPropertyName == null ) {
-					return ( (Column) referencedPersistentClass.getIdentifier().getColumn( index ) ).getSqlTypeDescriptor();
+					return ( (Column) referencedPersistentClass.getIdentifier().getColumns().get( index ) ).getSqlTypeDescriptor();
 				}
 				else {
 					final Property referencedProperty = referencedPersistentClass.getReferencedProperty(
 							getReferencedPropertyName() );
 					return ( (Column) referencedProperty.getValue()
-							.getColumn( index ) ).getSqlTypeDescriptor();
+							.getColumns().get( index ) ).getSqlTypeDescriptor();
 				}
 			}else{
 				throw new IllegalStateException( "No SqlType code to resolve for "  + entityName);

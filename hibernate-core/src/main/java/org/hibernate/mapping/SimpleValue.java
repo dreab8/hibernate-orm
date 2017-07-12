@@ -76,7 +76,6 @@ public abstract class SimpleValue implements KeyValue {
 	private String foreignKeyDefinition;
 	private boolean alternateUniqueKey;
 	protected boolean cascadeDeleteEnabled;
-	protected ForeignKey foreignKey;
 
 	protected AttributeConverterDescriptor attributeConverterDescriptor;
 	private Type type;
@@ -142,9 +141,8 @@ public abstract class SimpleValue implements KeyValue {
 		return columns.iterator();
 	}
 
-	@Override
-	public Selectable getColumn(int index) {
-		return columns.get( index );
+	public List<Selectable> getColumns() {
+		return columns;
 	}
 
 	public List getConstraintColumns() {
@@ -207,8 +205,8 @@ public abstract class SimpleValue implements KeyValue {
 	@Override
 	public void createForeignKeyOfEntity(String entityName) {
 		if ( !hasFormula() && !"none".equals(getForeignKeyName())) {
-			foreignKey = table.createForeignKey( getForeignKeyName(), getConstraintColumns(), entityName, getForeignKeyDefinition() );
-			foreignKey.setCascadeDeleteEnabled(cascadeDeleteEnabled);
+			final ForeignKey fk = table.createForeignKey( getForeignKeyName(), getConstraintColumns(), entityName, getForeignKeyDefinition() );
+			fk.setCascadeDeleteEnabled(cascadeDeleteEnabled);
 		}
 	}
 

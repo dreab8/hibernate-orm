@@ -69,12 +69,12 @@ public class ManyToOne extends ToOne {
 		public SqlTypeDescriptor resolveSqlTypeDescriptor() {
 			final PersistentClass referencedPersistentClass = getMetadata().getEntityBinding( getReferencedEntityName() );
 			if ( referenceToPrimaryKey || referencedPropertyName == null ) {
-				return ( (Column) referencedPersistentClass.getIdentifier().getColumn( index ) ).getSqlTypeDescriptor();
+				return ( (Column) referencedPersistentClass.getIdentifier().getColumns().get( index ) ).getSqlTypeDescriptor();
 			}
 			else {
 				final Property referencedProperty = referencedPersistentClass.getReferencedProperty(
 						getReferencedPropertyName() );
-				return ( (Column) referencedProperty.getValue().getColumn( index ) ).getSqlTypeDescriptor();
+				return ( (Column) referencedProperty.getValue().getColumns().get( index ) ).getSqlTypeDescriptor();
 			}
 		}
 	}

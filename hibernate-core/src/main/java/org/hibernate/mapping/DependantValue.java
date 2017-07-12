@@ -55,7 +55,7 @@ public class DependantValue extends SimpleValue {
 
 		@Override
 		public SqlTypeDescriptor resolveSqlTypeDescriptor() {
-			return ( (Column) wrappedValue.getColumn( index ) ).getSqlTypeDescriptor();
+			return ( (Column) wrappedValue.getColumns().get( index ) ).getSqlTypeDescriptor();
 		}
 	}
 
