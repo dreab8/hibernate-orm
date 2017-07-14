@@ -94,6 +94,11 @@ public class Component extends SimpleValue implements MetaAttributable {
 	}
 
 	@Override
+	protected void setSqlTypeDescriptorResolver(Column column) {
+		throw new UnsupportedOperationException( "Cant add a column to a component" );
+	}
+
+	@Override
 	public int getColumnSpan() {
 		int n=0;
 		Iterator iter = getPropertyIterator();

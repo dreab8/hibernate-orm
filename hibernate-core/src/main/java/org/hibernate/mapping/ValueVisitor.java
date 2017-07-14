@@ -63,6 +63,4 @@ public interface ValueVisitor {
 	Object accept(OneToOne oto);
 
 	Object accept(BasicValue value);
-	
-
 }

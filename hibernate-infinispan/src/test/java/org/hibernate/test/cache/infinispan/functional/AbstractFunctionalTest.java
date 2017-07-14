@@ -168,14 +168,13 @@ public abstract class AbstractFunctionalTest extends BaseNonConfigCoreFunctional
 				value.setTypeName("long");
 				Column column = new Column();
 				column.setName("version");
-				column.setSqlTypeCodeResolver( new SimpleValue.SqlTypeDescriptorResolver() {
+				column.setSqlTypeDescriptorResolver( new SimpleValue.SqlTypeDescriptorResolver() {
 					@Override
 					public SqlTypeDescriptor resolveSqlTypeDescriptor() {
 						return BigIntTypeDescriptor.INSTANCE;
 					}
 				} );
 				value.addColumn(column);
-				rootClazz.getTable().addColumn(column);
 				versionProperty.setValue(value);
 				rootClazz.setVersion(versionProperty);
 				rootClazz.addProperty(versionProperty);

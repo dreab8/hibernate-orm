@@ -43,7 +43,7 @@ public class FoodItem {
 	}
 
 	@ManyToOne
-	@JoinColumnOrFormula(column=@JoinColumn(name="order_nbr1", referencedColumnName="order_nbr"))
+	@JoinColumnOrFormula(column=@JoinColumn(name="order_nbr", referencedColumnName="order_nbr"))
 	@JoinColumnOrFormula(formula=@JoinFormula(value="'F'", referencedColumnName="is_default"))
 	public Menu getOrder() {
 		return order;

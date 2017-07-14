@@ -330,12 +330,12 @@ public class Column implements Selectable, Serializable, Cloneable {
 		copy.setComment( comment );
 		copy.setDefaultValue( defaultValue );
 		copy.setCustomRead( customRead );
-		copy.setSqlTypeCodeResolver( sqlTypeCodeResolver );
+		copy.setSqlTypeDescriptorResolver( sqlTypeCodeResolver );
 		copy.setCustomWrite( customWrite );
 		return copy;
 	}
 
-	public void setSqlTypeCodeResolver(SimpleValue.SqlTypeDescriptorResolver sqlTypeCodeResolver) {
+	public void setSqlTypeDescriptorResolver(SimpleValue.SqlTypeDescriptorResolver sqlTypeCodeResolver) {
 		this.sqlTypeCodeResolver = sqlTypeCodeResolver;
 	}
 }

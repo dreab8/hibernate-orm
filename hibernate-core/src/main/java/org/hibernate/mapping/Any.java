@@ -47,33 +47,20 @@ public class Any extends SimpleValue {
 		);
 	}
 
-	public void addColumn(Column column, boolean isInsertable, boolean isUpdatable) {
-		int index = columns.indexOf( column );
-		if ( index == -1 ) {
-			columns.add(column);
-			insertability.add( isInsertable );
-			updatability.add( isUpdatable );
-		}
-		else {
-			if ( insertability.get( index ) != isInsertable ) {
-				throw new IllegalStateException( "Same column is added more than once with different values for isInsertable" );
-			}
-			if ( updatability.get( index ) != isUpdatable ) {
-				throw new IllegalStateException( "Same column is added more than once with different values for isUpdatable" );
-			}
-		}
-		column.setSqlTypeCodeResolver( new SqlTypeDescriptorResolverImpl( columns.size() - 1  ) );
+	public void setSqlTypeDescriptorResolver(Column column) {
+		column.setSqlTypeDescriptorResolver( new AnySqlTypeDescriptorResolver( columns.size() - 1 ) );
 	}
 
-	public class SqlTypeDescriptorResolverImpl implements SqlTypeDescriptorResolver {
+	public class AnySqlTypeDescriptorResolver implements SqlTypeDescriptorResolver {
 		AbstractStandardBasicType[] basicTypes = new AbstractStandardBasicType[2];
 
 		private int index;
 
-		public SqlTypeDescriptorResolverImpl(int index) {
+		public AnySqlTypeDescriptorResolver(int index) {
 			this.index = index;
 			basicTypes[0] = (AbstractStandardBasicType) getMetadata().getTypeResolver().heuristicType( metaTypeName );
-			basicTypes[1] = (AbstractStandardBasicType) getMetadata().getTypeResolver().heuristicType( identifierTypeName );
+			basicTypes[1] = (AbstractStandardBasicType) getMetadata().getTypeResolver().heuristicType(
+					identifierTypeName );
 		}
 
 		@Override

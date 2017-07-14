@@ -55,38 +55,16 @@ public class BasicValue extends SimpleValue{
 		this.table = table;
 	}
 
-	public void addColumn(Column column) {
-		addColumn( column, true, true );
+	public void setSqlTypeDescriptorResolver(Column column) {
+		column.setSqlTypeDescriptorResolver( new BasicValueSqlTypeDescriptorResolver( columns.size() - 1, getMetadata() ) );
 	}
 
-
-	public void addColumn(Column column, boolean isInsertable, boolean isUpdatable) {
-
-		int index = columns.indexOf( column );
-
-		if ( index == -1 ) {
-			columns.add( column );
-			insertability.add( isInsertable );
-			updatability.add( isUpdatable );
-		}
-		else {
-			if ( insertability.get( index ) != isInsertable ) {
-				throw new IllegalStateException( "Same column is added more than once with different values for isInsertable" );
-			}
-			if ( updatability.get( index ) != isUpdatable ) {
-				throw new IllegalStateException( "Same column is added more than once with different values for isUpdatable" );
-			}
-		}
-		column.setSqlTypeCodeResolver( new SqlTypeDescriptorResolverImpl( columns.size() - 1, getMetadata() ) );
-		column.setTable( table );
-	}
-
-	public class SqlTypeDescriptorResolverImpl implements SqlTypeDescriptorResolver {
+	public class BasicValueSqlTypeDescriptorResolver implements SqlTypeDescriptorResolver {
 
 		private final int index;
 		private final Mapping mapping;
 
-		public SqlTypeDescriptorResolverImpl(int index, Mapping mapping) {
+		public BasicValueSqlTypeDescriptorResolver(int index, Mapping mapping) {
 			this.index = index;
 			this.mapping = mapping;
 		}

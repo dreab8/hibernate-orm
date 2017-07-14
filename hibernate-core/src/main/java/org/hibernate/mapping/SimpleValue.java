@@ -65,13 +65,13 @@ public abstract class SimpleValue implements KeyValue {
 	protected String typeName;
 	protected Properties typeParameters;
 	protected boolean isVersion;
-	protected Table table;
 	private boolean isNationalized;
 	private boolean isLob;
 
 	private Properties identifierGeneratorProperties;
 	private String identifierGeneratorStrategy = DEFAULT_ID_GEN_STRATEGY;
 	private String nullValue;
+	protected Table table;
 	private String foreignKeyName;
 	private String foreignKeyDefinition;
 	private boolean alternateUniqueKey;
@@ -102,12 +102,36 @@ public abstract class SimpleValue implements KeyValue {
 	public void setCascadeDeleteEnabled(boolean cascadeDeleteEnabled) {
 		this.cascadeDeleteEnabled = cascadeDeleteEnabled;
 	}
-	
+
+
 	public void addColumn(Column column) {
 		addColumn( column, true, true );
 	}
 
-	public abstract void addColumn(Column column, boolean isInsertable, boolean isUpdatable);
+	public void addColumn(Column column, boolean isInsertable, boolean isUpdatable) {
+		int index = columns.indexOf( column );
+		if ( index == -1 ) {
+			columns.add( column );
+			insertability.add( isInsertable );
+			updatability.add( isUpdatable );
+		}
+		else {
+			if ( insertability.get( index ) != isInsertable ) {
+				throw new IllegalStateException(
+						"Same column is added more than once with different values for isInsertable" );
+			}
+			if ( updatability.get( index ) != isUpdatable ) {
+				throw new IllegalStateException(
+						"Same column is added more than once with different values for isUpdatable" );
+			}
+		}
+		if ( table != null ) {
+			column.setTable( table );
+		}
+		setSqlTypeDescriptorResolver( column );
+	}
+
+	protected abstract void setSqlTypeDescriptorResolver(Column column);
 
 	public interface SqlTypeDescriptorResolver {
 		SqlTypeDescriptor resolveSqlTypeDescriptor();
