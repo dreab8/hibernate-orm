@@ -221,7 +221,7 @@ public abstract class AbstractMetamodelDrivenSqlSelectPlanBuilder
 	}
 
 	@Override
-	public SqlAstSelectInterpretation buildSqlSelectPlan(NavigableContainer rootNavigable) {
+	public SqlAstSelectInterpretation buildSqlSelectPlan(NavigableContityntainer rootNavigable) {
 		assert rootNavigable instanceof RootTableGroupProducer;
 		final RootTableGroupProducer rootTableGroupProducer = (RootTableGroupProducer) rootNavigable;
 

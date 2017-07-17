@@ -34,6 +34,7 @@ import org.hibernate.internal.util.collections.ArrayHelper;
 import org.hibernate.jpa.event.spi.CallbackRegistry;
 import org.hibernate.jpa.event.spi.CallbackRegistryConsumer;
 import org.hibernate.metamodel.model.domain.spi.EntityDescriptor;
+import org.hibernate.metamodel.model.domain.spi.NaturalIdentifierDescriptor;
 import org.hibernate.pretty.MessageHelper;
 import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.Type;
@@ -88,7 +89,9 @@ public class DefaultFlushEntityEventListener implements FlushEntityEventListener
 			Object[] current,
 			Object[] loaded,
 			SessionImplementor session) {
-		if ( persister.hasNaturalIdentifier() && entry.getStatus() != Status.READ_ONLY ) {
+		final NaturalIdentifierDescriptor naturalIdentifierDescriptor = persister.getHierarchy()
+				.getNaturalIdentifierDescriptor();
+		if ( naturalIdentifierDescriptor != null && entry.getStatus() != Status.READ_ONLY ) {
 			if ( !persister.getEntityMetamodel().hasImmutableNaturalId() ) {
 				// SHORT-CUT: if the natural id is mutable (!immutable), no need to do the below checks
 				// EARLY EXIT!!!
