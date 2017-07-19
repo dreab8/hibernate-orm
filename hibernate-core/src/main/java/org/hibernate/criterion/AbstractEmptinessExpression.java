@@ -5,17 +5,14 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.criterion;
+
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
 import org.hibernate.QueryException;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.TypedValue;
-import org.hibernate.persister.collection.QueryableCollection;
-import org.hibernate.persister.entity.Loadable;
-import org.hibernate.persister.entity.PropertyMapping;
 import org.hibernate.sql.ConditionFragment;
-import org.hibernate.type.CollectionType;
 import org.hibernate.type.Type;
 
 /**

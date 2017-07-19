@@ -87,7 +87,7 @@ public class StatelessSessionImpl extends AbstractSharedSessionContract implemen
 		Serializable id = persister.getIdentifierDescriptor().getIdentifierValueGenerator().generate( this, entity );
 		Object[] state = persister.getPropertyValues( entity );
 		if ( persister.isVersioned() ) {
-			boolean substitute = Versioning.seedVersion
+			boolean substitute = Versioning.seedVersion(
 					state,
 					persister.getHierarchy().getVersionProperty(),
 					( (BasicType) persister.getVersionType() ).getVersionSupport(),

@@ -6,11 +6,7 @@
  */
 package org.hibernate.query.internal.sql;
 
-import org.hibernate.engine.query.spi.NativeSQLQueryPlan;
-import org.hibernate.engine.query.spi.sql.NativeSQLQuerySpecification;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.loader.custom.CustomQuery;
-import org.hibernate.loader.custom.sql.SQLCustomQuery;
 import org.hibernate.query.spi.NativeQueryInterpreter;
 import org.hibernate.query.spi.ParameterRecognizer;
 

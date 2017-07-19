@@ -72,7 +72,7 @@ public class DefaultFlushEntityEventListener implements FlushEntityEventListener
 			if ( id == null ) {
 				throw new AssertionFailure( "null id in " + persister.getEntityName() + " entry (don't flush the Session afterQuery an exception occurs)" );
 			}
-			if ( !persister.getIdentifierType().isEqual( id, oid, session.getFactory() ) ) {
+			if ( !persister.getIdentifierType().getJavaTypeDescriptor()isEqual( id, oid, session.getFactory() ) ) {
 				throw new HibernateException(
 						"identifier of an instance of " + persister.getEntityName() + " was altered from "
 								+ id + " to " + oid

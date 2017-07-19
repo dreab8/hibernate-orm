@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hibernate.LockMode;
-import org.hibernate.engine.query.spi.sql.NativeSQLQueryReturn;
-import org.hibernate.engine.query.spi.sql.NativeSQLQueryRootReturn;
 import org.hibernate.query.NativeQuery;
 
 /**

@@ -8,8 +8,6 @@
 package org.hibernate.query.spi;
 
 import org.hibernate.Incubating;
-import org.hibernate.engine.query.spi.NativeSQLQueryPlan;
-import org.hibernate.engine.query.spi.sql.NativeSQLQuerySpecification;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.Service;
 

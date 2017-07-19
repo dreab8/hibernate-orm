@@ -44,7 +44,6 @@ import org.hibernate.SessionEventListener;
 import org.hibernate.SharedSessionBuilder;
 import org.hibernate.SimpleNaturalIdLoadAccess;
 import org.hibernate.Transaction;
-import org.hibernate.TypeHelper;
 import org.hibernate.UnknownProfileException;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.jdbc.LobCreator;

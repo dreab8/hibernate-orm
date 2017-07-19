@@ -15,9 +15,6 @@ import java.util.Set;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.ResultSetMappingDefinition;
-import org.hibernate.engine.query.spi.sql.NativeSQLQueryConstructorReturn;
-import org.hibernate.engine.query.spi.sql.NativeSQLQueryReturn;
-import org.hibernate.engine.query.spi.sql.NativeSQLQueryScalarReturn;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.util.collections.CollectionHelper;
 import org.hibernate.procedure.UnknownSqlResultSetMappingException;
