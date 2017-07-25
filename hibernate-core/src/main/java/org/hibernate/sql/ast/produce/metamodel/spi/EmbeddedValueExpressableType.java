@@ -18,3 +18,4 @@ public interface EmbeddedValueExpressableType<T> extends ExpressableType<T> {
 		return getEmbeddedDescriptor().getNumberOfJdbcParametersForRestriction();
 	}
 }
+

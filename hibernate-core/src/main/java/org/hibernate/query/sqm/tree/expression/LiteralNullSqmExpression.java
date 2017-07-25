@@ -49,15 +49,6 @@ public class LiteralNullSqmExpression implements LiteralSqmExpression<Void> {
 	}
 
 	private static BasicValuedExpressableType NULL_TYPE = new BasicValuedExpressableType() {
-		@Override
-		public NavigableRole getNavigableRole() {
-			return null;
-		}
-
-		@Override
-		public AttributeConverterDefinition getAttributeConverter() {
-			return null;
-		}
 
 		@Override
 		public PersistenceType getPersistenceType() {
