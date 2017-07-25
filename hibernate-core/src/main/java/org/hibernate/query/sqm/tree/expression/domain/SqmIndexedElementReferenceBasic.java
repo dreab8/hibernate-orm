@@ -7,6 +7,7 @@
 package org.hibernate.query.sqm.tree.expression.domain;
 
 import org.hibernate.query.sqm.tree.expression.SqmExpression;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -18,5 +19,20 @@ public class SqmIndexedElementReferenceBasic
 			SqmPluralAttributeReference pluralAttributeBinding,
 			SqmExpression indexSelectionExpression) {
 		super( pluralAttributeBinding, indexSelectionExpression );
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return getReferencedNavigable().getJavaTypeDescriptor();
+	}
+
+	@Override
+	public PersistenceType getPersistenceType() {
+		return getReferencedNavigable().getPersistenceType();
+	}
+
+	@Override
+	public Class getJavaType() {
+		return getReferencedNavigable().getJavaType();
 	}
 }

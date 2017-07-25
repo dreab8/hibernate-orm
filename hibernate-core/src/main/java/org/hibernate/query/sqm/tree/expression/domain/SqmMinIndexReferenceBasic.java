@@ -6,8 +6,8 @@
  */
 package org.hibernate.query.sqm.tree.expression.domain;
 
-import org.hibernate.sql.ast.produce.metamodel.spi.ExpressableType;
 import org.hibernate.query.sqm.consume.spi.SemanticQueryWalker;
+import org.hibernate.sql.ast.produce.metamodel.spi.ExpressableType;
 
 /**
  * @author Steve Ebersole
@@ -37,4 +37,5 @@ public class SqmMinIndexReferenceBasic extends AbstractSpecificSqmCollectionInde
 	public String asLoggableText() {
 		return "MININDEX(" + getPluralAttributeBinding().asLoggableText() + ")";
 	}
+
 }

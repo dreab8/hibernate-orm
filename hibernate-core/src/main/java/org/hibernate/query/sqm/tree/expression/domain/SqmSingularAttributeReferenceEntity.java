@@ -7,6 +7,7 @@
 package org.hibernate.query.sqm.tree.expression.domain;
 
 import org.hibernate.metamodel.model.domain.internal.SingularPersistentAttributeEntity;
+import org.hibernate.query.sqm.consume.spi.SemanticQueryWalker;
 import org.hibernate.sql.ast.produce.metamodel.spi.EntityValuedExpressableType;
 import org.hibernate.query.sqm.tree.from.SqmAttributeJoin;
 
@@ -38,5 +39,10 @@ public class SqmSingularAttributeReferenceEntity extends AbstractSqmSingularAttr
 	@Override
 	public EntityValuedExpressableType getInferableType() {
 		return getExpressionType();
+	}
+
+	@Override
+	public <T> T accept(SemanticQueryWalker<T> walker) {
+		return walker.visitEntityValuedSingularAttribute( this );
 	}
 }

@@ -10,6 +10,7 @@ import org.hibernate.metamodel.model.domain.spi.CollectionElement;
 import org.hibernate.metamodel.model.domain.spi.CollectionElementEmbedded;
 import org.hibernate.query.sqm.consume.spi.SemanticQueryWalker;
 import org.hibernate.query.sqm.tree.from.SqmFrom;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 import org.jboss.logging.Logger;
 
@@ -61,5 +62,20 @@ public class SqmMinElementReferenceEmbedded extends AbstractSpecificSqmElementRe
 				this.exportedFromElement
 		);
 		exportedFromElement = sqmFrom;
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return getReferencedNavigable().getJavaTypeDescriptor();
+	}
+
+	@Override
+	public PersistenceType getPersistenceType() {
+		return getReferencedNavigable().getPersistenceType();
+	}
+
+	@Override
+	public Class getJavaType() {
+		return getReferencedNavigable().getJavaType();
 	}
 }

@@ -8,11 +8,12 @@ package org.hibernate.query.sqm.tree.expression.domain;
 
 import org.hibernate.sql.ast.produce.metamodel.spi.ExpressableType;
 import org.hibernate.query.sqm.consume.spi.SemanticQueryWalker;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 /**
  * @author Steve Ebersole
  */
-public class AbstractSpecificSqmCollectionIndexReference extends AbstractSqmCollectionIndexReference {
+public abstract class AbstractSpecificSqmCollectionIndexReference extends AbstractSqmCollectionIndexReference {
 	public AbstractSpecificSqmCollectionIndexReference(SqmPluralAttributeReference pluralAttributeBinding) {
 		super( pluralAttributeBinding );
 	}
@@ -30,5 +31,20 @@ public class AbstractSpecificSqmCollectionIndexReference extends AbstractSqmColl
 	@Override
 	public <T> T accept(SemanticQueryWalker<T> walker) {
 		return walker.visitMaxIndexFunction( this );
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return getExpressionType().getJavaTypeDescriptor();
+	}
+
+	@Override
+	public PersistenceType getPersistenceType() {
+		return getExpressionType().getPersistenceType();
+	}
+
+	@Override
+	public Class getJavaType() {
+		return getJavaTypeDescriptor().getJavaType();
 	}
 }

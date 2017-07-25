@@ -8,6 +8,7 @@ package org.hibernate.query.sqm.tree.expression.domain;
 
 import org.hibernate.query.sqm.NotYetImplementedException;
 import org.hibernate.query.sqm.consume.spi.SemanticQueryWalker;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -21,5 +22,20 @@ public class SqmCollectionElementReferenceBasic extends AbstractSqmCollectionEle
 	@Override
 	public <T> T accept(SemanticQueryWalker<T> walker) {
 		throw new NotYetImplementedException(  );
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return getReferencedNavigable().getJavaTypeDescriptor();
+	}
+
+	@Override
+	public PersistenceType getPersistenceType() {
+		return getReferencedNavigable().getPersistenceType();
+	}
+
+	@Override
+	public Class getJavaType() {
+		return getReferencedNavigable().getJavaType();
 	}
 }

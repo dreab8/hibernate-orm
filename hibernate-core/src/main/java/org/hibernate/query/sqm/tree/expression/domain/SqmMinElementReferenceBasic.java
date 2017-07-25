@@ -9,6 +9,7 @@ package org.hibernate.query.sqm.tree.expression.domain;
 import org.hibernate.metamodel.model.domain.spi.CollectionElementBasic;
 import org.hibernate.query.sqm.NotYetImplementedException;
 import org.hibernate.query.sqm.consume.spi.SemanticQueryWalker;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -36,5 +37,20 @@ public class SqmMinElementReferenceBasic extends AbstractSpecificSqmElementRefer
 	@Override
 	public String asLoggableText() {
 		return "MINELEMENT(" + getPluralAttributeBinding().asLoggableText() + ")";
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return getReferencedNavigable().getJavaTypeDescriptor();
+	}
+
+	@Override
+	public PersistenceType getPersistenceType() {
+		return getReferencedNavigable().getPersistenceType();
+	}
+
+	@Override
+	public Class getJavaType() {
+		return getReferencedNavigable().getJavaType();
 	}
 }

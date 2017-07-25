@@ -6,10 +6,11 @@
  */
 package org.hibernate.query.sqm.tree.expression.domain;
 
-import org.hibernate.metamodel.model.domain.spi.Navigable;
-import org.hibernate.query.sqm.tree.from.SqmFrom;
+import org.hibernate.metamodel.model.domain.spi.EmbeddedValuedNavigable;
 import org.hibernate.query.sqm.NotYetImplementedException;
 import org.hibernate.query.sqm.consume.spi.SemanticQueryWalker;
+import org.hibernate.query.sqm.tree.from.SqmFrom;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 import org.jboss.logging.Logger;
 
@@ -28,8 +29,8 @@ public class SqmMaxElementReferenceEmbedded
 	}
 
 	@Override
-	public Navigable getReferencedNavigable() {
-		return super.getReferencedNavigable();
+	public EmbeddedValuedNavigable getReferencedNavigable() {
+		return (EmbeddedValuedNavigable) super.getReferencedNavigable();
 	}
 
 	@Override
@@ -51,5 +52,21 @@ public class SqmMaxElementReferenceEmbedded
 	@Override
 	public <T> T accept(SemanticQueryWalker<T> walker) {
 		throw new NotYetImplementedException(  );
+	}
+
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return getReferencedNavigable().getJavaTypeDescriptor();
+	}
+
+	@Override
+	public PersistenceType getPersistenceType() {
+		return getReferencedNavigable().getPersistenceType();
+	}
+
+	@Override
+	public Class getJavaType() {
+		return getReferencedNavigable().getJavaType();
 	}
 }

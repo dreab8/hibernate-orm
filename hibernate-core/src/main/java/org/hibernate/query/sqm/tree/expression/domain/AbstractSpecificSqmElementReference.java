@@ -6,6 +6,8 @@
  */
 package org.hibernate.query.sqm.tree.expression.domain;
 
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+
 /**
  * @author Steve Ebersole
  */

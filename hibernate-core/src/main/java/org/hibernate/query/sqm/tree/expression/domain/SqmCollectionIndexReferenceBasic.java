@@ -6,11 +6,29 @@
  */
 package org.hibernate.query.sqm.tree.expression.domain;
 
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+
 /**
  * @author Steve Ebersole
  */
 public class SqmCollectionIndexReferenceBasic extends AbstractSqmCollectionIndexReference {
 	public SqmCollectionIndexReferenceBasic(SqmPluralAttributeReference pluralAttributeBinding) {
 		super( pluralAttributeBinding );
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return getPluralAttributeBinding().getReferencedNavigable().getPersistentCollectionMetadata().getIndexDescriptor().getJavaTypeDescriptor();
+	}
+
+	@Override
+	public PersistenceType getPersistenceType() {
+		return PersistenceType.EMBEDDABLE;
+	}
+
+	@Override
+	public Class getJavaType() {
+		return getPluralAttributeBinding().getReferencedNavigable().getPersistentCollectionMetadata().getIndexDescriptor().getJavaType();
+
 	}
 }

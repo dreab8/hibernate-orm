@@ -9,6 +9,7 @@ package org.hibernate.query.sqm.tree.expression.domain;
 import org.hibernate.metamodel.model.domain.spi.CollectionIndexEmbedded;
 import org.hibernate.query.sqm.NotYetImplementedException;
 import org.hibernate.query.sqm.tree.from.SqmFrom;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -37,11 +38,6 @@ public class SqmCollectionIndexReferenceEmbedded
 	}
 
 	@Override
-	public String getTypeName() {
-		return getJavaType().getName();
-	}
-
-	@Override
 	public PersistenceType getPersistenceType() {
 		return PersistenceType.EMBEDDABLE;
 	}
@@ -49,5 +45,10 @@ public class SqmCollectionIndexReferenceEmbedded
 	@Override
 	public Class getJavaType() {
 		return getPluralAttributeBinding().getReferencedNavigable().getPersistentCollectionMetadata().getIndexDescriptor().getJavaType();
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return getPluralAttributeBinding().getReferencedNavigable().getPersistentCollectionMetadata().getIndexDescriptor().getJavaTypeDescriptor();
 	}
 }
