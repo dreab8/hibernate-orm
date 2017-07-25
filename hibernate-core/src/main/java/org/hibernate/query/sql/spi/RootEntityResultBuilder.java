@@ -25,6 +25,7 @@ import org.hibernate.sql.ast.tree.spi.select.Fetch;
 import org.hibernate.sql.ast.tree.spi.select.QueryResultEntity;
 import org.hibernate.sql.exec.results.internal.EntityReturnInitializerImpl;
 import org.hibernate.sql.exec.results.internal.QueryResultAssemblerEntity;
+import org.hibernate.sql.exec.results.spi.EntityReferenceInitializer;
 import org.hibernate.sql.exec.results.spi.Initializer;
 import org.hibernate.sql.exec.results.spi.InitializerCollector;
 import org.hibernate.sql.exec.results.spi.InitializerParent;
@@ -181,16 +182,6 @@ public class RootEntityResultBuilder
 			}
 
 			@Override
-			public String getSelectedExpressionDescription() {
-				return null;
-			}
-
-			@Override
-			public String getResultVariable() {
-				return null;
-			}
-
-			@Override
 			public JavaTypeDescriptor getJavaTypeDescriptor() {
 				return null;
 			}
@@ -206,7 +197,7 @@ public class RootEntityResultBuilder
 			}
 
 			@Override
-			public Initializer getInitializer() {
+			public EntityReferenceInitializer getInitializer() {
 				return null;
 			}
 		};
