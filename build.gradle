@@ -32,7 +32,7 @@ buildscript {
 }
 
 plugins {
-	id 'com.gradle.build-scan' version '1.3'
+	id 'com.gradle.build-scan' version '1.9'
 	id 'me.champeau.buildscan-recipes' version '0.1.7'
 }
 
@@ -59,7 +59,7 @@ allprojects {
 
 ext {
 	hibernateTargetVersion = '5.2.12-SNAPSHOT'
-	expectedGradleVersion = '3.2.1'
+	expectedGradleVersion = '4.2'
 	baselineJavaVersion = '1.8'
 
     osgiExportVersion = hibernateTargetVersion.replaceAll( '-SNAPSHOT', '.SNAPSHOT' )
@@ -281,13 +281,7 @@ subprojects { subProject ->
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// artifact
 	jar {
-		manifest = osgiManifest {
-			// GRADLE-1411: Even if we override Imports and Exports
-			// auto-generation with instructions, classesDir and classpath
-			// need to be here (temporarily).
-			classesDir = sourceSets.main.output.classesDir
-			classpath = configurations.runtime
-
+		manifest {
 			instruction 'Import-Package',
 				// Temporarily support JTA 1.1 -- Karaf and other frameworks still
 				// use it.  Without this, the plugin generates [1.2,2).
@@ -311,13 +305,8 @@ subprojects { subProject ->
 	}
 
 	task sourcesJar(type: Jar, dependsOn: compileJava) {
-		from sourceSets.main.allSource
-		classifier = 'sources'
 	}
 
-	sourcesJar {
-		manifest = jar.manifest
-	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
