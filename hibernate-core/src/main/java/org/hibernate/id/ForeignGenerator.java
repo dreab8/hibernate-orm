@@ -8,6 +8,7 @@ package org.hibernate.id;
 
 import java.io.Serializable;
 import java.util.Properties;
+import javax.persistence.metamodel.EntityType;
 
 import org.hibernate.MappingException;
 import org.hibernate.Session;
@@ -15,8 +16,8 @@ import org.hibernate.TransientObjectException;
 import org.hibernate.engine.internal.ForeignKeys;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.metamodel.model.domain.spi.EntityDescriptor;
+import org.hibernate.metamodel.model.domain.spi.PersistentAttribute;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 /**
@@ -88,26 +89,26 @@ public class ForeignGenerator implements IdentifierGenerator, Configurable {
 		}
 
 		final EntityType foreignValueSourceType;
-		final Type propertyType = persister.getPropertyType( propertyName );
-		if ( propertyType.getgetClassification().equals( Type.Classification.ENTITY ) ) {
-			// the normal case
-			foreignValueSourceType = (EntityType) propertyType;
-		}
-		else {
-			// try identifier mapper
-			foreignValueSourceType = (EntityType) persister.getPropertyType( PropertyPath.IDENTIFIER_MAPPER_PROPERTY + "." + propertyName );
-		}
+		PersistentAttribute attribute = persister.findAttribute( propertyName );
+//		if ( attribute.getPersistenceType() == javax.persistence.metamodel.Type.PersistenceType.ENTITY ) {
+//			// the normal case
+//			foreignValueSourceType = (EntityType) propertyType;
+//		}
+//		else {
+//			// try identifier mapper
+//			foreignValueSourceType = (EntityType) persister.getPropertyType( PropertyPath.IDENTIFIER_MAPPER_PROPERTY + "." + propertyName );
+//		}
 
 		Serializable id;
 		try {
 			id = ForeignKeys.getEntityIdentifierIfNotUnsaved(
-					foreignValueSourceType.getAssociatedEntityName(),
+					attribute.getContainer().getNavigableName(),
 					associatedObject,
 					sessionImplementor
 			);
 		}
 		catch (TransientObjectException toe) {
-			id = session.save( foreignValueSourceType.getAssociatedEntityName(), associatedObject );
+			id = session.save( attribute.getContainer().getNavigableName(), associatedObject );
 		}
 
 		if ( session.contains( entityName, object ) ) {
