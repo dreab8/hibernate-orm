@@ -268,6 +268,11 @@ subprojects { subProject ->
 //		}
 	}
 
+	task copyResourcesToIntelliJOutFolder(type: Copy)  {
+		from "$subProject.buildDir/resources/test"
+		into 'out/test/resources'
+	}
+
 	processTestResources.doLast( {
 		copy {
 			from( sourceSets.test.java.srcDirs ) {
