@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.test.schemaupdate;
+package org.hibernate.orm.test.schemaupdate;
 
 import java.util.EnumSet;
 import javax.persistence.Entity;
@@ -15,11 +15,12 @@ import javax.persistence.Table;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
+import org.hibernate.metamodel.model.relational.spi.DatabaseModel;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
-import org.hibernate.tool.hbm2ddl.TargetTypeHelper;
 import org.hibernate.tool.schema.TargetType;
+import org.hibernate.tool.schema.internal.Helper;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
@@ -49,38 +50,35 @@ public class MigrationTest extends BaseUnitTestCase {
 
 	@Test
 	public void testSimpleColumnAddition() {
-		String resource1 = "org/hibernate/test/schemaupdate/1_Version.hbm.xml";
-		String resource2 = "org/hibernate/test/schemaupdate/2_Version.hbm.xml";
+		String resource1 = "org/hibernate/orm/test/schemaupdate/1_Version.hbm.xml";
+		String resource2 = "org/hibernate/orm/test/schemaupdate/2_Version.hbm.xml";
 
-		MetadataImplementor v1metadata = (MetadataImplementor) new MetadataSources( serviceRegistry )
+		final MetadataImplementor v1metadata = (MetadataImplementor) new MetadataSources( serviceRegistry )
 				.addResource( resource1 )
 				.buildMetadata();
 
-		new SchemaExport().drop( EnumSet.of( TargetType.DATABASE ), v1metadata );
+		final DatabaseModel databaseModel = Helper.buildDatabaseModel( v1metadata );
 
-		final SchemaUpdate v1schemaUpdate = new SchemaUpdate();
-		v1schemaUpdate.execute(
-				EnumSet.of( TargetType.DATABASE, TargetType.STDOUT ),
-				v1metadata
-		);
+		new SchemaExport( databaseModel, serviceRegistry ).drop( EnumSet.of( TargetType.DATABASE ) );
+
+		final SchemaUpdate v1schemaUpdate = new SchemaUpdate( databaseModel, serviceRegistry );
+		v1schemaUpdate.execute( EnumSet.of( TargetType.DATABASE, TargetType.STDOUT ) );
 
 		assertEquals( 0, v1schemaUpdate.getExceptions().size() );
 
-		MetadataImplementor v2metadata = (MetadataImplementor) new MetadataSources( serviceRegistry )
+		final MetadataImplementor v2metadata = (MetadataImplementor) new MetadataSources( serviceRegistry )
 				.addResource( resource2 )
 				.buildMetadata();
 
-		final SchemaUpdate v2schemaUpdate = new SchemaUpdate();
-		v2schemaUpdate.execute(
-				EnumSet.of( TargetType.DATABASE, TargetType.STDOUT ),
-				v2metadata
-		);
+		final DatabaseModel v2DatabaseModel = Helper.buildDatabaseModel( v2metadata );
+		final SchemaUpdate v2schemaUpdate = new SchemaUpdate( v2DatabaseModel, serviceRegistry);
+		v2schemaUpdate.execute(	EnumSet.of( TargetType.DATABASE, TargetType.STDOUT ));
 		assertEquals( 0, v2schemaUpdate.getExceptions().size() );
-		
-		new SchemaExport().drop( EnumSet.of( TargetType.DATABASE ), v2metadata );
+
+		new SchemaExport(v2DatabaseModel, serviceRegistry).drop( EnumSet.of( TargetType.DATABASE ) );
 
 	}
-	
+
 //	/**
 //	 * 3_Version.hbm.xml contains a named unique constraint and an un-named
 //	 * unique constraint (will receive a randomly-generated name).  Create
@@ -131,27 +129,28 @@ public class MigrationTest extends BaseUnitTestCase {
 
 
 	@Test
-	@TestForIssue( jiraKey = "HHH-9713" )
+	@TestForIssue(jiraKey = "HHH-9713")
 	public void testIndexCreationViaSchemaUpdate() {
-		MetadataImplementor metadata = (MetadataImplementor) new MetadataSources( serviceRegistry )
+		final MetadataImplementor metadata = (MetadataImplementor) new MetadataSources( serviceRegistry )
 				.addAnnotatedClass( EntityWithIndex.class )
 				.buildMetadata();
+		final DatabaseModel databaseModel = Helper.buildDatabaseModel( metadata );
 
 		// drop and then create the schema
-		new SchemaExport().execute( EnumSet.of( TargetType.DATABASE ), SchemaExport.Action.BOTH, metadata );
+		new SchemaExport(databaseModel, serviceRegistry).execute( EnumSet.of( TargetType.DATABASE ), SchemaExport.Action.BOTH );
 
 		try {
 			// update the schema
-			new SchemaUpdate().execute( EnumSet.of( TargetType.DATABASE ), metadata );
+			new SchemaUpdate(databaseModel, serviceRegistry).execute( EnumSet.of( TargetType.DATABASE ) );
 		}
 		finally {
 			// drop the schema
-			new SchemaExport().drop( EnumSet.of( TargetType.DATABASE ), metadata );
+			new SchemaExport(databaseModel, serviceRegistry).drop( EnumSet.of( TargetType.DATABASE ) );
 		}
 	}
 
-	@Entity( name = "EntityWithIndex" )
-	@Table( name = "T_Entity_With_Index",indexes = @Index( columnList = "name" ) )
+	@Entity(name = "EntityWithIndex")
+	@Table(name = "T_Entity_With_Index", indexes = @Index(columnList = "name"))
 	public static class EntityWithIndex {
 		@Id
 		public Integer id;
@@ -159,35 +158,36 @@ public class MigrationTest extends BaseUnitTestCase {
 	}
 
 	@Test
-	@TestForIssue( jiraKey = "HHH-9550" )
+	@TestForIssue(jiraKey = "HHH-9550")
 	public void testSameTableNameDifferentExplicitSchemas() {
-		MetadataImplementor metadata = (MetadataImplementor) new MetadataSources( serviceRegistry )
+		final MetadataImplementor metadata = (MetadataImplementor) new MetadataSources( serviceRegistry )
 				.addAnnotatedClass( CustomerInfo.class )
 				.addAnnotatedClass( PersonInfo.class )
 				.buildMetadata();
+		final DatabaseModel databaseModel = Helper.buildDatabaseModel( metadata );
 
 		// drop and then create the schema
-		new SchemaExport().execute( EnumSet.of( TargetType.DATABASE ), SchemaExport.Action.BOTH, metadata );
+		new SchemaExport(databaseModel, serviceRegistry).execute( EnumSet.of( TargetType.DATABASE ), SchemaExport.Action.BOTH );
 
 		try {
 			// update the schema
-			new SchemaUpdate().execute( EnumSet.of( TargetType.DATABASE ), metadata );
+			new SchemaUpdate(databaseModel, serviceRegistry).execute( EnumSet.of( TargetType.DATABASE ) );
 		}
 		finally {
 			// drop the schema
-			new SchemaExport().drop( EnumSet.of( TargetType.DATABASE ), metadata );
+			new SchemaExport(databaseModel, serviceRegistry).drop( EnumSet.of( TargetType.DATABASE ) );
 		}
 	}
 
 	@Entity
-	@Table( name = "PERSON", schema = "CRM" )
+	@Table(name = "PERSON", schema = "CRM")
 	public static class CustomerInfo {
 		@Id
 		private Integer id;
 	}
 
 	@Entity
-	@Table( name = "PERSON", schema = "ERP" )
+	@Table(name = "PERSON", schema = "ERP")
 	public static class PersonInfo {
 		@Id
 		private Integer id;
