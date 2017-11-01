@@ -9,9 +9,9 @@
         "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
-<hibernate-mapping package="org.hibernate.test.schemaupdate.idbag">
+<hibernate-mapping package="org.hibernate.orm.test.schemaupdate.idbag">
 
-    <class name="org.hibernate.test.schemaupdate.idbag.IdBagOwner">
+    <class name="org.hibernate.orm.test.schemaupdate.idbag.IdBagOwner">
         <id name="id" column="id">
             <generator class="sequence">
                 <param name="sequence_name">seq_owner_id</param>
@@ -25,7 +25,7 @@
                 </generator>
             </collection-id>
             <key column="PARENT_FK"/>
-            <many-to-many column="CHILD_FK" class="org.hibernate.test.schemaupdate.idbag.IdBagOwner"/>
+            <many-to-many column="CHILD_FK" class="org.hibernate.orm.test.schemaupdate.idbag.IdBagOwner"/>
         </idbag>
     </class>
 

@@ -4,31 +4,29 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.test.schemaupdate.inheritance;
-
-import java.io.Serializable;
+package org.hibernate.orm.test.schemaupdate.inheritance;
 
 /**
  * @author Andrea Boriero
  */
-public class Person implements Serializable {
+public class Payment {
+	private long id;
 
-	private int id;
-	private String name;
+	private long amount;
 
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public long getAmount() {
+		return amount;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setAmount(long amount) {
+		this.amount = amount;
 	}
 }

@@ -10,7 +10,7 @@
         "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping
-        package="org.hibernate.test.schemaupdate.manytomany">
+        package="org.hibernate.orm.test.schemaupdate.manytomany">
 
     <class name="User" table="user">
         <id name="id">

@@ -4,21 +4,16 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.test.schemaupdate;
+package org.hibernate.orm.test.schemaupdate;
 
 import java.util.EnumSet;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.H2Dialect;
-import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.TargetType;
 import org.hibernate.tool.schema.extract.internal.SequenceInformationExtractorNoOpImpl;
 import org.hibernate.tool.schema.extract.spi.SequenceInformationExtractor;
@@ -30,39 +25,24 @@ import org.junit.Test;
  * Regression test fr a bug in org.hibernate.tool.schema.extract.internal.SequenceInformationExtractorNoOpImpl
  *
  * @author Steve Ebersole
- *
  * @see
  */
-@TestForIssue( jiraKey = "HHH-9745" )
-public class SequenceReadingTest {
+@TestForIssue(jiraKey = "HHH-9745")
+public class SequenceReadingTest extends BaseSchemaUnitTestCase {
+
+	@Override
+	protected Class<?>[] getAnnotatedClasses() {
+		return new Class[] { MyEntity.class };
+	}
+
+	@Override
+	protected void applySettings(StandardServiceRegistryBuilder serviceRegistryBuilder) {
+		serviceRegistryBuilder.applySetting( AvailableSettings.DIALECT, MyExtendedH2Dialect.class );
+	}
 
 	@Test
 	public void testSequenceReading() {
-		StandardServiceRegistry ssr = new StandardServiceRegistryBuilder()
-				.applySetting( AvailableSettings.DIALECT, MyExtendedH2Dialect.class )
-				.build();
-		try {
-			final MetadataImplementor metadata = (MetadataImplementor) new MetadataSources( ssr )
-					.addAnnotatedClass( MyEntity.class )
-					.buildMetadata();
-			metadata.validate();
-
-			try {
-				// try to update the schema
-				new SchemaUpdate().execute( EnumSet.of( TargetType.DATABASE ), metadata );
-			}
-			finally {
-				try {
-					// clean up
-					new SchemaExport().drop( EnumSet.of( TargetType.DATABASE ), metadata );
-				}
-				catch (Exception ignore) {
-				}
-			}
-		}
-		finally {
-			StandardServiceRegistryBuilder.destroy( ssr );
-		}
+		createSchemaUpdate().execute( EnumSet.of( TargetType.DATABASE ) );
 	}
 
 	/**

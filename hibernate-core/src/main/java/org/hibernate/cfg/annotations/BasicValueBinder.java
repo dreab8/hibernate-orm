@@ -500,11 +500,11 @@ public class BasicValueBinder<T> {
 
 	}
 
-	private static class BasicTypeResolverExplicitNamedImpl implements BasicTypeResolver {
+	public static class BasicTypeResolverExplicitNamedImpl implements BasicTypeResolver {
 		private final MetadataBuildingContext buildingContext;
 		private final String name;
 
-		BasicTypeResolverExplicitNamedImpl(MetadataBuildingContext buildingContext, String typeName) {
+		public BasicTypeResolverExplicitNamedImpl(MetadataBuildingContext buildingContext, String typeName) {
 			this.buildingContext = buildingContext;
 			this.name = typeName;
 		}
