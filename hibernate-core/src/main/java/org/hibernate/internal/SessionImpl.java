@@ -1447,7 +1447,10 @@ public final class SessionImpl
 			// influence this decision if we were not able to based on the
 			// given entityName
 			try {
-				return getFactory().getTypeConfiguration().findEntityDescriptor( entityName ).getSubclassEntityPersister( object, getFactory() );
+				EntityDescriptor<Object> entityDescriptor = getFactory().getTypeConfiguration().findEntityDescriptor(
+						entityName );
+				return entityDescriptor
+						.getSubclassEntityPersister( object, getFactory() );
 			}
 			catch (HibernateException e) {
 				try {

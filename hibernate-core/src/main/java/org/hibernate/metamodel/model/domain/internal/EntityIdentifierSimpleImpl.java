@@ -164,4 +164,30 @@ public class EntityIdentifierSimpleImpl<O,J>
 	public boolean isOptional() {
 		return false;
 	}
+
+	private IdentifierGenerator createIdentifierGenerator(RootClass bootModelRootEntity, RuntimeModelCreationContext creationContext) {
+		final Database database = creationContext.getMetadata().getDatabase();
+		final JdbcEnvironment jdbcEnvironment = database.getJdbcEnvironment();
+		final Dialect dialect = jdbcEnvironment.getDialect();
+
+		final MappedNamespace defaultNamespace = database.getDefaultNamespace();
+
+		final Identifier defaultCatalogName = defaultNamespace.getName().getCatalog();
+		final String defaultCatalogNameString = defaultCatalogName == null ?
+				null :
+				defaultNamespace.getName().getCatalog().render( dialect );
+
+		final Identifier defaultSchemaName = defaultNamespace.getName().getSchema();
+		final String defaultSchemaNameString = defaultSchemaName == null ?
+				null :
+				defaultNamespace.getName().getSchema().render( dialect );
+
+		return bootModelRootEntity.getIdentifier().createIdentifierGenerator(
+				creationContext.getIdentifierGeneratorFactory(),
+				dialect,
+				defaultCatalogNameString,
+				defaultSchemaNameString,
+				null
+		);
+	}
 }
