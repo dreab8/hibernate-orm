@@ -441,10 +441,10 @@ public class InFlightMetadataCollectorImpl implements InFlightMetadataCollector 
 		if ( defaultIdentifierGeneratorNames.contains( generator.getName() ) ) {
 			return;
 		}
-
 		final IdentifierGeneratorDefinition old = idGeneratorDefinitionMap.put( generator.getName(), generator );
 		if ( old != null ) {
-			log.duplicateGeneratorName( old.getName() );
+			throw new IllegalArgumentException( "Duplicate generator name " + old.getName() );
+//			log.duplicateGeneratorName( old.getName() );
 		}
 	}
 

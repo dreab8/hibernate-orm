@@ -3423,6 +3423,7 @@ public final class AnnotationBinder {
 		GenericGenerator genGen = annElt.getAnnotation( GenericGenerator.class );
 		if ( tabGen != null ) {
 			IdentifierGeneratorDefinition idGen = buildIdGenerator( tabGen, context );
+			context.getMetadataCollector().addIdentifierGenerator(idGen);
 			generators.put( idGen.getName(), idGen );
 		}
 		if ( seqGen != null ) {
