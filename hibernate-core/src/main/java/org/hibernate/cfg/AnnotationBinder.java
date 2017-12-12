@@ -2433,14 +2433,15 @@ public final class AnnotationBinder {
 			//a component must not have any generator
 			generatorType = "assigned";
 		}
-		BinderHelper.makeIdGenerator(
+
+		SecondPass secondPass = new IdGeneratorResolverSecondPass(
 				idValue,
 				idXProperty,
 				generatorType,
 				generatorName,
-				buildingContext,
-				localGenerators
+				buildingContext
 		);
+		buildingContext.getMetadataCollector().addSecondPass( secondPass );
 
 		if ( LOG.isTraceEnabled() ) {
 			LOG.tracev( "Bind {0} on {1}", ( isComponent ? "@EmbeddedId" : "@Id" ), inferredData.getPropertyName() );
@@ -2777,7 +2778,7 @@ public final class AnnotationBinder {
 			if ( property.isAnnotationPresent( GeneratedValue.class ) &&
 					property.isAnnotationPresent( Id.class ) ) {
 				//clone classGenerator and override with local values
-				Map<String, IdentifierGeneratorDefinition> localGenerators = new HashMap<String, IdentifierGeneratorDefinition>();
+				Map<String, IdentifierGeneratorDefinition> localGenerators = new HashMap<>();
 				localGenerators.putAll( buildLocalGenerators( property, buildingContext ) );
 
 				GeneratedValue generatedValue = property.getAnnotation( GeneratedValue.class );
@@ -3428,10 +3429,12 @@ public final class AnnotationBinder {
 		}
 		if ( seqGen != null ) {
 			IdentifierGeneratorDefinition idGen = buildIdGenerator( seqGen, context );
+			context.getMetadataCollector().addIdentifierGenerator(idGen);
 			generators.put( idGen.getName(), idGen );
 		}
 		if ( genGen != null ) {
 			IdentifierGeneratorDefinition idGen = buildIdGenerator( genGen, context );
+			context.getMetadataCollector().addIdentifierGenerator(idGen);
 			generators.put( idGen.getName(), idGen );
 		}
 		return generators;
