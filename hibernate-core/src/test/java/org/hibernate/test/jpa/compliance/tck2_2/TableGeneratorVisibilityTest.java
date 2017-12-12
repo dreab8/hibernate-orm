@@ -58,7 +58,6 @@ public class TableGeneratorVisibilityTest extends BaseCoreFunctionalTestCase {
 	@Entity(name = "TestEntity2")
 	public static class TestEntity2 {
 		@Id
-
 		@GeneratedValue(strategy = GenerationType.TABLE, generator = "table-generator")
 		public long id;
 	}
