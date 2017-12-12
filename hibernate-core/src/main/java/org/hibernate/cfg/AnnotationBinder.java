@@ -2316,14 +2316,15 @@ public final class AnnotationBinder {
 					final IdentifierGeneratorDefinition foreignGenerator = foreignGeneratorBuilder.build();
 					localGenerators.put( foreignGenerator.getName(), foreignGenerator );
 
-					BinderHelper.makeIdGenerator(
+					SecondPass secondPass = new IdGeneratorResolverSecondPass(
 							( SimpleValue ) propertyBinder.getValue(),
 							property,
 							foreignGenerator.getStrategy(),
 							foreignGenerator.getName(),
 							context,
-							localGenerators
+							foreignGenerator
 					);
+					context.getMetadataCollector().addSecondPass( secondPass );
 				}
 				if ( isId ) {
 					//components and regular basic types create SimpleValue objects
@@ -2786,14 +2787,14 @@ public final class AnnotationBinder {
 						: "assigned";
 				String generator = generatedValue != null ? generatedValue.generator() : BinderHelper.ANNOTATION_STRING_DEFAULT;
 
-				BinderHelper.makeIdGenerator(
+				SecondPass secondPass = new IdGeneratorResolverSecondPass(
 						( SimpleValue ) comp.getProperty( property.getName() ).getValue(),
 						property,
 						generatorType,
 						generator,
-						buildingContext,
-						localGenerators
+						buildingContext
 				);
+				buildingContext.getMetadataCollector().addSecondPass( secondPass );
 			}
 
 		}
@@ -2893,14 +2894,15 @@ public final class AnnotationBinder {
 			id = value.make();
 		}
 		rootClass.setIdentifier( id );
-		BinderHelper.makeIdGenerator(
+		SecondPass secondPass = new IdGeneratorResolverSecondPass(
 				id,
 				inferredData.getProperty(),
 				generatorType,
 				generatorName,
-				buildingContext,
-				Collections.<String, IdentifierGeneratorDefinition>emptyMap()
+				buildingContext
 		);
+		buildingContext.getMetadataCollector().addSecondPass( secondPass );
+
 		if ( isEmbedded ) {
 			rootClass.setEmbeddedIdentifier( inferredData.getPropertyClass() == null );
 		}

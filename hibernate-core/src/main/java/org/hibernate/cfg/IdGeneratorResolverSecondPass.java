@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.hibernate.MappingException;
 import org.hibernate.annotations.common.reflection.XProperty;
+import org.hibernate.boot.model.IdentifierGeneratorDefinition;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.mapping.SimpleValue;
 
@@ -22,6 +23,7 @@ public class IdGeneratorResolverSecondPass implements SecondPass {
 	private String generatorType;
 	private String generatorName;
 	private MetadataBuildingContext buildingContext;
+	private IdentifierGeneratorDefinition localIdentifierGeneratorDefinition;
 
 	public IdGeneratorResolverSecondPass(
 			SimpleValue id,
@@ -36,8 +38,19 @@ public class IdGeneratorResolverSecondPass implements SecondPass {
 		this.buildingContext = buildingContext;
 	}
 
+	public IdGeneratorResolverSecondPass(
+			SimpleValue id,
+			XProperty idXProperty,
+			String generatorType,
+			String generatorName,
+			MetadataBuildingContext buildingContext,
+			IdentifierGeneratorDefinition localIdentifierGeneratorDefinition) {
+		this(id,idXProperty,generatorType,generatorName,buildingContext);
+		this.localIdentifierGeneratorDefinition = localIdentifierGeneratorDefinition;
+	}
+
 	@Override
 	public void doSecondPass(Map idGeneratorDefinitionMap) throws MappingException {
-		BinderHelper.makeIdGenerator( id, idXProperty, generatorType, generatorName, buildingContext );
+		BinderHelper.makeIdGenerator( id, idXProperty, generatorType, generatorName, buildingContext, localIdentifierGeneratorDefinition );
 	}
 }

@@ -718,7 +718,9 @@ public class BinderHelper {
 			XProperty idXProperty,
 			String generatorType,
 			String generatorName,
-			MetadataBuildingContext buildingContext) {
+			MetadataBuildingContext buildingContext,
+			IdentifierGeneratorDefinition localIdentifierGeneratorDefinition) {
+
 		log.debugf( "#makeIdGenerator(%s, %s, %s, %s, ...)" );
 
 		Table table = id.getTable();
@@ -753,12 +755,19 @@ public class BinderHelper {
 		params.put( IdentifierGenerator.GENERATOR_NAME, generatorName );
 
 		if ( !isEmptyAnnotationValue( generatorName ) ) {
-			//we have a named generator
-			IdentifierGeneratorDefinition gen = getIdentifierGenerator(
-					generatorName,
-					idXProperty,
-					buildingContext
-			);
+			IdentifierGeneratorDefinition gen;
+			if ( localIdentifierGeneratorDefinition != null
+					&& localIdentifierGeneratorDefinition.getName().equals( generatorName ) ) {
+				gen = localIdentifierGeneratorDefinition;
+			}
+			else {
+				//we have a named generator
+				gen = getIdentifierGenerator(
+						generatorName,
+						idXProperty,
+						buildingContext
+				);
+			}
 			if ( gen == null ) {
 				throw new AnnotationException( "Unknown named generator (@GeneratedValue#generatorName): " + generatorName );
 			}
@@ -1079,7 +1088,7 @@ public class BinderHelper {
 
 						@Override
 						public int initialValue() {
-							return 1;
+							return 0;
 						}
 
 						@Override
