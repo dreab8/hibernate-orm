@@ -719,82 +719,13 @@ public class BinderHelper {
 			String generatorType,
 			String generatorName,
 			MetadataBuildingContext buildingContext,
-			IdentifierGeneratorDefinition localIdentifierGeneratorDefinition) {
-
-		log.debugf( "#makeIdGenerator(%s, %s, %s, %s, ...)" );
-
-		Table table = id.getTable();
-		table.setIdentifierValue( id );
-		//generator settings
-		id.setIdentifierGeneratorStrategy( generatorType );
-
-		Properties params = new Properties();
-
-		//always settable
-		params.setProperty(
-				PersistentIdentifierGenerator.TABLE, table.getName()
-		);
-
-		final String implicitCatalogName = buildingContext.getBuildingOptions().getMappingDefaults().getImplicitCatalogName();
-		if ( implicitCatalogName != null ) {
-			params.put( PersistentIdentifierGenerator.CATALOG, implicitCatalogName );
+			IdentifierGeneratorDefinition foreignKGeneratorDefinition) {
+		Map<String, IdentifierGeneratorDefinition> localIdentifiers = null;
+		if ( foreignKGeneratorDefinition != null ) {
+			localIdentifiers = new HashMap<>();
+			localIdentifiers.put( foreignKGeneratorDefinition.getName(), foreignKGeneratorDefinition );
 		}
-		final String implicitSchemaName = buildingContext.getBuildingOptions().getMappingDefaults().getImplicitSchemaName();
-		if ( implicitSchemaName != null ) {
-			params.put( PersistentIdentifierGenerator.SCHEMA, implicitSchemaName );
-		}
-
-		if ( id.getColumnSpan() == 1 ) {
-			params.setProperty(
-					PersistentIdentifierGenerator.PK,
-					( (org.hibernate.mapping.Column) id.getColumnIterator().next() ).getName()
-			);
-		}
-		// YUCK!  but cannot think of a clean way to do this given the string-config based scheme
-		params.put( PersistentIdentifierGenerator.IDENTIFIER_NORMALIZER, buildingContext.getObjectNameNormalizer() );
-		params.put( IdentifierGenerator.GENERATOR_NAME, generatorName );
-
-		if ( !isEmptyAnnotationValue( generatorName ) ) {
-			IdentifierGeneratorDefinition gen;
-			if ( localIdentifierGeneratorDefinition != null
-					&& localIdentifierGeneratorDefinition.getName().equals( generatorName ) ) {
-				gen = localIdentifierGeneratorDefinition;
-			}
-			else {
-				//we have a named generator
-				gen = getIdentifierGenerator(
-						generatorName,
-						idXProperty,
-						null,
-						buildingContext
-				);
-			}
-			if ( gen == null ) {
-				throw new AnnotationException( "Unknown named generator (@GeneratedValue#generatorName): " + generatorName );
-			}
-			//This is quite vague in the spec but a generator could override the generate choice
-			String identifierGeneratorStrategy = gen.getStrategy();
-			//yuk! this is a hack not to override 'AUTO' even if generator is set
-			final boolean avoidOverriding =
-					identifierGeneratorStrategy.equals( "identity" )
-							|| identifierGeneratorStrategy.equals( "seqhilo" )
-							|| identifierGeneratorStrategy.equals( MultipleHiLoPerTableGenerator.class.getName() );
-			if ( generatorType == null || !avoidOverriding ) {
-				id.setIdentifierGeneratorStrategy( identifierGeneratorStrategy );
-			}
-			//checkIfMatchingGenerator(gen, generatorType, generatorName);
-			for ( Object o : gen.getParameters().entrySet() ) {
-				Map.Entry elt = (Map.Entry) o;
-				if ( elt.getKey() == null ) {
-					continue;
-				}
-				params.setProperty( (String) elt.getKey(), (String) elt.getValue() );
-			}
-		}
-		if ( "assigned".equals( generatorType ) ) {
-			id.setNullValue( "undefined" );
-		}
-		id.setIdentifierGeneratorProperties( params );
+		makeIdGenerator( id, idXProperty, generatorType, generatorName, buildingContext, localIdentifiers );
 	}
 
 	private static IdentifierGeneratorDefinition getIdentifierGenerator(
