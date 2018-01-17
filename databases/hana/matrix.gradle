@@ -9,8 +9,6 @@ import org.hibernate.build.gradle.testing.matrix.MatrixTestingPlugin
 
 jdbcDependency 'com.sap.db.jdbc:ngdbc:2.2.8'
 
-project.plugins.withType( MatrixTestingPlugin ) {
-	repositories {
-		mavenLocal()
-	}
+repositories {
+	mavenLocal()
 }
