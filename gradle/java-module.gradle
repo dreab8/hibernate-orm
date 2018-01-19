@@ -112,18 +112,22 @@ dependencies {
 		compile( 'org.glassfish.jaxb:jaxb-xjc:2.2.11' )
 		compile( 'org.jvnet.jaxb2_commons:jaxb2-basics:0.11.0' )
 		compile( 'org.jvnet.jaxb2_commons:jaxb2-basics-ant:0.11.0' )
+		compile( 'org.jvnet.jaxb2_commons:jaxb2-basics-ant:0.11.0' )
+		compile( 'javax.enterprise:cdi-api:2.0' )
 		compile( 'javax:javaee-api:7.0' )
 
 		testCompile( 'com.sun.xml.bind:jaxb-impl:2.2.11' )
 		testCompile( 'org.glassfish.jaxb:jaxb-xjc:2.2.11' )
 		testCompile( 'org.jvnet.jaxb2_commons:jaxb2-basics:0.11.0' )
 		testCompile( 'org.jvnet.jaxb2_commons:jaxb2-basics-ant:0.11.0' )
+		testCompile( 'javax.enterprise:cdi-api:2.0' )
 		testCompile( 'javax:javaee-api:7.0' )
 
 		testRuntime( 'com.sun.xml.bind:jaxb-impl:2.2.11' )
 		testRuntime( 'org.glassfish.jaxb:jaxb-xjc:2.2.11' )
 		testRuntime( 'org.jvnet.jaxb2_commons:jaxb2-basics:0.11.0' )
 		testRuntime( 'org.jvnet.jaxb2_commons:jaxb2-basics-ant:0.11.0' )
+		testRuntime( 'javax.enterprise:cdi-api:2.0' )
 		testRuntime( 'javax:javaee-api:7.0' )
 	}
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
