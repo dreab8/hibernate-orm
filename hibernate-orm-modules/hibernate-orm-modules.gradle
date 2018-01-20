@@ -7,6 +7,20 @@ import org.apache.tools.ant.filters.ReplaceTokens
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 
+buildscript {
+    repositories {
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        classpath 'gradle.plugin.org.wildfly.build:wildfly-gradle-tools:0.0.2'
+    }
+}
+
+apply plugin: 'org.wildfly.build.provision'
+
+
 apply from: rootProject.file( 'gradle/base-information.gradle' )
 apply plugin: 'java'
 apply from: rootProject.file( 'gradle/libraries.gradle' )
@@ -63,6 +77,10 @@ configurations {
     wildflyDist
     wildflyJPA22Patch
     byteBuddy
+}
+
+provision {
+       destinationDir = file("$project.wildFlyInstallDir")
 }
 
 dependencies {
@@ -158,7 +176,7 @@ task release( dependsOn: createModulesZip )
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // tasks related to in-container (Arquillian + WF) testing
 
-task installWildFly(type: Copy, dependsOn: createModulesZip) {
+task installWildFly(type: Copy, dependsOn: [createModulesZip, provision]) {
     description = 'Downloads the WildFly distribution, installs it into a local directory and prepares it for use (in testing)'
 
     from configurations.wildflyDist.collect { zipTree(it) }
@@ -167,12 +185,7 @@ task installWildFly(type: Copy, dependsOn: createModulesZip) {
     final File patchFile = configurations.wildflyJPA22Patch.resolvedConfiguration.resolvedArtifacts[0].file
     inputs.file( patchFile )
 
-    doFirst {
-        cleanInstallWildFly
-    }
-
     doLast {
-
         // until we have a version of WF supporting EE 8 (JPA 2.2),  we need to patch
         // the install to support JPA 2.2
 
@@ -194,11 +207,9 @@ task installWildFly(type: Copy, dependsOn: createModulesZip) {
     }
 }
 
-clean.dependsOn cleanInstallWildFly
-
 task installHibernateModule( dependsOn: [createModulesZip, installWildFly])
 
-task prepareWildFlyForTests( dependsOn: [installWildFly, installHibernateModule] )
+task prepareWildFlyForTests( dependsOn: [installHibernateModule] )
 
 test.dependsOn prepareWildFlyForTests
 
