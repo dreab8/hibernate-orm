@@ -288,6 +288,8 @@ public abstract class AbstractManagedType<J> implements InheritanceCapable<J> {
 
 	}
 
+
+
 	@SuppressWarnings({"unchecked", "WeakerAccess"})
 	protected <R extends PersistentAttribute> void collectDeclaredAttributes(Collection<R> collection, Class<R> restrictionType) {
 		for ( PersistentAttribute<J, ?> declaredAttribute : declaredAttributes ) {

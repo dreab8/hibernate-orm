@@ -26,7 +26,6 @@ public class SaveSimpleEntityTest extends SessionFactoryBasedFunctionalTest {
 	public void testEntitySaving() {
 		final SimpleEntity entity = new SimpleEntity();
 		entity.setId( 1 );
-		sessionFactoryScope().inTransaction( sessionImplementor ->
-													 sessionImplementor.save(entity) );
+		sessionFactoryScope().inTransaction( sessionImplementor -> sessionImplementor.save(entity) );
 	}
 }

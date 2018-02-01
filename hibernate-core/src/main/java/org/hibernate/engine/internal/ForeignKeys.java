@@ -105,9 +105,6 @@ public final class ForeignKeys<T> {
 					final SingularPersistentAttributeEmbedded embedded = (SingularPersistentAttributeEmbedded) attribute;
 					final EmbeddedTypeDescriptor<?> embeddedDescriptor = embedded.getEmbeddedDescriptor();
 
-					final Map<String, Object> embeddedValues = new LinkedHashMap<>();
-					boolean substitute = false;
-
 					for ( NonIdPersistentAttribute<?, ?> subAttribute : embeddedDescriptor.getDeclaredPersistentAttributes() ) {
 						final Object subAttributeValue = subAttribute.getPropertyAccess().getGetter().get( value );
 						final Object replacement = nullifyTransientReferences( subAttributeValue, subAttribute );

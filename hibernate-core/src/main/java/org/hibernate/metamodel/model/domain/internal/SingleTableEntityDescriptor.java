@@ -381,11 +381,6 @@ public class SingleTableEntityDescriptor<T> extends AbstractEntityDescriptor<T> 
 	}
 
 	@Override
-	public boolean hasCollections() {
-		throw new NotYetImplementedException(  );
-	}
-
-	@Override
 	public boolean isAffectedByEnabledFilters(SharedSessionContractImplementor session) {
 		throw new NotYetImplementedException(  );
 	}

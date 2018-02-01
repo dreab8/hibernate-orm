@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
@@ -776,6 +777,16 @@ public abstract class AbstractEntityDescriptor<J>
 	@Override
 	public boolean hasNaturalIdentifier() {
 		return getHierarchy().getNaturalIdDescriptor() != null;
+	}
+
+	@Override
+	public boolean hasCollections() {
+		for ( Attribute attribute : getAttributes() ) {
+			if ( attribute.isCollection() ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
