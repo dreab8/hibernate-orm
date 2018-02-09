@@ -6,12 +6,12 @@
  */
 package org.hibernate.collection.internal;
 
-import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.boot.model.domain.ManagedTypeMapping;
 import org.hibernate.collection.spi.CollectionClassification;
 import org.hibernate.collection.spi.PersistentCollectionRepresentation;
 import org.hibernate.mapping.Property;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
+import org.hibernate.metamodel.model.domain.internal.PersistentOrderedSetDescriptorImpl;
 import org.hibernate.metamodel.model.domain.spi.ManagedTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.PersistentCollectionDescriptor;
 
@@ -46,6 +46,10 @@ public class PersistentOrderedSetRepresentation implements PersistentCollectionR
 			ManagedTypeMapping bootContainer,
 			Property bootProperty,
 			RuntimeModelCreationContext context) {
-		throw new NotYetImplementedFor6Exception();
+		return new PersistentOrderedSetDescriptorImpl(
+				bootProperty,
+				runtimeContainer,
+				context
+		);
 	}
 }

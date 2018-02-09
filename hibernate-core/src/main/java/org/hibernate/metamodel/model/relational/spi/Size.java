@@ -88,7 +88,6 @@ public class Size implements Serializable {
 		public static final int DEFAULT_PRECISION = 19;
 		public static final int DEFAULT_SCALE = 2;
 
-
 		public static Size length(long length) {
 			return new Size( null, null, length, null );
 		}
@@ -112,8 +111,8 @@ public class Size implements Serializable {
 		private LobMultiplier lobMultiplier;
 
 		public Builder() {
+			lobMultiplier = LobMultiplier.NONE;
 		}
-
 
 		public Long getLength() {
 			return length;

@@ -40,6 +40,13 @@ public class PersistentSortedSet extends PersistentSet implements SortedSet {
 		comparator = set.comparator();
 	}
 
+	public PersistentSortedSet(
+			SharedSessionContractImplementor session,
+			PersistentCollectionDescriptor descriptor,
+			Serializable key) {
+		super( session, descriptor, key );
+	}
+
 	@SuppressWarnings({"unchecked", "UnusedParameters"})
 	protected Serializable snapshot(PersistentCollectionDescriptor persister, EntityMode entityMode)
 			throws HibernateException {
