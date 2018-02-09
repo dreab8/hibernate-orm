@@ -38,7 +38,6 @@ import org.hibernate.mapping.Join;
 import org.hibernate.mapping.MappedSuperclass;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
-import org.hibernate.mapping.Selectable;
 import org.hibernate.mapping.SimpleValue;
 import org.hibernate.mapping.SyntheticProperty;
 import org.hibernate.mapping.ToOne;
@@ -268,7 +267,7 @@ public class BinderHelper {
 			Object columnOwner = findColumnOwner( ownerEntity, columns[0].getReferencedColumn(), context );
 			List<Property> properties = findPropertiesByColumns( columnOwner, columns, context );
 			//create an embeddable component
-			Property synthProp = null;
+			Property synthProp;
 			if ( properties != null ) {
                         //todo how about properties.size() == 1, this should be much simpler
 				Component embeddedComp = columnOwner instanceof PersistentClass ?
@@ -361,20 +360,25 @@ public class BinderHelper {
 		}
 	}
 
-
 	private static List<Property> findPropertiesByColumns(
 			Object columnOwner,
 			Ejb3JoinColumn[] columns,
 			MetadataBuildingContext context) {
+		boolean isPersistentClass = columnOwner instanceof PersistentClass;
+		Identifier tableName;
+		tableName = isPersistentClass ?
+				( (PersistentClass) columnOwner ).getMappedTable().getNameIdentifier() :
+				( (Join) columnOwner ).getMappedTable().getNameIdentifier();
+
 		Map<Column, Set<PersistentAttributeMapping>> columnsToProperty = new HashMap<>();
 		List<Column> orderedColumns = new ArrayList<>( columns.length );
 		//build the list of column names
-		for (Ejb3JoinColumn column1 : columns) {
+		for ( Ejb3JoinColumn column1 : columns ) {
 			Column column = new Column( column1.getReferencedColumn(), false );
+			column.setTableName( tableName );
 			orderedColumns.add( column );
 			columnsToProperty.put( column, new HashSet<>() );
 		}
-		boolean isPersistentClass = columnOwner instanceof PersistentClass;
 		Iterator it = isPersistentClass ?
 				( (PersistentClass) columnOwner ).getPropertyIterator() :
 				( (Join) columnOwner ).getPropertyIterator();
@@ -382,7 +386,7 @@ public class BinderHelper {
 			matchColumnsByProperty( (Property) it.next(), columnsToProperty );
 		}
 		if ( isPersistentClass ) {
-			matchColumnsByProperty( (Property) ( (PersistentClass) columnOwner ).getIdentifierAttributeMapping(), columnsToProperty );
+			matchColumnsByProperty( ( (PersistentClass) columnOwner ).getIdentifierAttributeMapping(), columnsToProperty );
 		}
 
 		//first naive implementation
@@ -422,9 +426,8 @@ public class BinderHelper {
 //			}
 //		}
 		else {
-			List<MappedColumn> mappedColumns = property.getValueMapping().getMappedColumns();
-			mappedColumns.stream()
-					.filter( column ->columnsToProperty.containsKey( column )  ).
+			((List<MappedColumn>) property.getValueMapping().getMappedColumns()).stream()
+					.filter( column -> columnsToProperty.containsKey( column ) ).
 					forEach( column -> columnsToProperty.get( column ).add( property ) );
 		}
 	}

@@ -40,8 +40,8 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
 		if ( ! dialect.hasAlterTable() ) {
 			return NO_COMMANDS;
 		}
-		
-		if ( ! foreignKey.isExportationEnabled() ) {
+
+		if ( !foreignKey.isExportationEnabled() ) {
 			return NO_COMMANDS;
 		}
 

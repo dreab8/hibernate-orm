@@ -135,7 +135,7 @@ public class ManyToOne extends ToOne {
 		);
 		fk.setCascadeDeleteEnabled( isCascadeDeleteEnabled() );
 
-		if ( !hasFormula() && !"none".equals( getForeignKeyName() ) ) {
+		if ( hasFormula() ) {
 			fk.disableCreation();
 		}
 
