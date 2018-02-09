@@ -38,9 +38,7 @@ public class ParameterTest extends SessionFactoryBasedFunctionalTest {
 
 	@Override
 	protected void applyMetadataSources(MetadataSources metadataSources) {
-		super.applyMetadataSources( metadataSources );
 		metadataSources.addResource( "org/hibernate/orm/test/hql/model/Animal.hbm.xml" );
-		applyRetailModel( metadataSources );
 	}
 
 	@Test

@@ -41,6 +41,20 @@ public class PrimaryKey extends Constraint implements MappedPrimaryKey {
 		super.addColumn( column );
 	}
 
+	@Override
+	public void addColumn(Selectable selectable) {
+		super.addColumn( selectable );
+		if ( !selectable.isFormula() ) {
+			Column column = (Column) selectable;
+			column.setNullable( false );
+			log.debugf(
+					"Forcing column [%s] to be non-null as it is part of the primary key for table [%s]",
+					column.getCanonicalName(),
+					getTableNameForLogging( column )
+			);
+		}
+	}
+
 	protected String getTableNameForLogging(Column column) {
 		if ( getMappedTable() != null ) {
 			if ( getMappedTable().getNameIdentifier() != null ) {

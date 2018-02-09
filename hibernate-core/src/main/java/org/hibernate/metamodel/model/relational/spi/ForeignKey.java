@@ -70,7 +70,13 @@ public class ForeignKey implements Exportable {
 	 * Does this foreignkey reference the primary key of the reference table
 	 */
 	public boolean isReferenceToPrimaryKey() {
-		return getColumnMappings().getTargetColumns().isEmpty();
+		final ColumnMappings columnMappings = getColumnMappings();
+		final List<PhysicalColumn> primaryKeysColumns = columnMappings.getTargetTable().getPrimaryKey().getColumns();
+		final List<Column> targetColumns = columnMappings.getTargetColumns();
+		if ( primaryKeysColumns.size() != targetColumns.size() ) {
+			return false;
+		}
+		return primaryKeysColumns.containsAll( targetColumns );
 	}
 
 	public String getKeyDefinition() {

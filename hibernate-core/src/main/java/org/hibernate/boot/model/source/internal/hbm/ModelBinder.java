@@ -3255,7 +3255,7 @@ public class ModelBinder {
 
 			if ( StringHelper.isEmpty( keySource.getReferencedPropertyName() ) ) {
 				targetColumns = cast(
-						getCollectionBinding().getOwner().getRootTable().getPrimaryKey().getColumns()
+						getCollectionBinding().getOwner().getMappedTable().getPrimaryKey().getColumns()
 				);
 			}
 			else {
