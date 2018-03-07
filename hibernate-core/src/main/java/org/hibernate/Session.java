@@ -121,6 +121,15 @@ public interface Session extends SharedSessionContract, EntityManager, Hibernate
 	void setFlushMode(FlushMode flushMode);
 
 	/**
+	 * This is to generate a syntetic bridge method called getFlushMode() which returns
+	 * the Hibernate FlushMode: introduced to maintain binary backwards compatibility.
+	 * (Please do not use!)
+	 *
+	 * @return The flush mode
+	 */
+	FlushMode getFlushMode$$bridge();
+
+	/**
 	 * {@inheritDoc}
 	 * <p/>
 	 * For users of the Hibernate native APIs, we've had to rename this method
