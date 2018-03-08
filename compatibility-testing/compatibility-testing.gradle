@@ -22,9 +22,11 @@ configurations {
 }
 
 dependencies {
+//    compileOnly "org.hibernate:hibernate-core:5.1.12.Final"
     // [!] Compile with Hibernate ORM 5.1, but then run the tests with the current version
-    testCompileOnly "org.hibernate:hibernate-core:5.1.12.Final"
-    testCompileOnly "org.hibernate:hibernate-testing:5.1.12.Final"
-    testRuntimeOnly project( ':hibernate-core' )
-    testRuntimeOnly project( ':hibernate-testing' )
+    testCompile "org.hibernate:hibernate-core:5.1.12.Final"
+    testCompile "org.hibernate:hibernate-testing:5.1.12.Final"
+
+    runtime project( ':hibernate-core' )
+    runtime project( ':hibernate-testing' )
 }
