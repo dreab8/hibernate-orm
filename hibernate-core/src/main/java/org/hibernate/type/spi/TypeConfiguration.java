@@ -67,6 +67,7 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 	private final transient SqlTypeDescriptorRegistry sqlTypeDescriptorRegistry;
 	private final transient BasicTypeRegistry basicTypeRegistry;
 
+	private final transient org.hibernate.type.spi.BasicTypeRegistry typeRegistry;
 	private final transient Map<String,String> importMap = new ConcurrentHashMap<>();
 
 
@@ -79,6 +80,7 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 		this.sqlTypeDescriptorRegistry = new SqlTypeDescriptorRegistry( this );
 
 		this.basicTypeRegistry = new BasicTypeRegistry();
+		this.typeRegistry = new org.hibernate.type.spi.BasicTypeRegistry( this );
 		this.typeFactory = new TypeFactory( this );
 		this.typeResolver = new TypeResolver( this, typeFactory );
 
@@ -107,6 +109,9 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 		return basicTypeRegistry;
 	}
 
+	public org.hibernate.type.spi.BasicTypeRegistry getTypeRegistry() {
+		return this.typeRegistry;
+	}
 
 	public JavaTypeDescriptorRegistry getJavaTypeDescriptorRegistry() {
 		return javaTypeDescriptorRegistry;

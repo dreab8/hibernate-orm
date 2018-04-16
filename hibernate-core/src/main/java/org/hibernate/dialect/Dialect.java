@@ -108,6 +108,7 @@ import org.hibernate.tool.schema.spi.Exporter;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.descriptor.sql.ClobTypeDescriptor;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.ClobSqlDescriptor;
 
 /**
  * Represents a dialect of SQL implemented by a particular RDBMS.  Subclasses implement Hibernate compatibility
@@ -465,6 +466,58 @@ public abstract class Dialect implements ConversionContext {
 
 		final SqlTypeDescriptor overridden = getSqlTypeDescriptorOverride( sqlTypeDescriptor.getSqlType() );
 		return overridden == null ? sqlTypeDescriptor : overridden;
+	}
+
+	/**
+	 * Allows the dialect to override a {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor}.
+	 * <p/>
+	 * If the passed {@code sqlTypeDescriptor} allows itself to be remapped (per
+	 * {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor#canBeRemapped()}), then this method uses
+	 * {@link #getSqlTypeDescriptorOverride}  to get an optional override based on the SQL code returned by
+	 * {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor#getJdbcTypeCode()}.
+	 * <p/>
+	 * If this dialect does not provide an override or if the {@code sqlTypeDescriptor} does not allow itself to be
+	 * remapped, then this method simply returns the original passed {@code sqlTypeDescriptor}
+	 *
+	 * @param sqlTypeDescriptor The {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor} to override
+	 * @return The {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor} that should be used for this dialect;
+	 *         if there is no override, then original {@code sqlTypeDescriptor} is returned.
+	 * @throws IllegalArgumentException if {@code sqlTypeDescriptor} is null.
+	 *
+	 * @see #getSqlTypeDescriptorOverride
+	 */
+	public org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor remapSqlTypeDescriptor(org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor sqlTypeDescriptor) {
+		if ( sqlTypeDescriptor == null ) {
+			throw new IllegalArgumentException( "sqlTypeDescriptor is null" );
+		}
+		if ( ! sqlTypeDescriptor.canBeRemapped() ) {
+			return sqlTypeDescriptor;
+		}
+
+		final org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor overridden = getSqlTypeDescriptorForOverride( sqlTypeDescriptor.getJdbcTypeCode() );
+		return overridden == null ? sqlTypeDescriptor : overridden;
+	}
+
+	/**
+	 * Returns the {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor} that should be used to handle the given JDBC type code.  Returns
+	 * {@code null} if there is no override.
+	 *
+	 * @param sqlCode A {@link Types} constant indicating the SQL column type
+	 * @return The {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor} to use as an override, or {@code null} if there is no override.
+	 */
+	protected org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor getSqlTypeDescriptorForOverride(int sqlCode) {
+		org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor descriptor;
+		switch ( sqlCode ) {
+			case Types.CLOB: {
+				descriptor = useInputStreamToInsertBlob() ? ClobSqlDescriptor.STREAM_BINDING : null;
+				break;
+			}
+			default: {
+				descriptor = null;
+				break;
+			}
+		}
+		return descriptor;
 	}
 
 	/**

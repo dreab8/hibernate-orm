@@ -27,9 +27,9 @@ public interface ValueExtractor<X> {
 	 *
 	 * @throws SQLException Indicates a JDBC error occurred.
 	 */
-	public X extract(ResultSet rs, String name, WrapperOptions options) throws SQLException;
+	X extract(ResultSet rs, String name, WrapperOptions options) throws SQLException;
 
-	public X extract(CallableStatement statement, int index, WrapperOptions options) throws SQLException;
+	X extract(CallableStatement statement, int index, WrapperOptions options) throws SQLException;
 
-	public X extract(CallableStatement statement, String[] paramNames, WrapperOptions options) throws SQLException;
+	X extract(CallableStatement statement, String[] paramNames, WrapperOptions options) throws SQLException;
 }

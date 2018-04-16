@@ -27,7 +27,9 @@ public interface JavaTypeDescriptor<T> extends Serializable {
 	 * @deprecated Use {@link #getJavaType()} instead
 	 */
 	@Deprecated
-	Class<T> getJavaTypeClass();
+	default Class<T> getJavaTypeClass(){
+		return getJavaType();
+	}
 
 	/**
 	 * Get the Java type described
@@ -35,6 +37,20 @@ public interface JavaTypeDescriptor<T> extends Serializable {
 	default Class<T> getJavaType() {
 		// default on this side since #getJavaTypeClass is the currently implemented method
 		return getJavaTypeClass();
+	}
+
+	/**
+	 * Get the type name.  This is useful for dynamic models which either will not have
+	 * a Java type ({@link #getJavaType()} returns null) or {@link #getJavaType()}
+	 * returns a non-indicative value ({@code java.util.Map.class} for a composite value in
+	 * {@link org.hibernate.EntityMode#MAP} EntityMode, e.g.).
+	 * <p/>
+	 * For typed models, this generally returns {@link #getJavaType()}.{@linkplain Class#getName() getName}
+	 *
+	 * @return The Java type name.
+	 */
+	default String getTypeName(){
+		return getJavaType().getName();
 	}
 
 	/**
