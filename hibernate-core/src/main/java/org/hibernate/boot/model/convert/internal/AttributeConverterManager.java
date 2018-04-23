@@ -20,6 +20,7 @@ import org.hibernate.annotations.common.reflection.XProperty;
 import org.hibernate.boot.model.convert.spi.AutoApplicableConverterDescriptor;
 import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.boot.model.convert.spi.ConverterAutoApplyHandler;
+import org.hibernate.boot.spi.AttributeConverterDescriptor;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.internal.util.StringHelper;
 
@@ -33,13 +34,13 @@ public class AttributeConverterManager implements ConverterAutoApplyHandler {
 
 	private Map<Class, ConverterDescriptor> attributeConverterDescriptorsByClass;
 
-	public void addConverter(ConverterDescriptor descriptor) {
+	public void addConverter(AttributeConverterDescriptor descriptor) {
 		if ( attributeConverterDescriptorsByClass == null ) {
 			attributeConverterDescriptorsByClass = new ConcurrentHashMap<>();
 		}
 
 		final Object old = attributeConverterDescriptorsByClass.put(
-				descriptor.getAttributeConverterClass(),
+				descriptor.getAttributeConverter().getClass(),
 				descriptor
 		);
 
@@ -48,7 +49,7 @@ public class AttributeConverterManager implements ConverterAutoApplyHandler {
 					String.format(
 							Locale.ENGLISH,
 							"AttributeConverter class [%s] registered multiple times",
-							descriptor.getAttributeConverterClass()
+							descriptor.getAttributeConverter().getClass()
 					)
 			);
 		}

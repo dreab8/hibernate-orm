@@ -32,7 +32,7 @@ import org.hibernate.boot.spi.MetadataBuildingContext;
  * {@link org.hibernate.boot.model.convert.spi.ConverterDescriptor} instead
  */
 @Deprecated
-public class AttributeConverterDefinition implements AttributeConverterInfo {
+public class AttributeConverterDefinition<O,R> implements AttributeConverterInfo {
 	private final AttributeConverter attributeConverter;
 	private final boolean autoApply;
 	private final Class entityAttributeType;

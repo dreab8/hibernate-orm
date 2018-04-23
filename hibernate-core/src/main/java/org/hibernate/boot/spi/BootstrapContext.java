@@ -19,6 +19,7 @@ import org.hibernate.boot.archive.spi.ArchiveDescriptorFactory;
 import org.hibernate.boot.internal.ClassmateContext;
 import org.hibernate.boot.model.relational.AuxiliaryDatabaseObject;
 import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.cfg.AttributeConverterDefinition;
 import org.hibernate.dialect.function.SQLFunction;
 import org.hibernate.type.spi.TypeConfiguration;
 
@@ -146,7 +147,7 @@ public interface BootstrapContext {
 	 *
 	 * @return The AttributeConverterInfo registered through MetadataBuilder
 	 */
-	Collection<AttributeConverterInfo> getAttributeConverters();
+	Collection<AttributeConverterDefinition> getAttributeConverters();
 
 	/**
 	 * Access to all explicit cache region mappings.

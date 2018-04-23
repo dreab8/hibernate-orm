@@ -36,9 +36,6 @@ import org.hibernate.boot.SessionFactoryBuilder;
 import org.hibernate.boot.model.IdentifierGeneratorDefinition;
 import org.hibernate.boot.model.TypeDefinition;
 import org.hibernate.boot.model.convert.internal.AttributeConverterManager;
-import org.hibernate.boot.model.convert.internal.ClassBasedConverterDescriptor;
-import org.hibernate.boot.model.convert.spi.ConverterAutoApplyHandler;
-import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.boot.model.domain.EntityMappingHierarchy;
 import org.hibernate.boot.model.naming.ImplicitForeignKeyNameSource;
 import org.hibernate.boot.model.naming.ImplicitIndexNameSource;
@@ -52,10 +49,9 @@ import org.hibernate.boot.model.relational.MappedIndex;
 import org.hibernate.boot.model.relational.MappedNamespace;
 import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.boot.model.relational.MappedUniqueKey;
-import org.hibernate.boot.model.relational.Namespace;
-import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.boot.model.source.internal.ImplicitColumnNamingSecondPass;
 import org.hibernate.boot.model.source.spi.LocalMetadataBuildingContext;
+import org.hibernate.boot.spi.AttributeConverterAutoApplyHandler;
 import org.hibernate.boot.spi.BootstrapContext;
 import org.hibernate.boot.spi.InFlightMetadataCollector;
 import org.hibernate.boot.spi.MetadataBuildingContext;
@@ -64,6 +60,7 @@ import org.hibernate.boot.spi.NaturalIdUniqueKeyBinder;
 import org.hibernate.cache.cfg.internal.DomainDataRegionConfigImpl.Builder;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cfg.AnnotatedClassType;
+import org.hibernate.cfg.AttributeConverterDefinition;
 import org.hibernate.cfg.CopyIdentifierComponentSecondPass;
 import org.hibernate.cfg.CreateKeySecondPass;
 import org.hibernate.cfg.FkSecondPass;
@@ -97,7 +94,6 @@ import org.hibernate.mapping.Column;
 import org.hibernate.mapping.DenormalizedTable;
 import org.hibernate.mapping.FetchProfile;
 import org.hibernate.mapping.IdentifierCollection;
-import org.hibernate.mapping.Index;
 import org.hibernate.mapping.Join;
 import org.hibernate.mapping.KeyValue;
 import org.hibernate.mapping.MappedSuperclass;
@@ -106,12 +102,12 @@ import org.hibernate.mapping.Property;
 import org.hibernate.mapping.RootClass;
 import org.hibernate.mapping.SimpleValue;
 import org.hibernate.mapping.Table;
-import org.hibernate.mapping.UniqueKey;
 import org.hibernate.naming.Identifier;
 import org.hibernate.query.spi.NamedQueryRepository;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeResolver;
 import org.hibernate.type.spi.TypeConfiguration;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * The implementation of the in-flight Metadata collector contract.
@@ -378,6 +374,12 @@ public class InFlightMetadataCollectorImpl implements InFlightMetadataCollector 
 	// Hibernate Type handling
 
 	@Override
+	@SuppressWarnings("unchecked")
+	public <T> BasicType<T> basicType(String registrationKey) {
+		return getBootstrapContext().getTypeConfiguration().getBasicTypeRegistry().getBasicType( registrationKey );
+	}
+
+	@Override
 	public TypeDefinition getTypeDefinition(String registrationKey) {
 		return typeDefinitionMap.get( registrationKey );
 	}
@@ -422,19 +424,26 @@ public class InFlightMetadataCollectorImpl implements InFlightMetadataCollector 
 	// attribute converters
 
 	@Override
-	public void addAttributeConverter(Class<? extends AttributeConverter> converterClass) {
+	public void addAttributeConverter(AttributeConverterDefinition definition) {
 		attributeConverterManager.addConverter(
-				new ClassBasedConverterDescriptor( converterClass, getBootstrapContext().getClassmateContext() )
+				AttributeConverterDescriptorImpl.create(
+						definition,
+						getBootstrapContext().getClassmateContext(),
+						getBootstrapContext().getTypeConfiguration()
+				)
 		);
 	}
 
 	@Override
-	public void addAttributeConverter(ConverterDescriptor descriptor) {
-		attributeConverterManager.addConverter( descriptor );
+	public <O,R> void addAttributeConverter(Class<? extends AttributeConverter<O, R>> converterClass) {
+		addAttributeConverter( AttributeConverterDefinition.from(
+				getBootstrapContext().getClassmateContext(),
+				converterClass
+		) );
 	}
 
 	@Override
-	public ConverterAutoApplyHandler getAttributeConverterAutoApplyHandler() {
+	public AttributeConverterAutoApplyHandler getAttributeConverterAutoApplyHandler() {
 		return attributeConverterManager;
 	}
 
@@ -455,7 +464,7 @@ public class InFlightMetadataCollectorImpl implements InFlightMetadataCollector 
 	@Override
 	public void addFilterDefinition(FilterDefinition filterDefinition) {
 		if ( filterDefinition == null || filterDefinition.getFilterName() == null ) {
-			throw new IllegalArgumentException( "Filter definition object or name is null: "  + filterDefinition );
+			throw new IllegalArgumentException( "Filter definition object or name is null: " + filterDefinition );
 		}
 		filterDefinitionMap.put( filterDefinition.getFilterName(), filterDefinition );
 	}
@@ -540,7 +549,6 @@ public class InFlightMetadataCollectorImpl implements InFlightMetadataCollector 
 		this.addIdentifierGenerator( generator );
 		defaultIdentifierGeneratorNames.add( generator.getName() );
 	}
-
 
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -748,7 +756,7 @@ public class InFlightMetadataCollectorImpl implements InFlightMetadataCollector 
 	// imports
 
 	@Override
-	public Map<String,String> getImports() {
+	public Map<String, String> getImports() {
 		return imports;
 	}
 
@@ -848,7 +856,7 @@ public class InFlightMetadataCollectorImpl implements InFlightMetadataCollector 
 		getDatabase().addAuxiliaryDatabaseObject( auxiliaryDatabaseObject );
 	}
 
-	private final Map<String,AnnotatedClassType> annotatedClassTypeMap = new HashMap<>();
+	private final Map<String, AnnotatedClassType> annotatedClassTypeMap = new HashMap<>();
 
 	@Override
 	public AnnotatedClassType getClassType(XClass clazz) {

@@ -43,7 +43,7 @@ import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.pretty.MessageHelper;
-import org.hibernate.type.descriptor.java.spi.StringJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 
 /**
  * @author Steve Ebersole

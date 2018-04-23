@@ -240,36 +240,4 @@ public interface MetadataBuildingOptions {
 	default String getSchemaCharset() {
 		return null;
 	}
-
-	/**
-	 * Access to any SQL functions explicitly registered with the MetadataBuilder.  This
-	 * does not include Dialect defined functions, etc.
-	 *
-	 * @return The SQLFunctions registered through MetadataBuilder
-	 *
-	 *  @deprecated  Use {@link BootstrapContext#getSqlFunctions()} instead.
-	 */
-	@Deprecated
-	Map<String,SQLFunction> getSqlFunctions();
-
-	/**
-	 * Access to any AuxiliaryDatabaseObject explicitly registered with the MetadataBuilder.  This
-	 * does not include AuxiliaryDatabaseObject defined in mappings.
-	 *
-	 * @return The AuxiliaryDatabaseObject registered through MetadataBuilder
-	 *
-	 * @deprecated Use {@link BootstrapContext#getAuxiliaryDatabaseObjectList()} instead.
-	 */
-	@Deprecated
-	List<AuxiliaryDatabaseObject> getAuxiliaryDatabaseObjectList();
-
-	/**
-	 * Access to collected AttributeConverter definitions.
-	 *
-	 * @return The AttributeConverterInfo registered through MetadataBuilder
-	 *
-	 * @deprecated Use {@link BootstrapContext#getAttributeConverters()} instead
-	 */
-	@Deprecated
-	List<AttributeConverterInfo> getAttributeConverters();
 }

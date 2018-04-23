@@ -6,9 +6,7 @@
  */
 package org.hibernate.boot.model.naming;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -16,6 +14,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.hibernate.HibernateException;
+import org.hibernate.naming.Identifier;
 
 /**
  * @author Steve Ebersole
@@ -25,20 +24,6 @@ public class NamingHelper {
 	 * Singleton access
 	 */
 	public static final NamingHelper INSTANCE = new NamingHelper();
-
-	public static NamingHelper withCharset(String charset) {
-		return new NamingHelper(charset);
-	}
-
-	private final String charset;
-
-	public NamingHelper() {
-		this(null);
-	}
-
-	private NamingHelper(String charset) {
-		this.charset = charset;
-	}
 
 	/**
 	 * If a foreign-key is not explicitly named, this is called to generate
@@ -162,7 +147,7 @@ public class NamingHelper {
 		try {
 			MessageDigest md = MessageDigest.getInstance( "MD5" );
 			md.reset();
-			md.update( charset != null ? s.getBytes( charset ) : s.getBytes() );
+			md.update( s.getBytes() );
 			byte[] digest = md.digest();
 			BigInteger bigInt = new BigInteger( 1, digest );
 			// By converting to base 35 (full alphanumeric), we guarantee
@@ -170,7 +155,7 @@ public class NamingHelper {
 			// character identifier restriction enforced by a few dialects.
 			return bigInt.toString( 35 );
 		}
-		catch ( NoSuchAlgorithmException|UnsupportedEncodingException e ) {
+		catch ( NoSuchAlgorithmException e ) {
 			throw new HibernateException( "Unable to generate a hashed name!", e );
 		}
 	}

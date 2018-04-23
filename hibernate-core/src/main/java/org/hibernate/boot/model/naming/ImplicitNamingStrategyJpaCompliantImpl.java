@@ -12,6 +12,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.boot.model.source.spi.AttributePath;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.internal.util.StringHelper;
+import org.hibernate.naming.Identifier;
 
 /**
  * Implementation of the ImplicitNamingStrategy contract, generally preferring to conform
@@ -198,10 +199,8 @@ public class ImplicitNamingStrategyJpaCompliantImpl implements ImplicitNamingStr
 
 	@Override
 	public Identifier determineForeignKeyName(ImplicitForeignKeyNameSource source) {
-		Identifier userProvidedIdentifier = source.getUserProvidedIdentifier();
-		source.getBuildingContext().getBuildingOptions().getSchemaCharset();
-		return userProvidedIdentifier != null ? userProvidedIdentifier : toIdentifier(
-				NamingHelper.withCharset( source.getBuildingContext().getBuildingOptions().getSchemaCharset() ).generateHashedFkName(
+		return toIdentifier(
+				NamingHelper.INSTANCE.generateHashedFkName(
 						"FK",
 						source.getTableName(),
 						source.getReferencedTableName(),
@@ -213,9 +212,8 @@ public class ImplicitNamingStrategyJpaCompliantImpl implements ImplicitNamingStr
 
 	@Override
 	public Identifier determineUniqueKeyName(ImplicitUniqueKeyNameSource source) {
-		Identifier userProvidedIdentifier = source.getUserProvidedIdentifier();
-		return userProvidedIdentifier != null ? userProvidedIdentifier : toIdentifier(
-				NamingHelper.withCharset( source.getBuildingContext().getBuildingOptions().getSchemaCharset() ).generateHashedConstraintName(
+		return toIdentifier(
+				NamingHelper.INSTANCE.generateHashedConstraintName(
 						"UK",
 						source.getTableName(),
 						source.getColumnNames()
@@ -226,9 +224,8 @@ public class ImplicitNamingStrategyJpaCompliantImpl implements ImplicitNamingStr
 
 	@Override
 	public Identifier determineIndexName(ImplicitIndexNameSource source) {
-		Identifier userProvidedIdentifier = source.getUserProvidedIdentifier();
-		return userProvidedIdentifier != null ? userProvidedIdentifier : toIdentifier(
-				NamingHelper.withCharset( source.getBuildingContext().getBuildingOptions().getSchemaCharset() ).generateHashedConstraintName(
+		return toIdentifier(
+				NamingHelper.INSTANCE.generateHashedConstraintName(
 						"IDX",
 						source.getTableName(),
 						source.getColumnNames()

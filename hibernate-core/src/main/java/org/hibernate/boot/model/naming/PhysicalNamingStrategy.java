@@ -6,8 +6,6 @@
  */
 package org.hibernate.boot.model.naming;
 
-import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
-
 /**
  * Pluggable strategy contract for applying physical naming rules for database object names.
  *
@@ -20,13 +18,4 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
  */
 @Deprecated
 public interface PhysicalNamingStrategy extends org.hibernate.metamodel.model.relational.spi.PhysicalNamingStrategy {
-	Identifier toPhysicalCatalogName(Identifier name, JdbcEnvironment jdbcEnvironment);
-
-	Identifier toPhysicalSchemaName(Identifier name, JdbcEnvironment jdbcEnvironment);
-
-	Identifier toPhysicalTableName(Identifier name, JdbcEnvironment jdbcEnvironment);
-
-	Identifier toPhysicalSequenceName(Identifier name, JdbcEnvironment jdbcEnvironment);
-
-	Identifier toPhysicalColumnName(Identifier name, JdbcEnvironment jdbcEnvironment);
 }

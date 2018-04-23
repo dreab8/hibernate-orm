@@ -9,7 +9,6 @@ package org.hibernate.boot.spi;
 import javax.persistence.AttributeConverter;
 import javax.persistence.SharedCacheMode;
 
-import org.hibernate.annotations.common.reflection.ReflectionManager;
 import org.hibernate.boot.CacheRegionDefinition;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataBuilder;
@@ -20,15 +19,13 @@ import org.hibernate.boot.archive.spi.ArchiveDescriptorFactory;
 import org.hibernate.boot.model.IdGeneratorStrategyInterpreter;
 import org.hibernate.boot.model.TypeContributor;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategy;
-import org.hibernate.boot.model.naming.PhysicalNamingStrategy;
 import org.hibernate.boot.model.relational.AuxiliaryDatabaseObject;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cfg.AttributeConverterDefinition;
 import org.hibernate.cfg.MetadataSourceType;
 import org.hibernate.dialect.function.SQLFunction;
-import org.hibernate.type.BasicType;
-import org.hibernate.usertype.CompositeUserType;
-import org.hibernate.usertype.UserType;
+import org.hibernate.metamodel.model.relational.spi.PhysicalNamingStrategy;
+import org.hibernate.type.spi.BasicType;
 
 import org.jboss.jandex.IndexView;
 
@@ -41,7 +38,7 @@ import org.jboss.jandex.IndexView;
  * to a specialization of {@link MetadataBuilderImplementor}
  */
 @SuppressWarnings("unused")
-public abstract class AbstractDelegatingMetadataBuilderImplementor<T extends MetadataBuilderImplementor>  implements MetadataBuilderImplementor {
+public abstract class AbstractDelegatingMetadataBuilderImplementor<T extends AbstractDelegatingMetadataBuilderImplementor<T>>  implements MetadataBuilderImplementor {
 
 	private final MetadataBuilderImplementor delegate;
 
@@ -169,25 +166,7 @@ public abstract class AbstractDelegatingMetadataBuilderImplementor<T extends Met
 	@Override
 	public MetadataBuilder applyBasicType(BasicType type) {
 		delegate.applyBasicType( type );
-		return getThis();
-	}
-
-	@Override
-	public MetadataBuilder applyBasicType(BasicType type, String... keys) {
-		delegate.applyBasicType( type, keys );
-		return getThis();
-	}
-
-	@Override
-	public MetadataBuilder applyBasicType(UserType type, String... keys) {
-		delegate.applyBasicType( type, keys );
-		return getThis();
-	}
-
-	@Override
-	public MetadataBuilder applyBasicType(CompositeUserType type, String... keys) {
-		delegate.applyBasicType( type, keys );
-		return getThis();
+		return this;
 	}
 
 	@Override
@@ -233,13 +212,14 @@ public abstract class AbstractDelegatingMetadataBuilderImplementor<T extends Met
 	}
 
 	@Override
-	public MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter> attributeConverterClass) {
+	public <O,R> MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter<O,R>> attributeConverterClass) {
 		delegate.applyAttributeConverter( attributeConverterClass );
 		return getThis();
 	}
 
 	@Override
-	public MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter> attributeConverterClass, boolean autoApply) {
+	public <O,R> MetadataBuilder applyAttributeConverter(
+			Class<? extends AttributeConverter<O, R>> attributeConverterClass, boolean autoApply) {
 		delegate.applyAttributeConverter( attributeConverterClass, autoApply );
 		return getThis();
 	}

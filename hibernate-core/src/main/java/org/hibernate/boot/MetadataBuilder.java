@@ -9,7 +9,6 @@ package org.hibernate.boot;
 import javax.persistence.AttributeConverter;
 import javax.persistence.SharedCacheMode;
 
-import org.hibernate.annotations.common.reflection.ReflectionManager;
 import org.hibernate.boot.archive.scan.spi.ScanEnvironment;
 import org.hibernate.boot.archive.scan.spi.ScanOptions;
 import org.hibernate.boot.archive.scan.spi.Scanner;
@@ -17,15 +16,13 @@ import org.hibernate.boot.archive.spi.ArchiveDescriptorFactory;
 import org.hibernate.boot.model.IdGeneratorStrategyInterpreter;
 import org.hibernate.boot.model.TypeContributor;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategy;
-import org.hibernate.boot.model.naming.PhysicalNamingStrategy;
 import org.hibernate.boot.model.relational.AuxiliaryDatabaseObject;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cfg.AttributeConverterDefinition;
 import org.hibernate.cfg.MetadataSourceType;
 import org.hibernate.dialect.function.SQLFunction;
-import org.hibernate.type.BasicType;
-import org.hibernate.usertype.CompositeUserType;
-import org.hibernate.usertype.UserType;
+import org.hibernate.metamodel.model.relational.spi.PhysicalNamingStrategy;
+
 
 import org.jboss.jandex.IndexView;
 
@@ -285,6 +282,36 @@ public interface MetadataBuilder {
 	 */
 	MetadataBuilder enableGlobalNationalizedCharacterDataSupport(boolean enabled);
 
+//	/**
+//	 * Specify an additional or overridden basic type mapping.
+//	 *
+//	 * @param type The type addition or override.
+//	 *
+//	 * @return {@code this}, for method chaining
+//	 */
+//	MetadataBuilder applyBasicType(BasicType type);
+//
+//	/**
+//	 * Specify an additional or overridden basic type mapping supplying specific
+//	 * registration keys.
+//	 *
+//	 * @param type The type addition or override.
+//	 * @param keys The keys under which to register the basic type.
+//	 *
+//	 * @return {@code this}, for method chaining
+//	 */
+//	MetadataBuilder applyBasicType(BasicType type, String... keys);
+//
+//	/**
+//	 * Register an additional or overridden custom type mapping.
+//	 *
+//	 * @param type The custom type
+//	 * @param keys The keys under which to register the custom type.
+//	 *
+//	 * @return {@code this}, for method chaining
+//	 */
+//	MetadataBuilder applyBasicType(UserType type, String... keys);
+
 	/**
 	 * Specify an additional or overridden basic type mapping.
 	 *
@@ -292,38 +319,7 @@ public interface MetadataBuilder {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	MetadataBuilder applyBasicType(BasicType type);
-
-	/**
-	 * Specify an additional or overridden basic type mapping supplying specific
-	 * registration keys.
-	 *
-	 * @param type The type addition or override.
-	 * @param keys The keys under which to register the basic type.
-	 *
-	 * @return {@code this}, for method chaining
-	 */
-	MetadataBuilder applyBasicType(BasicType type, String... keys);
-
-	/**
-	 * Register an additional or overridden custom type mapping.
-	 *
-	 * @param type The custom type
-	 * @param keys The keys under which to register the custom type.
-	 *
-	 * @return {@code this}, for method chaining
-	 */
-	MetadataBuilder applyBasicType(UserType type, String... keys);
-
-	/**
-	 * Register an additional or overridden composite custom type mapping.
-	 *
-	 * @param type The composite custom type
-	 * @param keys The keys under which to register the composite custom type.
-	 *
-	 * @return {@code this}, for method chaining
-	 */
-	MetadataBuilder applyBasicType(CompositeUserType type, String... keys);
+	MetadataBuilder applyBasicType(org.hibernate.type.spi.BasicType type);
 
 	/**
 	 * Apply an explicit TypeContributor (implicit application via ServiceLoader will still happen too)
@@ -408,7 +404,7 @@ public interface MetadataBuilder {
 	 *
 	 * @return {@code this} for method chaining
 	 */
-	MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter> attributeConverterClass);
+	<O,R> MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter<O,R>> attributeConverterClass);
 
 	/**
 	 * Adds an AttributeConverter by its Class plus a boolean indicating whether to auto apply it.
@@ -421,7 +417,7 @@ public interface MetadataBuilder {
 	 *
 	 * @see org.hibernate.cfg.AttributeConverterDefinition#from(Class, boolean)
 	 */
-	MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter> attributeConverterClass, boolean autoApply);
+	<O,R> MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter<O,R>> attributeConverterClass, boolean autoApply);
 
 	/**
 	 * Adds an AttributeConverter instance.
