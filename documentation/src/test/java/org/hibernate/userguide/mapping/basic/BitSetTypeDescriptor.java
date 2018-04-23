@@ -1,9 +1,12 @@
 package org.hibernate.userguide.mapping.basic;
 
+import java.sql.Types;
 import java.util.BitSet;
 
 import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * @author Vlad Mihalcea
@@ -43,6 +46,11 @@ public class BitSetTypeDescriptor extends AbstractTypeDescriptor<BitSet> {
             values[i] = Long.valueOf( tokens[i], 2 );
         }
         return BitSet.valueOf( values );
+    }
+
+    @Override
+    public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+        return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.VARCHAR );
     }
 
     @SuppressWarnings({"unchecked"})

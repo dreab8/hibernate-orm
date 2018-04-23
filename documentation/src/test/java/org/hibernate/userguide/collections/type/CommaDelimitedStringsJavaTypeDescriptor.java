@@ -6,6 +6,7 @@
  */
 package org.hibernate.userguide.collections.type;
 
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +15,8 @@ import java.util.stream.Collectors;
 import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
 import org.hibernate.type.descriptor.java.MutableMutabilityPlan;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * @author Vlad Mihalcea
@@ -45,6 +48,11 @@ public class CommaDelimitedStringsJavaTypeDescriptor extends AbstractTypeDescrip
         List<String> values = new ArrayList<>();
         Collections.addAll( values, string.split( DELIMITER ) );
         return values;
+    }
+
+    @Override
+    public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+        return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.VARCHAR );
     }
 
     @Override

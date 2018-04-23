@@ -7,7 +7,6 @@
 
 package org.hibernate.spatial.dialect.sqlserver;
 
-
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.dialect.SQLServer2008Dialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;

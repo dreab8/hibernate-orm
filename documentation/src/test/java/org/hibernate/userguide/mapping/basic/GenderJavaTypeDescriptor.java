@@ -1,8 +1,12 @@
 package org.hibernate.userguide.mapping.basic;
 
+import java.sql.Types;
+
 import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
 import org.hibernate.type.descriptor.java.CharacterTypeDescriptor;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * @author Vlad Mihalcea
@@ -23,6 +27,11 @@ public class GenderJavaTypeDescriptor extends AbstractTypeDescriptor<Gender> {
 
     public Gender fromString(String string) {
         return string == null ? null : Gender.valueOf( string );
+    }
+
+    @Override
+    public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+        return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.CHAR );
     }
 
     public <X> X unwrap(Gender value, Class<X> type, WrapperOptions options) {
