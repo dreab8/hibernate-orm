@@ -125,17 +125,21 @@ public class BooleanJavaDescriptor extends AbstractBasicJavaDescriptor<Boolean> 
 		if ( Character.class.isInstance( value ) ) {
 			return isTrue( (Character) value ) ? TRUE : FALSE;
 		}
-//		if ( String.class.isInstance( value ) ) {
-//			return isTrue( ( (String) value ).charAt( 0 ) ) ? TRUE : FALSE;
-//		}
 		if ( String.class.isInstance( value ) ) {
-			return Boolean.valueOf( (String) value );
+			return isTrue((String) value) ? TRUE : FALSE;
 		}
 		throw unknownWrap( value.getClass() );
 	}
 
+	private boolean isTrue(String strValue) {
+		if (strValue != null && !strValue.isEmpty()) {
+			return isTrue(strValue.charAt(0));
+		}
+		return false;
+	}
+
 	private boolean isTrue(char charValue) {
-//		return charValue == 't' || charValue == 'T' || charValue == 'y' || charValue == 'Y';
-		return charValue == 'T';
+		return charValue == 't' || charValue == 'T' || charValue == 'y' || charValue == 'Y';
+//		return charValue == 'T';
 	}
 }

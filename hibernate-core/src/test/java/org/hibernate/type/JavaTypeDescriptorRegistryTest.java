@@ -46,13 +46,13 @@ public class JavaTypeDescriptorRegistryTest {
 	}
 
 	@Test
-	public void testAddDirectlyToJavaTypeDescriptorRegistry(){
+	public void testAddDirectlyToJavaTypeDescriptorRegistry() {
 		TypeConfiguration typeConfiguration = new TypeConfiguration();
-		org.hibernate.type.descriptor.java.JavaTypeDescriptorRegistry.INSTANCE.addDescriptor( new CustomJavaTypeDescriptor()  );
+		typeConfiguration.getJavaTypeDescriptorRegistry().addDescriptor( new CustomJavaTypeDescriptor() );
 		JavaTypeDescriptor descriptor = typeConfiguration.getJavaTypeDescriptorRegistry()
 				.getDescriptor( CustomType.class );
 
-		assertThat(descriptor, instanceOf(CustomJavaTypeDescriptor.class));
+		assertThat( descriptor, instanceOf( CustomJavaTypeDescriptor.class ) );
 	}
 
 	public class CustomType {}

@@ -112,7 +112,7 @@ public class JavaTypeDescriptorRegistry implements JavaTypeDescriptorBaseline.Ba
 				" either directly or through a registered %s accessing the %s ";
 	}
 
-	private class OnTheFlySerializableJavaDescriptor<T extends Serializable> extends AbstractBasicJavaDescriptor<T> {
+	public static class OnTheFlySerializableJavaDescriptor<T extends Serializable> extends AbstractBasicJavaDescriptor<T> {
 		private final SqlTypeDescriptor sqlTypeDescriptor;
 
 		public OnTheFlySerializableJavaDescriptor(Class<T> type) {

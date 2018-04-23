@@ -20,7 +20,7 @@ public interface MutabilityPlan<T> extends Serializable {
 	 *
 	 * @return True if the internal state can be changed; false otherwise.
 	 */
-	public boolean isMutable();
+	boolean isMutable();
 
 	/**
 	 * Return a deep copy of the value.
@@ -29,7 +29,7 @@ public interface MutabilityPlan<T> extends Serializable {
 	 *
 	 * @return The deep copy.
 	 */
-	public T deepCopy(T value);
+	T deepCopy(T value);
 
 	/**
 	 * Return a "disassembled" representation of the value.  This is used to push values onto the
@@ -41,7 +41,7 @@ public interface MutabilityPlan<T> extends Serializable {
 	 *
 	 * @see #assemble
 	 */
-	public Serializable disassemble(T value);
+	Serializable disassemble(T value);
 
 	/**
 	 * Assemble a previously {@linkplain #disassemble disassembled} value.  This is used when pulling values from the
@@ -53,5 +53,5 @@ public interface MutabilityPlan<T> extends Serializable {
 	 *
 	 * @see #disassemble
 	 */
-	public T assemble(Serializable cached);
+	T assemble(Serializable cached);
 }
