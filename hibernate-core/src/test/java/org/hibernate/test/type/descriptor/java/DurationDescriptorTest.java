@@ -7,7 +7,7 @@
 package org.hibernate.test.type.descriptor.java;
 
 import java.time.Duration;
-import org.hibernate.type.descriptor.java.DurationJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.DurationJavaDescriptor;
 
 /**
  * @author Jordan Gigov

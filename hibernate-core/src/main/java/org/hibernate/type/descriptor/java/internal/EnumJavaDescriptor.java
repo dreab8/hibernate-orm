@@ -4,12 +4,14 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.sql.Types;
 import javax.persistence.EnumType;
 
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.ImmutableMutabilityPlan;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
@@ -18,14 +20,14 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class EnumJavaTypeDescriptor<T extends Enum> extends AbstractTypeDescriptor<T> {
+public class EnumJavaDescriptor<T extends Enum> extends AbstractBasicJavaDescriptor<T> {
+
 	// The recommended Jdbc type code used for EnumType.ORDINAL
 	public final static int ORDINAL_JDBC_TYPE_CODE = Types.INTEGER;
 
 	@SuppressWarnings("unchecked")
-	public EnumJavaTypeDescriptor(Class<T> type) {
+	public EnumJavaDescriptor(Class<T> type) {
 		super( type, ImmutableMutabilityPlan.INSTANCE );
-		//JavaTypeDescriptorRegistry.INSTANCE.addDescriptor( this );
 	}
 
 	@Override
@@ -46,7 +48,7 @@ public class EnumJavaTypeDescriptor<T extends Enum> extends AbstractTypeDescript
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "OptionalGetWithoutIsPresent"})
 	public T fromString(String string) {
 		return string == null ? null : (T) Enum.valueOf( getJavaType(), string );
 	}
@@ -54,32 +56,14 @@ public class EnumJavaTypeDescriptor<T extends Enum> extends AbstractTypeDescript
 	@Override
 	@SuppressWarnings("unchecked")
 	public <X> X unwrap(T value, Class<X> type, WrapperOptions options) {
-		if ( String.class.equals( type ) ) {
-			return (X) toName( value );
-		}
-		else if ( Integer.class.isInstance( type ) ) {
-			return (X) toOrdinal( value );
-		}
-
 		return (X) value;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <X> T wrap(X value, WrapperOptions options) {
-		if ( value == null ) {
-			return null;
-		}
-		else if ( String.class.isInstance( value ) ) {
-			return fromName( (String) value );
-		}
-		else if ( Integer.class.isInstance( value ) ) {
-			return fromOrdinal( (Integer) value );
-		}
-
 		return (T) value;
 	}
-
 
 	public <E extends Enum> Integer toOrdinal(E domainForm) {
 		if ( domainForm == null ) {

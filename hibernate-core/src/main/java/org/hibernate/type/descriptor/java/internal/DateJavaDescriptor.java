@@ -4,29 +4,54 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.sql.Types;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import org.hibernate.HibernateException;
-import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.java.internal.CalendarJavaDescriptor;
+import javax.persistence.TemporalType;
+
+import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * Descriptor for {@link Date} handling.
  *
  * @author Steve Ebersole
  */
-public class DateTypeDescriptor extends AbstractTypeDescriptor<Date> {
-	public static final DateTypeDescriptor INSTANCE = new DateTypeDescriptor();
-	public static final String DATE_FORMAT = "dd MMMM yyyy";
+public class DateJavaDescriptor
+		extends AbstractBasicJavaDescriptor<Date>
+		implements TemporalJavaDescriptor<Date> {
+	public static final DateJavaDescriptor INSTANCE = new DateJavaDescriptor();
+
+	/**
+	 * Note that this is the pattern used exclusively to read/write these "Calendar date"
+	 * values as Strings, not to format nor consume them as JDBC literals.  Uses
+	 * java.time.format.DateTimeFormatter#ISO_LOCAL_DATE_TIME
+	 */
+	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+	@Override
+	public TemporalType getPrecision() {
+		return TemporalType.TIMESTAMP;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <X> TemporalJavaDescriptor<X> resolveTypeForPrecision(TemporalType precision, TypeConfiguration scope) {
+		final TemporalJavaDescriptor jdbcTimestampDescriptor = (TemporalJavaDescriptor) scope.getJavaTypeDescriptorRegistry()
+				.getDescriptor( java.sql.Timestamp.class );
+		return jdbcTimestampDescriptor.resolveTypeForPrecision( precision, scope );
+	}
 
 	public static class DateMutabilityPlan extends MutableMutabilityPlan<Date> {
 		public static final DateMutabilityPlan INSTANCE = new DateMutabilityPlan();
@@ -36,7 +61,7 @@ public class DateTypeDescriptor extends AbstractTypeDescriptor<Date> {
 		}
 	}
 
-	public DateTypeDescriptor() {
+	public DateJavaDescriptor() {
 		super( Date.class, DateMutabilityPlan.INSTANCE );
 	}
 
@@ -47,17 +72,12 @@ public class DateTypeDescriptor extends AbstractTypeDescriptor<Date> {
 
 	@Override
 	public String toString(Date value) {
-		return new SimpleDateFormat( DATE_FORMAT ).format( value );
+		return FORMATTER.format( value.toInstant() );
 	}
 
 	@Override
 	public Date fromString(String string) {
-		try {
-			return new SimpleDateFormat(DATE_FORMAT).parse( string );
-		}
-		catch ( ParseException pe) {
-			throw new HibernateException( "could not parse date string" + string, pe );
-		}
+		return Date.from( ZonedDateTime.parse( string, FORMATTER ).toInstant() );
 	}
 
 	@Override
@@ -71,7 +91,7 @@ public class DateTypeDescriptor extends AbstractTypeDescriptor<Date> {
 
 	@Override
 	public int extractHashCode(Date value) {
-		Calendar calendar = java.util.Calendar.getInstance();
+		Calendar calendar = Calendar.getInstance();
 		calendar.setTime( value );
 		return CalendarJavaDescriptor.INSTANCE.extractHashCode( calendar );
 	}
@@ -113,6 +133,7 @@ public class DateTypeDescriptor extends AbstractTypeDescriptor<Date> {
 		}
 		throw unknownUnwrap( type );
 	}
+
 	@Override
 	public <X> Date wrap(X value, WrapperOptions options) {
 		if ( value == null ) {
@@ -132,4 +153,9 @@ public class DateTypeDescriptor extends AbstractTypeDescriptor<Date> {
 
 		throw unknownWrap( value.getClass() );
 	}
+
+//	@Override
+//	public VersionSupport<Date> getVersionSupport() {
+//		return TimestampVersionSupport.INSTANCE;
+//	}
 }

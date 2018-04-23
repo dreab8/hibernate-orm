@@ -7,7 +7,7 @@
 package org.hibernate.type.descriptor.converter;
 
 import org.hibernate.metamodel.model.convert.spi.JpaAttributeConverter;
-import org.hibernate.type.descriptor.java.MutableMutabilityPlan;
+import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
 
 /**
  * The standard aproach for defining a MutabilityPlan for converted (AttributeConverter)

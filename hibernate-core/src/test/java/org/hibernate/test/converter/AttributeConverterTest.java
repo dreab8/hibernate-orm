@@ -39,7 +39,7 @@ import org.hibernate.type.AbstractStandardBasicType;
 import org.hibernate.type.BasicType;
 import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
-import org.hibernate.type.descriptor.java.EnumJavaTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.EnumJavaDescriptor;
 import org.hibernate.type.descriptor.java.StringTypeDescriptor;
 
 import org.hibernate.testing.TestForIssue;
@@ -331,7 +331,7 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 				fail( "AttributeConverter not applied" );
 			}
 			AbstractStandardBasicType basicType = assertTyping( AbstractStandardBasicType.class, type );
-			assertTyping( EnumJavaTypeDescriptor.class, basicType.getJavaTypeDescriptor() );
+			assertTyping( EnumJavaDescriptor.class, basicType.getJavaTypeDescriptor() );
 			assertEquals( Types.VARCHAR, basicType.getSqlTypeDescriptor().getSqlType() );
 
 			// then lets build the SF and verify its use...

@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -17,29 +17,37 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import org.hibernate.type.descriptor.WrapperOptions;
+import javax.persistence.TemporalType;
+
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.ImmutableMutabilityPlan;
+import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * Java type descriptor for the LocalDateTime type.
  *
  * @author Steve Ebersole
  */
-public class InstantJavaDescriptor extends AbstractTypeDescriptor<Instant> {
+public class InstantJavaDescriptor
+		extends AbstractBasicJavaDescriptor<Instant>
+		implements TemporalJavaDescriptor<Instant> {
 	/**
 	 * Singleton access
 	 */
 	public static final InstantJavaDescriptor INSTANCE = new InstantJavaDescriptor();
 
-	@Override
-	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.TIMESTAMP );
-	}
-
 	@SuppressWarnings("unchecked")
 	public InstantJavaDescriptor() {
 		super( Instant.class, ImmutableMutabilityPlan.INSTANCE );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.TIMESTAMP );
 	}
 
 	@Override
@@ -68,7 +76,7 @@ public class InstantJavaDescriptor extends AbstractTypeDescriptor<Instant> {
 			return (X) GregorianCalendar.from( instant.atZone( zoneId ) );
 		}
 
-		if ( java.sql.Timestamp.class.isAssignableFrom( type ) ) {
+		if ( Timestamp.class.isAssignableFrom( type ) ) {
 			return (X) Timestamp.from( instant );
 		}
 
@@ -80,7 +88,7 @@ public class InstantJavaDescriptor extends AbstractTypeDescriptor<Instant> {
 			return (X) java.sql.Time.from( instant );
 		}
 
-		if ( java.util.Date.class.isAssignableFrom( type ) ) {
+		if ( Date.class.isAssignableFrom( type ) ) {
 			return (X) Date.from( instant );
 		}
 
@@ -115,10 +123,26 @@ public class InstantJavaDescriptor extends AbstractTypeDescriptor<Instant> {
 			return ZonedDateTime.ofInstant( calendar.toInstant(), calendar.getTimeZone().toZoneId() ).toInstant();
 		}
 
-		if ( java.util.Date.class.isInstance( value ) ) {
-			return ( (java.util.Date) value ).toInstant();
+		if ( Date.class.isInstance( value ) ) {
+			return ( (Date) value ).toInstant();
 		}
 
 		throw unknownWrap( value.getClass() );
 	}
+
+	@Override
+	public TemporalType getPrecision() {
+		return TemporalType.TIMESTAMP;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <X> TemporalJavaDescriptor<X> resolveTypeForPrecision(TemporalType precision, TypeConfiguration scope) {
+		return (TemporalJavaDescriptor<X>) this;
+	}
+
+//	@Override
+//	public VersionSupport<Instant> getVersionSupport() {
+//		return InstantVersionSupport.INSTANCE;
+//	}
 }

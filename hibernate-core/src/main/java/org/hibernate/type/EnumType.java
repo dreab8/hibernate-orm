@@ -27,7 +27,7 @@ import org.hibernate.internal.util.config.ConfigurationHelper;
 import org.hibernate.metamodel.model.convert.internal.NamedEnumValueConverter;
 import org.hibernate.metamodel.model.convert.internal.OrdinalEnumValueConverter;
 import org.hibernate.metamodel.model.convert.spi.EnumValueConverter;
-import org.hibernate.type.descriptor.java.EnumJavaTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.EnumJavaDescriptor;
 import org.hibernate.type.spi.TypeConfiguration;
 import org.hibernate.type.spi.TypeConfigurationAware;
 import org.hibernate.usertype.DynamicParameterizedType;
@@ -100,7 +100,7 @@ public class EnumType<T extends Enum>
 				throw new AssertionFailure( "Unknown EnumType: " + enumType );
 			}
 
-			final EnumJavaTypeDescriptor enumJavaDescriptor = (EnumJavaTypeDescriptor) typeConfiguration
+			final EnumJavaDescriptor enumJavaDescriptor = (EnumJavaDescriptor) typeConfiguration
 					.getJavaTypeDescriptorRegistry()
 					.getDescriptor( enumClass );
 
@@ -157,7 +157,7 @@ public class EnumType<T extends Enum>
 	}
 
 	private EnumValueConverter interpretParameters(Properties parameters) {
-		final EnumJavaTypeDescriptor javaTypeDescriptor = (EnumJavaTypeDescriptor) typeConfiguration
+		final EnumJavaDescriptor javaTypeDescriptor = (EnumJavaDescriptor) typeConfiguration
 				.getJavaTypeDescriptorRegistry()
 				.getDescriptor( enumClass );
 		if ( parameters.containsKey( NAMED ) ) {

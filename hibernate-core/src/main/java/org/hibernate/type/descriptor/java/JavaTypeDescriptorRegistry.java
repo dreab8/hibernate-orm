@@ -27,11 +27,17 @@ import org.hibernate.type.descriptor.java.internal.CharacterArrayJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.CharacterJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.ClassJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.ClobJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.CurrencyJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.DateJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.DoubleJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.DurationJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.FloatJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.InstantJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.IntegerJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.JdbcDateJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.LongJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.ShortJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
 import org.hibernate.type.descriptor.java.spi.RegistryHelper;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -88,15 +94,15 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 		addDescriptorInternal( ZonedDateTimeJavaDescriptor.INSTANCE );
 
 		addDescriptorInternal( CalendarJavaDescriptor.INSTANCE );
-		addDescriptorInternal( DateTypeDescriptor.INSTANCE );
-		descriptorsByClass.put( java.sql.Date.class, JdbcDateTypeDescriptor.INSTANCE );
+		addDescriptorInternal( DateJavaDescriptor.INSTANCE );
+		descriptorsByClass.put( java.sql.Date.class, JdbcDateJavaDescriptor.INSTANCE );
 		descriptorsByClass.put( java.sql.Time.class, JdbcTimeTypeDescriptor.INSTANCE );
 		descriptorsByClass.put( java.sql.Timestamp.class, JdbcTimestampTypeDescriptor.INSTANCE );
 		addDescriptorInternal( TimeZoneTypeDescriptor.INSTANCE );
 
 		addDescriptorInternal( ClassJavaDescriptor.INSTANCE );
 
-		addDescriptorInternal( CurrencyTypeDescriptor.INSTANCE );
+		addDescriptorInternal( CurrencyJavaDescriptor.INSTANCE );
 		addDescriptorInternal( LocaleTypeDescriptor.INSTANCE );
 		addDescriptorInternal( UrlTypeDescriptor.INSTANCE );
 		addDescriptorInternal( UUIDTypeDescriptor.INSTANCE );

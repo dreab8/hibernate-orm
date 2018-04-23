@@ -7,6 +7,8 @@
 package org.hibernate.type.descriptor.java;
 import java.lang.reflect.Array;
 
+import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
+
 /**
  * A mutability plan for arrays.  Specifically arrays of immutable element type; since the elements themselves
  * are immutable, a shallow copy is enough.

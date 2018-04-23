@@ -7,7 +7,7 @@
 package org.hibernate.test.type.descriptor.java;
 
 import java.time.Instant;
-import org.hibernate.type.descriptor.java.InstantJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.InstantJavaDescriptor;
 
 /**
  * @author Jordan Gigov

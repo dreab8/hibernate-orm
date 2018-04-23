@@ -13,11 +13,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import org.hibernate.type.descriptor.java.CurrencyTypeDescriptor;
-import org.hibernate.type.descriptor.java.DateTypeDescriptor;
-import org.hibernate.type.descriptor.java.DurationJavaDescriptor;
-import org.hibernate.type.descriptor.java.InstantJavaDescriptor;
-import org.hibernate.type.descriptor.java.JdbcDateTypeDescriptor;
 import org.hibernate.type.descriptor.java.JdbcTimeTypeDescriptor;
 import org.hibernate.type.descriptor.java.JdbcTimestampTypeDescriptor;
 import org.hibernate.type.descriptor.java.LocalDateJavaDescriptor;
@@ -79,15 +74,15 @@ public class JavaTypeDescriptorBaseline {
 		target.addBaselineDescriptor( ZonedDateTimeJavaDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( CalendarJavaDescriptor.INSTANCE );
-		target.addBaselineDescriptor( DateTypeDescriptor.INSTANCE );
-		target.addBaselineDescriptor( java.sql.Date.class, JdbcDateTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( DateJavaDescriptor.INSTANCE );
+		target.addBaselineDescriptor( java.sql.Date.class, JdbcDateJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( java.sql.Time.class, JdbcTimeTypeDescriptor.INSTANCE );
 		target.addBaselineDescriptor( java.sql.Timestamp.class, JdbcTimestampTypeDescriptor.INSTANCE );
 		target.addBaselineDescriptor( TimeZoneTypeDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( ClassJavaDescriptor.INSTANCE );
 
-		target.addBaselineDescriptor( CurrencyTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( CurrencyJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( LocaleTypeDescriptor.INSTANCE );
 		target.addBaselineDescriptor( UrlTypeDescriptor.INSTANCE );
 		target.addBaselineDescriptor( UUIDTypeDescriptor.INSTANCE );
