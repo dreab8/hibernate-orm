@@ -9,8 +9,7 @@ package org.hibernate.type.descriptor.java;
 import java.util.Comparator;
 import java.util.TimeZone;
 
-import org.hibernate.type.StringType;
-import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 

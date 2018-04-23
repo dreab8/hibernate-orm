@@ -11,7 +11,6 @@ import java.util.Comparator;
 
 import org.hibernate.internal.util.compare.ComparableComparator;
 import org.hibernate.internal.util.compare.EqualsHelper;
-import org.hibernate.type.descriptor.WrapperOptions;
 
 /**
  * Descriptor for the Java side of a value mapping.

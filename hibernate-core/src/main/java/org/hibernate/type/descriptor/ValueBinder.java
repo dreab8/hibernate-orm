@@ -9,6 +9,8 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.hibernate.type.descriptor.spi.WrapperOptions;
+
 /**
  * Contract for binding values to a {@link PreparedStatement}.
  *

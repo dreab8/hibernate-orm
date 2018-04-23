@@ -6,6 +6,8 @@
  */
 package org.hibernate.type.descriptor;
 
+import org.hibernate.type.descriptor.spi.WrapperOptions;
+
 /**
  * Defines the context for {@link WrapperOptions}
  *

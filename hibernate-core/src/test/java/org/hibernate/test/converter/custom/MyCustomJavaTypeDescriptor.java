@@ -7,7 +7,7 @@
 package org.hibernate.test.converter.custom;
 
 import org.hibernate.internal.util.StringHelper;
-import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
 import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;

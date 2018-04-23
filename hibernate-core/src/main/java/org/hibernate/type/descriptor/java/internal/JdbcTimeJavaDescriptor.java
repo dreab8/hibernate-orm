@@ -4,30 +4,40 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.sql.Time;
 import java.sql.Types;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import org.hibernate.HibernateException;
-import org.hibernate.type.descriptor.WrapperOptions;
+import javax.persistence.TemporalType;
+
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
+import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * Descriptor for {@link Time} handling.
  *
  * @author Steve Ebersole
  */
-public class JdbcTimeTypeDescriptor extends AbstractTypeDescriptor<Date> {
-	public static final JdbcTimeTypeDescriptor INSTANCE = new JdbcTimeTypeDescriptor();
-	public static final String TIME_FORMAT = "HH:mm:ss.SSS";
+public class JdbcTimeJavaDescriptor extends AbstractBasicJavaDescriptor<Date> implements TemporalJavaDescriptor<Date> {
+	public static final JdbcTimeJavaDescriptor INSTANCE = new JdbcTimeJavaDescriptor();
+
+	/**
+	 * Note that this is the pattern used exclusively to read/write these "Calendar date"
+	 * values as Strings, not to format nor consume them as JDBC literals.  Uses
+	 * java.time.format.DateTimeFormatter#ISO_LOCAL_DATE
+	 */
+	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_TIME;
 
 	public static class TimeMutabilityPlan extends MutableMutabilityPlan<Date> {
 		public static final TimeMutabilityPlan INSTANCE = new TimeMutabilityPlan();
@@ -39,28 +49,26 @@ public class JdbcTimeTypeDescriptor extends AbstractTypeDescriptor<Date> {
 		}
 	}
 
-	public JdbcTimeTypeDescriptor() {
+	public JdbcTimeJavaDescriptor() {
 		super( Date.class, TimeMutabilityPlan.INSTANCE );
+	}
+
+	@Override
+	public String toString(Date value) {
+		if ( value instanceof java.sql.Time ) {
+			return FORMATTER.format( ( (java.sql.Time) value ).toLocalTime() );
+		}
+		return FORMATTER.format( value.toInstant() );
+	}
+
+	@Override
+	public Date fromString(String string) {
+		return java.sql.Time.valueOf( LocalTime.parse( string, FORMATTER ) );
 	}
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
 		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.TIME );
-	}
-
-	@Override
-	public String toString(Date value) {
-		return new SimpleDateFormat( TIME_FORMAT ).format( value );
-	}
-
-	@Override
-	public java.util.Date fromString(String string) {
-		try {
-			return new Time( new SimpleDateFormat( TIME_FORMAT ).parse( string ).getTime() );
-		}
-		catch ( ParseException pe ) {
-			throw new HibernateException( "could not parse time string" + string, pe );
-		}
 	}
 
 	@Override
@@ -123,7 +131,7 @@ public class JdbcTimeTypeDescriptor extends AbstractTypeDescriptor<Date> {
 					: new java.sql.Timestamp( value.getTime() );
 			return (X) rtn;
 		}
-		if ( java.util.Date.class.isAssignableFrom( type ) ) {
+		if ( Date.class.isAssignableFrom( type ) ) {
 			return (X) value;
 		}
 		if ( Calendar.class.isAssignableFrom( type ) ) {
@@ -136,6 +144,7 @@ public class JdbcTimeTypeDescriptor extends AbstractTypeDescriptor<Date> {
 		}
 		throw unknownUnwrap( type );
 	}
+
 	@Override
 	public <X> Date wrap(X value, WrapperOptions options) {
 		if ( value == null ) {
@@ -158,5 +167,18 @@ public class JdbcTimeTypeDescriptor extends AbstractTypeDescriptor<Date> {
 		}
 
 		throw unknownWrap( value.getClass() );
+	}
+
+	@Override
+	public TemporalType getPrecision() {
+		return TemporalType.TIME;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <X> TemporalJavaDescriptor<X> resolveTypeForPrecision(TemporalType precision, TypeConfiguration scope) {
+		final TemporalJavaDescriptor jdbcTimestampDescriptor = (TemporalJavaDescriptor) scope.getJavaTypeDescriptorRegistry()
+				.getDescriptor( java.sql.Timestamp.class );
+		return jdbcTimestampDescriptor.resolveTypeForPrecision( precision, scope );
 	}
 }

@@ -18,7 +18,7 @@ import javax.persistence.TemporalType;
 
 import org.hibernate.cfg.Environment;
 import org.hibernate.internal.util.compare.CalendarComparator;
-import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;

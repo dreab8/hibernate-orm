@@ -15,7 +15,7 @@ import org.hibernate.annotations.Immutable;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
-import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.internal.BigDecimalJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.BigIntegerJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.BlobJavaDescriptor;
@@ -35,6 +35,8 @@ import org.hibernate.type.descriptor.java.internal.FloatJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.InstantJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.IntegerJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.JdbcDateJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.JdbcTimeJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.JdbcTimestampJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.LongJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.ShortJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
@@ -96,8 +98,8 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 		addDescriptorInternal( CalendarJavaDescriptor.INSTANCE );
 		addDescriptorInternal( DateJavaDescriptor.INSTANCE );
 		descriptorsByClass.put( java.sql.Date.class, JdbcDateJavaDescriptor.INSTANCE );
-		descriptorsByClass.put( java.sql.Time.class, JdbcTimeTypeDescriptor.INSTANCE );
-		descriptorsByClass.put( java.sql.Timestamp.class, JdbcTimestampTypeDescriptor.INSTANCE );
+		descriptorsByClass.put( java.sql.Time.class, JdbcTimeJavaDescriptor.INSTANCE );
+		descriptorsByClass.put( java.sql.Timestamp.class, JdbcTimestampJavaDescriptor.INSTANCE );
 		addDescriptorInternal( TimeZoneTypeDescriptor.INSTANCE );
 
 		addDescriptorInternal( ClassJavaDescriptor.INSTANCE );

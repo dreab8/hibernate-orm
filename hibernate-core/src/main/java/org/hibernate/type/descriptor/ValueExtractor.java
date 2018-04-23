@@ -10,6 +10,8 @@ import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.hibernate.type.descriptor.spi.WrapperOptions;
+
 /**
  * Contract for extracting value via JDBC (from {@link ResultSet} or as output param from {@link CallableStatement}).
  *

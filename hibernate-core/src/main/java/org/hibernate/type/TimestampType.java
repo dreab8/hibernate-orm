@@ -13,7 +13,7 @@ import java.util.Date;
 import org.hibernate.HibernateException;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.descriptor.java.JdbcTimestampTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.JdbcTimestampJavaDescriptor;
 import org.hibernate.type.descriptor.sql.TimestampTypeDescriptor;
 
 /**
@@ -29,7 +29,7 @@ public class TimestampType
 	public static final TimestampType INSTANCE = new TimestampType();
 
 	public TimestampType() {
-		super( TimestampTypeDescriptor.INSTANCE, JdbcTimestampTypeDescriptor.INSTANCE );
+		super( TimestampTypeDescriptor.INSTANCE, JdbcTimestampJavaDescriptor.INSTANCE );
 	}
 
 	@Override

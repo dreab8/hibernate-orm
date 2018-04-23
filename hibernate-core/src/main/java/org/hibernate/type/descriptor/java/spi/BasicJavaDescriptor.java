@@ -6,11 +6,6 @@
  */
 package org.hibernate.type.descriptor.java.spi;
 
-import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
-import org.hibernate.type.descriptor.sql.JdbcTypeJavaClassMappings;
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
-
 /**
  * @apiNote Currently this is the only high-level categorization of
  * JavaTypeDescriptor, but 6.0 will have specific JavaTypeDescriptor

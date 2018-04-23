@@ -13,8 +13,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import org.hibernate.type.descriptor.java.JdbcTimeTypeDescriptor;
-import org.hibernate.type.descriptor.java.JdbcTimestampTypeDescriptor;
 import org.hibernate.type.descriptor.java.LocalDateJavaDescriptor;
 import org.hibernate.type.descriptor.java.LocalDateTimeJavaDescriptor;
 import org.hibernate.type.descriptor.java.LocaleTypeDescriptor;
@@ -76,8 +74,8 @@ public class JavaTypeDescriptorBaseline {
 		target.addBaselineDescriptor( CalendarJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( DateJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( java.sql.Date.class, JdbcDateJavaDescriptor.INSTANCE );
-		target.addBaselineDescriptor( java.sql.Time.class, JdbcTimeTypeDescriptor.INSTANCE );
-		target.addBaselineDescriptor( java.sql.Timestamp.class, JdbcTimestampTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( java.sql.Time.class, JdbcTimeJavaDescriptor.INSTANCE );
+		target.addBaselineDescriptor( java.sql.Timestamp.class, JdbcTimestampJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( TimeZoneTypeDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( ClassJavaDescriptor.INSTANCE );

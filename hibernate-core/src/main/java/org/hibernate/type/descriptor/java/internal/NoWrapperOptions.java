@@ -9,7 +9,7 @@ package org.hibernate.type.descriptor.java.internal;
 import java.util.TimeZone;
 
 import org.hibernate.engine.jdbc.LobCreator;
-import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
