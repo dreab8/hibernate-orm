@@ -6,7 +6,12 @@
  */
 package org.hibernate.type.descriptor.java;
 
+import java.sql.Types;
+import javax.persistence.EnumType;
+
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Describes a Java Enum type.
@@ -14,10 +19,25 @@ import org.hibernate.type.descriptor.WrapperOptions;
  * @author Steve Ebersole
  */
 public class EnumJavaTypeDescriptor<T extends Enum> extends AbstractTypeDescriptor<T> {
+	// The recommended Jdbc type code used for EnumType.ORDINAL
+	public final static int ORDINAL_JDBC_TYPE_CODE = Types.INTEGER;
+
 	@SuppressWarnings("unchecked")
 	public EnumJavaTypeDescriptor(Class<T> type) {
 		super( type, ImmutableMutabilityPlan.INSTANCE );
 		//JavaTypeDescriptorRegistry.INSTANCE.addDescriptor( this );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		if ( context.getEnumeratedType() != null && context.getEnumeratedType() == EnumType.STRING ) {
+			return context.isNationalized()
+					? context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.NVARCHAR )
+					: context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.VARCHAR );
+		}
+		else {
+			return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( ORDINAL_JDBC_TYPE_CODE );
+		}
 	}
 
 	@Override

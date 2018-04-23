@@ -17,6 +17,8 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.jdbc.BinaryStream;
 import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@code byte[]} handling.
@@ -29,6 +31,11 @@ public class PrimitiveByteArrayTypeDescriptor extends AbstractTypeDescriptor<byt
 	@SuppressWarnings({ "unchecked" })
 	public PrimitiveByteArrayTypeDescriptor() {
 		super( byte[].class, ArrayMutabilityPlan.INSTANCE );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return ByteArrayTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	@Override

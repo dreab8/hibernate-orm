@@ -8,6 +8,8 @@ package org.hibernate.type.descriptor.java;
 import org.hibernate.HibernateException;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link Class} handling.
@@ -19,6 +21,11 @@ public class ClassTypeDescriptor extends AbstractTypeDescriptor<Class> {
 
 	public ClassTypeDescriptor() {
 		super( Class.class );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return StringTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	public String toString(Class value) {

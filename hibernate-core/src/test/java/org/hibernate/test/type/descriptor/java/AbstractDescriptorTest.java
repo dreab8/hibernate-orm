@@ -5,11 +5,12 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.test.type.descriptor.java;
+
 import java.io.Serializable;
 import java.sql.Blob;
 import java.sql.Clob;
 
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 import org.junit.Before;
 import org.junit.Test;

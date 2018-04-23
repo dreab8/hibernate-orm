@@ -16,6 +16,8 @@ import java.util.GregorianCalendar;
 
 import org.hibernate.type.ZonedDateTimeType;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Java type descriptor for the LocalDateTime type.
@@ -31,6 +33,11 @@ public class ZonedDateTimeJavaDescriptor extends AbstractTypeDescriptor<ZonedDat
 	@SuppressWarnings("unchecked")
 	public ZonedDateTimeJavaDescriptor() {
 		super( ZonedDateTime.class, ImmutableMutabilityPlan.INSTANCE );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return StringTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	@Override

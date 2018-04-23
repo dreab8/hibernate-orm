@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.sql.NClob;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Comparator;
 
 import org.hibernate.HibernateException;
@@ -19,6 +20,8 @@ import org.hibernate.engine.jdbc.NClobProxy;
 import org.hibernate.engine.jdbc.WrappedNClob;
 import org.hibernate.engine.jdbc.internal.CharacterStreamImpl;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link java.sql.NClob} handling.
@@ -53,6 +56,18 @@ public class NClobTypeDescriptor extends AbstractTypeDescriptor<NClob> {
 
 	public NClobTypeDescriptor() {
 		super( NClob.class, NClobMutabilityPlan.INSTANCE );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		final int jdbcCode;
+		if ( context.isNationalized() ) {
+			jdbcCode = Types.NCLOB;
+		}
+		else {
+			jdbcCode = Types.CLOB;
+		}
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( jdbcCode );
 	}
 
 	@Override

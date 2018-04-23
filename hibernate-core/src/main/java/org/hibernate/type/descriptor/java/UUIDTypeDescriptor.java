@@ -11,6 +11,8 @@ import java.util.UUID;
 
 import org.hibernate.internal.util.BytesHelper;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link UUID} handling.
@@ -24,15 +26,23 @@ public class UUIDTypeDescriptor extends AbstractTypeDescriptor<UUID> {
 		super( UUID.class );
 	}
 
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return StringTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
+	}
+
+	@Override
 	public String toString(UUID value) {
 		return ToStringTransformer.INSTANCE.transform( value );
 	}
 
+	@Override
 	public UUID fromString(String string) {
 		return ToStringTransformer.INSTANCE.parse( string );
 	}
 
 	@SuppressWarnings({ "unchecked" })
+	@Override
 	public <X> X unwrap(UUID value, Class<X> type, WrapperOptions options) {
 		if ( value == null ) {
 			return null;
@@ -49,6 +59,7 @@ public class UUIDTypeDescriptor extends AbstractTypeDescriptor<UUID> {
 		throw unknownUnwrap( type );
 	}
 
+	@Override
 	public <X> UUID wrap(X value, WrapperOptions options) {
 		if ( value == null ) {
 			return null;

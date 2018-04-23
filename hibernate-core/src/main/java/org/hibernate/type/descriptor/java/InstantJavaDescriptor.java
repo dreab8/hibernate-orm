@@ -7,6 +7,7 @@
 package org.hibernate.type.descriptor.java;
 
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -17,6 +18,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Java type descriptor for the LocalDateTime type.
@@ -28,6 +31,11 @@ public class InstantJavaDescriptor extends AbstractTypeDescriptor<Instant> {
 	 * Singleton access
 	 */
 	public static final InstantJavaDescriptor INSTANCE = new InstantJavaDescriptor();
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.TIMESTAMP );
+	}
 
 	@SuppressWarnings("unchecked")
 	public InstantJavaDescriptor() {

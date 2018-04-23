@@ -8,12 +8,11 @@ package org.hibernate.test.converter.custom;
 
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.java.BasicJavaDescriptor;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
 import org.hibernate.type.descriptor.java.MutableMutabilityPlan;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -40,6 +39,11 @@ public class MyCustomJavaTypeDescriptor implements BasicJavaDescriptor<MyCustomJ
 	}
 
 	@Override
+	public String getTypeName() {
+		return getJavaTypeClass().getName();
+	}
+
+	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
 		return MyCustomSqlTypeDescriptor.INSTANCE;
 	}
@@ -47,6 +51,11 @@ public class MyCustomJavaTypeDescriptor implements BasicJavaDescriptor<MyCustomJ
 	@Override
 	public MutabilityPlan getMutabilityPlan() {
 		return mutabilityPlan;
+	}
+
+	@Override
+	public String extractLoggableRepresentation(MyCustomJavaType value) {
+		return (value == null) ? "null" : value.toString();
 	}
 
 	@Override

@@ -9,7 +9,10 @@ package org.hibernate.type.descriptor.java;
 import java.util.Comparator;
 import java.util.Locale;
 
+import org.hibernate.type.StringType;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link Locale} handling.
@@ -29,6 +32,11 @@ public class LocaleTypeDescriptor extends AbstractTypeDescriptor<Locale> {
 
 	public LocaleTypeDescriptor() {
 		super( Locale.class );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return StringTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	@Override

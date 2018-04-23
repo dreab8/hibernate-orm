@@ -6,14 +6,16 @@
  */
 package org.hibernate.type.descriptor.java;
 
+import java.sql.Types;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import org.hibernate.cfg.Environment;
 import org.hibernate.internal.util.compare.CalendarComparator;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.TemporalSqlDescriptor;
 
 /**
  * Descriptor for {@link java.util.Calendar} handling, but just for the time portion.
@@ -25,6 +27,11 @@ public class CalendarTimeTypeDescriptor extends AbstractTypeDescriptor<Calendar>
 
 	protected CalendarTimeTypeDescriptor() {
 		super( Calendar.class, CalendarTypeDescriptor.CalendarMutabilityPlan.INSTANCE );
+	}
+
+	@Override
+	public TemporalSqlDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return (TemporalSqlDescriptor) context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.TIME );
 	}
 
 	public String toString(Calendar value) {

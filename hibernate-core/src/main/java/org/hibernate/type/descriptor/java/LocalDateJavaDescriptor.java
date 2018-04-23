@@ -7,6 +7,7 @@
 package org.hibernate.type.descriptor.java;
 
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,6 +19,8 @@ import java.util.GregorianCalendar;
 
 import org.hibernate.type.LocalDateType;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Java type descriptor for the LocalDateTime type.
@@ -33,6 +36,11 @@ public class LocalDateJavaDescriptor extends AbstractTypeDescriptor<LocalDate> {
 	@SuppressWarnings("unchecked")
 	public LocalDateJavaDescriptor() {
 		super( LocalDate.class, ImmutableMutabilityPlan.INSTANCE );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.DATE );
 	}
 
 	@Override

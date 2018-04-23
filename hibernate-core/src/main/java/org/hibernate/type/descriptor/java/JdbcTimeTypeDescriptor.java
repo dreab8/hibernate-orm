@@ -7,6 +7,7 @@
 package org.hibernate.type.descriptor.java;
 
 import java.sql.Time;
+import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -15,6 +16,8 @@ import java.util.GregorianCalendar;
 
 import org.hibernate.HibernateException;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link Time} handling.
@@ -38,10 +41,17 @@ public class JdbcTimeTypeDescriptor extends AbstractTypeDescriptor<Date> {
 	public JdbcTimeTypeDescriptor() {
 		super( Date.class, TimeMutabilityPlan.INSTANCE );
 	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.TIME );
+	}
+
 	@Override
 	public String toString(Date value) {
 		return new SimpleDateFormat( TIME_FORMAT ).format( value );
 	}
+
 	@Override
 	public java.util.Date fromString(String string) {
 		try {

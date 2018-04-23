@@ -18,6 +18,8 @@ import org.hibernate.engine.jdbc.BinaryStream;
 import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
 import org.hibernate.internal.util.compare.RowVersionComparator;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@code byte[]} handling specifically used for specifically for entity versions/timestamps.
@@ -31,6 +33,12 @@ public class RowVersionTypeDescriptor extends AbstractTypeDescriptor<byte[]> {
 	@SuppressWarnings({ "unchecked" })
 	public RowVersionTypeDescriptor() {
 		super( byte[].class, ArrayMutabilityPlan.INSTANCE );
+	}
+
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return ByteArrayTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	@Override

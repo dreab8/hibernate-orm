@@ -8,8 +8,11 @@ package org.hibernate.type.descriptor.java;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Types;
 
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link Float} handling.
@@ -22,10 +25,17 @@ public class FloatTypeDescriptor extends AbstractTypeDescriptor<Float> {
 	public FloatTypeDescriptor() {
 		super( Float.class );
 	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.FLOAT );
+	}
+
 	@Override
 	public String toString(Float value) {
 		return value == null ? null : value.toString();
 	}
+
 	@Override
 	public Float fromString(String string) {
 		return Float.valueOf( string );

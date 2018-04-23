@@ -6,14 +6,15 @@
  */
 package org.hibernate.type.descriptor.java;
 
+import java.sql.Types;
 import java.util.Calendar;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
-import org.hibernate.cfg.Environment;
 import org.hibernate.internal.util.compare.CalendarComparator;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link Calendar} handling.
@@ -29,6 +30,11 @@ public class CalendarTypeDescriptor extends AbstractTypeDescriptor<Calendar> {
 		public Calendar deepCopyNotNull(Calendar value) {
 			return (Calendar) value.clone();
 		}
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.TIMESTAMP );
 	}
 
 	protected CalendarTypeDescriptor() {

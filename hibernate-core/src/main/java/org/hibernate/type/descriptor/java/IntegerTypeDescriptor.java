@@ -8,8 +8,11 @@ package org.hibernate.type.descriptor.java;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Types;
 
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link Integer} handling.
@@ -22,10 +25,17 @@ public class IntegerTypeDescriptor extends AbstractTypeDescriptor<Integer> {
 	public IntegerTypeDescriptor() {
 		super( Integer.class );
 	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.INTEGER );
+	}
+
 	@Override
 	public String toString(Integer value) {
 		return value == null ? null : value.toString();
 	}
+
 	@Override
 	public Integer fromString(String string) {
 		return string == null ? null : Integer.valueOf( string );

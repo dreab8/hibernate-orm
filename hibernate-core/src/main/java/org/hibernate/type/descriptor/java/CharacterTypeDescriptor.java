@@ -5,8 +5,13 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.type.descriptor.java;
+
+import java.sql.Types;
+
 import org.hibernate.HibernateException;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link Character} handling.
@@ -19,10 +24,17 @@ public class CharacterTypeDescriptor extends AbstractTypeDescriptor<Character> {
 	public CharacterTypeDescriptor() {
 		super( Character.class );
 	}
+
 	@Override
 	public String toString(Character value) {
 		return value.toString();
 	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.CHAR );
+	}
+
 	@Override
 	public Character fromString(String string) {
 		if ( string.length() != 1 ) {

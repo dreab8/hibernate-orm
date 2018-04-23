@@ -9,9 +9,11 @@ package org.hibernate.type;
 import java.util.Comparator;
 
 import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
 import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 import org.hibernate.type.spi.TypeConfiguration;
 
 import org.junit.Test;
@@ -62,6 +64,11 @@ public class JavaTypeDescriptorRegistryTest {
 		}
 
 		@Override
+		public String getTypeName() {
+			return getJavaTypeClass().getName();
+		}
+
+		@Override
 		public MutabilityPlan getMutabilityPlan() {
 			return null;
 		}
@@ -87,21 +94,22 @@ public class JavaTypeDescriptorRegistryTest {
 		}
 
 		@Override
+		public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+			return null;
+		}
+
 		public String toString(Object value) {
 			return null;
 		}
 
-		@Override
 		public Object fromString(String string) {
 			return null;
 		}
 
-		@Override
 		public Object wrap(Object value, WrapperOptions options) {
 			return null;
 		}
 
-		@Override
 		public Object unwrap(Object value, Class type, WrapperOptions options) {
 			return null;
 		}

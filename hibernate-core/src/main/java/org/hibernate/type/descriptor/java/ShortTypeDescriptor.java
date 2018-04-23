@@ -5,7 +5,11 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.type.descriptor.java;
+import java.sql.Types;
+
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link Short} handling.
@@ -18,10 +22,17 @@ public class ShortTypeDescriptor extends AbstractTypeDescriptor<Short> {
 	public ShortTypeDescriptor() {
 		super( Short.class );
 	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.TINYINT );
+	}
+
 	@Override
 	public String toString(Short value) {
 		return value == null ? null : value.toString();
 	}
+
 	@Override
 	public Short fromString(String string) {
 		return Short.valueOf( string );

@@ -22,7 +22,8 @@ import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.AbstractSingleColumnStandardBasicType;
 import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptorRegistry;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import org.hibernate.testing.TestForIssue;
 import org.junit.Test;
@@ -219,6 +220,11 @@ public class LongListTypeContributorTest extends BaseEntityManagerFunctionalTest
 				}
 
 				return results;
+			}
+
+			@Override
+			public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+				return org.hibernate.type.descriptor.sql.LongVarcharTypeDescriptor.INSTANCE;
 			}
 
 			@Override

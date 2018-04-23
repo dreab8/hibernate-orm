@@ -12,6 +12,7 @@ import java.util.Comparator;
 import org.hibernate.HibernateException;
 import org.hibernate.internal.util.compare.ComparableComparator;
 import org.hibernate.internal.util.compare.EqualsHelper;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 
 /**
  * Abstract adapter for Java type descriptors.
@@ -92,6 +93,12 @@ public abstract class AbstractTypeDescriptor<T> implements BasicJavaDescriptor<T
 	public String extractLoggableRepresentation(T value) {
 		return (value == null) ? "null" : value.toString();
 	}
+
+	@Override
+	public String getTypeName() {
+		return getJavaType().getName();
+	}
+
 
 	protected HibernateException unknownUnwrap(Class conversionType) {
 		throw new HibernateException(

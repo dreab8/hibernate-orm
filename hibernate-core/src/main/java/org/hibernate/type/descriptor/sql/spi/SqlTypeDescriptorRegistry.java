@@ -8,7 +8,7 @@ package org.hibernate.type.descriptor.sql.spi;
 
 import java.io.Serializable;
 
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 import org.hibernate.type.spi.TypeConfiguration;
 
 /**

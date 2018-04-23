@@ -6,9 +6,12 @@
  */
 package org.hibernate.type.descriptor.java;
 
+import java.sql.Types;
 import java.time.Duration;
 
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -22,6 +25,11 @@ public class DurationJavaDescriptor extends AbstractTypeDescriptor<Duration> {
 	@SuppressWarnings("unchecked")
 	public DurationJavaDescriptor() {
 		super( Duration.class, ImmutableMutabilityPlan.INSTANCE );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.BIGINT );
 	}
 
 	@Override

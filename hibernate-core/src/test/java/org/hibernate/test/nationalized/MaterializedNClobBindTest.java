@@ -19,7 +19,7 @@ import org.hibernate.engine.jdbc.NonContextualLobCreator;
 import org.hibernate.type.MaterializedNClobType;
 import org.hibernate.type.descriptor.ValueBinder;
 import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import org.hibernate.testing.TestForIssue;
 import org.junit.Test;

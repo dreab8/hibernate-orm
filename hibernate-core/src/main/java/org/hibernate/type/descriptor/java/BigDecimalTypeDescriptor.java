@@ -8,8 +8,11 @@ package org.hibernate.type.descriptor.java;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Types;
 
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link BigDecimal} handling.
@@ -18,6 +21,11 @@ import org.hibernate.type.descriptor.WrapperOptions;
  */
 public class BigDecimalTypeDescriptor extends AbstractTypeDescriptor<BigDecimal> {
 	public static final BigDecimalTypeDescriptor INSTANCE = new BigDecimalTypeDescriptor();
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.NUMERIC );
+	}
 
 	public BigDecimalTypeDescriptor() {
 		super( BigDecimal.class );

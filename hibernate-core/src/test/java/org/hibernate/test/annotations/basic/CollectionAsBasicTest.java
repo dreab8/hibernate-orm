@@ -6,6 +6,7 @@
  */
 package org.hibernate.test.annotations.basic;
 
+import java.sql.Types;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Basic;
@@ -24,7 +25,9 @@ import org.hibernate.type.AbstractSingleColumnStandardBasicType;
 import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
 import org.hibernate.type.descriptor.java.MutableMutabilityPlan;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.Test;
@@ -96,6 +99,11 @@ public class CollectionAsBasicTest extends BaseUnitTestCase {
 		@Override
 		public Set fromString(String string) {
 			return null;
+		}
+
+		@Override
+		public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+			return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.VARCHAR );
 		}
 
 		@Override

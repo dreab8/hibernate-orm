@@ -14,7 +14,10 @@ import java.util.Comparator;
 
 import org.hibernate.engine.jdbc.CharacterStream;
 import org.hibernate.engine.jdbc.internal.CharacterStreamImpl;
+import org.hibernate.type.CharacterArrayType;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@code char[]} handling.
@@ -27,6 +30,11 @@ public class PrimitiveCharacterArrayTypeDescriptor extends AbstractTypeDescripto
 	@SuppressWarnings({ "unchecked" })
 	protected PrimitiveCharacterArrayTypeDescriptor() {
 		super( char[].class, ArrayMutabilityPlan.INSTANCE );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return CharacterArrayTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	public String toString(char[] value) {

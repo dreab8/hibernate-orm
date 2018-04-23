@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.sql.Blob;
 import java.sql.SQLException;
+import java.sql.Types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.annotations.Immutable;
@@ -18,6 +19,8 @@ import org.hibernate.engine.jdbc.BinaryStream;
 import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
 import org.hibernate.internal.util.SerializationHelper;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for general {@link Serializable} handling.
@@ -44,6 +47,11 @@ public class SerializableTypeDescriptor<T extends Serializable> extends Abstract
 
 	public SerializableTypeDescriptor(Class<T> type) {
 		super( type, createMutabilityPlan( type ) );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.VARBINARY );
 	}
 
 	@SuppressWarnings({ "unchecked" })

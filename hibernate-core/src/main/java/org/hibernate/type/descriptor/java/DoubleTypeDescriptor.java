@@ -8,8 +8,11 @@ package org.hibernate.type.descriptor.java;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Types;
 
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link Double} handling.
@@ -22,10 +25,17 @@ public class DoubleTypeDescriptor extends AbstractTypeDescriptor<Double> {
 	public DoubleTypeDescriptor() {
 		super( Double.class );
 	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.DOUBLE );
+	}
+
 	@Override
 	public String toString(Double value) {
 		return value == null ? null : value.toString();
 	}
+
 	@Override
 	public Double fromString(String string) {
 		return Double.valueOf( string );

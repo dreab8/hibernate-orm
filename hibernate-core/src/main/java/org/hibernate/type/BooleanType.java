@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.BooleanTypeDescriptor;
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#BOOLEAN BOOLEAN} and {@link Boolean}

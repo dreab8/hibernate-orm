@@ -38,7 +38,21 @@ public interface JavaTypeDescriptor<T> extends Serializable {
 	}
 
 	/**
+	 * Get the type name.  This is useful for dynamic models which either will not have
+	 * a Java type ({@link #getJavaType()} returns null) or {@link #getJavaType()}
+	 * returns a non-indicative value ({@code java.util.Map.class} for a composite value in
+	 * {@link org.hibernate.EntityMode#MAP} EntityMode, e.g.).
+	 * <p/>
+	 * For typed models, this generally returns {@link #getJavaType()}.{@linkplain Class#getName() getName}
+	 *
+	 * @return The Java type name.
+	 */
+	String getTypeName();
+
+	/**
 	 * Retrieve the mutability plan for this Java type.
+	 *
+	 * @return The mutability plan
 	 */
 	@SuppressWarnings("unchecked")
 	default MutabilityPlan<T> getMutabilityPlan() {
@@ -47,6 +61,8 @@ public interface JavaTypeDescriptor<T> extends Serializable {
 
 	/**
 	 * Retrieve the natural comparator for this type.
+	 *
+	 * @return The natural comparator.
 	 */
 	default Comparator<T> getComparator() {
 		return Comparable.class.isAssignableFrom( Comparable.class ) ? ComparableComparator.INSTANCE : null;
@@ -85,44 +101,6 @@ public interface JavaTypeDescriptor<T> extends Serializable {
 	 *
 	 * @return The loggable representation
 	 */
-	default String extractLoggableRepresentation(T value) {
-		return toString( value );
-	}
+	String extractLoggableRepresentation(T value);
 
-	default String toString(T value) {
-		return value == null ? "null" : value.toString();
-	}
-
-	T fromString(String string);
-
-	/**
-	 * Unwrap an instance of our handled Java type into the requested type.
-	 * <p/>
-	 * As an example, if this is a {@code JavaTypeDescriptor<Integer>} and we are asked to unwrap
-	 * the {@code Integer value} as a {@code Long} we would return something like
-	 * <code>Long.valueOf( value.longValue() )</code>.
-	 * <p/>
-	 * Intended use is during {@link java.sql.PreparedStatement} binding.
-	 *
-	 * @param value The value to unwrap
-	 * @param type The type as which to unwrap
-	 * @param options The options
-	 * @param <X> The conversion type.
-	 *
-	 * @return The unwrapped value.
-	 */
-	<X> X unwrap(T value, Class<X> type, WrapperOptions options);
-
-	/**
-	 * Wrap a value as our handled Java type.
-	 * <p/>
-	 * Intended use is during {@link java.sql.ResultSet} extraction.
-	 *
-	 * @param value The value to wrap.
-	 * @param options The options
-	 * @param <X> The conversion type.
-	 *
-	 * @return The wrapped value.
-	 */
-	<X> T wrap(X value, WrapperOptions options);
 }

@@ -9,7 +9,10 @@ package org.hibernate.type.descriptor.java;
 import java.util.Comparator;
 import java.util.TimeZone;
 
+import org.hibernate.type.StringType;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * Descriptor for {@link TimeZone} handling.
@@ -22,6 +25,7 @@ public class TimeZoneTypeDescriptor extends AbstractTypeDescriptor<TimeZone> {
 	public static class TimeZoneComparator implements Comparator<TimeZone> {
 		public static final TimeZoneComparator INSTANCE = new TimeZoneComparator();
 
+		@Override
 		public int compare(TimeZone o1, TimeZone o2) {
 			return o1.getID().compareTo( o2.getID() );
 		}
@@ -31,10 +35,17 @@ public class TimeZoneTypeDescriptor extends AbstractTypeDescriptor<TimeZone> {
 		super( TimeZone.class );
 	}
 
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return StringTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
+	}
+
+	@Override
 	public String toString(TimeZone value) {
 		return value.getID();
 	}
 
+	@Override
 	public TimeZone fromString(String string) {
 		return TimeZone.getTimeZone( string );
 	}
