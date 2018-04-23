@@ -127,7 +127,7 @@ public class BlobJavaDescriptor extends AbstractBasicJavaDescriptor<Blob> {
 				}
 				else {
 					// otherwise we need to build a BinaryStream...
-					return (X) new BinaryStreamImpl( DataHelper.extractBytes( value.getBinaryStream() ) );
+					return (X) new BinaryStreamImpl( LobStreamDataHelper.extractBytes( value.getBinaryStream() ) );
 				}
 			}
 			else if ( byte[].class.isAssignableFrom( type )) {
@@ -137,7 +137,7 @@ public class BlobJavaDescriptor extends AbstractBasicJavaDescriptor<Blob> {
 				}
 				else {
 					// otherwise extract the bytes from the stream manually
-					return (X) DataHelper.extractBytes( value.getBinaryStream() );
+					return (X) LobStreamDataHelper.extractBytes( value.getBinaryStream() );
 				}
 			}
 			else if (Blob.class.isAssignableFrom( type )) {

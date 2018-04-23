@@ -411,7 +411,7 @@ public abstract class AbstractHANADialect extends Dialect {
 
 	}
 
-	// the ClobTypeDescriptor and NClobTypeDescriptor for HANA are slightly
+	// the ClobJavaDescriptor and NClobTypeDescriptor for HANA are slightly
 	// changed from the standard ones. The HANA JDBC driver currently closes any
 	// stream passed in via
 	// PreparedStatement.setCharacterStream(int,Reader,long)

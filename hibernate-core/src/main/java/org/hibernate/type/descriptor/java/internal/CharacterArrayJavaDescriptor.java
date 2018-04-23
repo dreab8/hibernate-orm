@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -15,6 +15,11 @@ import java.util.Comparator;
 import org.hibernate.engine.jdbc.CharacterStream;
 import org.hibernate.engine.jdbc.internal.CharacterStreamImpl;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.ArrayMutabilityPlan;
+import org.hibernate.type.descriptor.java.DataHelper;
+import org.hibernate.type.descriptor.java.IncomparableComparator;
+import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
@@ -23,17 +28,12 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class CharacterArrayTypeDescriptor extends AbstractTypeDescriptor<Character[]> {
-	public static final CharacterArrayTypeDescriptor INSTANCE = new CharacterArrayTypeDescriptor();
+public class CharacterArrayJavaDescriptor extends AbstractBasicJavaDescriptor<Character[]> {
+	public static final CharacterArrayJavaDescriptor INSTANCE = new CharacterArrayJavaDescriptor();
 
 	@SuppressWarnings({ "unchecked" })
-	public CharacterArrayTypeDescriptor() {
+	public CharacterArrayJavaDescriptor() {
 		super( Character[].class, ArrayMutabilityPlan.INSTANCE );
-	}
-
-	@Override
-	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return StringTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	@Override
@@ -53,18 +53,22 @@ public class CharacterArrayTypeDescriptor extends AbstractTypeDescriptor<Charact
 	}
 
 	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return StringTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
+	}
+
+	@Override
+	public Comparator<Character[]> getComparator() {
+		return IncomparableComparator.INSTANCE;
+	}
+
+	@Override
 	public int extractHashCode(Character[] chars) {
 		int hashCode = 1;
 		for ( Character aChar : chars ) {
 			hashCode = 31 * hashCode + aChar;
 		}
 		return hashCode;
-	}
-
-	@Override
-	@SuppressWarnings({ "unchecked" })
-	public Comparator<Character[]> getComparator() {
-		return IncomparableComparator.INSTANCE;
 	}
 
 	@SuppressWarnings({ "unchecked" })
@@ -90,6 +94,7 @@ public class CharacterArrayTypeDescriptor extends AbstractTypeDescriptor<Charact
 		}
 		throw unknownUnwrap( type );
 	}
+
 	@Override
 	public <X> Character[] wrap(X value, WrapperOptions options) {
 		if ( value == null ) {
@@ -102,10 +107,10 @@ public class CharacterArrayTypeDescriptor extends AbstractTypeDescriptor<Charact
 			return wrapChars( ( (String) value ).toCharArray() );
 		}
 		if ( Clob.class.isInstance( value ) ) {
-			return wrapChars( DataHelper.extractString( ( (Clob) value ) ).toCharArray() );
+			return wrapChars( LobStreamDataHelper.extractString( ( (Clob) value ) ).toCharArray() );
 		}
 		if ( Reader.class.isInstance( value ) ) {
-			return wrapChars( DataHelper.extractString( (Reader) value ).toCharArray() );
+			return wrapChars( LobStreamDataHelper.extractString( (Reader) value ).toCharArray() );
 		}
 		throw unknownWrap( value.getClass() );
 	}

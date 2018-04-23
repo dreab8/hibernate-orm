@@ -13,9 +13,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import org.hibernate.type.descriptor.java.CharacterArrayTypeDescriptor;
-import org.hibernate.type.descriptor.java.ClassTypeDescriptor;
-import org.hibernate.type.descriptor.java.ClobTypeDescriptor;
 import org.hibernate.type.descriptor.java.CurrencyTypeDescriptor;
 import org.hibernate.type.descriptor.java.DateTypeDescriptor;
 import org.hibernate.type.descriptor.java.DurationJavaDescriptor;
@@ -65,11 +62,11 @@ public class JavaTypeDescriptorBaseline {
 		target.addBaselineDescriptor( StringTypeDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( BlobJavaDescriptor.INSTANCE );
-		target.addBaselineDescriptor( ClobTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( ClobJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( NClobTypeDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( ByteArrayJavaDescriptor.INSTANCE );
-		target.addBaselineDescriptor( CharacterArrayTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( CharacterArrayJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( PrimitiveByteArrayTypeDescriptor.INSTANCE );
 		target.addBaselineDescriptor( PrimitiveCharacterArrayTypeDescriptor.INSTANCE );
 
@@ -88,7 +85,7 @@ public class JavaTypeDescriptorBaseline {
 		target.addBaselineDescriptor( java.sql.Timestamp.class, JdbcTimestampTypeDescriptor.INSTANCE );
 		target.addBaselineDescriptor( TimeZoneTypeDescriptor.INSTANCE );
 
-		target.addBaselineDescriptor( ClassTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( ClassJavaDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( CurrencyTypeDescriptor.INSTANCE );
 		target.addBaselineDescriptor( LocaleTypeDescriptor.INSTANCE );

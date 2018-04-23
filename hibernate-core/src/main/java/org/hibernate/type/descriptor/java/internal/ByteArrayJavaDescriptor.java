@@ -137,11 +137,11 @@ public class ByteArrayJavaDescriptor extends AbstractBasicJavaDescriptor<Byte[]>
 			return wrapBytes( (byte[]) value );
 		}
 		if ( InputStream.class.isInstance( value ) ) {
-			return wrapBytes( DataHelper.extractBytes( (InputStream) value ) );
+			return wrapBytes( LobStreamDataHelper.extractBytes( (InputStream) value ) );
 		}
-		if ( Blob.class.isInstance( value ) || DataHelper.isNClob( value.getClass() ) ) {
+		if ( Blob.class.isInstance( value ) || LobStreamDataHelper.isNClob( value.getClass() ) ) {
 			try {
-				return wrapBytes( DataHelper.extractBytes( ( (Blob) value ).getBinaryStream() ) );
+				return wrapBytes( LobStreamDataHelper.extractBytes( ( (Blob) value ).getBinaryStream() ) );
 			}
 			catch ( SQLException e ) {
 				throw new HibernateException( "Unable to access lob stream", e );

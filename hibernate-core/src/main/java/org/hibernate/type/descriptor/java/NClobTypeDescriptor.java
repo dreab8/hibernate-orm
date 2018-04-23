@@ -136,7 +136,7 @@ public class NClobTypeDescriptor extends AbstractTypeDescriptor<NClob> {
 		}
 
 		// Support multiple return types from
-		// org.hibernate.type.descriptor.sql.ClobTypeDescriptor
+		// org.hibernate.type.descriptor.sql.ClobJavaDescriptor
 		if ( NClob.class.isAssignableFrom( value.getClass() ) ) {
 			return options.getLobCreator().wrap( (NClob) value );
 		}

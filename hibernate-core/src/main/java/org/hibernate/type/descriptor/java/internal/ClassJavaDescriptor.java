@@ -4,10 +4,13 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
+
 import org.hibernate.HibernateException;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
@@ -16,10 +19,10 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class ClassTypeDescriptor extends AbstractTypeDescriptor<Class> {
-	public static final ClassTypeDescriptor INSTANCE = new ClassTypeDescriptor();
+public class ClassJavaDescriptor extends AbstractBasicJavaDescriptor<Class> {
+	public static final ClassJavaDescriptor INSTANCE = new ClassJavaDescriptor();
 
-	public ClassTypeDescriptor() {
+	public ClassJavaDescriptor() {
 		super( Class.class );
 	}
 

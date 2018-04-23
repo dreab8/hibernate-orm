@@ -5,7 +5,7 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.type;
-import org.hibernate.type.descriptor.java.CharacterArrayTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.CharacterArrayJavaDescriptor;
 import org.hibernate.type.descriptor.sql.ClobTypeDescriptor;
 
 /**
@@ -20,7 +20,7 @@ public class CharacterArrayClobType extends AbstractSingleColumnStandardBasicTyp
 	public static final CharacterArrayClobType INSTANCE = new CharacterArrayClobType();
 
 	public CharacterArrayClobType() {
-		super( ClobTypeDescriptor.DEFAULT, CharacterArrayTypeDescriptor.INSTANCE );
+		super( ClobTypeDescriptor.DEFAULT, CharacterArrayJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

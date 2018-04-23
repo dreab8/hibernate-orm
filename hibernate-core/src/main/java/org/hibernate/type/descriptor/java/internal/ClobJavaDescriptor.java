@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.io.Reader;
 import java.io.Serializable;
@@ -20,6 +20,10 @@ import org.hibernate.engine.jdbc.ClobProxy;
 import org.hibernate.engine.jdbc.WrappedClob;
 import org.hibernate.engine.jdbc.internal.CharacterStreamImpl;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.DataHelper;
+import org.hibernate.type.descriptor.java.IncomparableComparator;
+import org.hibernate.type.descriptor.java.MutabilityPlan;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
@@ -31,8 +35,8 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class ClobTypeDescriptor extends AbstractTypeDescriptor<Clob> {
-	public static final ClobTypeDescriptor INSTANCE = new ClobTypeDescriptor();
+public class ClobJavaDescriptor extends AbstractBasicJavaDescriptor<Clob> {
+	public static final ClobJavaDescriptor INSTANCE = new ClobJavaDescriptor();
 
 	public static class ClobMutabilityPlan implements MutabilityPlan<Clob> {
 		public static final ClobMutabilityPlan INSTANCE = new ClobMutabilityPlan();
@@ -54,8 +58,16 @@ public class ClobTypeDescriptor extends AbstractTypeDescriptor<Clob> {
 		}
 	}
 
-	public ClobTypeDescriptor() {
+	public ClobJavaDescriptor() {
 		super( Clob.class, ClobMutabilityPlan.INSTANCE );
+	}
+
+	public String toString(Clob value) {
+		return LobStreamDataHelper.extractString( value );
+	}
+
+	public Clob fromString(String string) {
+		return ClobProxy.generateProxy( string );
 	}
 
 	@Override
@@ -68,19 +80,6 @@ public class ClobTypeDescriptor extends AbstractTypeDescriptor<Clob> {
 			jdbcCode = Types.CLOB;
 		}
 		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( jdbcCode );
-	}
-
-	@Override
-	public String extractLoggableRepresentation(Clob value) {
-		return value == null ? "null" : "{clob}";
-	}
-
-	public String toString(Clob value) {
-		return DataHelper.extractString( value );
-	}
-
-	public Clob fromString(String string) {
-		return ClobProxy.generateProxy( string );
 	}
 
 	@Override
@@ -113,7 +112,7 @@ public class ClobTypeDescriptor extends AbstractTypeDescriptor<Clob> {
 				}
 				else {
 					// otherwise we need to build a CharacterStream...
-					return (X) new CharacterStreamImpl( DataHelper.extractString( value.getCharacterStream() ) );
+					return (X) new CharacterStreamImpl( LobStreamDataHelper.extractString( value.getCharacterStream() ) );
 				}
 			}
 			else if (Clob.class.isAssignableFrom( type )) {
@@ -136,13 +135,13 @@ public class ClobTypeDescriptor extends AbstractTypeDescriptor<Clob> {
 		}
 
 		// Support multiple return types from
-		// org.hibernate.type.descriptor.sql.ClobTypeDescriptor
+		// ClobTypeDescriptor
 		if ( Clob.class.isAssignableFrom( value.getClass() ) ) {
 			return options.getLobCreator().wrap( (Clob) value );
 		}
 		else if ( Reader.class.isAssignableFrom( value.getClass() ) ) {
 			Reader reader = (Reader) value;
-			return options.getLobCreator().createClob( DataHelper.extractString( reader ) );
+			return options.getLobCreator().createClob( LobStreamDataHelper.extractString( reader ) );
 		}
 
 		throw unknownWrap( value.getClass() );

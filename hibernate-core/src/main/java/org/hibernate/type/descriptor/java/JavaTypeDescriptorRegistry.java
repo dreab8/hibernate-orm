@@ -23,7 +23,10 @@ import org.hibernate.type.descriptor.java.internal.BooleanJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.ByteArrayJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.ByteJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.CalendarJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.CharacterArrayJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.CharacterJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.ClassJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.ClobJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.DoubleJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.FloatJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.IntegerJavaDescriptor;
@@ -68,11 +71,11 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 		addDescriptorInternal( StringTypeDescriptor.INSTANCE );
 
 		addDescriptorInternal( BlobJavaDescriptor.INSTANCE );
-		addDescriptorInternal( ClobTypeDescriptor.INSTANCE );
+		addDescriptorInternal( ClobJavaDescriptor.INSTANCE );
 		addDescriptorInternal( NClobTypeDescriptor.INSTANCE );
 
 		addDescriptorInternal( ByteArrayJavaDescriptor.INSTANCE );
-		addDescriptorInternal( CharacterArrayTypeDescriptor.INSTANCE );
+		addDescriptorInternal( CharacterArrayJavaDescriptor.INSTANCE );
 		addDescriptorInternal( PrimitiveByteArrayTypeDescriptor.INSTANCE );
 		addDescriptorInternal( PrimitiveCharacterArrayTypeDescriptor.INSTANCE );
 
@@ -91,7 +94,7 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 		descriptorsByClass.put( java.sql.Timestamp.class, JdbcTimestampTypeDescriptor.INSTANCE );
 		addDescriptorInternal( TimeZoneTypeDescriptor.INSTANCE );
 
-		addDescriptorInternal( ClassTypeDescriptor.INSTANCE );
+		addDescriptorInternal( ClassJavaDescriptor.INSTANCE );
 
 		addDescriptorInternal( CurrencyTypeDescriptor.INSTANCE );
 		addDescriptorInternal( LocaleTypeDescriptor.INSTANCE );
