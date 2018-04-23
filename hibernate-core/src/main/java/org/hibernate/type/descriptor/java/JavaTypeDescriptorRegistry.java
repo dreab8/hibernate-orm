@@ -16,6 +16,7 @@ import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.internal.BigDecimalJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.RegistryHelper;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -49,7 +50,7 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 		addDescriptorInternal( LongTypeDescriptor.INSTANCE );
 		addDescriptorInternal( FloatTypeDescriptor.INSTANCE );
 		addDescriptorInternal( DoubleTypeDescriptor.INSTANCE );
-		addDescriptorInternal( BigDecimalTypeDescriptor.INSTANCE );
+		addDescriptorInternal( BigDecimalJavaDescriptor.INSTANCE );
 		addDescriptorInternal( BigIntegerTypeDescriptor.INSTANCE );
 
 		addDescriptorInternal( StringTypeDescriptor.INSTANCE );

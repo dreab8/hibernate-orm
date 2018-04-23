@@ -13,8 +13,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import org.hibernate.type.DurationType;
-import org.hibernate.type.descriptor.java.BigDecimalTypeDescriptor;
 import org.hibernate.type.descriptor.java.BigIntegerTypeDescriptor;
 import org.hibernate.type.descriptor.java.BlobTypeDescriptor;
 import org.hibernate.type.descriptor.java.BooleanTypeDescriptor;
@@ -73,7 +71,7 @@ public class JavaTypeDescriptorBaseline {
 		primePrimitive( target, FloatTypeDescriptor.INSTANCE );
 		primePrimitive( target, DoubleTypeDescriptor.INSTANCE );
 
-		target.addBaselineDescriptor( BigDecimalTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( BigDecimalJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( BigIntegerTypeDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( StringTypeDescriptor.INSTANCE );

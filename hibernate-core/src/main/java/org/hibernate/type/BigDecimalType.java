@@ -8,7 +8,7 @@ package org.hibernate.type;
 
 import java.math.BigDecimal;
 
-import org.hibernate.type.descriptor.java.BigDecimalTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.BigDecimalJavaDescriptor;
 import org.hibernate.type.descriptor.sql.NumericTypeDescriptor;
 
 /**
@@ -21,7 +21,7 @@ public class BigDecimalType extends AbstractSingleColumnStandardBasicType<BigDec
 	public static final BigDecimalType INSTANCE = new BigDecimalType();
 
 	public BigDecimalType() {
-		super( NumericTypeDescriptor.INSTANCE, BigDecimalTypeDescriptor.INSTANCE );
+		super( NumericTypeDescriptor.INSTANCE, BigDecimalJavaDescriptor.INSTANCE );
 	}
 
 	@Override
