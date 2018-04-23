@@ -12,14 +12,14 @@ import java.sql.SQLException;
 
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.type.descriptor.JdbcTypeNameMapper;
-import org.hibernate.type.descriptor.ValueExtractor;
+import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 import org.jboss.logging.Logger;
 
 /**
- * Convenience base implementation of {@link org.hibernate.type.descriptor.ValueExtractor}
+ * Convenience base implementation of {@link ValueExtractor}
  *
  * @author Steve Ebersole
  */

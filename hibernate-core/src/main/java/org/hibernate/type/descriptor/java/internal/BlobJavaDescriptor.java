@@ -22,7 +22,6 @@ import org.hibernate.engine.jdbc.WrappedBlob;
 import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.DataHelper;
-import org.hibernate.type.descriptor.java.IncomparableComparator;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
 import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;

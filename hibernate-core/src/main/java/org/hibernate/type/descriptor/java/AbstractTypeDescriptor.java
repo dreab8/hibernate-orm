@@ -12,6 +12,7 @@ import java.util.Comparator;
 import org.hibernate.HibernateException;
 import org.hibernate.internal.util.compare.ComparableComparator;
 import org.hibernate.internal.util.compare.EqualsHelper;
+import org.hibernate.type.descriptor.java.internal.ImmutableMutabilityPlan;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 
 /**

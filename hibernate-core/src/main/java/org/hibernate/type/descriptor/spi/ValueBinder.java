@@ -4,7 +4,8 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor;
+package org.hibernate.type.descriptor.spi;
+
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -27,7 +28,7 @@ public interface ValueBinder<X> {
 	 *
 	 * @throws SQLException Indicates a JDBC error occurred.
 	 */
-	public void bind(PreparedStatement st, X value, int index, WrapperOptions options) throws SQLException;
+	void bind(PreparedStatement st, X value, int index, WrapperOptions options) throws SQLException;
 
 	/**
 	 * Bind a value to a CallableStatement.
@@ -39,5 +40,5 @@ public interface ValueBinder<X> {
 	 *
 	 * @throws SQLException Indicates a JDBC error occurred.
 	 */
-	public void bind(CallableStatement st, X value, String name, WrapperOptions options) throws SQLException;
+	void bind(CallableStatement st, X value, String name, WrapperOptions options) throws SQLException;
 }

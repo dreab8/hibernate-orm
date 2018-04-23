@@ -11,7 +11,7 @@ import javax.persistence.metamodel.BasicType;
 
 import org.hibernate.HibernateException;
 import org.hibernate.internal.util.compare.ComparableComparator;
-import org.hibernate.type.descriptor.java.ImmutableMutabilityPlan;
+import org.hibernate.type.descriptor.java.internal.ImmutableMutabilityPlan;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
 
 /**
