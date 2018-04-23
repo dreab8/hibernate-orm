@@ -86,7 +86,7 @@ public class BlobJavaDescriptor extends AbstractBasicJavaDescriptor<Blob> {
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.BLOB );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.BLOB );
 	}
 
 	@Override

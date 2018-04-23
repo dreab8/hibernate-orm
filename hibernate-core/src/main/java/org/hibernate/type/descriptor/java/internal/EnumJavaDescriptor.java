@@ -34,11 +34,11 @@ public class EnumJavaDescriptor<T extends Enum> extends AbstractBasicJavaDescrip
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
 		if ( context.getEnumeratedType() != null && context.getEnumeratedType() == EnumType.STRING ) {
 			return context.isNationalized()
-					? context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.NVARCHAR )
-					: context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.VARCHAR );
+					? context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.NVARCHAR )
+					: context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.VARCHAR );
 		}
 		else {
-			return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( ORDINAL_JDBC_TYPE_CODE );
+			return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( ORDINAL_JDBC_TYPE_CODE );
 		}
 	}
 

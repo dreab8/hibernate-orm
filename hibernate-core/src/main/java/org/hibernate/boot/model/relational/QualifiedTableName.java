@@ -10,17 +10,20 @@ import org.hibernate.boot.model.naming.Identifier;
 
 /**
  * @author Steve Ebersole
+ *
+ * @deprecated since 6.0, use {@link org.hibernate.naming.QualifiedTableName} instead.
  */
-public class QualifiedTableName extends QualifiedNameImpl {
-	public QualifiedTableName(Identifier catalogName, Identifier schemaName, Identifier tableName) {
+@Deprecated
+public class QualifiedTableName extends org.hibernate.naming.QualifiedTableName {
+
+	public QualifiedTableName(org.hibernate.naming.Identifier catalogName, org.hibernate.naming.Identifier schemaName, org.hibernate.naming.Identifier tableName) {
 		super( catalogName, schemaName, tableName );
 	}
 
-	public QualifiedTableName(Namespace.Name schemaName, Identifier tableName) {
-		super( schemaName, tableName );
+	public QualifiedTableName(Namespace.Name namespaceName, org.hibernate.naming.Identifier tableName) {
+		super( namespaceName, tableName );
 	}
-
 	public Identifier getTableName() {
-		return getObjectName();
+		return (Identifier) getObjectName();
 	}
 }

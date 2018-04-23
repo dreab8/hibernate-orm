@@ -78,7 +78,7 @@ public class ClobJavaDescriptor extends AbstractBasicJavaDescriptor<Clob> {
 		else {
 			jdbcCode = Types.CLOB;
 		}
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( jdbcCode );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( jdbcCode );
 	}
 
 	@Override

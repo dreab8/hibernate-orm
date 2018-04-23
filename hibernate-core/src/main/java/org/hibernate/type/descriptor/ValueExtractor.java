@@ -14,7 +14,10 @@ import java.sql.SQLException;
  * Contract for extracting value via JDBC (from {@link ResultSet} or as output param from {@link CallableStatement}).
  *
  * @author Steve Ebersole
+ *
+ * @deprecated since 6.0 use {@link org.hibernate.type.descriptor.spi.ValueExtractor} instead.
  */
+@Deprecated
 public interface ValueExtractor<X> {
 	/**
 	 * Extract value from result set

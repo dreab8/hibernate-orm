@@ -34,7 +34,7 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
  * @author Gavin King
  * @author Steve Ebersole
  */
-public interface Type extends Serializable {
+public interface Type<T> extends Serializable {
 	/**
 	 * Return true if the implementation is castable to {@link AssociationType}. This does not necessarily imply that
 	 * the type actually represents an association.  Essentially a polymorphic version of
@@ -162,7 +162,7 @@ public interface Type extends Serializable {
 	 *
 	 * @throws HibernateException A problem occurred performing the comparison
 	 */
-	boolean isSame(Object x, Object y) throws HibernateException;
+	boolean isSame(T x, T y) throws HibernateException;
 
 	/**
 	 * Compare two instances of the class mapped by this type for persistence "equality" (equality of persistent
@@ -179,7 +179,7 @@ public interface Type extends Serializable {
 	 *
 	 * @throws HibernateException A problem occurred performing the comparison
 	 */
-	boolean isEqual(Object x, Object y) throws HibernateException;
+	boolean isEqual(T x, T y) throws HibernateException;
 
 	/**
 	 * Compare two instances of the class mapped by this type for persistence "equality" (equality of persistent
@@ -197,7 +197,25 @@ public interface Type extends Serializable {
 	 *
 	 * @throws HibernateException A problem occurred performing the comparison
 	 */
-	boolean isEqual(Object x, Object y, SessionFactoryImplementor factory) throws HibernateException;
+	boolean isEqual(T x, T y, SessionFactoryImplementor factory) throws HibernateException;
+
+
+	/**
+	 * Compare two instances of the class mapped by this type for
+	 * persistence "equality" (equality of persistent state).
+	 * <p/>
+	 * This should always equate to some form of comparison of the value's internal state.  As an example, for
+	 * something like a date the comparison should be based on its internal "time" state based on the specific portion
+	 * it is meant to represent (timestamp, date, time).
+	 *
+	 * @param x The first value
+	 * @param y The second value
+	 *
+	 * @return True if there are considered equal (see discussion above).
+	 *
+	 * @throws HibernateException A problem occurred performing the comparison
+	 */
+	boolean areEqual(T x, T y) throws HibernateException;
 
 	/**
 	 * Get a hash code, consistent with persistence "equality".  Again for most types the normal usage is to
@@ -208,7 +226,7 @@ public interface Type extends Serializable {
 	 *
 	 * @throws HibernateException A problem occurred calculating the hash code
 	 */
-	int getHashCode(Object x) throws HibernateException;
+	int getHashCode(T x) throws HibernateException;
 
 	/**
 	 * Get a hash code, consistent with persistence "equality".  Again for most types the normal usage is to
@@ -221,7 +239,7 @@ public interface Type extends Serializable {
 	 *
 	 * @throws HibernateException A problem occurred calculating the hash code
 	 */
-	int getHashCode(Object x, SessionFactoryImplementor factory) throws HibernateException;
+	int getHashCode(T x, SessionFactoryImplementor factory) throws HibernateException;
 	
 	/**
 	 * Perform a {@link java.util.Comparator} style comparison between values
@@ -231,7 +249,7 @@ public interface Type extends Serializable {
 	 *
 	 * @return The comparison result.  See {@link java.util.Comparator#compare} for a discussion.
 	 */
-	int compare(Object x, Object y);
+	int compare(T x, T y);
 
 	/**
 	 * Should the parent be considered dirty, given both the old and current value?
@@ -244,7 +262,7 @@ public interface Type extends Serializable {
 	 *
 	 * @throws HibernateException A problem occurred performing the checking
 	 */
-	boolean isDirty(Object old, Object current, SharedSessionContractImplementor session) throws HibernateException;
+	boolean isDirty(T old, T current, SharedSessionContractImplementor session) throws HibernateException;
 
 	/**
 	 * Should the parent be considered dirty, given both the old and current value?
@@ -258,7 +276,7 @@ public interface Type extends Serializable {
 	 *
 	 * @throws HibernateException A problem occurred performing the checking
 	 */
-	boolean isDirty(Object oldState, Object currentState, boolean[] checkable, SharedSessionContractImplementor session)
+	boolean isDirty(T oldState, T currentState, boolean[] checkable, SharedSessionContractImplementor session)
 			throws HibernateException;
 
 	/**
@@ -277,8 +295,8 @@ public interface Type extends Serializable {
 	 * @throws HibernateException A problem occurred performing the checking
 	 */
 	boolean isModified(
-			Object dbState,
-			Object currentState,
+			T dbState,
+			T currentState,
 			boolean[] checkable,
 			SharedSessionContractImplementor session)
 			throws HibernateException;
@@ -299,7 +317,7 @@ public interface Type extends Serializable {
 	 *
 	 * @see Type#hydrate(ResultSet, String[], SharedSessionContractImplementor, Object) alternative, 2-phase property initialization
 	 */
-	Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+	T nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
 	throws HibernateException, SQLException;
 
 	/**
@@ -368,9 +386,16 @@ public interface Type extends Serializable {
 	 *
 	 * @throws HibernateException An error from Hibernate
 	 */
-	String toLoggableString(Object value, SessionFactoryImplementor factory)
-	throws HibernateException;
+	default String toLoggableString(Object value, SessionFactoryImplementor factory) throws HibernateException{
+		return toLoggableString( value );
+	}
 
+	/**
+	 * Return a String representation of the given value for use in Hibernate logging.
+	 */
+	default String toLoggableString(Object value) {
+		return value == null ? "<null>" : value.toString();
+	}
 	/**
 	 * Returns the abbreviated name of the type.
 	 *

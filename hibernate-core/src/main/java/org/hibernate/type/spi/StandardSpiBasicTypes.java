@@ -44,6 +44,7 @@ import org.hibernate.type.descriptor.java.internal.ClassJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.ClobJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.CurrencyJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.DateJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.DbTimestampJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.DoubleJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.DurationJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.FloatJavaDescriptor;
@@ -518,6 +519,11 @@ public final class StandardSpiBasicTypes {
 	 */
 	public static final BasicType<Date> TIMESTAMP = new BasicTypeImpl(
 			DateJavaDescriptor.INSTANCE,
+			TimestampSqlDescriptor.INSTANCE
+	);
+
+	public static final BasicType<Date> DB_TIMESTAMP = new BasicTypeImpl(
+			DbTimestampJavaDescriptor.INSTANCE,
 			TimestampSqlDescriptor.INSTANCE
 	);
 
@@ -1069,7 +1075,7 @@ public final class StandardSpiBasicTypes {
 			String legacyTypeClassName,
 			TypeConfiguration typeConfiguration,
 			String... registrationKeys) {
-		final BasicTypeRegistry basicTypeRegistry = typeConfiguration.getTypeRegistry();
+		final BasicTypeRegistry basicTypeRegistry = typeConfiguration.getBasicTypeRegistry();
 		basicTypeRegistry.register( type );
 
 		// we add these

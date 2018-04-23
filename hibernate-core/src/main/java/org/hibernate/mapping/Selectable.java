@@ -6,17 +6,29 @@
  */
 package org.hibernate.mapping;
 
+import org.hibernate.boot.model.relational.MappedColumn;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.function.SQLFunctionRegistry;
 
 /**
  * Models the commonality between a column and a formula (computed value).
  */
-public interface Selectable {
-	public String getAlias(Dialect dialect);
-	public String getAlias(Dialect dialect, Table table);
-	public boolean isFormula();
-	public String getTemplate(Dialect dialect, SQLFunctionRegistry functionRegistry);
-	public String getText(Dialect dialect);
-	public String getText();
+public interface Selectable extends MappedColumn {
+	/**
+	 * @deprecated since 6.0
+	 */
+	@Deprecated
+	String getAlias(Dialect dialect);
+	/**
+	 * @deprecated since 6.0
+	 */
+	@Deprecated
+	String getAlias(Dialect dialect, Table table);
+
+	/**
+	 * @deprecated since 6.0, use {@link #getText()} instead.
+	 */
+	@Deprecated
+	String getText(Dialect dialect);
+	String getText();
 }

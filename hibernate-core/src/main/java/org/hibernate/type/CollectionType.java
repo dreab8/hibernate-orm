@@ -834,4 +834,9 @@ public abstract class CollectionType extends AbstractType implements Association
 	public boolean[] toColumnNullness(Object value, Mapping mapping) {
 		return ArrayHelper.EMPTY_BOOLEAN_ARRAY;
 	}
+
+	@Override
+	public boolean areEqual(Object x, Object y) throws HibernateException {
+		return isEqual( x,y );
+	}
 }

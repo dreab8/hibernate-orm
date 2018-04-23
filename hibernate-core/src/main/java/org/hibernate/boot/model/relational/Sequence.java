@@ -7,14 +7,16 @@
 package org.hibernate.boot.model.relational;
 
 import org.hibernate.HibernateException;
-import org.hibernate.boot.model.naming.Identifier;
+import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
+import org.hibernate.metamodel.model.relational.spi.PhysicalNamingStrategy;
+import org.hibernate.naming.Identifier;
 
 /**
  * Models a database {@code SEQUENCE}.
  *
  * @author Steve Ebersole
  */
-public class Sequence implements Exportable {
+public class Sequence implements MappedSequence {
 	public static class Name extends QualifiedNameParser.NameParts {
 		public Name(
 				Identifier catalogIdentifier,
@@ -24,20 +26,18 @@ public class Sequence implements Exportable {
 		}
 	}
 
-	private final QualifiedSequenceName name;
-	private final String exportIdentifier;
+	private final org.hibernate.naming.QualifiedSequenceName logicalName;
 	private int initialValue = 1;
 	private int incrementSize = 1;
 
-	public Sequence(Identifier catalogName, Identifier schemaName, Identifier sequenceName) {
-		this.name = new QualifiedSequenceName( catalogName, schemaName, sequenceName );
-		this.exportIdentifier = name.render();
+	public Sequence(org.hibernate.naming.Identifier catalogName, org.hibernate.naming.Identifier schemaName, org.hibernate.naming.Identifier sequenceName) {
+		this.logicalName = new org.hibernate.naming.QualifiedSequenceName( catalogName, schemaName, sequenceName );
 	}
 
 	public Sequence(
-			Identifier catalogName,
-			Identifier schemaName,
-			Identifier sequenceName,
+			org.hibernate.naming.Identifier catalogName,
+			org.hibernate.naming.Identifier schemaName,
+			org.hibernate.naming.Identifier sequenceName,
 			int initialValue,
 			int incrementSize) {
 		this( catalogName, schemaName, sequenceName );
@@ -45,30 +45,41 @@ public class Sequence implements Exportable {
 		this.incrementSize = incrementSize;
 	}
 
+	/**
+	 * @deprecated Use {@link #getLogicalName()} instead
+	 */
+	@Deprecated
 	public QualifiedSequenceName getName() {
-		return name;
+		return new QualifiedSequenceName( logicalName.getCatalogName(), logicalName.getSchemaName(), logicalName.getObjectName() );
 	}
 
 	@Override
-	public String getExportIdentifier() {
-		return exportIdentifier;
+	public org.hibernate.naming.QualifiedSequenceName getLogicalName() {
+		return logicalName;
 	}
 
+	public String getExportIdentifier() {
+		return logicalName.render();
+	}
+
+	@Override
 	public int getInitialValue() {
 		return initialValue;
 	}
 
+	@Override
 	public int getIncrementSize() {
 		return incrementSize;
 	}
 
+	@Override
 	public void validate(int initialValue, int incrementSize) {
 		if ( this.initialValue != initialValue ) {
 			throw new HibernateException(
 					String.format(
 							"Multiple references to database sequence [%s] were encountered attempting to " +
 									"set conflicting values for 'initial value'.  Found [%s] and [%s]",
-							exportIdentifier,
+							logicalName.render(),
 							this.initialValue,
 							initialValue
 					)
@@ -79,11 +90,31 @@ public class Sequence implements Exportable {
 					String.format(
 							"Multiple references to database sequence [%s] were encountered attempting to " +
 									"set conflicting values for 'increment size'.  Found [%s] and [%s]",
-							exportIdentifier,
+							logicalName.render(),
 							this.incrementSize,
 							incrementSize
 					)
 			);
 		}
+	}
+
+	@Override
+	public org.hibernate.metamodel.model.relational.spi.Sequence generateRuntimeSequence(
+			PhysicalNamingStrategy namingStrategy,
+			JdbcEnvironment jdbcEnvironment) {
+		return new org.hibernate.metamodel.model.relational.spi.Sequence(
+				getLogicalName().getCatalogName(),
+				getLogicalName().getSchemaName(),
+				getLogicalName().getSequenceName(),
+				getInitialValue(),
+				getIncrementSize(),
+				namingStrategy,
+				jdbcEnvironment
+		);
+	}
+
+	@Override
+	public String toLoggableString() {
+		return "Sequence(" + logicalName.render() + ")";
 	}
 }

@@ -9,6 +9,8 @@ package org.hibernate.mapping;
 import java.util.Iterator;
 
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.domain.EntityJavaTypeMapping;
+import org.hibernate.boot.model.domain.EntityMapping;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.internal.util.collections.JoinedIterator;
@@ -18,10 +20,14 @@ import org.hibernate.internal.util.collections.JoinedIterator;
  */
 public class SingleTableSubclass extends Subclass {
 
-	public SingleTableSubclass(PersistentClass superclass, MetadataBuildingContext metadataBuildingContext) {
-		super( superclass, metadataBuildingContext );
+	public SingleTableSubclass(
+			EntityMapping superclass,
+			EntityJavaTypeMapping javaTypeMapping,
+			MetadataBuildingContext metadataBuildingContext) {
+		super( superclass, javaTypeMapping, metadataBuildingContext );
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	protected Iterator getNonDuplicatedPropertyIterator() {
 		return new JoinedIterator(
@@ -30,6 +36,7 @@ public class SingleTableSubclass extends Subclass {
 		);
 	}
 
+	@Override
 	protected Iterator getDiscriminatorColumnIterator() {
 		if ( isDiscriminatorInsertable() && !getDiscriminator().hasFormula() ) {
 			return getDiscriminator().getColumnIterator();
@@ -39,10 +46,12 @@ public class SingleTableSubclass extends Subclass {
 		}
 	}
 
+	@Override
 	public Object accept(PersistentClassVisitor mv) {
 		return mv.accept( this );
 	}
 
+	@Override
 	public void validate(Mapping mapping) throws MappingException {
 		if ( getDiscriminator() == null ) {
 			throw new MappingException(

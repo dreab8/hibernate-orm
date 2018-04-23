@@ -16,15 +16,17 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
  * necessarily know this information at the time the strategy is called.
  *
  * @author Steve Ebersole
+ * @deprecated since 6.0, use {@link org.hibernate.metamodel.model.relational.spi.PhysicalNamingStrategy} instead
  */
-public interface PhysicalNamingStrategy {
-	public Identifier toPhysicalCatalogName(Identifier name, JdbcEnvironment jdbcEnvironment);
+@Deprecated
+public interface PhysicalNamingStrategy extends org.hibernate.metamodel.model.relational.spi.PhysicalNamingStrategy {
+	Identifier toPhysicalCatalogName(Identifier name, JdbcEnvironment jdbcEnvironment);
 
-	public Identifier toPhysicalSchemaName(Identifier name, JdbcEnvironment jdbcEnvironment);
+	Identifier toPhysicalSchemaName(Identifier name, JdbcEnvironment jdbcEnvironment);
 
-	public Identifier toPhysicalTableName(Identifier name, JdbcEnvironment jdbcEnvironment);
+	Identifier toPhysicalTableName(Identifier name, JdbcEnvironment jdbcEnvironment);
 
-	public Identifier toPhysicalSequenceName(Identifier name, JdbcEnvironment jdbcEnvironment);
+	Identifier toPhysicalSequenceName(Identifier name, JdbcEnvironment jdbcEnvironment);
 
-	public Identifier toPhysicalColumnName(Identifier name, JdbcEnvironment jdbcEnvironment);
+	Identifier toPhysicalColumnName(Identifier name, JdbcEnvironment jdbcEnvironment);
 }

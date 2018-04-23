@@ -18,7 +18,7 @@ import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.internal.SqlTypeDescriptorBaseline;
 import org.hibernate.type.spi.TypeConfiguration;
 
 import org.jboss.logging.Logger;
@@ -30,39 +30,29 @@ import org.jboss.logging.Logger;
  * @author Andrea Boriero
  * @since 5.3
  */
-public class SqlTypeDescriptorRegistry
-		extends org.hibernate.type.descriptor.sql.SqlTypeDescriptorRegistry
-		implements Serializable {
+public class SqlTypeDescriptorRegistry implements SqlTypeDescriptorBaseline.BaselineTarget {
 	private static final Logger log = Logger.getLogger( SqlTypeDescriptorRegistry.class );
 
 
 	private final TypeConfiguration typeConfiguration;
-	private final org.hibernate.type.descriptor.sql.SqlTypeDescriptorRegistry sqlTypeDescriptorRegistry;
-	private ConcurrentHashMap<Integer, org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor> descriptorMap = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<Integer, SqlTypeDescriptor> descriptorMap = new ConcurrentHashMap<>();
 
 
 	public SqlTypeDescriptorRegistry(TypeConfiguration typeConfiguration) {
 		this.typeConfiguration = typeConfiguration;
-		sqlTypeDescriptorRegistry = org.hibernate.type.descriptor.sql.SqlTypeDescriptorRegistry.INSTANCE;
+		SqlTypeDescriptorBaseline.prime( this );
 	}
+
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// baseline descriptors
 
 	@Override
 	public void addDescriptor(SqlTypeDescriptor sqlTypeDescriptor) {
-		sqlTypeDescriptorRegistry.addDescriptor( sqlTypeDescriptor );
-	}
-
-	@Override
-	public SqlTypeDescriptor getDescriptor(int jdbcTypeCode) {
-		return sqlTypeDescriptorRegistry.getDescriptor( jdbcTypeCode );
-	}
-
-	public void addSqlTypeDescriptor(org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor sqlTypeDescriptor) {
 		descriptorMap.put( sqlTypeDescriptor.getJdbcTypeCode(), sqlTypeDescriptor );
 	}
 
-	public org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor getSqlTypeDescriptor(int jdbcTypeCode) {
-		org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor descriptor = descriptorMap.get( Integer.valueOf(
-				jdbcTypeCode ) );
+	public SqlTypeDescriptor getDescriptor(int jdbcTypeCode) {
+		SqlTypeDescriptor descriptor = descriptorMap.get( Integer.valueOf( jdbcTypeCode ) );
 		if ( descriptor != null ) {
 			return descriptor;
 		}
@@ -75,13 +65,11 @@ public class SqlTypeDescriptorRegistry
 		}
 
 		// see if the typecode is part of a known type family...
-		JdbcTypeFamilyInformation.Family family = JdbcTypeFamilyInformation.INSTANCE.locateJdbcTypeFamilyByTypeCode(
-				jdbcTypeCode );
+		JdbcTypeFamilyInformation.Family family = JdbcTypeFamilyInformation.INSTANCE.locateJdbcTypeFamilyByTypeCode( jdbcTypeCode );
 		if ( family != null ) {
 			for ( int potentialAlternateTypeCode : family.getTypeCodes() ) {
 				if ( potentialAlternateTypeCode != jdbcTypeCode ) {
-					final org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor potentialAlternateDescriptor = descriptorMap
-							.get( Integer.valueOf( potentialAlternateTypeCode ) );
+					final SqlTypeDescriptor potentialAlternateDescriptor = descriptorMap.get( Integer.valueOf( potentialAlternateTypeCode ) );
 					if ( potentialAlternateDescriptor != null ) {
 						// todo : add a SqlTypeDescriptor.canBeAssignedFrom method...
 						return potentialAlternateDescriptor;
@@ -99,11 +87,11 @@ public class SqlTypeDescriptorRegistry
 
 		// finally, create a new descriptor mapping to getObject/setObject for this type code...
 		final ObjectSqlTypeDescriptor fallBackDescriptor = new ObjectSqlTypeDescriptor( jdbcTypeCode );
-		addSqlTypeDescriptor( fallBackDescriptor );
+		addDescriptor( fallBackDescriptor );
 		return fallBackDescriptor;
 	}
 
-	public static class ObjectSqlTypeDescriptor implements org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor {
+	public static class ObjectSqlTypeDescriptor implements SqlTypeDescriptor {
 		private final int jdbcTypeCode;
 
 		public ObjectSqlTypeDescriptor(int jdbcTypeCode) {
@@ -116,6 +104,16 @@ public class SqlTypeDescriptorRegistry
 		}
 
 		@Override
+		public int getSqlType() {
+			return getJdbcTypeCode();
+		}
+
+		@Override
+		public <T> BasicJavaDescriptor<T> getJdbcRecommendedJavaTypeMapping(TypeConfiguration typeConfiguration) {
+			throw new UnsupportedOperationException( "No recommended Java-type mapping known for JDBC type code [" + jdbcTypeCode + "]" );
+		}
+
+		@Override
 		public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
 			// obviously no literal support here :)
 			return null;
@@ -124,11 +122,6 @@ public class SqlTypeDescriptorRegistry
 		@Override
 		public boolean canBeRemapped() {
 			return true;
-		}
-
-		@Override
-		public <T> BasicJavaDescriptor<T> getJdbcRecommendedJavaTypeMapping(TypeConfiguration typeConfiguration) {
-			throw new UnsupportedOperationException( "No recommended Java-type mapping known for JDBC type code [" + jdbcTypeCode + "]" );
 		}
 
 		@Override
@@ -161,6 +154,12 @@ public class SqlTypeDescriptorRegistry
 
 			return new BasicExtractor( javaTypeDescriptor, this ) {
 				@Override
+				public Object extract(ResultSet rs, String name, WrapperOptions options)
+						throws SQLException {
+					return rs.getObject( name );
+				}
+
+				@Override
 				protected Object doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
 					return rs.getObject( position );
 				}
@@ -177,5 +176,4 @@ public class SqlTypeDescriptorRegistry
 			};
 		}
 	}
-
 }

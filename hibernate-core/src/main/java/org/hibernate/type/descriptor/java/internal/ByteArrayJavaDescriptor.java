@@ -47,7 +47,7 @@ public class ByteArrayJavaDescriptor extends AbstractBasicJavaDescriptor<Byte[]>
 			jdbcCode = Types.LONGVARBINARY;
 		}
 
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( jdbcCode );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( jdbcCode );
 	}
 
 	@Override

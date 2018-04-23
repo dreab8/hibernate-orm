@@ -43,7 +43,7 @@ import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.pretty.MessageHelper;
-import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.StringJavaDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -108,7 +108,7 @@ public class EnabledCaching implements CacheImplementor, DomainDataRegionBuildin
 			final DomainDataRegion region = getRegionFactory().buildDomainDataRegion( regionConfig, this );
 			regionsByName.put( region.getName(), region );
 
-			if ( !StringTypeDescriptor.INSTANCE.areEqual( region.getName(), regionConfig.getRegionName() ) ) {
+			if ( !StringJavaDescriptor.INSTANCE.areEqual( region.getName(), regionConfig.getRegionName() ) ) {
 				throw new HibernateException(
 						String.format(
 								Locale.ROOT,

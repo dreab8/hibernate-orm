@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
@@ -22,7 +23,12 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.SessionFactoryBuilder;
 import org.hibernate.boot.model.IdentifierGeneratorDefinition;
 import org.hibernate.boot.model.TypeDefinition;
+import org.hibernate.boot.model.domain.EntityMapping;
+import org.hibernate.boot.model.domain.EntityMappingHierarchy;
+import org.hibernate.boot.model.domain.spi.EntityMappingImplementor;
 import org.hibernate.boot.model.relational.Database;
+import org.hibernate.boot.model.relational.MappedNamespace;
+import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.boot.model.relational.Namespace;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.spi.BootstrapContext;
@@ -64,8 +70,9 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 	private final MetadataBuildingOptions metadataBuildingOptions;
 	private final BootstrapContext bootstrapContext;
 
-	private final IdentifierGeneratorFactory identifierGeneratorFactory;
+	private final TypeConfiguration typeConfiguration;
 
+	private final Map<String, EntityMappingHierarchy> entityMappingHierarchies;
 	private final Map<String,PersistentClass> entityBindingMap;
 	private final Map<Class, MappedSuperclass> mappedSuperclassMap;
 	private final Map<String,Collection> collectionBindingMap;
@@ -86,7 +93,8 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 	MetadataImpl(
 			UUID uuid,
 			MetadataBuildingOptions metadataBuildingOptions,
-			MutableIdentifierGeneratorFactory identifierGeneratorFactory,
+			TypeConfiguration typeConfiguration,
+			Map<String, EntityMappingHierarchy> entityMappingHierarchies,
 			Map<String, PersistentClass> entityBindingMap,
 			Map<Class, MappedSuperclass> mappedSuperclassMap,
 			Map<String, Collection> collectionBindingMap,
@@ -106,7 +114,8 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 			BootstrapContext bootstrapContext) {
 		this.uuid = uuid;
 		this.metadataBuildingOptions = metadataBuildingOptions;
-		this.identifierGeneratorFactory = identifierGeneratorFactory;
+		this.typeConfiguration = typeConfiguration;
+		this.entityMappingHierarchies = entityMappingHierarchies;
 		this.entityBindingMap = entityBindingMap;
 		this.mappedSuperclassMap = mappedSuperclassMap;
 		this.collectionBindingMap = collectionBindingMap;
@@ -199,8 +208,8 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 	}
 
 	@Override
-	public IdentifierGeneratorFactory getIdentifierGeneratorFactory() {
-		return identifierGeneratorFactory;
+	public java.util.Collection<EntityMappingHierarchy> getEntityHierarchies() {
+		return entityMappingHierarchies.values();
 	}
 
 	@Override
@@ -310,8 +319,13 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 
 	@Override
 	public java.util.Collection<Table> collectTableMappings() {
-		ArrayList<Table> tables = new ArrayList<>();
-		for ( Namespace namespace : database.getNamespaces() ) {
+		return collectMappedTableMappings().stream().map( t -> (Table) t ).collect( Collectors.toList() );
+	}
+
+	@Override
+	public java.util.Collection<MappedTable> collectMappedTableMappings() {
+		ArrayList<MappedTable> tables = new ArrayList<>();
+		for ( MappedNamespace namespace : database.getNamespaces() ) {
 			tables.addAll( namespace.getTables() );
 		}
 		return tables;
@@ -343,12 +357,12 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 
 	@Override
 	public void validate() throws MappingException {
-		for ( PersistentClass entityBinding : this.getEntityBindings() ) {
-			entityBinding.validate( this );
+		for ( EntityMapping entityBinding : getEntityMappings() ) {
+			((EntityMappingImplementor)entityBinding).validate();
 		}
 
 		for ( Collection collectionBinding : this.getCollectionBindings() ) {
-			collectionBinding.validate( this );
+			collectionBinding.validate();
 		}
 	}
 
@@ -359,7 +373,6 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 				: new HashSet<>( mappedSuperclassMap.values() );
 	}
 
-	@Override
 	public org.hibernate.type.Type getIdentifierType(String entityName) throws MappingException {
 		final PersistentClass pc = entityBindingMap.get( entityName );
 		if ( pc == null ) {
@@ -368,7 +381,6 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 		return pc.getIdentifier().getType();
 	}
 
-	@Override
 	public String getIdentifierPropertyName(String entityName) throws MappingException {
 		final PersistentClass pc = entityBindingMap.get( entityName );
 		if ( pc == null ) {
@@ -378,21 +390,5 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 			return null;
 		}
 		return pc.getIdentifierProperty().getName();
-	}
-
-	@Override
-	public org.hibernate.type.Type getReferencedPropertyType(String entityName, String propertyName) throws MappingException {
-		final PersistentClass pc = entityBindingMap.get( entityName );
-		if ( pc == null ) {
-			throw new MappingException( "persistent class not known: " + entityName );
-		}
-		Property prop = pc.getReferencedProperty( propertyName );
-		if ( prop == null ) {
-			throw new MappingException(
-					"property not known: " +
-							entityName + '.' + propertyName
-			);
-		}
-		return prop.getType();
 	}
 }

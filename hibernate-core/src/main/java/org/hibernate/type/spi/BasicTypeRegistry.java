@@ -32,7 +32,7 @@ import org.hibernate.type.internal.BasicTypeImpl;
  * @author Chris Cranford
  */
 @Incubating
-public class BasicTypeRegistry {
+public class BasicTypeRegistry extends org.hibernate.type.BasicTypeRegistry {
 	private final TypeConfiguration typeConfiguration;
 
 	private final Map<String,BasicType> registry = new ConcurrentHashMap<>();
@@ -87,7 +87,7 @@ public class BasicTypeRegistry {
 
 	private <T> BasicType createBasicType(Class<T> javaType) {
 		final JavaTypeDescriptor<T> descriptor = typeConfiguration.getJavaTypeDescriptorRegistry()
-				.getJavaTypeDescriptor( javaType );
+				.getDescriptor( javaType );
 
 		if ( !BasicJavaDescriptor.class.isInstance( descriptor ) ) {
 			throw new HibernateException(

@@ -34,7 +34,7 @@ public class LongJavaDescriptor extends AbstractNumericJavaDescriptor<Long> impl
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.BIGINT );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.BIGINT );
 	}
 
 	@Override

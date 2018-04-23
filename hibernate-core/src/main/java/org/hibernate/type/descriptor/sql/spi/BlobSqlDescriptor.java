@@ -15,10 +15,10 @@ import java.sql.Types;
 
 import org.hibernate.engine.jdbc.BinaryStream;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
-import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
-import org.hibernate.type.spi.TypeConfiguration;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 /**
  * Descriptor for {@link Types#BLOB BLOB} handling.
@@ -51,6 +51,12 @@ public abstract class BlobSqlDescriptor implements SqlTypeDescriptor {
 	@Override
 	public <X> ValueExtractor<X> getExtractor(final JavaTypeDescriptor<X> javaTypeDescriptor) {
 		return new BasicExtractor<X>( javaTypeDescriptor, this ) {
+			@Override
+			public X extract(ResultSet rs, String name, WrapperOptions options)
+					throws SQLException {
+				return javaTypeDescriptor.wrap( rs.getBlob( name ), options );
+			}
+
 			@Override
 			protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
 				return javaTypeDescriptor.wrap( rs.getBlob( position ), options );

@@ -34,6 +34,11 @@ public abstract class NClobSqlDescriptor implements SqlTypeDescriptor {
 	}
 
 	@Override
+	public int getSqlType() {
+		return getJdbcTypeCode();
+	}
+
+	@Override
 	public boolean canBeRemapped() {
 		return true;
 	}
@@ -47,6 +52,12 @@ public abstract class NClobSqlDescriptor implements SqlTypeDescriptor {
 	@Override
 	public <X> ValueExtractor<X> getExtractor(final JavaTypeDescriptor<X> javaTypeDescriptor) {
 		return new BasicExtractor<X>( javaTypeDescriptor, this ) {
+			@Override
+			public X extract(ResultSet rs, String name, WrapperOptions options)
+					throws SQLException {
+				return javaTypeDescriptor.wrap( rs.getNClob(name), options );
+			}
+
 			@Override
 			protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
 				return javaTypeDescriptor.wrap( rs.getNClob( position ), options );

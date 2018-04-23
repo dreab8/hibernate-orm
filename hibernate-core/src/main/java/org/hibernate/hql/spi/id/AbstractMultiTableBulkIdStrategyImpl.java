@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.hibernate.QueryException;
-import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.boot.spi.MetadataBuildingOptions;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.boot.spi.SessionFactoryOptions;
@@ -22,6 +21,7 @@ import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Table;
+import org.hibernate.naming.QualifiedTableName;
 import org.hibernate.persister.entity.Queryable;
 
 /**

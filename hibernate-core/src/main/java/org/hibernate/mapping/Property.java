@@ -14,6 +14,10 @@ import org.hibernate.EntityMode;
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
 import org.hibernate.PropertyNotFoundException;
+import org.hibernate.boot.model.domain.EntityMapping;
+import org.hibernate.boot.model.domain.PersistentAttributeMapping;
+import org.hibernate.boot.model.domain.ValueMapping;
+import org.hibernate.boot.model.relational.MappedColumn;
 import org.hibernate.engine.spi.CascadeStyle;
 import org.hibernate.engine.spi.CascadeStyles;
 import org.hibernate.engine.spi.Mapping;
@@ -32,7 +36,7 @@ import org.hibernate.type.Type;
  *
  * @author Gavin King
  */
-public class Property implements Serializable, MetaAttributable {
+public class Property implements Serializable, PersistentAttributeMapping {
 	private String name;
 	private Value value;
 	private String cascade;
@@ -49,6 +53,11 @@ public class Property implements Serializable, MetaAttributable {
 	private PersistentClass persistentClass;
 	private boolean naturalIdentifier;
 	private boolean lob;
+
+	@Override
+	public ValueMapping getValueMapping() {
+		return value;
+	}
 
 	public boolean isBackRef() {
 		return false;
@@ -72,11 +81,19 @@ public class Property implements Serializable, MetaAttributable {
 	public int getColumnSpan() {
 		return value.getColumnSpan();
 	}
-	
+
+	/**
+	 * @deprecated since 6.0, use {@link #getMappedColumns()}
+	 */
+	@Deprecated
 	public Iterator getColumnIterator() {
 		return value.getColumnIterator();
 	}
-	
+
+	public java.util.List<MappedColumn> getMappedColumns(){
+		return value.getMappedColumns();
+	}
+
 	public String getName() {
 		return name;
 	}
@@ -165,8 +182,19 @@ public class Property implements Serializable, MetaAttributable {
 		return updateable && !ArrayHelper.isAllFalse( value.getColumnUpdateability() );
 	}
 
+	@Override
+	public boolean isIncludedInDirtyChecking() {
+		return isUpdateable() || shouldAlwaysDirtyCheck();
+	}
+
+	private boolean shouldAlwaysDirtyCheck() {
+		// todo (6.0) : verify this is correct
+		//		it matches what 5.2 does for sure
+		return value instanceof Collection || value instanceof ManyToOne;
+	}
+
 	public boolean isInsertable() {
-		// if the property mapping consists of all formulas, 
+		// if the property mapping consists of all formulas,
 		// make it non-insertable
 		final boolean[] columnInsertability = value.getColumnInsertability();
 		return insertable && (
@@ -222,6 +250,14 @@ public class Property implements Serializable, MetaAttributable {
 		this.metaAttributes = metas;
 	}
 
+	public boolean isValid() throws MappingException {
+		return getValue().isValid();
+	}
+
+	/**
+	 * @deprecated since 6.0, use {@link #isValid()} instead.
+	 */
+	@Deprecated
 	public boolean isValid(Mapping mapping) throws MappingException {
 		return getValue().isValid(mapping);
 	}
@@ -294,7 +330,17 @@ public class Property implements Serializable, MetaAttributable {
 	public boolean isSelectable() {
 		return selectable;
 	}
-	
+
+	@Override
+	public EntityMapping getEntity(){
+		return getEntity();
+	}
+
+	@Override
+	public boolean isIncludedInOptimisticLocking() {
+		return optimisticLocked;
+	}
+
 	public void setSelectable(boolean selectable) {
 		this.selectable = selectable;
 	}
@@ -337,8 +383,8 @@ public class Property implements Serializable, MetaAttributable {
 	}
 
 	protected ServiceRegistry resolveServiceRegistry() {
-		if ( getPersistentClass() != null ) {
-			return getPersistentClass().getServiceRegistry();
+		if ( persistentClass != null ) {
+			return persistentClass.getServiceRegistry();
 		}
 		if ( getValue() != null ) {
 			return getValue().getServiceRegistry();
@@ -362,4 +408,7 @@ public class Property implements Serializable, MetaAttributable {
 		this.lob = lob;
 	}
 
+	private boolean isManyToOne(ToOne value) {
+		return ManyToOne.class.isInstance( value );
+	}
 }

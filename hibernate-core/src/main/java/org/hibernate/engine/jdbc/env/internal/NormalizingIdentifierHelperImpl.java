@@ -11,11 +11,11 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.hibernate.boot.model.naming.DatabaseIdentifier;
-import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.engine.jdbc.env.spi.IdentifierCaseStrategy;
 import org.hibernate.engine.jdbc.env.spi.IdentifierHelper;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.jdbc.env.spi.NameQualifierSupport;
+import org.hibernate.naming.Identifier;
 
 import org.jboss.logging.Logger;
 
@@ -121,7 +121,7 @@ public class NormalizingIdentifierHelperImpl implements IdentifierHelper {
 		return toMetaDataText( identifier );
 	}
 
-	private String toMetaDataText(Identifier identifier) {
+	private String toMetaDataText(org.hibernate.naming.Identifier identifier) {
 		if ( identifier == null ) {
 			throw new IllegalArgumentException( "Identifier cannot be null; bad usage" );
 		}
@@ -188,6 +188,17 @@ public class NormalizingIdentifierHelperImpl implements IdentifierHelper {
 
 	@Override
 	public String toMetaDataObjectName(Identifier identifier) {
+		log.tracef( "Normalizing identifier quoting for object name [%s]", identifier );
+
+		if ( identifier == null ) {
+			// if this method was called, the value is needed
+			throw new IllegalArgumentException( "null was passed as an object name" );
+		}
+		return toMetaDataText( identifier );
+	}
+
+	@Override
+	public String toMetaDataObjectName(org.hibernate.naming.Identifier identifier) {
 		log.tracef( "Normalizing identifier quoting for object name [%s]", identifier );
 
 		if ( identifier == null ) {

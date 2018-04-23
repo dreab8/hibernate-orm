@@ -29,7 +29,7 @@ public class BigDecimalJavaDescriptor extends AbstractNumericJavaDescriptor<BigD
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.NUMERIC );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.NUMERIC );
 	}
 
 	@SuppressWarnings({ "unchecked" })

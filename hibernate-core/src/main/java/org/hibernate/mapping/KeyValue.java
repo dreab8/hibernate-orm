@@ -5,7 +5,9 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.mapping;
+
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.domain.ValueMapping;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.factory.IdentifierGeneratorFactory;
@@ -16,22 +18,30 @@ import org.hibernate.id.factory.IdentifierGeneratorFactory;
  * joined subclass table.
  * @author Gavin King
  */
-public interface KeyValue extends Value {
+public interface KeyValue extends Value, ValueMapping {
 
-	public IdentifierGenerator createIdentifierGenerator(
+	IdentifierGenerator createIdentifierGenerator(
 			IdentifierGeneratorFactory identifierGeneratorFactory,
 			Dialect dialect,
 			String defaultCatalog,
 			String defaultSchema,
 			RootClass rootClass) throws MappingException;
 
-	public boolean isIdentityColumn(IdentifierGeneratorFactory identifierGeneratorFactory, Dialect dialect);
+	/**
+	 * @deprecated since 6.0, use {@link #isIdentityColumn(IdentifierGeneratorFactory)} instead.
+	 */
+	@Deprecated
+	boolean isIdentityColumn(IdentifierGeneratorFactory identifierGeneratorFactory, Dialect dialect);
+
+	default boolean isIdentityColumn(IdentifierGeneratorFactory identifierGeneratorFactory){
+		return isIdentityColumn( identifierGeneratorFactory, null );
+	}
+
+	ForeignKey createForeignKeyOfEntity(String entityName);
+
+	boolean isCascadeDeleteEnabled();
 	
-	public void createForeignKeyOfEntity(String entityName);
+	String getNullValue();
 	
-	public boolean isCascadeDeleteEnabled();
-	
-	public String getNullValue();
-	
-	public boolean isUpdateable();
+	boolean isUpdateable();
 }

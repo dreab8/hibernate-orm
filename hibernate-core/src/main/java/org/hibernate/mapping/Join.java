@@ -10,24 +10,29 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.hibernate.boot.model.domain.MappedTableJoin;
+import org.hibernate.boot.model.relational.MappedPrimaryKey;
+import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.engine.spi.ExecuteUpdateResultCheckStyle;
 import org.hibernate.sql.Alias;
 
 /**
  * @author Gavin King
  */
-public class Join implements AttributeContainer, Serializable {
+public class Join implements AttributeContainer, Serializable, MappedTableJoin {
 
 	private static final Alias PK_ALIAS = new Alias(15, "PK");
 
 	private ArrayList properties = new ArrayList();
 	private ArrayList declaredProperties = new ArrayList();
-	private Table table;
+	private MappedTable table;
 	private KeyValue key;
 	private PersistentClass persistentClass;
 	private boolean sequentialSelect;
 	private boolean inverse;
 	private boolean optional;
+
+	private ForeignKey joinMapping;
 
 	// Custom SQL
 	private String customSQLInsert;
@@ -59,20 +64,31 @@ public class Join implements AttributeContainer, Serializable {
 	public boolean containsProperty(Property prop) {
 		return properties.contains(prop);
 	}
+
 	public Iterator getPropertyIterator() {
 		return properties.iterator();
 	}
 
+	/**
+	 * @deprecated since 6.0, use {@link #getMappedTable()}.
+	 */
+	@Deprecated
 	public Table getTable() {
-		return table;
+		return (Table) getMappedTable();
 	}
-	public void setTable(Table table) {
+
+	public void setTable(MappedTable table) {
 		this.table = table;
+	}
+
+	public MappedTable getMappedTable() {
+		return table;
 	}
 
 	public KeyValue getKey() {
 		return key;
 	}
+
 	public void setKey(KeyValue key) {
 		this.key = key;
 	}
@@ -85,17 +101,23 @@ public class Join implements AttributeContainer, Serializable {
 		this.persistentClass = persistentClass;
 	}
 
+	@Override
+	public ForeignKey getJoinMapping() {
+		return joinMapping;
+	}
+
+
 	public void createForeignKey() {
 		getKey().createForeignKeyOfEntity( persistentClass.getEntityName() );
 	}
 
 	public void createPrimaryKey() {
 		//Primary key constraint
-		PrimaryKey pk = new PrimaryKey( table );
+		MappedPrimaryKey pk = new PrimaryKey( table );
 		pk.setName( PK_ALIAS.toAliasString( table.getName() ) );
 		table.setPrimaryKey(pk);
 
-		pk.addColumns( getKey().getColumnIterator() );
+		pk.addColumns( getKey().getMappedColumns() );
 	}
 
 	public int getPropertySpan() {
@@ -159,6 +181,7 @@ public class Join implements AttributeContainer, Serializable {
 	public boolean isSequentialSelect() {
 		return sequentialSelect;
 	}
+
 	public void setSequentialSelect(boolean deferred) {
 		this.sequentialSelect = deferred;
 	}
@@ -171,6 +194,7 @@ public class Join implements AttributeContainer, Serializable {
 		this.inverse = leftJoin;
 	}
 
+	@Override
 	public String toString() {
 		return getClass().getName() + '(' + table.toString() + ')';
 	}
@@ -186,9 +210,11 @@ public class Join implements AttributeContainer, Serializable {
 		return true;
 	}
 
+	@Override
 	public boolean isOptional() {
 		return optional;
 	}
+
 	public void setOptional(boolean nullable) {
 		this.optional = nullable;
 	}

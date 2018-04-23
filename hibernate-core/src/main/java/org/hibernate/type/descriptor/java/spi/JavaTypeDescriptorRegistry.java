@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.hibernate.HibernateException;
 import org.hibernate.boot.model.TypeContributor;
 import org.hibernate.internal.util.SerializationHelper;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.java.internal.EnumJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.JavaTypeDescriptorBaseline;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
@@ -64,53 +63,22 @@ public class JavaTypeDescriptorRegistry implements JavaTypeDescriptorBaseline.Ba
 		descriptorsByName.put( describedJavaType.getName(), descriptor );
 	}
 
-	public <T> JavaTypeDescriptor<T> getDescriptor(Class<T> javaType) {
-		return RegistryHelper.INSTANCE.resolveDescriptor(
-				descriptorsByClass,
-				javaType,
-				() -> {
-					log.debugf(
-							"Could not find matching scoped JavaTypeDescriptor for requested Java class [%s]; " +
-									"falling back to static registry",
-							javaType.getName()
-					);
 
-					return org.hibernate.type.descriptor.java.JavaTypeDescriptorRegistry.INSTANCE.getDescriptor( javaType );
-				}
-		);
-	}
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// descriptor access
 
 	@SuppressWarnings("unchecked")
-	public <T> org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor<T> getJavaTypeDescriptor(Class<T> javaType) {
+	public <T> JavaTypeDescriptor<T> getDescriptor(Class<T> javaType) {
 		if ( javaType == null ) {
 			throw new IllegalArgumentException( "Class passed to locate Java type descriptor cannot be null" );
 		}
 
-		org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor javaTypeDescriptor = descriptorsByName.computeIfAbsent(
+		JavaTypeDescriptor javaTypeDescriptor = descriptorsByName.computeIfAbsent(
 				javaType.getName(),
 				k -> makeOnTheFlyJavaTypeDescriptor( javaType )
 		);
 
 		return javaTypeDescriptor;
-	}
-
-	public void addDescriptor(JavaTypeDescriptor descriptor) {
-		JavaTypeDescriptor old = descriptorsByClass.put( descriptor.getJavaType(), descriptor );
-		if ( old != null ) {
-			log.debugf(
-					"JavaTypeDescriptorRegistry entry replaced : %s -> %s (was %s)",
-					descriptor.getJavaType(),
-					descriptor,
-					old
-			);
-		}
-	}
-
-	private void performInjections(org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor descriptor) {
-		if ( descriptor instanceof TypeConfigurationAware ) {
-			// would be nice to make the JavaTypeDescriptor for an entity, e.g., aware of the the TypeConfiguration
-			( (TypeConfigurationAware) descriptor ).setTypeConfiguration( typeConfiguration );
-		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -202,6 +170,47 @@ public class JavaTypeDescriptorRegistry implements JavaTypeDescriptorBaseline.Ba
 			final byte[] bytes = (byte[]) value;
 
 			return (T) SerializationHelper.deserialize( bytes );
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> JavaTypeDescriptor<T> getDescriptor(String javaTypeName) {
+		if ( javaTypeName == null ) {
+			throw new IllegalArgumentException( "Java type name passed to locate Java type descriptor cannot be null" );
+		}
+		return descriptorsByName.get( javaTypeName );
+	}
+
+	public void addDescriptor(JavaTypeDescriptor descriptor) {
+		addDescriptorInternal( descriptor.getTypeName(), descriptor );
+	}
+
+	private void addDescriptorInternal(JavaTypeDescriptor descriptor) {
+		addDescriptorInternal( descriptor.getTypeName(), descriptor );
+	}
+
+	private void addDescriptorInternal(Class javaType, JavaTypeDescriptor descriptor) {
+		addDescriptorInternal( javaType.getName(), descriptor );
+	}
+
+	private void addDescriptorInternal(String registrationKey, JavaTypeDescriptor descriptor) {
+		performInjections( descriptor );
+
+		final JavaTypeDescriptor old = descriptorsByName.put( registrationKey, descriptor );
+		if ( old != null && old != descriptor ) {
+			log.debugf(
+					"JavaTypeDescriptorRegistry entry replaced : %s -> %s (was %s)",
+					descriptor.getJavaType(),
+					descriptor,
+					old
+			);
+		}
+	}
+
+	private void performInjections(JavaTypeDescriptor descriptor) {
+		if ( descriptor instanceof TypeConfigurationAware ) {
+			// would be nice to make the JavaTypeDescriptor for an entity, e.g., aware of the the TypeConfiguration
+			( (TypeConfigurationAware) descriptor ).setTypeConfiguration( typeConfiguration );
 		}
 	}
 }

@@ -40,7 +40,6 @@ import org.hibernate.LockOptions;
 import org.hibernate.MappingException;
 import org.hibernate.ScrollMode;
 import org.hibernate.boot.model.TypeContributions;
-import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.function.AnsiTrimFunction;
 import org.hibernate.dialect.function.NoArgSQLFunction;
@@ -66,6 +65,7 @@ import org.hibernate.engine.jdbc.env.spi.IdentifierCaseStrategy;
 import org.hibernate.engine.jdbc.env.spi.IdentifierHelper;
 import org.hibernate.engine.jdbc.env.spi.IdentifierHelperBuilder;
 import org.hibernate.engine.jdbc.env.spi.NameQualifierSupport;
+import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.spi.RowSelection;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.LockAcquisitionException;
@@ -76,30 +76,35 @@ import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.JdbcExceptionHelper;
 import org.hibernate.mapping.Table;
+import org.hibernate.metamodel.model.relational.spi.ExportableTable;
+import org.hibernate.naming.Identifier;
 import org.hibernate.procedure.internal.StandardCallableStatementSupport;
 import org.hibernate.procedure.spi.CallableStatementSupport;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.tool.schema.internal.StandardTableExporter;
 import org.hibernate.tool.schema.spi.Exporter;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.descriptor.ValueBinder;
-import org.hibernate.type.descriptor.ValueExtractor;
-import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.java.DataHelper;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BasicBinder;
-import org.hibernate.type.descriptor.sql.BasicExtractor;
-import org.hibernate.type.descriptor.sql.BitTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BlobTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BooleanTypeDescriptor;
-import org.hibernate.type.descriptor.sql.CharTypeDescriptor;
-import org.hibernate.type.descriptor.sql.ClobTypeDescriptor;
-import org.hibernate.type.descriptor.sql.NCharTypeDescriptor;
-import org.hibernate.type.descriptor.sql.NClobTypeDescriptor;
-import org.hibernate.type.descriptor.sql.NVarcharTypeDescriptor;
-import org.hibernate.type.descriptor.sql.SmallIntTypeDescriptor;
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.LobStreamDataHelper;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
+import org.hibernate.type.descriptor.spi.ValueBinder;
+import org.hibernate.type.descriptor.spi.ValueExtractor;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BasicBinder;
+import org.hibernate.type.descriptor.sql.spi.BasicExtractor;
+import org.hibernate.type.descriptor.sql.spi.BitSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BlobSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BooleanSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.CharSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.ClobSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.JdbcLiteralFormatter;
+import org.hibernate.type.descriptor.sql.spi.NCharSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.NClobSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.NVarcharSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SmallIntSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * An abstract base class for HANA dialects. <br/>
@@ -286,7 +291,7 @@ public abstract class AbstractHANADialect extends Dialect {
 
 		@Override
 		public long position(Clob searchstr, long start) throws SQLException {
-			return this.data.indexOf( DataHelper.extractString( searchstr ), (int) ( start - 1 ) );
+			return this.data.indexOf( LobStreamDataHelper.extractString( searchstr ), (int) ( start - 1 ) );
 		}
 
 		@Override
@@ -393,7 +398,7 @@ public abstract class AbstractHANADialect extends Dialect {
 					if ( rsBlob == null || rsBlob.length() < HANAStreamBlobTypeDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsBlob, options );
 					}
-					Blob blob = new MaterializedBlob( DataHelper.extractBytes( rsBlob.getBinaryStream() ) );
+					Blob blob = new MaterializedBlob( LobStreamDataHelper.extractBytes( rsBlob.getBinaryStream() ) );
 					return javaTypeDescriptor.wrap( blob, options );
 				}
 
@@ -419,7 +424,7 @@ public abstract class AbstractHANADialect extends Dialect {
 	// using non-contexual lob creation and HANA then closes our StringReader.
 	// see test case LobLocatorTest
 
-	private static class HANAClobTypeDescriptor extends ClobTypeDescriptor {
+	private static class HANAClobTypeDescriptor extends ClobSqlDescriptor {
 
 		/** serial version uid. */
 		private static final long serialVersionUID = -379042275442752102L;
@@ -490,7 +495,7 @@ public abstract class AbstractHANADialect extends Dialect {
 					if ( rsClob == null || rsClob.length() < HANAClobTypeDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsClob, options );
 					}
-					Clob clob = new MaterializedNClob( DataHelper.extractString( rsClob ) );
+					Clob clob = new MaterializedNClob( LobStreamDataHelper.extractString( rsClob ) );
 					return javaTypeDescriptor.wrap( clob, options );
 				}
 
@@ -515,7 +520,7 @@ public abstract class AbstractHANADialect extends Dialect {
 		}
 	}
 
-	private static class HANANClobTypeDescriptor extends NClobTypeDescriptor {
+	private static class HANANClobTypeDescriptor extends NClobSqlDescriptor {
 
 		/** serial version uid. */
 		private static final long serialVersionUID = 5651116091681647859L;
@@ -568,16 +573,31 @@ public abstract class AbstractHANADialect extends Dialect {
 		}
 
 		@Override
+		public <T> BasicJavaDescriptor<T> getJdbcRecommendedJavaTypeMapping(TypeConfiguration typeConfiguration) {
+			return (BasicJavaDescriptor<T>) typeConfiguration.getJavaTypeDescriptorRegistry().getDescriptor( NClob.class );
+		}
+
+		@Override
 		public <X> ValueExtractor<X> getExtractor(JavaTypeDescriptor<X> javaTypeDescriptor) {
 			return new BasicExtractor<X>( javaTypeDescriptor, this ) {
 
 				@Override
-				protected X doExtract(ResultSet rs, String name, WrapperOptions options) throws SQLException {
+				public X extract(ResultSet rs, String name, WrapperOptions options) throws SQLException {
 					NClob rsNClob = rs.getNClob( name );
 					if ( rsNClob == null || rsNClob.length() < HANANClobTypeDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsNClob, options );
 					}
-					NClob nClob = new MaterializedNClob( DataHelper.extractString( rsNClob ) );
+					NClob nClob = new MaterializedNClob( LobStreamDataHelper.extractString( rsNClob ) );
+					return javaTypeDescriptor.wrap( nClob, options );
+				}
+
+				@Override
+				protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+					NClob rsNClob = rs.getNClob( position );
+					if ( rsNClob == null || rsNClob.length() < HANANClobTypeDescriptor.this.maxLobPrefetchSize ) {
+						return javaTypeDescriptor.wrap( rsNClob, options );
+					}
+					NClob nClob = new MaterializedNClob( LobStreamDataHelper.extractString( rsNClob ) );
 					return javaTypeDescriptor.wrap( nClob, options );
 				}
 
@@ -622,16 +642,36 @@ public abstract class AbstractHANADialect extends Dialect {
 		}
 
 		@Override
+		public <T> BasicJavaDescriptor<T> getJdbcRecommendedJavaTypeMapping(TypeConfiguration typeConfiguration) {
+			return (BasicJavaDescriptor<T>) typeConfiguration.getJavaTypeDescriptorRegistry().getDescriptor( Clob.class );
+		}
+
+		@Override
+		public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
+			return null;
+		}
+
+		@Override
 		public <X> ValueExtractor<X> getExtractor(final JavaTypeDescriptor<X> javaTypeDescriptor) {
 			return new BasicExtractor<X>( javaTypeDescriptor, this ) {
 
 				@Override
-				protected X doExtract(ResultSet rs, String name, WrapperOptions options) throws SQLException {
+				public X extract(ResultSet rs, String name, WrapperOptions options) throws SQLException {
 					Blob rsBlob = rs.getBlob( name );
 					if ( rsBlob == null || rsBlob.length() < HANABlobTypeDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsBlob, options );
 					}
-					Blob blob = new MaterializedBlob( DataHelper.extractBytes( rsBlob.getBinaryStream() ) );
+					Blob blob = new MaterializedBlob( LobStreamDataHelper.extractBytes( rsBlob.getBinaryStream() ) );
+					return javaTypeDescriptor.wrap( blob, options );
+				}
+
+				@Override
+				protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+					Blob rsBlob = rs.getBlob( position );
+					if ( rsBlob == null || rsBlob.length() < HANABlobTypeDescriptor.this.maxLobPrefetchSize ) {
+						return javaTypeDescriptor.wrap( rsBlob, options );
+					}
+					Blob blob = new MaterializedBlob( LobStreamDataHelper.extractBytes( rsBlob.getBinaryStream() ) );
 					return javaTypeDescriptor.wrap( blob, options );
 				}
 
@@ -653,10 +693,10 @@ public abstract class AbstractHANADialect extends Dialect {
 
 				@Override
 				protected void doBind(PreparedStatement st, X value, int index, WrapperOptions options) throws SQLException {
-					SqlTypeDescriptor descriptor = BlobTypeDescriptor.BLOB_BINDING;
+					SqlTypeDescriptor descriptor = BlobSqlDescriptor.BLOB_BINDING;
 					if ( byte[].class.isInstance( value ) ) {
 						// performance shortcut for binding BLOB data in byte[] format
-						descriptor = BlobTypeDescriptor.PRIMITIVE_ARRAY_BINDING;
+						descriptor = BlobSqlDescriptor.PRIMITIVE_ARRAY_BINDING;
 					}
 					else if ( options.useStreamForLobBinding() ) {
 						descriptor = HANABlobTypeDescriptor.this.hanaStreamBlobTypeDescriptor;
@@ -666,10 +706,10 @@ public abstract class AbstractHANADialect extends Dialect {
 
 				@Override
 				protected void doBind(CallableStatement st, X value, String name, WrapperOptions options) throws SQLException {
-					SqlTypeDescriptor descriptor = BlobTypeDescriptor.BLOB_BINDING;
+					SqlTypeDescriptor descriptor = BlobSqlDescriptor.BLOB_BINDING;
 					if ( byte[].class.isInstance( value ) ) {
 						// performance shortcut for binding BLOB data in byte[] format
-						descriptor = BlobTypeDescriptor.PRIMITIVE_ARRAY_BINDING;
+						descriptor = BlobSqlDescriptor.PRIMITIVE_ARRAY_BINDING;
 					}
 					else if ( options.useStreamForLobBinding() ) {
 						descriptor = HANABlobTypeDescriptor.this.hanaStreamBlobTypeDescriptor;
@@ -697,7 +737,7 @@ public abstract class AbstractHANADialect extends Dialect {
 	private HANABlobTypeDescriptor blobTypeDescriptor = new HANABlobTypeDescriptor( MAX_LOB_PREFETCH_SIZE_DEFAULT_VALUE );
 
 	private HANAClobTypeDescriptor clobTypeDescriptor = new HANAClobTypeDescriptor( MAX_LOB_PREFETCH_SIZE_DEFAULT_VALUE,
-			USE_UNICODE_STRING_TYPES_DEFAULT_VALUE );
+																					USE_UNICODE_STRING_TYPES_DEFAULT_VALUE );
 
 	private boolean useLegacyBooleanType = USE_LEGACY_BOOLEAN_TYPE_DEFAULT_VALUE.booleanValue();
 	private boolean useUnicodeStringTypes = USE_UNICODE_STRING_TYPES_DEFAULT_VALUE.booleanValue();
@@ -708,25 +748,25 @@ public abstract class AbstractHANADialect extends Dialect {
 	private final StandardTableExporter hanaTableExporter = new StandardTableExporter( this ) {
 
 		@Override
-		public String[] getSqlCreateStrings(org.hibernate.mapping.Table table, org.hibernate.boot.Metadata metadata) {
-			String[] sqlCreateStrings = super.getSqlCreateStrings( table, metadata );
+		public String[] getSqlCreateStrings(ExportableTable table, JdbcServices jdbcServices) {
+			String[] sqlCreateStrings = super.getSqlCreateStrings( table, jdbcServices );
 			return quoteTypeIfNecessary( table, sqlCreateStrings, getCreateTableString() );
 		}
 
 		@Override
-		public String[] getSqlDropStrings(Table table, org.hibernate.boot.Metadata metadata) {
-			String[] sqlDropStrings = super.getSqlDropStrings( table, metadata );
+		public String[] getSqlDropStrings(ExportableTable table, JdbcServices jdbcServices) {
+			String[] sqlDropStrings = super.getSqlDropStrings( table, jdbcServices );
 			return quoteTypeIfNecessary( table, sqlDropStrings, "drop table" );
 		}
 
-		private String[] quoteTypeIfNecessary(org.hibernate.mapping.Table table, String[] strings, String prefix) {
-			if ( table.getNameIdentifier() == null || table.getNameIdentifier().isQuoted()
-					|| !"type".equals( table.getNameIdentifier().getText().toLowerCase() ) ) {
+		private String[] quoteTypeIfNecessary(ExportableTable table, String[] strings, String prefix) {
+			if ( table.getTableName() == null || table.getTableName().isQuoted()
+					|| !"type".equals( table.getTableName().getText().toLowerCase() ) ) {
 				return strings;
 			}
 
-			Pattern createTableTypePattern = Pattern.compile( "(" + prefix + "\\s+)(" + table.getNameIdentifier().getText() + ")(.+)" );
-			Pattern commentOnTableTypePattern = Pattern.compile( "(comment\\s+on\\s+table\\s+)(" + table.getNameIdentifier().getText() + ")(.+)" );
+			Pattern createTableTypePattern = Pattern.compile( "(" + prefix + "\\s+)(" + table.getTableName().getText() + ")(.+)" );
+			Pattern commentOnTableTypePattern = Pattern.compile( "(comment\\s+on\\s+table\\s+)(" + table.getTableName().getText() + ")(.+)" );
 			for ( int i = 0; i < strings.length; i++ ) {
 				Matcher createTableTypeMatcher = createTableTypePattern.matcher( strings[i] );
 				Matcher commentOnTableTypeMatcher = commentOnTableTypePattern.matcher( strings[i] );
@@ -793,11 +833,11 @@ public abstract class AbstractHANADialect extends Dialect {
 		registerFunction( "current_date", new NoArgSQLFunction( "current_date", StandardBasicTypes.DATE, false ) );
 		registerFunction( "current_time", new NoArgSQLFunction( "current_time", StandardBasicTypes.TIME, false ) );
 		registerFunction( "current_timestamp",
-				new NoArgSQLFunction( "current_timestamp", StandardBasicTypes.TIMESTAMP, false ) );
+						  new NoArgSQLFunction( "current_timestamp", StandardBasicTypes.TIMESTAMP, false ) );
 		registerFunction( "current_utcdate", new NoArgSQLFunction( "current_utcdate", StandardBasicTypes.DATE, false ) );
 		registerFunction( "current_utctime", new NoArgSQLFunction( "current_utctime", StandardBasicTypes.TIME, false ) );
 		registerFunction( "current_utctimestamp",
-				new NoArgSQLFunction( "current_utctimestamp", StandardBasicTypes.TIMESTAMP, false ) );
+						  new NoArgSQLFunction( "current_utctimestamp", StandardBasicTypes.TIMESTAMP, false ) );
 
 		registerFunction( "add_days", new StandardSQLFunction( "add_days" ) );
 		registerFunction( "add_months", new StandardSQLFunction( "add_months" ) );
@@ -895,7 +935,7 @@ public abstract class AbstractHANADialect extends Dialect {
 
 		registerFunction( "coalesce", new StandardSQLFunction( "coalesce" ) );
 		registerFunction( "current_connection",
-				new NoArgSQLFunction( "current_connection", StandardBasicTypes.INTEGER, false ) );
+						  new NoArgSQLFunction( "current_connection", StandardBasicTypes.INTEGER, false ) );
 		registerFunction( "current_schema", new NoArgSQLFunction( "current_schema", StandardBasicTypes.STRING, false ) );
 		registerFunction( "current_user", new NoArgSQLFunction( "current_user", StandardBasicTypes.STRING, false ) );
 		registerFunction( "grouping_id", new VarArgsSQLFunction( StandardBasicTypes.INTEGER, "(", ",", ")" ) );
@@ -1113,13 +1153,13 @@ public abstract class AbstractHANADialect extends Dialect {
 				return this.blobTypeDescriptor;
 			case Types.TINYINT:
 				// tinyint is unsigned on HANA
-				return SmallIntTypeDescriptor.INSTANCE;
+				return SmallIntSqlDescriptor.INSTANCE;
 			case Types.BOOLEAN:
-				return this.useLegacyBooleanType ? BitTypeDescriptor.INSTANCE : BooleanTypeDescriptor.INSTANCE;
+				return this.useLegacyBooleanType ? BitSqlDescriptor.INSTANCE : BooleanSqlDescriptor.INSTANCE;
 			case Types.VARCHAR:
-				return this.useUnicodeStringTypes ? NVarcharTypeDescriptor.INSTANCE : VarcharTypeDescriptor.INSTANCE;
+				return this.useUnicodeStringTypes ? NVarcharSqlDescriptor.INSTANCE : VarcharSqlDescriptor.INSTANCE;
 			case Types.CHAR:
-				return this.useUnicodeStringTypes ? NCharTypeDescriptor.INSTANCE : CharTypeDescriptor.INSTANCE;
+				return this.useUnicodeStringTypes ? NCharSqlDescriptor.INSTANCE : CharSqlDescriptor.INSTANCE;
 			default:
 				return super.getSqlTypeDescriptorOverride( sqlCode );
 		}
@@ -1540,7 +1580,7 @@ public abstract class AbstractHANADialect extends Dialect {
 		}
 
 		boolean useUnicodeStringTypes = configurationService.getSetting( USE_UNICODE_STRING_TYPES_PARAMETER_NAME, StandardConverters.BOOLEAN,
-				USE_UNICODE_STRING_TYPES_DEFAULT_VALUE ).booleanValue();
+																		 USE_UNICODE_STRING_TYPES_DEFAULT_VALUE ).booleanValue();
 
 		if ( useUnicodeStringTypes ) {
 			registerColumnType( Types.CHAR, "nvarchar(1)" );
@@ -1559,7 +1599,7 @@ public abstract class AbstractHANADialect extends Dialect {
 		}
 
 		this.useLegacyBooleanType = configurationService.getSetting( USE_LEGACY_BOOLEAN_TYPE_PARAMETER_NAME, StandardConverters.BOOLEAN,
-				USE_LEGACY_BOOLEAN_TYPE_DEFAULT_VALUE ).booleanValue();
+																	 USE_LEGACY_BOOLEAN_TYPE_DEFAULT_VALUE ).booleanValue();
 
 		if ( this.useLegacyBooleanType ) {
 			registerColumnType( Types.BOOLEAN, "tinyint" );
@@ -1584,7 +1624,7 @@ public abstract class AbstractHANADialect extends Dialect {
 	}
 
 	@Override
-	public Exporter<Table> getTableExporter() {
+	public Exporter<ExportableTable> getTableExporter() {
 		return this.hanaTableExporter;
 	}
 

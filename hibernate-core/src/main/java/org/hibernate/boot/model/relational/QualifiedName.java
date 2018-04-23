@@ -21,8 +21,11 @@ import org.hibernate.boot.model.naming.Identifier;
  * used instead.
  *
  * @author Steve Ebersole
+ *
+ * @deprecated since 6.0, use {@link org.hibernate.naming.spi.QualifiedName} instead.
  */
-public interface QualifiedName {
+@Deprecated
+public interface QualifiedName extends org.hibernate.naming.spi.QualifiedName {
 	Identifier getCatalogName();
 	Identifier getSchemaName();
 	Identifier getObjectName();

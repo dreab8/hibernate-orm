@@ -29,7 +29,7 @@ public class CharacterJavaDescriptor extends AbstractBasicJavaDescriptor<Charact
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.CHAR );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.CHAR );
 	}
 
 	@Override

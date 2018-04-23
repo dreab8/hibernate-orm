@@ -85,9 +85,9 @@ import org.hibernate.persister.entity.Queryable;
 import org.hibernate.sql.JoinType;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.CompositeType;
-import org.hibernate.type.DbTimestampType;
 import org.hibernate.type.Type;
 import org.hibernate.type.VersionType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 import org.hibernate.usertype.UserVersionType;
 
 import antlr.ASTFactory;
@@ -1004,7 +1004,7 @@ public class HqlSqlWalker extends HqlSqlBaseWalker implements ErrorReporter, Par
 
 	private boolean isDatabaseGeneratedTimestamp(Type type) {
 		// currently only the Hibernate-supplied DbTimestampType is supported here
-		return DbTimestampType.class.isAssignableFrom( type.getClass() );
+		return StandardSpiBasicTypes.DB_TIMESTAMP.getClass().isAssignableFrom( type.getClass() );
 	}
 
 	private boolean isIntegral(Type type) {

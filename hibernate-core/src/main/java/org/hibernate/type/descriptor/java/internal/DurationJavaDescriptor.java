@@ -31,7 +31,7 @@ public class DurationJavaDescriptor extends AbstractBasicJavaDescriptor<Duration
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.BIGINT );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.BIGINT );
 	}
 
 	@Override

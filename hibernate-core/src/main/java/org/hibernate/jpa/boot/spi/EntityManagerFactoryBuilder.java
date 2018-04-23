@@ -32,7 +32,7 @@ public interface EntityManagerFactoryBuilder {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	public EntityManagerFactoryBuilder withValidatorFactory(Object validatorFactory);
+	EntityManagerFactoryBuilder withValidatorFactory(Object validatorFactory);
 
 	/**
 	 * Allows passing in a DataSource (delayed from constructing the builder, AKA phase 2) to be used
@@ -42,23 +42,23 @@ public interface EntityManagerFactoryBuilder {
 	 *
 	 * @return {@code this}, for method chaining
 	 */
-	public EntityManagerFactoryBuilder withDataSource(DataSource dataSource);
+	EntityManagerFactoryBuilder withDataSource(DataSource dataSource);
 
 	/**
 	 * Build {@link EntityManagerFactory} instance
 	 *
 	 * @return The built {@link EntityManagerFactory}
 	 */
-	public EntityManagerFactory build();
+	EntityManagerFactory build();
 
 	/**
 	 * Cancel the building processing.  This is used to signal the builder to release any resources in the case of
 	 * something having gone wrong during the bootstrap process
 	 */
-	public void cancel();
+	void cancel();
 
 	/**
 	 * Perform an explicit schema generation (rather than an "auto" one) based on the
 	 */
-	public void generateSchema();
+	void generateSchema();
 }

@@ -29,7 +29,7 @@ public class BooleanJavaDescriptor extends AbstractBasicJavaDescriptor<Boolean> 
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor(
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor(
 				context.getPreferredSqlTypeCodeForBoolean()
 		);
 	}

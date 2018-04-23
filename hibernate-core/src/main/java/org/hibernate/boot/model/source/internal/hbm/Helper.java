@@ -30,7 +30,7 @@ import org.hibernate.boot.model.source.spi.SizeSource;
 import org.hibernate.boot.model.source.spi.TableSpecificationSource;
 import org.hibernate.boot.model.source.spi.ToolingHint;
 import org.hibernate.boot.model.source.spi.ToolingHintContext;
-import org.hibernate.boot.spi.MetadataBuildingContext;
+import org.hibernate.boot.spi.BootstrapContext;
 import org.hibernate.engine.spi.ExecuteUpdateResultCheckStyle;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.internal.util.StringHelper;
@@ -239,14 +239,14 @@ public class Helper {
 		}
 	}
 
-	public static SizeSource interpretSizeSource(Integer length, Integer scale, Integer precision) {
+	public static SizeSource interpretSizeSource(Long length, Integer scale, Integer precision) {
 		if ( length != null || precision != null || scale != null ) {
 			return new SizeSourceImpl( length, scale, precision );
 		}
 		return null;
 	}
 
-	public static SizeSource interpretSizeSource(Integer length, String scale, String precision) {
+	public static SizeSource interpretSizeSource(Long length, String scale, String precision) {
 		return interpretSizeSource(
 				length,
 				scale == null ? null : Integer.parseInt( scale ),
@@ -255,19 +255,18 @@ public class Helper {
 	}
 
 	public static Class reflectedPropertyClass(
-			MetadataBuildingContext buildingContext,
+			BootstrapContext bootstrapContext,
 			String attributeOwnerClassName,
 			String attributeName) {
-		final Class attributeOwnerClass = buildingContext.getBootstrapContext().getClassLoaderAccess().classForName( attributeOwnerClassName );
+		final Class attributeOwnerClass = bootstrapContext.getClassLoaderAccess().classForName(
+				attributeOwnerClassName );
 		return reflectedPropertyClass(
-				buildingContext,
 				attributeOwnerClass,
 				attributeName
 		);
 	}
 
 	public static Class reflectedPropertyClass(
-			MetadataBuildingContext buildingContext,
 			Class attributeOwnerClass,
 			final String attributeName) {
 		return ReflectHelper.reflectedPropertyClass( attributeOwnerClass, attributeName );

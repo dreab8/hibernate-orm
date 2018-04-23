@@ -10,14 +10,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import org.hibernate.boot.model.domain.MetaAttributeMapping;
+
 /**
  * A meta attribute is a named value or values.
  *
  * @author Gavin King
  */
-public class MetaAttribute implements Serializable {
+public class MetaAttribute implements MetaAttributeMapping, Serializable {
 	private String name;
-	private java.util.List values = new ArrayList();
+	private java.util.List<String> values = new ArrayList();
 
 	public MetaAttribute(String name) {
 		this.name = name;
@@ -39,7 +41,7 @@ public class MetaAttribute implements Serializable {
 		if ( values.size()!=1 ) {
 			throw new IllegalStateException("no unique value");
 		}
-		return (String) values.get(0);
+		return values.get(0);
 	}
 
 	public boolean isMultiValued() {

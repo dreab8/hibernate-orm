@@ -18,7 +18,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.MultiTenancyStrategy;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.common.reflection.ReflectionManager;
-import org.hibernate.boot.AttributeConverterInfo;
 import org.hibernate.boot.CacheRegionDefinition;
 import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.MetadataSources;
@@ -32,9 +31,6 @@ import org.hibernate.boot.cfgxml.spi.MappingReference;
 import org.hibernate.boot.model.IdGeneratorStrategyInterpreter;
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.boot.model.TypeContributor;
-import org.hibernate.boot.model.convert.internal.ClassBasedConverterDescriptor;
-import org.hibernate.boot.model.convert.internal.InstanceBasedConverterDescriptor;
-import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategy;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategy;
@@ -52,7 +48,6 @@ import org.hibernate.boot.spi.JpaOrmXmlPersistenceUnitDefaultAware;
 import org.hibernate.boot.spi.MappingDefaults;
 import org.hibernate.boot.spi.MetadataBuilderImplementor;
 import org.hibernate.boot.spi.MetadataBuilderInitializer;
-import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.boot.spi.MetadataBuildingOptions;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.boot.spi.MetadataSourcesContributor;
@@ -69,10 +64,7 @@ import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.internal.util.collections.CollectionHelper;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.AbstractStandardBasicType;
 import org.hibernate.type.BasicType;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.type.spi.TypeConfiguration;
 import org.hibernate.usertype.CompositeUserType;
 import org.hibernate.usertype.UserType;
@@ -90,7 +82,10 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 	private final MetadataBuildingOptionsImpl options;
 
 	public MetadataBuilderImpl(MetadataSources sources) {
-		this( sources, getStandardServiceRegistry( sources.getServiceRegistry() ) );
+		this(
+				sources,
+				getStandardServiceRegistry( sources.getServiceRegistry() )
+		);
 	}
 
 	private static StandardServiceRegistry getStandardServiceRegistry(ServiceRegistry serviceRegistry) {
@@ -245,25 +240,7 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 
 	@Override
 	public MetadataBuilder applyBasicType(BasicType type) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type ) );
-		return this;
-	}
-
-	@Override
-	public MetadataBuilder applyBasicType(BasicType type, String... keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
-		return this;
-	}
-
-	@Override
-	public MetadataBuilder applyBasicType(UserType type, String... keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
-		return this;
-	}
-
-	@Override
-	public MetadataBuilder applyBasicType(CompositeUserType type, String... keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		bootstrapContext.getTypeConfiguration().getBasicTypeRegistry().register( type );
 		return this;
 	}
 
@@ -291,16 +268,6 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 	@Override
 	public void contributeType(CompositeUserType type, String[] keys) {
 		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
-	}
-
-	@Override
-	public void contributeJavaTypeDescriptor(JavaTypeDescriptor descriptor) {
-		this.bootstrapContext.getTypeConfiguration().getJavaTypeDescriptorRegistry().addDescriptor( descriptor );
-	}
-
-	@Override
-	public void contributeSqlTypeDescriptor(SqlTypeDescriptor descriptor) {
-		this.bootstrapContext.getTypeConfiguration().getSqlTypeDescriptorRegistry().addDescriptor( descriptor );
 	}
 
 	@Override
@@ -351,88 +318,42 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 
 	@Override
 	public MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter> attributeConverterClass) {
-		this.bootstrapContext.addAttributeConverterInfo(
-				new AttributeConverterInfo() {
-					@Override
-					public Class<? extends AttributeConverter> getConverterClass() {
-						return attributeConverterClass;
-					}
-
-					@Override
-					public ConverterDescriptor toConverterDescriptor(MetadataBuildingContext context) {
-						return new ClassBasedConverterDescriptor(
-								attributeConverterClass,
-								null,
-								context.getBootstrapContext().getClassmateContext()
-						);
-					}
-				}
+		applyAttributeConverter(
+				AttributeConverterDefinition.from(
+						attributeConverterClass
+				)
 		);
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyAttributeConverter(Class<? extends AttributeConverter> attributeConverterClass, boolean autoApply) {
-		this.bootstrapContext.addAttributeConverterInfo(
-				new AttributeConverterInfo() {
-					@Override
-					public Class<? extends AttributeConverter> getConverterClass() {
-						return attributeConverterClass;
-					}
-
-					@Override
-					public ConverterDescriptor toConverterDescriptor(MetadataBuildingContext context) {
-						return new ClassBasedConverterDescriptor(
-								attributeConverterClass,
-								autoApply,
-								context.getBootstrapContext().getClassmateContext()
-						);
-					}
-				}
+		applyAttributeConverter(
+				AttributeConverterDefinition.from(
+						attributeConverterClass,
+						autoApply
+				)
 		);
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyAttributeConverter(AttributeConverter attributeConverter) {
-		this.bootstrapContext.addAttributeConverterInfo(
-				new AttributeConverterInfo() {
-					@Override
-					public Class<? extends AttributeConverter> getConverterClass() {
-						return attributeConverter.getClass();
-					}
-
-					@Override
-					public ConverterDescriptor toConverterDescriptor(MetadataBuildingContext context) {
-						return new InstanceBasedConverterDescriptor(
-								attributeConverter,
-								null,
-								context.getBootstrapContext().getClassmateContext()
-						);
-					}
-				}
+		applyAttributeConverter(
+				AttributeConverterDefinition.from(
+						attributeConverter
+				)
 		);
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyAttributeConverter(AttributeConverter attributeConverter, boolean autoApply) {
-		this.bootstrapContext.addAttributeConverterInfo(
-				new AttributeConverterInfo() {
-					@Override
-					public Class<? extends AttributeConverter> getConverterClass() {
-						return attributeConverter.getClass();
-					}
-
-					@Override
-					public ConverterDescriptor toConverterDescriptor(MetadataBuildingContext context) {
-						return new InstanceBasedConverterDescriptor(
-								attributeConverter,
-								autoApply,
-								context.getBootstrapContext().getClassmateContext()
-						);
-					}
-				}
+		applyAttributeConverter(
+				AttributeConverterDefinition.from(
+						attributeConverter,
+						autoApply
+				)
 		);
 		return this;
 	}
@@ -453,6 +374,23 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 		this.options.idGenerationTypeInterpreter.addInterpreterDelegate( interpreter );
 		return this;
 	}
+
+	@Override
+	public MetadataBuilder applyRepresentationStrategySelector(ManagedTypeRepresentationResolver resolver) {
+		this.options.managedTypeRepresentationResolver = resolver;
+		return this;
+	}
+
+	@Override
+	public MetadataBuilder applyRepresentationStrategySelector(PersistentCollectionRepresentationResolver resolver) {
+		this.options.collectionRepresentationResolver = resolver;
+		return this;
+	}
+
+//	public MetadataBuilder with(PersistentAttributeMemberResolver resolver) {
+//		options.persistentAttributeMemberResolver = resolver;
+//		return this;
+//	}
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -614,6 +552,8 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 		private ArrayList<MetadataSourceType> sourceProcessOrdering;
 
 		private IdGeneratorInterpreterImpl idGenerationTypeInterpreter = new IdGeneratorInterpreterImpl();
+		private ManagedTypeRepresentationResolver managedTypeRepresentationResolver;
+		private PersistentCollectionRepresentationResolver collectionRepresentationResolver;
 
 		private String schemaCharset;
 
@@ -699,16 +639,11 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 			this.implicitNamingStrategy = strategySelector.resolveDefaultableStrategy(
 					ImplicitNamingStrategy.class,
 					configService.getSettings().get( AvailableSettings.IMPLICIT_NAMING_STRATEGY ),
-					new Callable<ImplicitNamingStrategy>() {
-						@Override
-						public ImplicitNamingStrategy call() {
-							return strategySelector.resolveDefaultableStrategy(
-									ImplicitNamingStrategy.class,
-									"default",
-									ImplicitNamingStrategyJpaCompliantImpl.INSTANCE
-							);
-						}
-					}
+					(Callable<ImplicitNamingStrategy>) () -> strategySelector.resolveDefaultableStrategy(
+							ImplicitNamingStrategy.class,
+							"default",
+							ImplicitNamingStrategyJpaCompliantImpl.INSTANCE
+					)
 			);
 
 			this.physicalNamingStrategy = strategySelector.resolveDefaultableStrategy(
@@ -718,6 +653,9 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 			);
 
 			this.sourceProcessOrdering = resolveInitialSourceProcessOrdering( configService );
+
+			this.managedTypeRepresentationResolver = StandardManagedTypeRepresentationResolver.INSTANCE;
+			this.collectionRepresentationResolver = new PersistentCollectionRepresentationResolverImpl();
 
 			final boolean useNewIdentifierGenerators = configService.getSetting(
 					AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS,
@@ -887,13 +825,13 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 		}
 
 		@Override
-		public List<AuxiliaryDatabaseObject> getAuxiliaryDatabaseObjectList() {
-			return new ArrayList<>( bootstrapContext.getAuxiliaryDatabaseObjectList());
+		public ManagedTypeRepresentationResolver getManagedTypeRepresentationResolver() {
+			return managedTypeRepresentationResolver;
 		}
 
 		@Override
-		public List<AttributeConverterInfo> getAttributeConverters() {
-			return new ArrayList<>( bootstrapContext.getAttributeConverters() );
+		public PersistentCollectionRepresentationResolver getPersistentCollectionRepresentationResolver() {
+			return collectionRepresentationResolver;
 		}
 
 		@Override

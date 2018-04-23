@@ -15,7 +15,7 @@ import java.sql.SQLException;
  *
  * @author Steve Ebersole
  */
-public interface ValueBinder<X> {
+public interface ValueBinder<X> extends org.hibernate.type.descriptor.ValueBinder<X> {
 	/**
 	 * Bind a value to a prepared statement.
 	 *
@@ -39,4 +39,15 @@ public interface ValueBinder<X> {
 	 * @throws SQLException Indicates a JDBC error occurred.
 	 */
 	void bind(CallableStatement st, X value, String name, WrapperOptions options) throws SQLException;
+
+	default void bind(PreparedStatement st, X value, int index, org.hibernate.type.descriptor.WrapperOptions options)
+			throws SQLException {
+		bind( st, value, index, (WrapperOptions) options );
+	}
+
+	default void bind(CallableStatement st, X value, String name, org.hibernate.type.descriptor.WrapperOptions options) throws SQLException{
+		bind( st, value, name, (WrapperOptions) options );
+	}
+
+
 }

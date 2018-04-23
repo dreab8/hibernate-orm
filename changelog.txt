@@ -1636,7 +1636,7 @@ https://hibernate.atlassian.net/projects/HHH/versions/19851
     * [HHH-9795] - Create delegating base class for SessionFactory(Implementor) implementations
     * [HHH-9804] - Ehcache integration uses a write lock where a read lock is requested in EhcacheTransactionalDataRegion
     * [HHH-9820] - Handle JDBC drivers that do not properly report metadata regarding case of identifiers
-    * [HHH-9823] - org.hibernate.cfg.annotations.SimpleValueBinder#fillSimpleValue incorrectly using HCANN classloading directly
+    * [HHH-9823] - org.hibernate.cfg.annotations.BasicValueBinder#fillSimpleValue incorrectly using HCANN classloading directly
 
 ** New Feature
     * [HHH-9761] - Make native APIs typed

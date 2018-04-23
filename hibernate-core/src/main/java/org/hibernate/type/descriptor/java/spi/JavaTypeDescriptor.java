@@ -6,18 +6,24 @@
  */
 package org.hibernate.type.descriptor.java.spi;
 
-import org.hibernate.type.descriptor.java.TypeDescriptor;
+import java.util.TimeZone;
+
+import org.hibernate.engine.jdbc.LobCreator;
+import org.hibernate.type.descriptor.ValueBinder;
+import org.hibernate.type.descriptor.ValueExtractor;
 import org.hibernate.type.descriptor.java.internal.NoWrapperOptions;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.sql.spi.JdbcLiteralFormatter;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * Descriptor for the Java side of a value mapping.
  *
  * @author Steve Ebersole
  */
-public interface JavaTypeDescriptor<T> extends TypeDescriptor<T> {
+public interface JavaTypeDescriptor<T> extends org.hibernate.type.descriptor.java.JavaTypeDescriptor<T> {
 	// todo (6.0) : Use this as a cache for reflection lookups on the Java type
 
 	/**

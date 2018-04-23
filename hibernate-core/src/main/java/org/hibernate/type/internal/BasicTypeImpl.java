@@ -7,10 +7,12 @@
 package org.hibernate.type.internal;
 
 import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
+import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.sql.results.spi.SqlSelection;
@@ -24,16 +26,13 @@ import org.hibernate.type.spi.BasicType;
 /**
  * @author Steve Ebersole
  */
-public class BasicTypeImpl<T> implements BasicType<T>, SqlSelectionReader<T> {
-	private final BasicJavaDescriptor javaDescriptor;
-	private final SqlTypeDescriptor sqlTypeDescriptor;
+public class BasicTypeImpl<T> extends AbstractStandardBasicType<T> implements SqlSelectionReader<T> {
 
 	private VersionSupport<T> versionSupport;
 
 	@SuppressWarnings("unchecked")
 	public BasicTypeImpl(BasicJavaDescriptor javaDescriptor, SqlTypeDescriptor sqlTypeDescriptor) {
-		this.javaDescriptor = javaDescriptor;
-		this.sqlTypeDescriptor = sqlTypeDescriptor;
+		super(sqlTypeDescriptor,javaDescriptor);
 
 		this.versionSupport = javaDescriptor.getVersionSupport();
 	}
@@ -57,17 +56,6 @@ public class BasicTypeImpl<T> implements BasicType<T>, SqlSelectionReader<T> {
 	@Override
 	public BasicType<T> getBasicType() {
 		return this;
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public BasicJavaDescriptor<T> getJavaTypeDescriptor() {
-		return javaDescriptor;
-	}
-
-	@Override
-	public SqlTypeDescriptor getSqlTypeDescriptor() {
-		return sqlTypeDescriptor;
 	}
 
 	@Override
@@ -127,5 +115,19 @@ public class BasicTypeImpl<T> implements BasicType<T>, SqlSelectionReader<T> {
 	@Override
 	public ValueExtractor<T> getValueExtractor() {
 		return getSqlTypeDescriptor().getExtractor( getJavaTypeDescriptor() );
+	}
+
+	@Override
+	public void nullSafeSet(
+			PreparedStatement st, Object value, int index, boolean[] settable, SharedSessionContractImplementor session)
+			throws HibernateException, SQLException {
+		if ( settable[0] ) {
+			nullSafeSet( st, value, index, session );
+		}
+	}
+
+	@Override
+	public String getName() {
+		return getJavaTypeDescriptor().getTypeName();
 	}
 }

@@ -88,6 +88,7 @@ import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.factory.IdentifierGeneratorFactory;
+import org.hibernate.id.factory.spi.MutableIdentifierGeneratorFactory;
 import org.hibernate.integrator.spi.Integrator;
 import org.hibernate.integrator.spi.IntegratorService;
 import org.hibernate.internal.util.config.ConfigurationException;
@@ -122,9 +123,10 @@ import org.hibernate.service.spi.SessionFactoryServiceRegistryFactory;
 import org.hibernate.stat.spi.StatisticsImplementor;
 import org.hibernate.tool.schema.spi.DelayedDropAction;
 import org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator;
-import org.hibernate.type.SerializableType;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeResolver;
+import org.hibernate.type.descriptor.java.internal.SerializableJavaDescriptor;
+import org.hibernate.type.spi.BasicType;
 
 import org.jboss.logging.Logger;
 
@@ -276,18 +278,28 @@ public final class SessionFactoryImpl implements SessionFactoryImplementor {
 				integrator.integrate( metadata, this, this.serviceRegistry );
 				integratorObserver.integrators.add( integrator );
 			}
+
+			final IdentifierGeneratorFactory identifierGeneratorFactory = serviceRegistry.getService(
+					MutableIdentifierGeneratorFactory.class
+			);
+
 			//Generators:
 			this.identifierGenerators = new HashMap<>();
-			metadata.getEntityBindings().stream().filter( model -> !model.isInherited() ).forEach( model -> {
-				IdentifierGenerator generator = model.getIdentifier().createIdentifierGenerator(
-						metadata.getIdentifierGeneratorFactory(),
-						jdbcServices.getJdbcEnvironment().getDialect(),
-						settings.getDefaultCatalogName(),
-						settings.getDefaultSchemaName(),
-						(RootClass) model
-				);
-				identifierGenerators.put( model.getEntityName(), generator );
-			} );
+
+			metadata.getEntityMappings().stream()
+					.filter( entityMapping -> entityMapping.getEntityMappingHierarchy().getRootType().equals( entityMapping ) )
+					.map( RootClass.class::cast )
+					.forEach( rootClass -> {
+						IdentifierGenerator generator =  rootClass.getIdentifier()
+								.createIdentifierGenerator(
+										identifierGeneratorFactory,
+										jdbcServices.getJdbcEnvironment().getDialect(),
+										settings.getDefaultCatalogName(),
+										settings.getDefaultSchemaName(),
+										rootClass
+								);
+						identifierGenerators.put( rootClass.getEntityName(), generator );
+					} );
 
 			LOG.debug( "Instantiated session factory" );
 
@@ -1078,8 +1090,8 @@ public final class SessionFactoryImpl implements SessionFactoryImplementor {
 	@Override
 	public Type resolveParameterBindType(Class clazz){
 		String typename = clazz.getName();
-		Type type = getTypeResolver().heuristicType( typename );
-		boolean serializable = type != null && type instanceof SerializableType;
+		BasicType type = (BasicType) getTypeResolver().heuristicType( typename );
+		boolean serializable = type != null && type.getJavaTypeDescriptor() instanceof SerializableJavaDescriptor;
 		if ( type == null || serializable ) {
 			try {
 				getMetamodel().entityPersister( clazz.getName() );

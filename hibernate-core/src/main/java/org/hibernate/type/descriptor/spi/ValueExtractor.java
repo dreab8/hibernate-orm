@@ -10,6 +10,8 @@ import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+
 /**
  * Contract for extracting value via JDBC (from {@link ResultSet} or as output
  * param from {@link CallableStatement}).
@@ -34,5 +36,13 @@ public interface ValueExtractor<X> {
 
 	X extract(CallableStatement statement, int index, WrapperOptions options) throws SQLException;
 
-	X extract(CallableStatement statement, String name, WrapperOptions options) throws SQLException;
+	X extract(CallableStatement statement, String paramNames, WrapperOptions options) throws SQLException;
+
+	X extract(ResultSet rs, String name, WrapperOptions options) throws SQLException;
+
+	default X extract(CallableStatement statement,
+				 String[] paramNames,
+				 SharedSessionContractImplementor session)throws SQLException{
+		return extract( statement, paramNames[0], session );
+	}
 }

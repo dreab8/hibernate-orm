@@ -6,7 +6,7 @@
  */
 package org.hibernate.tool.schema.extract.spi;
 
-import org.hibernate.boot.model.relational.QualifiedSequenceName;
+import org.hibernate.naming.QualifiedSequenceName;
 
 /**
  * Access to information about existing sequences.
@@ -19,12 +19,12 @@ public interface SequenceInformation {
 	 *
 	 * @return The sequence name
 	 */
-	public QualifiedSequenceName getSequenceName();
+	QualifiedSequenceName getSequenceName();
 
 	/**
 	 * Retrieve the extracted increment-size defined for the sequence.
 	 *
 	 * @return The extracted increment size; use a negative number to indicate the increment could not be extracted.
 	 */
-	public int getIncrementSize();
+	int getIncrementSize();
 }

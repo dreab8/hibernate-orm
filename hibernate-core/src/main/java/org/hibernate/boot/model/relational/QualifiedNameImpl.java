@@ -6,12 +6,13 @@
  */
 package org.hibernate.boot.model.relational;
 
-import org.hibernate.boot.model.naming.Identifier;
+
+import org.hibernate.naming.Identifier;
 
 /**
  * @author Steve Ebersole
  */
-public class QualifiedNameImpl extends QualifiedNameParser.NameParts implements QualifiedName {
+public class QualifiedNameImpl extends org.hibernate.naming.QualifiedNameImpl {
 	public QualifiedNameImpl(Namespace.Name schemaName, Identifier objectName) {
 		this(
 				schemaName.getCatalog(),

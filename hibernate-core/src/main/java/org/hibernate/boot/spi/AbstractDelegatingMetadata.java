@@ -17,7 +17,6 @@ import org.hibernate.boot.SessionFactoryBuilder;
 import org.hibernate.boot.model.IdentifierGeneratorDefinition;
 import org.hibernate.boot.model.TypeDefinition;
 import org.hibernate.boot.model.relational.Database;
-import org.hibernate.cache.cfg.internal.DomainDataRegionConfigImpl;
 import org.hibernate.cfg.annotations.NamedEntityGraphDefinition;
 import org.hibernate.cfg.annotations.NamedProcedureCallDefinition;
 import org.hibernate.dialect.function.SQLFunction;
@@ -25,7 +24,6 @@ import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.engine.spi.FilterDefinition;
 import org.hibernate.engine.spi.NamedQueryDefinition;
 import org.hibernate.engine.spi.NamedSQLQueryDefinition;
-import org.hibernate.id.factory.IdentifierGeneratorFactory;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.mapping.FetchProfile;
 import org.hibernate.mapping.MappedSuperclass;
@@ -52,26 +50,6 @@ public abstract class AbstractDelegatingMetadata implements MetadataImplementor 
 
 	protected MetadataImplementor delegate() {
 		return delegate;
-	}
-
-	@Override
-	public IdentifierGeneratorFactory getIdentifierGeneratorFactory() {
-		return delegate.getIdentifierGeneratorFactory();
-	}
-
-	@Override
-	public Type getIdentifierType(String className) throws MappingException {
-		return delegate.getIdentifierType( className );
-	}
-
-	@Override
-	public String getIdentifierPropertyName(String className) throws MappingException {
-		return delegate.getIdentifierPropertyName( className );
-	}
-
-	@Override
-	public Type getReferencedPropertyType(String className, String propertyName) throws MappingException {
-		return delegate.getReferencedPropertyType( className, propertyName );
 	}
 
 	@Override

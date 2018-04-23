@@ -67,7 +67,7 @@ public class JdbcTimeJavaDescriptor extends AbstractBasicJavaDescriptor<Date> im
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.TIME );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.TIME );
 	}
 
 	@Override

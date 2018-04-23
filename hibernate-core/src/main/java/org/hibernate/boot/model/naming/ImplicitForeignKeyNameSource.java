@@ -7,11 +7,12 @@
 package org.hibernate.boot.model.naming;
 
 import java.util.List;
+import org.hibernate.naming.Identifier;
 
 /**
  * @author Steve Ebersole
  */
 public interface ImplicitForeignKeyNameSource extends ImplicitConstraintNameSource {
-	public Identifier getReferencedTableName();
-	public List<Identifier> getReferencedColumnNames();
+	Identifier getReferencedTableName();
+	List<Identifier> getReferencedColumnNames();
 }

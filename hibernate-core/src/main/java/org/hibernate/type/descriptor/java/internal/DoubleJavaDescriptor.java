@@ -32,7 +32,7 @@ public class DoubleJavaDescriptor extends AbstractNumericJavaDescriptor<Double> 
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.DOUBLE );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.DOUBLE );
 	}
 
 	@Override

@@ -7,16 +7,19 @@
 package org.hibernate.boot.model.relational;
 
 import org.hibernate.HibernateException;
-import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.IllegalIdentifierException;
 import org.hibernate.internal.util.compare.EqualsHelper;
+import org.hibernate.naming.Identifier;
 
 /**
  * Parses a qualified name.
  *
  * @author Steve Ebersole
+ *
+ * @deprecated since 6.0 use {@link org.hibernate.naming.spi.QualifiedNameParser} instead.
  */
-public class QualifiedNameParser {
+@Deprecated
+public class QualifiedNameParser extends org.hibernate.naming.spi.QualifiedNameParser {
 	/**
 	 * Singleton access
 	 */
@@ -50,18 +53,18 @@ public class QualifiedNameParser {
 		}
 
 		@Override
-		public Identifier getCatalogName() {
-			return catalogName;
+		public org.hibernate.boot.model.naming.Identifier getCatalogName() {
+			return (org.hibernate.boot.model.naming.Identifier)catalogName;
 		}
 
 		@Override
-		public Identifier getSchemaName() {
-			return schemaName;
+		public org.hibernate.boot.model.naming.Identifier getSchemaName() {
+			return (org.hibernate.boot.model.naming.Identifier)schemaName;
 		}
 
 		@Override
-		public Identifier getObjectName() {
-			return objectName;
+		public org.hibernate.boot.model.naming.Identifier getObjectName() {
+			return (org.hibernate.boot.model.naming.Identifier)objectName;
 		}
 
 		@Override
@@ -108,7 +111,7 @@ public class QualifiedNameParser {
 	 *
 	 * @return The wrapped QualifiedName
 	 */
-	public NameParts parse(String text, Identifier defaultCatalog, Identifier defaultSchema) {
+	public NameParts parse(String text, org.hibernate.boot.model.naming.Identifier defaultCatalog, org.hibernate.boot.model.naming.Identifier defaultSchema) {
 		if ( text == null ) {
 			throw new IllegalIdentifierException( "Object name to parse must be specified, but found null" );
 		}

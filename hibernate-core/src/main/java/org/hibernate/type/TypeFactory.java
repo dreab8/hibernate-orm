@@ -80,7 +80,7 @@ public final class TypeFactory implements Serializable {
 		}
 
 		if ( Serializable.class.isAssignableFrom( clazz ) ) {
-			return serializable( clazz );
+			return StandardBasicTypes.SERIALIZABLE;
 		}
 
 		return null;
@@ -183,18 +183,6 @@ public final class TypeFactory implements Serializable {
 		catch (Exception e) {
 			throw new MappingException( "Unable to instantiate custom type: " + typeClass.getName(), e );
 		}
-	}
-
-	/**
-	 * Build a {@link SerializableType} from the given {@link Serializable} class.
-	 *
-	 * @param serializableClass The {@link Serializable} class.
-	 * @param <T> The actual class type (extends Serializable)
-	 *
-	 * @return The built {@link SerializableType}
-	 */
-	public static <T extends Serializable> SerializableType<T> serializable(Class<T> serializableClass) {
-		return new SerializableType<T>( serializableClass );
 	}
 
 

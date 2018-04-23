@@ -13,7 +13,10 @@ import java.sql.SQLException;
  * Contract for binding values to a {@link PreparedStatement}.
  *
  * @author Steve Ebersole
+ *
+ * @deprecated since 6.0 use {@link org.hibernate.type.descriptor.spi.ValueBinder} instead
  */
+@Deprecated
 public interface ValueBinder<X> {
 	/**
 	 * Bind a value to a prepared statement.
@@ -25,7 +28,7 @@ public interface ValueBinder<X> {
 	 *
 	 * @throws SQLException Indicates a JDBC error occurred.
 	 */
-	public void bind(PreparedStatement st, X value, int index, WrapperOptions options) throws SQLException;
+	void bind(PreparedStatement st, X value, int index, WrapperOptions options) throws SQLException;
 
 	/**
 	 * Bind a value to a CallableStatement.
@@ -37,5 +40,5 @@ public interface ValueBinder<X> {
 	 *
 	 * @throws SQLException Indicates a JDBC error occurred.
 	 */
-	public void bind(CallableStatement st, X value, String name, WrapperOptions options) throws SQLException;
+	void bind(CallableStatement st, X value, String name, WrapperOptions options) throws SQLException;
 }

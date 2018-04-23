@@ -27,6 +27,7 @@ import org.hibernate.annotations.MapKeyType;
 import org.hibernate.annotations.common.reflection.XClass;
 import org.hibernate.annotations.common.reflection.XProperty;
 import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
+import org.hibernate.boot.spi.AttributeConverterDescriptor;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
@@ -66,8 +67,8 @@ public class CollectionPropertyHolder extends AbstractPropertyHolder {
 		this.collection = collection;
 		setCurrentProperty( property );
 
-		this.elementAttributeConversionInfoMap = new HashMap<>();
-		this.keyAttributeConversionInfoMap = new HashMap<>();
+		this.elementAttributeConversionInfoMap = new HashMap<String, AttributeConversionInfo>();
+		this.keyAttributeConversionInfoMap = new HashMap<String, AttributeConversionInfo>();
 	}
 
 	public Collection getCollectionBinding() {
@@ -381,7 +382,7 @@ public class CollectionPropertyHolder extends AbstractPropertyHolder {
 		}
 	}
 
-	public ConverterDescriptor resolveElementAttributeConverterDescriptor(XProperty collectionXProperty, XClass elementXClass) {
+	public AttributeConverterDescriptor resolveElementAttributeConverterDescriptor(XProperty collectionXProperty, XClass elementXClass) {
 		AttributeConversionInfo info = locateAttributeConversionInfo( "element" );
 		if ( info != null ) {
 			if ( info.isConversionDisabled() ) {
@@ -424,8 +425,8 @@ public class CollectionPropertyHolder extends AbstractPropertyHolder {
 		}
 
 		if ( collection.getElement() != null ) {
-			if ( collection.getElement().getType() != null ) {
-				return collection.getElement().getType().getReturnedClass();
+			if ( collection.getElement().getJavaTypeMapping() != null ) {
+				return collection.getElement().getJavaTypeMapping().resolveJavaTypeDescriptor().getJavaType();
 			}
 		}
 
@@ -438,7 +439,7 @@ public class CollectionPropertyHolder extends AbstractPropertyHolder {
 		return null;
 	}
 
-	public ConverterDescriptor mapKeyAttributeConverterDescriptor(XProperty mapXProperty, XClass keyXClass) {
+	public AttributeConverterDescriptor mapKeyAttributeConverterDescriptor(XProperty mapXProperty, XClass keyXClass) {
 		AttributeConversionInfo info = locateAttributeConversionInfo( "key" );
 		if ( info != null ) {
 			if ( info.isConversionDisabled() ) {
@@ -466,33 +467,33 @@ public class CollectionPropertyHolder extends AbstractPropertyHolder {
 				.findAutoApplyConverterForMapKey( mapXProperty, getContext() );
 	}
 
-	private Class determineKeyClass(XClass keyXClass) {
-		if ( keyXClass != null ) {
-			try {
-				return getContext().getBootstrapContext().getReflectionManager().toClass( keyXClass );
-			}
-			catch (Exception e) {
-				log.debugf(
-						"Unable to resolve XClass [%s] to Class for collection key [%s]",
-						keyXClass.getName(),
-						collection.getRole()
-				);
-			}
-		}
-
-		final IndexedCollection indexedCollection = (IndexedCollection) collection;
-		if ( indexedCollection.getIndex() != null ) {
-			if ( indexedCollection.getIndex().getType() != null ) {
-				return indexedCollection.getIndex().getType().getReturnedClass();
-			}
-		}
-
-		// currently this is called from paths where the element type really should be known,
-		// so log the fact that we could not resolve the collection element info
-		log.debugf(
-				"Unable to resolve key information for collection [%s]",
-				collection.getRole()
-		);
-		return null;
-	}
+//	private Class determineKeyClass(XClass keyXClass) {
+//		if ( keyXClass != null ) {
+//			try {
+//				return getContext().getBootstrapContext().getReflectionManager().toClass( keyXClass );
+//			}
+//			catch (Exception e) {
+//				log.debugf(
+//						"Unable to resolve XClass [%s] to Class for collection key [%s]",
+//						keyXClass.getName(),
+//						collection.getRole()
+//				);
+//			}
+//		}
+//
+//		final IndexedCollection indexedCollection = (IndexedCollection) collection;
+//		if ( indexedCollection.getIndex() != null ) {
+//			if ( indexedCollection.getIndex().getJavaTypeDescriptor() != null ) {
+//				return indexedCollection.getIndex().getJavaTypeDescriptor().getJavaType();
+//			}
+//		}
+//
+//		// currently this is called from paths where the element type really should be known,
+//		// so log the fact that we could not resolve the collection element info
+//		log.debugf(
+//				"Unable to resolve key information for collection [%s]",
+//				collection.getRole()
+//		);
+//		return null;
+//	}
 }

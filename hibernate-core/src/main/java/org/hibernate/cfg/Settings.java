@@ -14,7 +14,6 @@ import org.hibernate.MultiTenancyStrategy;
 import org.hibernate.NullPrecedence;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.SchemaAutoTooling;
-import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.spi.SessionFactoryOptions;
 import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.cache.spi.TimestampsCacheFactory;
@@ -22,6 +21,7 @@ import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
 import org.hibernate.hql.spi.QueryTranslatorFactory;
 import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
 import org.hibernate.loader.BatchFetchStyle;
+import org.hibernate.naming.Identifier;
 import org.hibernate.tuple.entity.EntityTuplizerFactory;
 
 import org.jboss.logging.Logger;

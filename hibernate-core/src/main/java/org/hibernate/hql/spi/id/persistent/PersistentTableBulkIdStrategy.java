@@ -6,7 +6,6 @@
  */
 package org.hibernate.hql.spi.id.persistent;
 
-import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.spi.MetadataBuildingOptions;
@@ -31,6 +30,7 @@ import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Table;
+import org.hibernate.naming.Identifier;
 import org.hibernate.persister.entity.Queryable;
 
 /**

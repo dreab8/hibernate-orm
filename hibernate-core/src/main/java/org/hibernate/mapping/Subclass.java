@@ -13,6 +13,12 @@ import java.util.Map;
 
 import org.hibernate.AssertionFailure;
 import org.hibernate.EntityMode;
+import org.hibernate.boot.model.domain.EntityJavaTypeMapping;
+import org.hibernate.boot.model.domain.EntityMappingHierarchy;
+import org.hibernate.boot.model.domain.IdentifiableTypeMapping;
+import org.hibernate.boot.model.domain.PersistentAttributeMapping;
+import org.hibernate.boot.model.domain.spi.IdentifiableTypeMappingImplementor;
+import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.engine.OptimisticLockStyle;
 import org.hibernate.internal.util.collections.JoinedIterator;
@@ -23,17 +29,21 @@ import org.hibernate.internal.util.collections.SingletonIterator;
  * @author Gavin King
  */
 public class Subclass extends PersistentClass {
-	private PersistentClass superclass;
+	private IdentifiableTypeMapping superclass;
 	private Class classPersisterClass;
 	private final int subclassId;
 	
-	public Subclass(PersistentClass superclass, MetadataBuildingContext metadataBuildingContext) {
-		super( metadataBuildingContext );
+	public Subclass(
+			IdentifiableTypeMapping superclass,
+			EntityJavaTypeMapping javaTypeMapping,
+			MetadataBuildingContext metadataBuildingContext) {
+		super( metadataBuildingContext, javaTypeMapping, superclass.getEntityMappingHierarchy() );
 		this.superclass = superclass;
-		this.subclassId = superclass.nextSubclassId();
+		this.subclassId = ( (IdentifiableTypeMappingImplementor) superclass ).nextSubclassId();
 	}
 
-	int nextSubclassId() {
+	@Override
+	public int nextSubclassId() {
 		return getSuperclass().nextSubclassId();
 	}
 	
@@ -47,40 +57,61 @@ public class Subclass extends PersistentClass {
 	}
 
 	public String getCacheConcurrencyStrategy() {
-		return getRootClass().getCacheConcurrencyStrategy();
+		return getSuperclass().getCacheConcurrencyStrategy();
 	}
 
+	/**
+	 * @deprecated since 6.0, use {@link EntityMappingHierarchy#getRootType()}.
+	 */
+	@Deprecated
 	public RootClass getRootClass() {
 		return getSuperclass().getRootClass();
 	}
 
+	/**
+	 * @deprecated since 6.0 use {@link #getSuperManagedTypeMapping()}.
+	 */
+	@Deprecated
 	public PersistentClass getSuperclass() {
-		return superclass;
+		return (PersistentClass) superclass;
 	}
 
+	@Override
 	public Property getIdentifierProperty() {
 		return getSuperclass().getIdentifierProperty();
 	}
 
+	@Override
 	public Property getDeclaredIdentifierProperty() {
 		return null;
 	}
 
+	public PersistentAttributeMapping getDeclaredIdentifierAttributeMapping() {
+		return null;
+	}
+
+	@Override
 	public KeyValue getIdentifier() {
 		return getSuperclass().getIdentifier();
 	}
+
+	@Override
 	public boolean hasIdentifierProperty() {
 		return getSuperclass().hasIdentifierProperty();
 	}
+
 	public Value getDiscriminator() {
 		return getSuperclass().getDiscriminator();
 	}
+
 	public boolean isMutable() {
 		return getSuperclass().isMutable();
 	}
+
 	public boolean isInherited() {
 		return true;
 	}
+
 	public boolean isPolymorphic() {
 		return true;
 	}
@@ -106,49 +137,68 @@ public class Subclass extends PersistentClass {
 				getPropertyIterator()
 			);
 	}
+
 	public Iterator getTableClosureIterator() {
 		return new JoinedIterator(
 				getSuperclass().getTableClosureIterator(),
 				new SingletonIterator( getTable() )
 			);
 	}
+
 	public Iterator getKeyClosureIterator() {
 		return new JoinedIterator(
 				getSuperclass().getKeyClosureIterator(),
 				new SingletonIterator( getKey() )
 			);
 	}
+
 	protected void addSubclassProperty(Property p) {
 		super.addSubclassProperty(p);
 		getSuperclass().addSubclassProperty(p);
 	}
+
 	protected void addSubclassJoin(Join j) {
 		super.addSubclassJoin(j);
 		getSuperclass().addSubclassJoin(j);
 	}
 
-	protected void addSubclassTable(Table table) {
+	protected void addSubclassTable(MappedTable table) {
 		super.addSubclassTable(table);
 		getSuperclass().addSubclassTable(table);
 	}
 
+	@Override
 	public boolean isVersioned() {
 		return getSuperclass().isVersioned();
 	}
+
+	/**
+	 * @deprecated since 6.0, use {@link #getVersionAttributeMapping()}.
+	 */
+	@Deprecated
+	@Override
 	public Property getVersion() {
 		return getSuperclass().getVersion();
 	}
 
+	@Override
 	public Property getDeclaredVersion() {
 		return null;
 	}
 
+	@Override
+	public PersistentAttributeMapping getDeclaredVersionAttributeMapping() {
+		return null;
+	}
+
+	@Override
 	public boolean hasEmbeddedIdentifier() {
 		return getSuperclass().hasEmbeddedIdentifier();
 	}
+
 	public Class getEntityPersisterClass() {
 		if (classPersisterClass==null) {
-			return getSuperclass().getEntityPersisterClass();
+			return getSuperclass().getRuntimeEntityDescriptorClass();
 		}
 		else {
 			return classPersisterClass;
@@ -188,6 +238,10 @@ public class Subclass extends PersistentClass {
 
 	public void setEntityPersisterClass(Class classPersisterClass) {
 		this.classPersisterClass = classPersisterClass;
+	}
+
+	public boolean isLazyPropertiesCacheable() {
+		return getSuperclass().isLazyPropertiesCacheable();
 	}
 
 	public int getJoinClosureSpan() {
@@ -247,6 +301,8 @@ public class Subclass extends PersistentClass {
 			getSuperclass().hasSubselectLoadableCollections();
 	}
 
+
+
 	public String getTuplizerImplClassName(EntityMode mode) {
 		String impl = super.getTuplizerImplClassName( mode );
 		if ( impl == null ) {
@@ -273,12 +329,21 @@ public class Subclass extends PersistentClass {
 		}
 	}
 
+	/**
+	 * @deprecated since 6.0, use {@link EntityMappingHierarchy#getIdentifierEmbeddedValueMapping()}.
+	 */
+	@Override
+	@Deprecated
 	public Component getIdentifierMapper() {
-		return superclass.getIdentifierMapper();
+		return (Component) getEntityMappingHierarchy().getIdentifierEmbeddedValueMapping();
 	}
 
+	/**
+	 * @deprecated since 6.0, use {@link EntityMappingHierarchy#getOptimisticLockStyle()}.
+	 */
 	@Override
+	@Deprecated
 	public OptimisticLockStyle getOptimisticLockStyle() {
-		return superclass.getOptimisticLockStyle();
+		return getEntityMappingHierarchy().getOptimisticLockStyle();
 	}
 }

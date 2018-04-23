@@ -25,7 +25,6 @@ import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.SessionFactoryRegistry;
 import org.hibernate.metamodel.internal.MetamodelImpl;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
-import org.hibernate.type.BasicTypeRegistry;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeFactory;
 import org.hibernate.type.TypeResolver;
@@ -67,7 +66,6 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 	private final transient SqlTypeDescriptorRegistry sqlTypeDescriptorRegistry;
 	private final transient BasicTypeRegistry basicTypeRegistry;
 
-	private final transient org.hibernate.type.spi.BasicTypeRegistry typeRegistry;
 	private final transient Map<String,String> importMap = new ConcurrentHashMap<>();
 
 
@@ -79,8 +77,7 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 		this.javaTypeDescriptorRegistry = new JavaTypeDescriptorRegistry( this );
 		this.sqlTypeDescriptorRegistry = new SqlTypeDescriptorRegistry( this );
 
-		this.basicTypeRegistry = new BasicTypeRegistry();
-		this.typeRegistry = new org.hibernate.type.spi.BasicTypeRegistry( this );
+		this.basicTypeRegistry = new BasicTypeRegistry(this);
 		this.typeFactory = new TypeFactory( this );
 		this.typeResolver = new TypeResolver( this, typeFactory );
 
@@ -107,10 +104,6 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 
 	public BasicTypeRegistry getBasicTypeRegistry() {
 		return basicTypeRegistry;
-	}
-
-	public org.hibernate.type.spi.BasicTypeRegistry getTypeRegistry() {
-		return this.typeRegistry;
 	}
 
 	public JavaTypeDescriptorRegistry getJavaTypeDescriptorRegistry() {

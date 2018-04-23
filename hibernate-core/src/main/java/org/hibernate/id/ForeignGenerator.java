@@ -14,15 +14,12 @@ import org.hibernate.Session;
 import org.hibernate.TransientObjectException;
 import org.hibernate.engine.internal.ForeignKeys;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.loader.PropertyPath;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
-
-import static org.hibernate.internal.CoreLogging.logger;
-import static org.hibernate.internal.CoreLogging.messageLogger;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 /**
  * <b>foreign</b><br>
@@ -35,10 +32,9 @@ import static org.hibernate.internal.CoreLogging.messageLogger;
  * @author Gavin King
  */
 public class ForeignGenerator implements IdentifierGenerator, Configurable {
-	private static final CoreMessageLogger LOG = messageLogger( ForeignGenerator.class );
-
 	private String entityName;
 	private String propertyName;
+	private JavaTypeDescriptor javaTypeDescriptor;
 
 	/**
 	 * Getter for property 'entityName'.
@@ -68,9 +64,10 @@ public class ForeignGenerator implements IdentifierGenerator, Configurable {
 		return getEntityName() + '.' + getPropertyName();
 	}
 
-
 	@Override
-	public void configure(Type type, Properties params, ServiceRegistry serviceRegistry) throws MappingException {
+	public void configure(JavaTypeDescriptor javaTypeDescriptor, Properties params, ServiceRegistry serviceRegistry)
+			throws MappingException {
+		this.javaTypeDescriptor = javaTypeDescriptor;
 		propertyName = params.getProperty( "property" );
 		entityName = params.getProperty( ENTITY_NAME );
 		if ( propertyName==null ) {
@@ -111,12 +108,6 @@ public class ForeignGenerator implements IdentifierGenerator, Configurable {
 			);
 		}
 		catch (TransientObjectException toe) {
-			if ( LOG.isDebugEnabled() ) {
-				LOG.debugf(
-						"ForeignGenerator detected a transient entity [%s]",
-						foreignValueSourceType.getAssociatedEntityName()
-				);
-			}
 			id = session.save( foreignValueSourceType.getAssociatedEntityName(), associatedObject );
 		}
 

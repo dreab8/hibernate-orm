@@ -1883,4 +1883,12 @@ public interface AvailableSettings extends org.hibernate.jpa.AvailableSettings {
 	 * @see org.hibernate.query.ImmutableEntityUpdateQueryHandlingMode
 	 */
 	String IMMUTABLE_ENTITY_UPDATE_QUERY_HANDLING_MODE = "hibernate.query.immutable_entity_update_query_handling_mode";
+
+	/**
+	 * Global setting identifying the preferred JDBC type code for storing
+	 * boolean values.  The fallback is to ask the Dialect
+	 *
+	 * @since 6.0
+	 */
+	String PREFERRED_BOOLEAN_JDBC_TYPE_CODE = "hibernate.type.perferred_boolean_jdbc_type_code";
 }

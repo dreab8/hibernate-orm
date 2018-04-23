@@ -28,6 +28,11 @@ public class FloatSqlDescriptor extends RealSqlDescriptor {
 	}
 
 	@Override
+	public int getSqlType() {
+		return getJdbcTypeCode();
+	}
+
+	@Override
 	public <T> BasicJavaDescriptor<T> getJdbcRecommendedJavaTypeMapping(TypeConfiguration typeConfiguration) {
 		return (BasicJavaDescriptor<T>) typeConfiguration.getJavaTypeDescriptorRegistry().getDescriptor( Double.class );
 	}

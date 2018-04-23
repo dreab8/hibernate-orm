@@ -7,7 +7,6 @@
 package org.hibernate.boot.model;
 
 import org.hibernate.type.BasicType;
-import org.hibernate.type.StandardBasicTypeTemplate;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptorRegistry;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.type.descriptor.java.JavaTypeDescriptor;

@@ -11,11 +11,17 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Objects;
 
 import org.hibernate.FetchMode;
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.domain.JavaTypeMapping;
+import org.hibernate.boot.model.relational.ForeignKeyExporter;
+import org.hibernate.boot.model.relational.MappedColumn;
+import org.hibernate.boot.model.relational.MappedForeignKey;
+import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.boot.spi.MetadataImplementor;
@@ -33,7 +39,7 @@ import org.hibernate.type.Type;
  *
  * @author Gavin King
  */
-public abstract class Collection implements Fetchable, Value, Filterable {
+public abstract class Collection implements Fetchable, Value, ForeignKeyExporter, Filterable {
 
 	public static final String DEFAULT_ELEMENT_COLUMN_NAME = "elt";
 	public static final String DEFAULT_KEY_COLUMN_NAME = "id";
@@ -44,7 +50,7 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 
 	private KeyValue key;
 	private Value element;
-	private Table collectionTable;
+	private MappedTable collectionTable;
 	private String role;
 	private boolean lazy;
 	private boolean extraLazy;
@@ -72,7 +78,7 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 	private Properties typeParameters;
 	private final java.util.List filters = new ArrayList();
 	private final java.util.List manyToManyFilters = new ArrayList();
-	private final java.util.Set<String> synchronizedTables = new HashSet<String>();
+	private final java.util.Set<String> synchronizedTables = new HashSet<>();
 
 	private String customSQLInsert;
 	private boolean customInsertCallable;
@@ -88,6 +94,7 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 	private ExecuteUpdateResultCheckStyle deleteAllCheckStyle;
 
 	private String loaderName;
+	private MappedForeignKey foreignKey;
 
 	protected Collection(MetadataBuildingContext buildingContext, PersistentClass owner) {
 		this(buildingContext.getMetadataCollector(), owner);
@@ -128,12 +135,35 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		return false;
 	}
 
+	@Override
+	public ForeignKey getForeignKey() {
+		return (ForeignKey) foreignKey;
+	}
+
+	public void setForeignKey(MappedForeignKey foreignKey) {
+		this.foreignKey = foreignKey;
+	}
+
+	/**
+	 * @deprecated since 6.0, use {@link #getMappedTable()}.
+	 */
+	@Deprecated
 	public Table getCollectionTable() {
+		return (Table) collectionTable;
+	}
+
+	public void setCollectionTable(MappedTable table) {
+		this.collectionTable = table;
+	}
+
+	@Override
+	public MappedTable getMappedTable() {
 		return collectionTable;
 	}
 
-	public void setCollectionTable(Table table) {
-		this.collectionTable = table;
+	@Override
+	public List<MappedColumn> getMappedColumns() {
+		return Collections.emptyList();
 	}
 
 	public boolean isSorted() {
@@ -143,7 +173,8 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 	public Comparator getComparator() {
 		if ( comparator == null && comparatorClassName != null ) {
 			try {
-				final ClassLoaderService classLoaderService = getMetadata().getMetadataBuildingOptions()
+				final ClassLoaderService classLoaderService = getMetadata()
+						.getMetadataBuildingOptions()
 						.getServiceRegistry()
 						.getService( ClassLoaderService.class );
 				setComparator( (Comparator) classLoaderService.classForName( comparatorClassName ).newInstance() );
@@ -290,6 +321,11 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		return fetchMode;
 	}
 
+	@Override
+	public MetadataBuildingContext getMetadataBuildingContext() {
+		return buildingContext;
+	}
+
 	public void setFetchMode(FetchMode fetchMode) {
 		this.fetchMode = fetchMode;
 	}
@@ -302,24 +338,30 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		return collectionPersisterClass;
 	}
 
-	public void validate(Mapping mapping) throws MappingException {
+	public void validate() throws MappingException {
 		assert getKey() != null : "Collection key not bound : " + getRole();
 		assert getElement() != null : "Collection element not bound : " + getRole();
 
-		if ( !getKey().isValid( mapping ) ) {
+		if ( getKey().isCascadeDeleteEnabled() && ( !isInverse() || !isOneToMany() ) ) {
+			throw new MappingException(
+					"only inverse one-to-many associations may use on-delete=\"cascade\": "
+							+ getRole()
+			);
+		}
+		if ( !getKey().isValid() ) {
 			throw new MappingException(
 					"collection foreign key mapping has wrong number of columns: "
 							+ getRole()
 							+ " type: "
-							+ getKey().getType().getName()
+							+ getKey().getJavaTypeMapping().getTypeName()
 			);
 		}
-		if ( !getElement().isValid( mapping ) ) {
+		if ( !getElement().isValid() ) {
 			throw new MappingException(
 					"collection element mapping has wrong number of columns: "
 							+ getRole()
 							+ " type: "
-							+ getElement().getType().getName()
+							+ getElement().getJavaTypeMapping().getTypeName()
 			);
 		}
 
@@ -330,10 +372,9 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 			throws MappingException {
 		final boolean[] insertability = value.getColumnInsertability();
 		final boolean[] updatability = value.getColumnUpdateability();
-		final Iterator<Selectable> iterator = value.getColumnIterator();
-		int i = 0;
-		while ( iterator.hasNext() ) {
-			Selectable s = iterator.next();
+		List<MappedColumn> mappedColumns = value.getMappedColumns();
+		for ( int i = 0; i < mappedColumns.size(); i++ ) {
+			MappedColumn s = mappedColumns.get( i );
 			// exclude formulas and coluns that are not insertable or updatable
 			// since these values can be be repeated (HHH-5393)
 			if ( !s.isFormula() && ( insertability[i] || updatability[i] ) ) {
@@ -347,7 +388,6 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 					);
 				}
 			}
-			i++;
 		}
 	}
 
@@ -406,13 +446,11 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		return owner.getTable();
 	}
 
-	public void createForeignKey() {
-	}
-
 	public boolean isSimpleValue() {
 		return false;
 	}
 
+	@Override
 	public boolean isValid(Mapping mapping) throws MappingException {
 		return true;
 	}
@@ -442,7 +480,7 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		// if ( !isInverse() ) { // for inverse collections, let the "other end" handle it
 		if ( referencedPropertyName == null ) {
 			getElement().createForeignKey();
-			key.createForeignKeyOfEntity( getOwner().getEntityName() );
+			foreignKey = key.createForeignKeyOfEntity( getOwner().getEntityName() );
 		}
 		// }
 	}
@@ -708,5 +746,10 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 
 	public void setMappedByProperty(String mappedByProperty) {
 		this.mappedByProperty = mappedByProperty;
+	}
+
+	@Override
+	public JavaTypeMapping getJavaTypeMapping() {
+		return null;
 	}
 }

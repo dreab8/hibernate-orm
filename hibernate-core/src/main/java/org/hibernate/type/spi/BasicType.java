@@ -13,7 +13,7 @@ import org.hibernate.internal.util.compare.EqualsHelper;
 import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.sql.ast.produce.metamodel.spi.BasicValuedExpressableType;
 import org.hibernate.sql.results.spi.SqlSelectionReader;
-import org.hibernate.type.BaseType;
+import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
@@ -27,7 +27,8 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  * @since 6.0
  */
 public interface BasicType<T>
-		extends BaseType<T>, BasicValuedExpressableType<T>,javax.persistence.metamodel.BasicType<T> {
+		extends Type<T>, BasicValuedExpressableType<T>, javax.persistence.metamodel.BasicType<T> {
+	@Override
 	BasicJavaDescriptor<T> getJavaTypeDescriptor();
 
 	/**
@@ -51,6 +52,7 @@ public interface BasicType<T>
 		return EqualsHelper.areEqual( x, y );
 	}
 
+	@Override
 	default int getNumberOfJdbcParametersToBind() {
 		return 1;
 	}

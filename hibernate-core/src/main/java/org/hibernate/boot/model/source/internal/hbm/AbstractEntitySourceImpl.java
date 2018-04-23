@@ -65,7 +65,7 @@ public abstract class AbstractEntitySourceImpl
 	private final AttributeRole attributeRoleBase;
 	private final AttributePath attributePathBase;
 
-	private List<IdentifiableTypeSource> subclassEntitySources = new ArrayList<IdentifiableTypeSource>();
+	private List<SubclassEntitySource> subclassEntitySources = new ArrayList<>();
 
 	private int inLineViewCount = 0;
 
@@ -187,7 +187,7 @@ public abstract class AbstractEntitySourceImpl
 	}
 
 	@Override
-	public Collection<IdentifiableTypeSource> getSubTypes() {
+	public Collection<SubclassEntitySource> getSubTypes() {
 		return subclassEntitySources;
 	}
 

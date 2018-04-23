@@ -46,7 +46,7 @@ public class ArrayType extends CollectionType {
 	@Override
 	public PersistentCollection instantiate(SharedSessionContractImplementor session, CollectionPersister persister, Serializable key)
 	throws HibernateException {
-		return new PersistentArrayHolder(session, persister);
+		return new PersistentArrayHolder( session, persister);
 	}
 
 	/**
@@ -59,7 +59,7 @@ public class ArrayType extends CollectionType {
 
 	@Override
 	public PersistentCollection wrap(SharedSessionContractImplementor session, Object array) {
-		return new PersistentArrayHolder(session, array);
+		return new PersistentArrayHolder( session, array);
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public class ArrayType extends CollectionType {
 		}
 		int length = Array.getLength(value);
 		List list = new ArrayList(length);
-		Type elemType = getElementType(factory);
+		Type elemType = getElementType( factory);
 		for ( int i=0; i<length; i++ ) {
 			Object element = Array.get(value, i);
 			if ( element == LazyPropertyInitializer.UNFETCHED_PROPERTY || !Hibernate.isInitialized( element ) ) {

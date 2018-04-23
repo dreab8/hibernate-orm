@@ -79,7 +79,7 @@ public class NClobJavaDescriptor extends AbstractBasicJavaDescriptor<NClob> {
 		else {
 			jdbcCode = Types.CLOB;
 		}
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( jdbcCode );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( jdbcCode );
 	}
 
 	@Override

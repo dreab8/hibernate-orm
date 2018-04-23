@@ -9,13 +9,13 @@ package org.hibernate.engine.jdbc.env.internal;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 
-import org.hibernate.boot.model.naming.Identifier;
-import org.hibernate.boot.model.relational.QualifiedName;
-import org.hibernate.boot.model.relational.QualifiedSequenceName;
-import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.jdbc.env.spi.NameQualifierSupport;
 import org.hibernate.engine.jdbc.env.spi.QualifiedObjectNameFormatter;
+import org.hibernate.naming.Identifier;
+import org.hibernate.naming.QualifiedSequenceName;
+import org.hibernate.naming.QualifiedTableName;
+import org.hibernate.naming.spi.QualifiedName;
 
 /**
  * Standard implementation of QualifiedObjectNameFormatter which uses information reported

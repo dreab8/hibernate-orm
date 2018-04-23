@@ -7,19 +7,18 @@
 package org.hibernate.type.descriptor.sql.spi;
 
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
-import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
-import org.hibernate.type.descriptor.sql.TypeDescriptor;
-import org.hibernate.type.spi.TypeConfiguration;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 /**
  * Describes a JDBC/SQL type.
  *
  * @author Steve Ebersole
  */
-public interface SqlTypeDescriptor extends TypeDescriptor {
+public interface SqlTypeDescriptor extends org.hibernate.type.descriptor.sql.SqlTypeDescriptor {
 	/**
 	 * Is this descriptor available for remapping?
 	 * <p/>

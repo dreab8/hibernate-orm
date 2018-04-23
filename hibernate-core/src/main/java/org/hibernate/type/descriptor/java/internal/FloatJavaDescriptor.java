@@ -32,7 +32,7 @@ public class FloatJavaDescriptor extends AbstractNumericJavaDescriptor<Float> im
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.FLOAT );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.FLOAT );
 	}
 
 	@Override

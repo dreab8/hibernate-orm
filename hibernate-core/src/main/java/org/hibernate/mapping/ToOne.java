@@ -8,9 +8,9 @@ package org.hibernate.mapping;
 
 import org.hibernate.FetchMode;
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.spi.MetadataBuildingContext;
-import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.type.Type;
@@ -26,21 +26,21 @@ public abstract class ToOne extends SimpleValue implements Fetchable {
 	protected String referencedPropertyName;
 	private String referencedEntityName;
 	private String propertyName;
-	private boolean embedded;
 	private boolean lazy = true;
 	protected boolean unwrapProxy;
 	protected boolean referenceToPrimaryKey = true;
 
 	/**
-	 * @deprecated Use {@link ToOne#ToOne(MetadataBuildingContext, Table)} instead.
+	 *
+	 * @deprecated since 6.0, use {@link #ToOne(MetadataBuildingContext, MappedTable)} instead
 	 */
 	@Deprecated
-	protected ToOne(MetadataImplementor metadata, Table table) {
+	protected ToOne(MetadataBuildingContext metadata, Table table) {
 		super( metadata, table );
 	}
 
-	protected ToOne(MetadataBuildingContext buildingContext, Table table) {
-		super( buildingContext, table );
+	protected ToOne(MetadataBuildingContext metadata, MappedTable table) {
+		super( metadata, table );
 	}
 
 	public FetchMode getFetchMode() {
@@ -51,7 +51,7 @@ public abstract class ToOne extends SimpleValue implements Fetchable {
 		this.fetchMode=fetchMode;
 	}
 
-	public abstract void createForeignKey() throws MappingException;
+	public abstract ForeignKey createForeignKey() throws MappingException;
 	public abstract Type getType() throws MappingException;
 
 	public String getReferencedPropertyName() {
@@ -106,15 +106,14 @@ public abstract class ToOne extends SimpleValue implements Fetchable {
 	public boolean isSame(ToOne other) {
 		return super.isSame( other )
 				&& Objects.equals( referencedPropertyName, other.referencedPropertyName )
-				&& Objects.equals( referencedEntityName, other.referencedEntityName )
-				&& embedded == other.embedded;
+				&& Objects.equals( referencedEntityName, other.referencedEntityName );
 	}
 
 	public boolean isValid(Mapping mapping) throws MappingException {
 		if (referencedEntityName==null) {
 			throw new MappingException("association must specify the referenced entity");
 		}
-		return super.isValid( mapping );
+		return super.isValid();
 	}
 
 	public boolean isLazy() {
@@ -140,5 +139,4 @@ public abstract class ToOne extends SimpleValue implements Fetchable {
 	public void setReferenceToPrimaryKey(boolean referenceToPrimaryKey) {
 		this.referenceToPrimaryKey = referenceToPrimaryKey;
 	}
-	
 }

@@ -6,13 +6,11 @@
  */
 package org.hibernate.cfg.annotations.reflection;
 
-import org.hibernate.boot.AttributeConverterInfo;
-import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
+import org.hibernate.cfg.AttributeConverterDefinition;
 
 /**
  * @author Steve Ebersole
  */
 public interface AttributeConverterDefinitionCollector {
-	void addAttributeConverter(AttributeConverterInfo info);
-	void addAttributeConverter(ConverterDescriptor descriptor);
+	void addAttributeConverter(AttributeConverterDefinition definition);
 }

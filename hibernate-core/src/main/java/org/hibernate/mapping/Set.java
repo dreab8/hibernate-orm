@@ -9,9 +9,10 @@ package org.hibernate.mapping;
 import java.util.Iterator;
 
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.relational.MappedColumn;
+import org.hibernate.boot.model.domain.JavaTypeMapping;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.boot.spi.MetadataImplementor;
-import org.hibernate.engine.spi.Mapping;
 import org.hibernate.type.CollectionType;
 
 /**
@@ -32,8 +33,8 @@ public class Set extends Collection {
 		super( buildingContext, owner );
 	}
 
-	public void validate(Mapping mapping) throws MappingException {
-		super.validate( mapping );
+	public void validate() throws MappingException {
+		super.validate();
 		//for backward compatibility, disable this:
 		/*Iterator iter = getElement().getColumnIterator();
 		while ( iter.hasNext() ) {
@@ -100,5 +101,10 @@ public class Set extends Collection {
 
 	public Object accept(ValueVisitor visitor) {
 		return visitor.accept(this);
+	}
+
+	@Override
+	public JavaTypeMapping getJavaTypeMapping() {
+		return null;
 	}
 }

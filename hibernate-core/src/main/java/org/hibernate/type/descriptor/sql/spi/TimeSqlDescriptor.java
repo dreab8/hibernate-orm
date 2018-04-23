@@ -40,6 +40,11 @@ public class TimeSqlDescriptor implements TemporalSqlDescriptor {
 	}
 
 	@Override
+	public int getSqlType() {
+		return getJdbcTypeCode();
+	}
+
+	@Override
 	public boolean canBeRemapped() {
 		return true;
 	}
@@ -86,6 +91,12 @@ public class TimeSqlDescriptor implements TemporalSqlDescriptor {
 	@Override
 	public <X> ValueExtractor<X> getExtractor(final JavaTypeDescriptor<X> javaTypeDescriptor) {
 		return new BasicExtractor<X>( javaTypeDescriptor, this ) {
+			@Override
+			public X extract(ResultSet rs, String name, WrapperOptions options)
+					throws SQLException {
+				return javaTypeDescriptor.wrap( rs.getTime( name ), options );
+			}
+
 			@Override
 			protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
 				return javaTypeDescriptor.wrap( rs.getTime( position ), options );

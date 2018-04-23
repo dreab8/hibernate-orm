@@ -152,4 +152,8 @@ public abstract class AbstractType implements Type {
 		return assemble( disassemble(original, session), session, owner );
 	}*/
 
+	@Override
+	public boolean areEqual(Object x, Object y) throws HibernateException {
+		return isEqual( x,y );
+	}
 }

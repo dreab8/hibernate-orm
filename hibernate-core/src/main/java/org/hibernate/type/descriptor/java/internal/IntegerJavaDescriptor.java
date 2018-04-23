@@ -34,7 +34,7 @@ public class IntegerJavaDescriptor extends AbstractNumericJavaDescriptor<Integer
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.INTEGER );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.INTEGER );
 	}
 
 	@Override

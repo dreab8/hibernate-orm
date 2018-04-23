@@ -7,6 +7,7 @@
 package org.hibernate.boot.model.naming;
 
 import org.hibernate.boot.model.source.spi.AttributePath;
+import org.hibernate.naming.Identifier;
 
 /**
  * Context for determining the implicit name of a "join column" (think
@@ -17,13 +18,13 @@ import org.hibernate.boot.model.source.spi.AttributePath;
  * @see javax.persistence.JoinColumn
  */
 public interface ImplicitJoinColumnNameSource extends ImplicitNameSource {
-	public static enum Nature {
+	enum Nature {
 		ELEMENT_COLLECTION,
 		ENTITY_COLLECTION,
 		ENTITY
 	}
 
-	public Nature getNature();
+	Nature getNature();
 
 	/**
 	 * Access to entity naming information.  For "normal" join columns, this will
@@ -32,7 +33,7 @@ public interface ImplicitJoinColumnNameSource extends ImplicitNameSource {
 	 *
 	 * @return Owning entity naming information
 	 */
-	public EntityNaming getEntityNaming();
+	EntityNaming getEntityNaming();
 
 	/**
 	 * Access to the name of the attribute that defines the association.  For
@@ -41,19 +42,19 @@ public interface ImplicitJoinColumnNameSource extends ImplicitNameSource {
 	 *
 	 * @return The owning side's attribute name.
 	 */
-	public AttributePath getAttributePath();
+	AttributePath getAttributePath();
 
 	/**
 	 * Access the name of the table that is the target of the FK being described
 	 *
 	 * @return The referenced table name
 	 */
-	public Identifier getReferencedTableName();
+	Identifier getReferencedTableName();
 
 	/**
 	 * Access the name of the column that is the target of the FK being described
 	 *
 	 * @return The referenced column name
 	 */
-	public Identifier getReferencedColumnName();
+	Identifier getReferencedColumnName();
 }

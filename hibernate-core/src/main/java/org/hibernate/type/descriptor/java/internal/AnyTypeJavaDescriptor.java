@@ -67,4 +67,6 @@ public class AnyTypeJavaDescriptor implements JavaTypeDescriptor {
 	public String extractLoggableRepresentation(Object value) {
 		return null;
 	}
+
+
 }

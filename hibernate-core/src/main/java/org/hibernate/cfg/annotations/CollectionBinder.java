@@ -9,8 +9,10 @@ package org.hibernate.cfg.annotations;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import javax.persistence.AttributeOverride;
 import javax.persistence.AttributeOverrides;
@@ -66,6 +68,9 @@ import org.hibernate.annotations.common.reflection.XClass;
 import org.hibernate.annotations.common.reflection.XProperty;
 import org.hibernate.boot.model.IdentifierGeneratorDefinition;
 import org.hibernate.boot.model.TypeDefinition;
+import org.hibernate.boot.model.domain.PersistentAttributeMapping;
+import org.hibernate.boot.model.relational.MappedColumn;
+import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.cfg.AccessType;
 import org.hibernate.cfg.AnnotatedClassType;
@@ -99,7 +104,9 @@ import org.hibernate.mapping.ManyToOne;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
 import org.hibernate.mapping.SimpleValue;
-import org.hibernate.mapping.Table;
+import org.hibernate.metamodel.model.relational.spi.Size;
+import org.hibernate.naming.Identifier;
+import org.hibernate.sql.ast.tree.spi.predicate.Junction;
 
 import org.jboss.logging.Logger;
 
@@ -161,10 +168,6 @@ public abstract class CollectionBinder {
 	private String explicitType;
 	private final Properties explicitTypeParameters = new Properties();
 
-	protected CollectionBinder(boolean isSortedCollection) {
-		this.isSortedCollection = isSortedCollection;
-	}
-
 	protected MetadataBuildingContext getBuildingContext() {
 		return buildingContext;
 	}
@@ -177,7 +180,7 @@ public abstract class CollectionBinder {
 		return false;
 	}
 
-	protected void setIsHibernateExtensionMapping(boolean hibernateExtensionMapping) {
+	public void setIsHibernateExtensionMapping(boolean hibernateExtensionMapping) {
 		this.hibernateExtensionMapping = hibernateExtensionMapping;
 	}
 
@@ -335,7 +338,7 @@ public abstract class CollectionBinder {
 		if ( typeAnnotation != null ) {
 			final String typeName = typeAnnotation.type();
 			// see if it names a type-def
-			final TypeDefinition typeDef = buildingContext.getMetadataCollector().getTypeDefinition( typeName );
+			final TypeDefinition typeDef = buildingContext.resolveTypeDefinition( typeName );
 			if ( typeDef != null ) {
 				result.explicitType = typeDef.getTypeImplementorClass().getName();
 				result.explicitTypeParameters.putAll( typeDef.getParameters() );
@@ -349,6 +352,10 @@ public abstract class CollectionBinder {
 		}
 
 		return result;
+	}
+
+	protected CollectionBinder(boolean isSortedCollection) {
+		this.isSortedCollection = isSortedCollection;
 	}
 
 	public void setMappedBy(String mappedBy) {
@@ -402,7 +409,7 @@ public abstract class CollectionBinder {
 
 		// set explicit type information
 		if ( explicitType != null ) {
-			final TypeDefinition typeDef = buildingContext.getMetadataCollector().getTypeDefinition( explicitType );
+			final TypeDefinition typeDef = buildingContext.resolveTypeDefinition( explicitType );
 			if ( typeDef == null ) {
 				collection.setTypeName( explicitType );
 				collection.setTypeParameters( explicitTypeParameters );
@@ -552,6 +559,8 @@ public abstract class CollectionBinder {
 	}
 
 	private void applySortingAndOrdering(Collection collection) {
+		boolean isSorted = isSortedCollection;
+
 		boolean hadOrderBy = false;
 		boolean hadExplicitSort = false;
 
@@ -565,10 +574,10 @@ public abstract class CollectionBinder {
 				}
 				hadExplicitSort = deprecatedSort.type() != SortType.UNSORTED;
 				if ( deprecatedSort.type() == SortType.NATURAL ) {
-					isSortedCollection = true;
+					isSorted = true;
 				}
 				else if ( deprecatedSort.type() == SortType.COMPARATOR ) {
-					isSortedCollection = true;
+					isSorted = true;
 					comparatorClass = deprecatedSort.comparator();
 				}
 			}
@@ -773,14 +782,14 @@ public abstract class CollectionBinder {
 				);
 			}
 			catch (MappingException e) {
-				throw new AnnotationException(
-						"mappedBy reference an unknown target entity property: " +
-								collType + "." + this.mappedBy +
-								" in " +
-								collection.getOwnerEntityName() +
-								"." +
-								property.getName()
-				);
+				StringBuilder error = new StringBuilder( 80 );
+				error.append( "mappedBy reference an unknown target entity property: " )
+						.append( collType ).append( "." ).append( this.mappedBy )
+						.append( " in " )
+						.append( collection.getOwnerEntityName() )
+						.append( "." )
+						.append( property.getName() );
+				throw new AnnotationException( error.toString() );
 			}
 		}
 		if ( persistentClass != null
@@ -846,6 +855,7 @@ public abstract class CollectionBinder {
 		collection.setElement( oneToMany );
 		oneToMany.setReferencedEntityName( collectionType.getName() );
 		oneToMany.setIgnoreNotFound( ignoreNotFound );
+		oneToMany.setJavaTypeMapping( collection.getJavaTypeMapping() );
 
 		String assocClass = oneToMany.getReferencedEntityName();
 		PersistentClass associatedClass = (PersistentClass) persistentClasses.get( assocClass );
@@ -1125,7 +1135,13 @@ public abstract class CollectionBinder {
 					.getReferencedProperty( propRef )
 					.getValue();
 		}
-		DependantValue key = new DependantValue( buildingContext, collValue.getCollectionTable(), keyVal );
+		DependantValue key = new DependantValue(
+				buildingContext.getBootstrapContext()
+						.getTypeConfiguration()
+						.getMetadataBuildingContext(),
+				collValue.getCollectionTable(),
+				keyVal
+		);
 		key.setTypeName( null );
 		Ejb3Column.checkPropertyConsistency( joinColumns, collValue.getOwnerEntityName() );
 		key.setNullable( joinColumns.length == 0 || joinColumns[0].isNullable() );
@@ -1278,12 +1294,14 @@ public abstract class CollectionBinder {
 		boolean mappedBy = !BinderHelper.isEmptyAnnotationValue( joinColumns[0].getMappedBy() );
 		if ( mappedBy ) {
 			if ( !isCollectionOfEntities ) {
-				throw new AnnotationException(
-						"Collection of elements must not have mappedBy or association reference an unmapped entity: " +
-								collValue.getOwnerEntityName() +
-								"." +
-								joinColumns[0].getPropertyName()
-				);
+				StringBuilder error = new StringBuilder( 80 )
+						.append(
+								"Collection of elements must not have mappedBy or association reference an unmapped entity: "
+						)
+						.append( collValue.getOwnerEntityName() )
+						.append( "." )
+						.append( joinColumns[0].getPropertyName() );
+				throw new AnnotationException( error.toString() );
 			}
 			Property otherSideProperty;
 			try {
@@ -1296,14 +1314,14 @@ public abstract class CollectionBinder {
 								+ collValue.getOwnerEntityName() + "." + joinColumns[0].getPropertyName()
 				);
 			}
-			Table table;
+			MappedTable table;
 			if ( otherSideProperty.getValue() instanceof Collection ) {
 				//this is a collection on the other side
-				table = ( (Collection) otherSideProperty.getValue() ).getCollectionTable();
+				table = otherSideProperty.getValue().getMappedTable();
 			}
 			else {
 				//This is a ToOne with a @JoinTable or a regular property
-				table = otherSideProperty.getValue().getTable();
+				table = otherSideProperty.getValue().getMappedTable();
 			}
 			collValue.setCollectionTable( table );
 			String entityName = collectionEntity.getEntityName();
@@ -1319,11 +1337,11 @@ public abstract class CollectionBinder {
 				String mappedByProperty = buildingContext.getMetadataCollector().getFromMappedBy(
 						collValue.getOwnerEntityName(), column.getPropertyName()
 				);
-				Table ownerTable = collValue.getOwner().getTable();
+				MappedTable ownerTable = collValue.getOwner().getMappedTable();
 				column.setMappedBy(
 						collValue.getOwner().getEntityName(),
 						collValue.getOwner().getJpaEntityName(),
-						buildingContext.getMetadataCollector().getLogicalTableName( ownerTable ),
+						ownerTable.getName(),
 						mappedByProperty
 				);
 //				String header = ( mappedByProperty == null ) ? mappings.getLogicalTableName( ownerTable ) : mappedByProperty;
@@ -1335,13 +1353,11 @@ public abstract class CollectionBinder {
 						collValue.getOwner().getClassName(),
 						collValue.getOwner().getEntityName(),
 						collValue.getOwner().getJpaEntityName(),
-						buildingContext.getMetadataCollector().getLogicalTableName( collValue.getOwner().getTable() ),
+						collValue.getOwner().getMappedTable().getName(),
 						collectionEntity != null ? collectionEntity.getClassName() : null,
 						collectionEntity != null ? collectionEntity.getEntityName() : null,
 						collectionEntity != null ? collectionEntity.getJpaEntityName() : null,
-						collectionEntity != null ? buildingContext.getMetadataCollector().getLogicalTableName(
-								collectionEntity.getTable()
-						) : null,
+						collectionEntity != null ? collectionEntity.getMappedTable().getName() : null,
 						joinColumns[0].getPropertyName()
 				);
 			}
@@ -1410,7 +1426,7 @@ public abstract class CollectionBinder {
 			);
 			//override the table
 			for (Ejb3Column column : inverseJoinColumns) {
-				column.setTable( collValue.getCollectionTable() );
+				column.setTable( collValue.getMappedTable() );
 			}
 			Any any = BinderHelper.buildAnyValue(
 					anyAnn.metaDef(),
@@ -1479,12 +1495,15 @@ public abstract class CollectionBinder {
 				boolean isPropertyAnnotated;
 				//FIXME support @Access for collection of elements
 				//String accessType = access != null ? access.value() : null;
-				if ( owner.getIdentifierProperty() != null ) {
-					isPropertyAnnotated = owner.getIdentifierProperty().getPropertyAccessorName().equals( "property" );
+				if ( owner.getIdentifierAttributeMapping() != null ) {
+					isPropertyAnnotated = owner.getIdentifierAttributeMapping().getPropertyAccessorName().equals( "property" );
 				}
-				else if ( owner.getIdentifierMapper() != null && owner.getIdentifierMapper().getPropertySpan() > 0 ) {
-					Property prop = (Property) owner.getIdentifierMapper().getPropertyIterator().next();
-					isPropertyAnnotated = prop.getPropertyAccessorName().equals( "property" );
+				else if ( owner.getEntityMappingHierarchy().getIdentifierEmbeddedValueMapping() != null
+						&& owner.getEntityMappingHierarchy().getIdentifierEmbeddedValueMapping().getDeclaredPersistentAttributes().size() > 0 ) {
+					final List<PersistentAttributeMapping> declaredPersistentAttributes = owner.getEntityMappingHierarchy()
+							.getIdentifierEmbeddedValueMapping()
+							.getDeclaredPersistentAttributes();
+					isPropertyAnnotated = declaredPersistentAttributes.get( 0 ).getPropertyAccessorName().equals( "property" );
 				}
 				else {
 					throw new AssertionFailure( "Unable to guess collection property accessor name" );
@@ -1536,26 +1555,27 @@ public abstract class CollectionBinder {
 			else {
 				holder.prepare( property );
 
-				SimpleValueBinder elementBinder = new SimpleValueBinder();
-				elementBinder.setBuildingContext( buildingContext );
+				BasicValueBinder elementBinder = new BasicValueBinder(
+						BasicValueBinder.Kind.COLLECTION_ELEMENT,
+						buildingContext
+				);
 				elementBinder.setReturnedClassName( collType.getName() );
 				if ( elementColumns == null || elementColumns.length == 0 ) {
 					elementColumns = new Ejb3Column[1];
-					Ejb3Column column = new Ejb3Column();
+					Ejb3Column column = new Ejb3Column( buildingContext );
 					column.setImplicit( false );
 					//not following the spec but more clean
 					column.setNullable( true );
-					column.setLength( Ejb3Column.DEFAULT_COLUMN_LENGTH );
-					column.setLogicalColumnName( Collection.DEFAULT_ELEMENT_COLUMN_NAME );
+					column.setLength( Size.Builder.DEFAULT_LENGTH );
+					column.setLogicalColumnName( Identifier.toIdentifier( Collection.DEFAULT_ELEMENT_COLUMN_NAME ) );
 					//TODO create an EMPTY_JOINS collection
 					column.setJoins( new HashMap<>() );
-					column.setBuildingContext( buildingContext );
 					column.bind();
 					elementColumns[0] = column;
 				}
 				//override the table
 				for (Ejb3Column column : elementColumns) {
-					column.setTable( collValue.getCollectionTable() );
+					column.setTable( collValue.getMappedTable() );
 				}
 				elementBinder.setColumns( elementColumns );
 				elementBinder.setType(
@@ -1565,7 +1585,6 @@ public abstract class CollectionBinder {
 						holder.resolveElementAttributeConverterDescriptor( property, elementClass )
 				);
 				elementBinder.setPersistentClassName( propertyHolder.getEntityName() );
-				elementBinder.setAccessType( accessType );
 				collValue.setElement( elementBinder.make() );
 				String orderBy = adjustUserSuppliedValueCollectionOrderingFragment( hqlOrderBy );
 				if ( orderBy != null ) {
@@ -1660,28 +1679,28 @@ public abstract class CollectionBinder {
 		final String mappedBy = columns[0].getMappedBy();
 		if ( StringHelper.isNotEmpty( mappedBy ) ) {
 			final Property property = referencedEntity.getRecursiveProperty( mappedBy );
-			Iterator mappedByColumns;
+			List<MappedColumn> mappedByColumns;
 			if ( property.getValue() instanceof Collection ) {
-				mappedByColumns = ( (Collection) property.getValue() ).getKey().getColumnIterator();
+				mappedByColumns = ( (Collection) property.getValue() ).getKey().getMappedColumns();
 			}
 			else {
 				//find the appropriate reference key, can be in a join
-				Iterator joinsIt = referencedEntity.getJoinIterator();
 				KeyValue key = null;
-				while ( joinsIt.hasNext() ) {
-					Join join = (Join) joinsIt.next();
-					if ( join.containsProperty( property ) ) {
-						key = join.getKey();
-						break;
-					}
+				Optional<Join> join = referencedEntity.getJoins()
+						.stream()
+						.filter( j -> j.containsProperty( property ) )
+						.findFirst();
+				if ( join.isPresent() ) {
+					key = join.get().getKey();
 				}
-				if ( key == null ) key = property.getPersistentClass().getIdentifier();
-				mappedByColumns = key.getColumnIterator();
+				if ( key == null ) {
+					key = property.getPersistentClass().getIdentifier();
+				}
+				mappedByColumns = key.getMappedColumns();
 			}
-			while ( mappedByColumns.hasNext() ) {
-				Column column = (Column) mappedByColumns.next();
-				columns[0].linkValueUsingAColumnCopy( column, value );
-			}
+			mappedByColumns.forEach( mappedColumn -> {
+				columns[0].linkValueUsingAColumnCopy( (Column) mappedColumn, value );
+			} );
 			String referencedPropertyName =
 					buildingContext.getMetadataCollector().getPropertyReferencedAssociation(
 							"inverse__" + referencedEntity.getEntityName(), mappedBy

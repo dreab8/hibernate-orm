@@ -15,11 +15,11 @@ import org.hibernate.internal.util.StringHelper;
  * Models an identifier (name), which may or may not be quoted.
  *
  * @author Steve Ebersole
+ *
+ * @deprecated (6.0) Use {@link org.hibernate.naming.Identifier} instead.
  */
-public class Identifier implements Comparable<Identifier> {
-	private final String text;
-	private final boolean isQuoted;
-
+@Deprecated
+public class Identifier extends org.hibernate.naming.Identifier {
 	/**
 	 * Means to generate an {@link Identifier} instance from its simple text form.
 	 * <p/>
@@ -103,14 +103,7 @@ public class Identifier implements Comparable<Identifier> {
 	 * @param quoted Is this a quoted identifier?
 	 */
 	public Identifier(String text, boolean quoted) {
-		if ( StringHelper.isEmpty( text ) ) {
-			throw new IllegalIdentifierException( "Identifier text cannot be null" );
-		}
-		if ( isQuoted( text ) ) {
-			throw new IllegalIdentifierException( "Identifier text should not contain quote markers (` or \")" );
-		}
-		this.text = text;
-		this.isQuoted = quoted;
+		super(text, quoted);
 	}
 
 	/**
@@ -119,8 +112,7 @@ public class Identifier implements Comparable<Identifier> {
 	 * @param text The identifier text.
 	 */
 	protected Identifier(String text) {
-		this.text = text;
-		this.isQuoted = false;
+		super(text,false);
 	}
 
 	/**
@@ -129,7 +121,7 @@ public class Identifier implements Comparable<Identifier> {
 	 * @return The name
 	 */
 	public String getText() {
-		return text;
+		return super.getText();
 	}
 
 	/**
@@ -138,7 +130,7 @@ public class Identifier implements Comparable<Identifier> {
 	 * @return True if this is a quote identifier; false otherwise.
 	 */
 	public boolean isQuoted() {
-		return isQuoted;
+		return super.isQuoted();
 	}
 
 	/**
@@ -152,19 +144,19 @@ public class Identifier implements Comparable<Identifier> {
 	 * end-quotes; otherwise, the unquoted identifier.
 	 */
 	public String render(Dialect dialect) {
-		return isQuoted
+		return isQuoted()
 				? String.valueOf( dialect.openQuote() ) + getText() + dialect.closeQuote()
 				: getText();
 	}
 
 	public String render() {
-		return isQuoted
+		return isQuoted()
 				? '`' + getText() + '`'
 				: getText();
 	}
 
 	public String getCanonicalName() {
-		return isQuoted ? text : text.toLowerCase( Locale.ENGLISH );
+		return isQuoted() ? getText() : getText().toLowerCase( Locale.ENGLISH );
 	}
 
 	@Override
@@ -184,7 +176,7 @@ public class Identifier implements Comparable<Identifier> {
 
 	@Override
 	public int hashCode() {
-		return isQuoted ? text.hashCode() : text.toLowerCase( Locale.ENGLISH ).hashCode();
+		return isQuoted() ? getText().hashCode() : getText().toLowerCase( Locale.ENGLISH ).hashCode();
 	}
 
 	public static boolean areEqual(Identifier id1, Identifier id2) {
@@ -202,7 +194,6 @@ public class Identifier implements Comparable<Identifier> {
 				: Identifier.toIdentifier( identifier.getText(), true );
 	}
 
-	@Override
 	public int compareTo(Identifier o) {
 		return getCanonicalName().compareTo( o.getCanonicalName() );
 	}

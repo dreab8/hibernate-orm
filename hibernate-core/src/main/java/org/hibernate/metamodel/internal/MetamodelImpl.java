@@ -388,7 +388,7 @@ public class MetamodelImpl implements MetamodelImplementor, Serializable {
 		final Set<MappedSuperclass> unusedMappedSuperclasses = context.getUnusedMappedSuperclasses();
 		if ( !unusedMappedSuperclasses.isEmpty() ) {
 			for ( MappedSuperclass mappedSuperclass : unusedMappedSuperclasses ) {
-				log.unusedMappedSuperclass( mappedSuperclass.getMappedClass().getName() );
+				log.unusedMappedSuperclass( mappedSuperclass.getClass().getName() );
 				locateOrBuildMappedsuperclassType( mappedSuperclass, context );
 			}
 		}
@@ -454,7 +454,7 @@ public class MetamodelImpl implements MetamodelImplementor, Serializable {
 					? null
 					: locateOrBuildEntityType( superPersistentClass, context );
 		}
-		final Class javaType = mappedSuperclass.getMappedClass();
+		final Class javaType = mappedSuperclass.getClass();
 		MappedSuperclassTypeImpl mappedSuperclassType = new MappedSuperclassTypeImpl(
 				javaType,
 				mappedSuperclass,
@@ -548,7 +548,7 @@ public class MetamodelImpl implements MetamodelImplementor, Serializable {
 		final int setSize = CollectionHelper.determineProperSizing(
 				jpaEntityTypeMap.size() + jpaMappedSuperclassTypeMap.size() + jpaEmbeddableTypeMap.size()
 		);
-		final Set<ManagedType<?>> managedTypes = new HashSet<ManagedType<?>>( setSize );
+		final Set<ManagedType<?>> managedTypes = new HashSet<>( setSize );
 		managedTypes.addAll( jpaEntityTypeMap.values() );
 		managedTypes.addAll( jpaMappedSuperclassTypeMap.values() );
 		managedTypes.addAll( jpaEmbeddableTypeMap.values() );

@@ -18,13 +18,21 @@ import org.hibernate.dialect.Dialect;
  * @author Steve Ebersole
  */
 public interface AuxiliaryDatabaseObject extends Exportable, Serializable {
+
+	/**
+	 * Get a unique identifier to make sure we are not adding the same database structure multiple times.
+	 *
+	 * @return The identifier.
+	 */
+	String getIdentifier();
+
 	/**
 	 * Does this database object apply to the given dialect?
 	 *
 	 * @param dialect The dialect to check against.
 	 * @return True if this database object does apply to the given dialect.
 	 */
-	public boolean appliesToDialect(Dialect dialect);
+	boolean appliesToDialect(Dialect dialect);
 
 	/**
 	 * Defines a simple precedence.  Should creation of this auxiliary object happen before creation of
@@ -37,7 +45,7 @@ public interface AuxiliaryDatabaseObject extends Exportable, Serializable {
 	 * @return {@code true} indicates this object should be created before tables; {@code false} indicates
 	 * it should be created after.
 	 */
-	public boolean beforeTablesOnCreation();
+	boolean beforeTablesOnCreation();
 
 	/**
 	 * Gets the SQL strings for creating the database object.
@@ -46,7 +54,7 @@ public interface AuxiliaryDatabaseObject extends Exportable, Serializable {
 	 *
 	 * @return the SQL strings for creating the database object.
 	 */
-	public String[] sqlCreateStrings(Dialect dialect);
+	String[] sqlCreateStrings(Dialect dialect);
 
 	/**
 	 * Gets the SQL strings for dropping the database object.
@@ -55,13 +63,22 @@ public interface AuxiliaryDatabaseObject extends Exportable, Serializable {
 	 *
 	 * @return the SQL strings for dropping the database object.
 	 */
-	public String[] sqlDropStrings(Dialect dialect);
+	String[] sqlDropStrings(Dialect dialect);
 
 	/**
 	 * Additional, optional interface for AuxiliaryDatabaseObject that want to allow
 	 * expansion of allowable dialects via mapping.
 	 */
-	public static interface Expandable {
-		public void addDialectScope(String dialectName);
+	interface Expandable {
+		void addDialectScope(String dialectName);
+	}
+
+	default org.hibernate.metamodel.model.relational.spi.AuxiliaryDatabaseObject generateRuntimeAuxiliaryDatabaseObject(Dialect dialect) {
+		return new org.hibernate.metamodel.model.relational.spi.AuxiliaryDatabaseObject(
+				getIdentifier(),
+				beforeTablesOnCreation(),
+				sqlCreateStrings( dialect ),
+				sqlDropStrings( dialect )
+		);
 	}
 }

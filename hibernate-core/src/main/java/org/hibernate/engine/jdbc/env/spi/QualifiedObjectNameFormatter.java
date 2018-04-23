@@ -6,10 +6,10 @@
  */
 package org.hibernate.engine.jdbc.env.spi;
 
-import org.hibernate.boot.model.relational.QualifiedName;
-import org.hibernate.boot.model.relational.QualifiedSequenceName;
-import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.naming.QualifiedSequenceName;
+import org.hibernate.naming.QualifiedTableName;
+import org.hibernate.naming.spi.QualifiedName;
 
 /**
  * Contract for rendering qualified object names for use in queries, etc.
@@ -17,6 +17,7 @@ import org.hibernate.dialect.Dialect;
  * @author Steve Ebersole
  */
 public interface QualifiedObjectNameFormatter {
+
 	/**
 	 * Render a formatted a table name
 	 *

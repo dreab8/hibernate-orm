@@ -6,7 +6,7 @@
  */
 package org.hibernate.tool.schema.extract.spi;
 
-import org.hibernate.boot.model.naming.Identifier;
+import org.hibernate.naming.Identifier;
 
 /**
  * Provides access to information about existing primary key for a table
@@ -19,12 +19,12 @@ public interface PrimaryKeyInformation {
 	 *
 	 * @return The PK identifier.
 	 */
-	public Identifier getPrimaryKeyIdentifier();
+	Identifier getPrimaryKeyIdentifier();
 
 	/**
 	 * Obtain the columns making up the primary key.  Returned in sequential order.
 	 *
 	 * @return The columns
 	 */
-	public Iterable<ColumnInformation> getColumns();
+	Iterable<ColumnInformation> getColumns();
 }

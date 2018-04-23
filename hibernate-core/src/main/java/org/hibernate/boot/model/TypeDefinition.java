@@ -13,7 +13,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.hibernate.MappingException;
+import org.hibernate.boot.model.type.spi.BasicTypeResolver;
+import org.hibernate.boot.model.type.spi.TypeResolverTemplate;
 import org.hibernate.internal.util.compare.EqualsHelper;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.ParameterizedType;
 
 /**
  * Models the information pertaining to a custom type definition supplied by the user.  Used
@@ -30,11 +35,13 @@ import org.hibernate.internal.util.compare.EqualsHelper;
  * @author Steve Ebersole
  * @author John Verhaeg
  */
-public class TypeDefinition implements Serializable {
+public class TypeDefinition implements TypeResolverTemplate, Serializable {
 	private final String name;
 	private final Class typeImplementorClass;
 	private final String[] registrationKeys;
 	private final Map<String, String> parameters;
+
+	private BasicTypeResolver typeResolver;
 
 	public TypeDefinition(
 			String name,
@@ -98,6 +105,63 @@ public class TypeDefinition implements Serializable {
 		Properties properties = new Properties();
 		properties.putAll( parameters );
 		return properties;
+	}
+
+	@Override
+	public BasicTypeResolver resolveTypeResolver(Map<String, String> localConfigParameters) {
+		// the config parameters are local that come from @Type
+		// They win over any parameters internally represented.
+		//
+		if ( localConfigParameters.isEmpty() ) {
+			if ( typeResolver == null ) {
+				typeResolver = buildTypeResolver( parameters );
+			}
+			return typeResolver;
+		}
+
+		// merge incoming and type definition parameters
+		// incoming wins over existing values
+		Map<String, String> mergedParameters = new HashMap<>( parameters );
+		mergedParameters.putAll( localConfigParameters );
+
+		return buildTypeResolver( mergedParameters );
+	}
+
+	private BasicTypeResolver buildTypeResolver(Map<String, String> parameters) {
+		return new BasicTypeResolver() {
+			private BasicType basicType;
+
+			@Override
+			public <T> BasicType<T> resolveBasicType() {
+				if ( basicType == null ) {
+					basicType = instantiateBasicType();
+					injectParameters( basicType, parameters );
+				}
+				return basicType;
+			}
+
+			private <T> BasicType<T> instantiateBasicType() {
+				BasicType <T> basicType;
+				try {
+					basicType = (BasicType) typeImplementorClass.newInstance();
+				}
+				catch ( Exception e ) {
+					throw new MappingException(
+							"Unable to instantiate custom type: " + typeImplementorClass.getName(),
+							e
+					);
+				}
+				return basicType;
+			}
+
+			private void injectParameters(BasicType<?> type, Map<String, String> parameters) {
+				if ( parameters != null && !parameters.isEmpty() ) {
+					if ( ParameterizedType.class.isInstance( type ) ) {
+						( (ParameterizedType) type ).setParameters( parameters );
+					}
+				}
+			}
+		};
 	}
 
 	@Override

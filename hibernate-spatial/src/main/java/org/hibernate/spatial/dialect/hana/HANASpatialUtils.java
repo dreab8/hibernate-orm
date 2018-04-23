@@ -79,6 +79,54 @@ public class HANASpatialUtils {
 		return toGeometry( buffer );
 	}
 
+	public static Geometry<?> toGeometry(ResultSet rs, int position) throws SQLException {
+		ByteBuffer buffer = toByteBuffer( rs.getObject( position ) );
+
+		if ( buffer == null ) {
+			return null;
+		}
+
+		// Get table and column names from the result set metadata
+		String tableName = rs.getMetaData().getTableName( position );
+		String columnName = rs.getMetaData().getColumnName( position );
+
+		assert tableName != null;
+		assert columnName != null;
+
+		// no table and/or column names found (
+		if ( tableName.isEmpty() || columnName.isEmpty() ) {
+			return toGeometry( buffer );
+		}
+
+		byte orderByte = buffer.get();
+		int typeCode = (int) buffer.getUInt();
+
+		Connection connection = rs.getStatement().getConnection();
+
+		// Check if SRID is set
+		if ( ( typeCode & POSTGIS_SRID_FLAG ) != POSTGIS_SRID_FLAG ) {
+			// No SRID set => try to get SRID from the database
+			try (PreparedStatement psSrid = connection
+					.prepareStatement(
+							"SELECT SRS_ID FROM SYS.ST_GEOMETRY_COLUMNS WHERE SCHEMA_NAME=CURRENT_SCHEMA AND TABLE_NAME=? AND COLUMN_NAME=?" )) {
+				psSrid.setString( 1, tableName );
+				psSrid.setString( 2, columnName );
+
+				try (ResultSet rsSrid = psSrid.executeQuery()) {
+					if ( rsSrid.next() ) {
+						int crsId = rsSrid.getInt( 1 );
+						buffer = addCrsId( buffer.toByteArray(), orderByte, typeCode, crsId );
+					}
+					else {
+						// ignore
+					}
+				}
+			}
+		}
+
+		return toGeometry( buffer );
+	}
+
 	private static ByteBuffer addCrsId(byte[] wkb, byte orderByte, int typeCode, int crsId) {
 		ByteBuffer buffer = ByteBuffer.allocate( wkb.length + 4 ); // original capacity + 4 bytes for the CRS ID
 		buffer.setByteOrder( ByteOrder.valueOf( orderByte ) );

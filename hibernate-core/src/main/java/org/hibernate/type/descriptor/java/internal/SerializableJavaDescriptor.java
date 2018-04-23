@@ -83,7 +83,7 @@ public class SerializableJavaDescriptor<T extends Serializable> extends Abstract
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.VARBINARY );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.VARBINARY );
 	}
 
 	@Override

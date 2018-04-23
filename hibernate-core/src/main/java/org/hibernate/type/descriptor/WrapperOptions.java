@@ -19,21 +19,24 @@ import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
  * @todo Definitely could use a better name
  *
  * @author Steve Ebersole
+ *
+ * @deprecated since 6.0 use {@link org.hibernate.type.descriptor.spi.WrapperOptions} instead
  */
+@Deprecated
 public interface WrapperOptions {
 	/**
 	 * Should streams be used for binding LOB values.
 	 *
 	 * @return {@code true}/{@code false}
 	 */
-	public boolean useStreamForLobBinding();
+	boolean useStreamForLobBinding();
 
 	/**
 	 * Obtain access to the {@link LobCreator}
 	 *
 	 * @return The LOB creator
 	 */
-	public LobCreator getLobCreator();
+	LobCreator getLobCreator();
 
 	/**
 	 * Allow remapping of descriptors for dealing with sql type.
@@ -42,7 +45,7 @@ public interface WrapperOptions {
 	 *
 	 * @return The remapped descriptor.  May be the same as the known descriptor indicating no remapping.
 	 */
-	public SqlTypeDescriptor remapSqlTypeDescriptor(SqlTypeDescriptor sqlTypeDescriptor);
+	SqlTypeDescriptor remapSqlTypeDescriptor(SqlTypeDescriptor sqlTypeDescriptor);
 
 	/**
 	 * The JDBC {@link TimeZone} used when persisting Timestamp and DateTime properties into the database.
@@ -52,5 +55,5 @@ public interface WrapperOptions {
 	 *
 	 * @return JDBC {@link TimeZone}
 	 */
-	public TimeZone getJdbcTimeZone();
+	TimeZone getJdbcTimeZone();
 }

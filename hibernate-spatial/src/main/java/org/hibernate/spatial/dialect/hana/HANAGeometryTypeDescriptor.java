@@ -12,13 +12,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
-import org.hibernate.type.descriptor.ValueBinder;
-import org.hibernate.type.descriptor.ValueExtractor;
-import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BasicBinder;
-import org.hibernate.type.descriptor.sql.BasicExtractor;
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
+import org.hibernate.type.descriptor.spi.ValueBinder;
+import org.hibernate.type.descriptor.spi.ValueExtractor;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BasicBinder;
+import org.hibernate.type.descriptor.sql.spi.BasicExtractor;
+import org.hibernate.type.descriptor.sql.spi.JdbcLiteralFormatter;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 import org.geolatte.geom.Geometry;
 
@@ -34,13 +37,23 @@ public class HANAGeometryTypeDescriptor implements SqlTypeDescriptor {
 	}
 
 	@Override
-	public int getSqlType() {
+	public int getJdbcTypeCode() {
 		return Types.OTHER;
 	}
 
 	@Override
 	public boolean canBeRemapped() {
 		return false;
+	}
+
+	@Override
+	public <T> BasicJavaDescriptor<T> getJdbcRecommendedJavaTypeMapping(TypeConfiguration typeConfiguration) {
+		return (BasicJavaDescriptor<T>) typeConfiguration.getJavaTypeDescriptorRegistry().getDescriptor( Geometry.class );
+	}
+
+	@Override
+	public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
+		return null;
 	}
 
 	@Override
@@ -69,12 +82,23 @@ public class HANAGeometryTypeDescriptor implements SqlTypeDescriptor {
 		return new BasicExtractor<X>( javaTypeDescriptor, this ) {
 
 			@Override
-			protected X doExtract(ResultSet rs, String name, WrapperOptions options) throws SQLException {
+			public X extract(ResultSet rs, String name, org.hibernate.type.descriptor.WrapperOptions options)
+					throws SQLException {
 				if ( HANAGeometryTypeDescriptor.this.determineCrsIdFromDatabase ) {
 					return getJavaDescriptor().wrap( HANASpatialUtils.toGeometry( rs, name ), options );
 				}
 				else {
 					return getJavaDescriptor().wrap( HANASpatialUtils.toGeometry( rs.getObject( name ) ), options );
+				}
+			}
+
+			@Override
+			protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+				if ( HANAGeometryTypeDescriptor.this.determineCrsIdFromDatabase ) {
+					return getJavaDescriptor().wrap( HANASpatialUtils.toGeometry( rs, position ), options );
+				}
+				else {
+					return getJavaDescriptor().wrap( HANASpatialUtils.toGeometry( rs.getObject( position ) ), options );
 				}
 			}
 
@@ -90,5 +114,4 @@ public class HANAGeometryTypeDescriptor implements SqlTypeDescriptor {
 			}
 		};
 	}
-
 }

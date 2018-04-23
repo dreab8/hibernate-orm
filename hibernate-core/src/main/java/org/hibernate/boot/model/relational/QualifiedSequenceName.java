@@ -6,21 +6,25 @@
  */
 package org.hibernate.boot.model.relational;
 
-import org.hibernate.boot.model.naming.Identifier;
+
+import org.hibernate.naming.Identifier;
 
 /**
  * @author Steve Ebersole
+ *
+ * @deprecated since 6.0, use {@link org.hibernate.naming.QualifiedSequenceName} instead.
  */
-public class QualifiedSequenceName extends QualifiedNameImpl {
-	public QualifiedSequenceName(Identifier catalogName, Identifier schemaName, Identifier sequenceName) {
+@Deprecated
+public class QualifiedSequenceName extends org.hibernate.naming.QualifiedSequenceName {
+
+	public QualifiedSequenceName(org.hibernate.naming.Identifier catalogName, org.hibernate.naming.Identifier schemaName, org.hibernate.naming.Identifier sequenceName) {
 		super( catalogName, schemaName, sequenceName );
 	}
-
 	public QualifiedSequenceName(Namespace.Name schemaName, Identifier sequenceName) {
 		super( schemaName, sequenceName );
 	}
 
-	public Identifier getSequenceName() {
-		return getObjectName();
+	public org.hibernate.boot.model.naming.Identifier getSequenceName() {
+		return (org.hibernate.boot.model.naming.Identifier) getObjectName();
 	}
 }

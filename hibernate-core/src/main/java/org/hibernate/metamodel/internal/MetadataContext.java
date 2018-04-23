@@ -231,7 +231,7 @@ class MetadataContext {
 				@SuppressWarnings("unchecked")
 				final MappedSuperclass safeMapping = (MappedSuperclass) mapping;
 				if ( traceEnabled ) {
-					LOG.trace( "Starting mapped superclass [" + safeMapping.getMappedClass().getName() + ']' );
+					LOG.trace( "Starting mapped superclass [" + safeMapping.getClass().getName() + ']' );
 				}
 				try {
 					final MappedSuperclassTypeImpl<?> jpa2Mapping = mappedSuperclassByMappedSuperclassMapping.get(
@@ -258,7 +258,7 @@ class MetadataContext {
 				}
 				finally {
 					if ( traceEnabled ) {
-						LOG.trace( "Completed mapped superclass [" + safeMapping.getMappedClass().getName() + ']' );
+						LOG.trace( "Completed mapped superclass [" + safeMapping.getClass().getName() + ']' );
 					}
 				}
 			}

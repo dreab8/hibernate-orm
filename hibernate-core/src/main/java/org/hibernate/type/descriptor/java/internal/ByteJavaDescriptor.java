@@ -32,7 +32,7 @@ public class ByteJavaDescriptor extends AbstractNumericJavaDescriptor<Byte> impl
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getSqlTypeDescriptor( Types.TINYINT );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.TINYINT );
 	}
 
 	@Override

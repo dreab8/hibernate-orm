@@ -8,7 +8,7 @@ package org.hibernate.tool.schema.extract.spi;
 
 import java.util.List;
 
-import org.hibernate.boot.model.naming.Identifier;
+import org.hibernate.naming.Identifier;
 
 /**
  * Provides access to information about existing index in the database
@@ -22,12 +22,12 @@ public interface IndexInformation {
 	 *
 	 * @return The index identifier.
 	 */
-	public Identifier getIndexIdentifier();
+	Identifier getIndexIdentifier();
 
 	/**
 	 * Obtain the columns indexed under this index.  Returned in sequential order.
 	 *
 	 * @return The columns
 	 */
-	public List<ColumnInformation> getIndexedColumns();
+	List<ColumnInformation> getIndexedColumns();
 }

@@ -8,30 +8,44 @@ package org.hibernate.mapping;
 import java.util.Iterator;
 
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.domain.EntityJavaTypeMapping;
+import org.hibernate.boot.model.domain.EntityMapping;
+import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.boot.spi.MetadataBuildingContext;
-import org.hibernate.engine.spi.Mapping;
 
 /**
  * A subclass in a table-per-subclass mapping
  * @author Gavin King
  */
 public class JoinedSubclass extends Subclass implements TableOwner {
-	private Table table;
+	private MappedTable table;
 	private KeyValue key;
 
-	public JoinedSubclass(PersistentClass superclass, MetadataBuildingContext metadataBuildingContext) {
-		super( superclass, metadataBuildingContext );
+	public JoinedSubclass(
+			EntityMapping superclass,
+			EntityJavaTypeMapping javaTypeMapping,
+			MetadataBuildingContext metadataBuildingContext) {
+		super( superclass, javaTypeMapping, metadataBuildingContext );
 	}
 
+
+	@Override
 	public Table getTable() {
+		return (Table) getMappedTable();
+	}
+
+	@Override
+	public MappedTable getMappedTable() {
 		return table;
 	}
 
-	public void setTable(Table table) {
-		this.table=table;
-		getSuperclass().addSubclassTable(table);
+	@Override
+	public void setMappedTable(MappedTable table) {
+		this.table = table;
+		getSuperclass().addSubclassTable( table );
 	}
 
+	@Override
 	public KeyValue getKey() {
 		return key;
 	}
@@ -40,22 +54,25 @@ public class JoinedSubclass extends Subclass implements TableOwner {
 		this.key = key;
 	}
 
-	public void validate(Mapping mapping) throws MappingException {
-		super.validate(mapping);
-		if ( key!=null && !key.isValid(mapping) ) {
+	@Override
+	public void validate() throws MappingException {
+		super.validate();
+		if ( key!=null && !key.isValid() ) {
 			throw new MappingException(
 					"subclass key mapping has wrong number of columns: " +
 					getEntityName() +
 					" type: " +
-					key.getType().getName()
+					key.getJavaTypeMapping().getTypeName()
 				);
 		}
 	}
 
+	@Override
 	public Iterator getReferenceablePropertyIterator() {
 		return getPropertyIterator();
 	}
 
+	@Override
 	public Object accept(PersistentClassVisitor mv) {
 		return mv.accept(this);
 	}

@@ -8,17 +8,20 @@ package org.hibernate.boot;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.model.IdentifierGeneratorDefinition;
 import org.hibernate.boot.model.TypeDefinition;
+import org.hibernate.boot.model.domain.EntityMapping;
+import org.hibernate.boot.model.domain.EntityMappingHierarchy;
 import org.hibernate.boot.model.relational.Database;
+import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.cfg.annotations.NamedEntityGraphDefinition;
 import org.hibernate.cfg.annotations.NamedProcedureCallDefinition;
 import org.hibernate.dialect.function.SQLFunction;
 import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.engine.spi.FilterDefinition;
-import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.NamedQueryDefinition;
 import org.hibernate.engine.spi.NamedSQLQueryDefinition;
 import org.hibernate.mapping.Collection;
@@ -36,7 +39,7 @@ import org.hibernate.mapping.Table;
  *
  * @since 5.0
  */
-public interface Metadata extends Mapping {
+public interface Metadata {
 	/**
 	 * Get the builder for {@link org.hibernate.SessionFactory} instances based on this metamodel,
 	 *
@@ -66,14 +69,32 @@ public interface Metadata extends Mapping {
 	 */
 	Database getDatabase();
 
+	java.util.Collection<EntityMappingHierarchy> getEntityHierarchies();
+
 	/**
 	 * Retrieves the PersistentClass entity metadata representation for known all entities.
-	 *
+	 * <p>
 	 * Returned collection is immutable
 	 *
 	 * @return All PersistentClass representations.
+	 *
+	 * @deprecated Use {@link #getEntityMappings} instead.  Or depending on usage,
+	 * {@link #getEntityHierarchies} is usually more appropriate
 	 */
+	@Deprecated
 	java.util.Collection<PersistentClass> getEntityBindings();
+
+	/**
+	 * Retrieves the EntityMapping metadata representation for known all
+	 * entities. The returned collection is immutable.
+	 * <p/>
+	 * Note that {@link #getEntityHierarchies} is usually more appropriate
+	 *
+	 * @return All PersistentClass representations.
+	 */
+	default java.util.Collection<EntityMapping> getEntityMappings() {
+		return getEntityBindings().stream().collect( Collectors.toList() );
+	}
 
 	/**
 	 * Retrieves the PersistentClass entity mapping metadata representation for
@@ -182,7 +203,14 @@ public interface Metadata extends Mapping {
 
 	IdentifierGeneratorDefinition getIdentifierGenerator(String name);
 
+	/**
+	 *
+	 * @deprecated since 6.0 use {@link #collectMappedTableMappings()} instead.
+	 */
+	@Deprecated
 	java.util.Collection<Table> collectTableMappings();
+
+	java.util.Collection<MappedTable> collectMappedTableMappings();
 
 	Map<String,SQLFunction> getSqlFunctionMap();
 }

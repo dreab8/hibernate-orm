@@ -9,9 +9,9 @@ package org.hibernate.tool.schema.extract.internal;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hibernate.boot.model.naming.Identifier;
-import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.engine.jdbc.env.spi.IdentifierHelper;
+import org.hibernate.naming.Identifier;
+import org.hibernate.naming.QualifiedTableName;
 import org.hibernate.tool.schema.extract.spi.ColumnInformation;
 import org.hibernate.tool.schema.extract.spi.ForeignKeyInformation;
 import org.hibernate.tool.schema.extract.spi.IndexInformation;
@@ -70,7 +70,7 @@ public class TableInformationImpl implements TableInformation {
 	}
 
 	@Override
-	public ColumnInformation getColumn(Identifier columnIdentifier) {
+	public ColumnInformation getColumn(org.hibernate.naming.Identifier columnIdentifier) {
 		return columns.get( new Identifier(
 				identifierHelper.toMetaDataObjectName( columnIdentifier ),
 				false

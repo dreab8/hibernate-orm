@@ -32,8 +32,6 @@ import org.hibernate.MappingException;
 import org.hibernate.NullPrecedence;
 import org.hibernate.ScrollMode;
 import org.hibernate.boot.model.TypeContributions;
-import org.hibernate.boot.model.relational.AuxiliaryDatabaseObject;
-import org.hibernate.boot.model.relational.Sequence;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.function.CastFunction;
@@ -81,11 +79,13 @@ import org.hibernate.internal.util.StringHelper;
 import org.hibernate.internal.util.collections.ArrayHelper;
 import org.hibernate.internal.util.io.StreamCopier;
 import org.hibernate.loader.BatchLoadSizingStrategy;
-import org.hibernate.mapping.Column;
-import org.hibernate.mapping.Constraint;
-import org.hibernate.mapping.ForeignKey;
-import org.hibernate.mapping.Index;
-import org.hibernate.mapping.Table;
+import org.hibernate.metamodel.model.relational.spi.AuxiliaryDatabaseObject;
+import org.hibernate.metamodel.model.relational.spi.ExportableTable;
+import org.hibernate.metamodel.model.relational.spi.ForeignKey;
+import org.hibernate.metamodel.model.relational.spi.Index;
+import org.hibernate.metamodel.model.relational.spi.Sequence;
+import org.hibernate.metamodel.model.relational.spi.Size;
+import org.hibernate.metamodel.model.relational.spi.UniqueKey;
 import org.hibernate.persister.entity.Lockable;
 import org.hibernate.procedure.internal.StandardCallableStatementSupport;
 import org.hibernate.procedure.spi.CallableStatementSupport;
@@ -102,13 +102,17 @@ import org.hibernate.tool.schema.internal.StandardAuxiliaryDatabaseObjectExporte
 import org.hibernate.tool.schema.internal.StandardForeignKeyExporter;
 import org.hibernate.tool.schema.internal.StandardIndexExporter;
 import org.hibernate.tool.schema.internal.StandardSequenceExporter;
+import org.hibernate.tool.schema.internal.StandardTableAlterable;
 import org.hibernate.tool.schema.internal.StandardTableExporter;
 import org.hibernate.tool.schema.internal.StandardUniqueKeyExporter;
+import org.hibernate.tool.schema.spi.Alterable;
+import org.hibernate.tool.schema.spi.DefaultSizeStrategy;
 import org.hibernate.tool.schema.spi.Exporter;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.descriptor.sql.ClobTypeDescriptor;
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.sql.spi.ClobSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 /**
  * Represents a dialect of SQL implemented by a particular RDBMS.  Subclasses implement Hibernate compatibility
@@ -149,6 +153,8 @@ public abstract class Dialect implements ConversionContext {
 	private final Set<String> sqlKeywords = new HashSet<>();
 
 	private final UniqueDelegate uniqueDelegate;
+
+	private DefaultSizeStrategy defaultSizeStrategy;
 
 	private boolean legacyLimitHandlerBehavior;
 
@@ -214,31 +220,31 @@ public abstract class Dialect implements ConversionContext {
 		registerColumnType( Types.NCLOB, "nclob" );
 
 		// register hibernate types for default use in scalar sqlquery type auto detection
-		registerHibernateType( Types.BIGINT, StandardBasicTypes.BIG_INTEGER.getName() );
-		registerHibernateType( Types.BINARY, StandardBasicTypes.BINARY.getName() );
-		registerHibernateType( Types.BIT, StandardBasicTypes.BOOLEAN.getName() );
-		registerHibernateType( Types.BOOLEAN, StandardBasicTypes.BOOLEAN.getName() );
-		registerHibernateType( Types.CHAR, StandardBasicTypes.CHARACTER.getName() );
-		registerHibernateType( Types.CHAR, 1, StandardBasicTypes.CHARACTER.getName() );
-		registerHibernateType( Types.CHAR, 255, StandardBasicTypes.STRING.getName() );
-		registerHibernateType( Types.DATE, StandardBasicTypes.DATE.getName() );
-		registerHibernateType( Types.DOUBLE, StandardBasicTypes.DOUBLE.getName() );
-		registerHibernateType( Types.FLOAT, StandardBasicTypes.FLOAT.getName() );
-		registerHibernateType( Types.INTEGER, StandardBasicTypes.INTEGER.getName() );
-		registerHibernateType( Types.SMALLINT, StandardBasicTypes.SHORT.getName() );
-		registerHibernateType( Types.TINYINT, StandardBasicTypes.BYTE.getName() );
-		registerHibernateType( Types.TIME, StandardBasicTypes.TIME.getName() );
-		registerHibernateType( Types.TIMESTAMP, StandardBasicTypes.TIMESTAMP.getName() );
-		registerHibernateType( Types.VARCHAR, StandardBasicTypes.STRING.getName() );
-		registerHibernateType( Types.NVARCHAR, StandardBasicTypes.NSTRING.getName() );
-		registerHibernateType( Types.VARBINARY, StandardBasicTypes.BINARY.getName() );
-		registerHibernateType( Types.LONGVARCHAR, StandardBasicTypes.TEXT.getName() );
-		registerHibernateType( Types.LONGVARBINARY, StandardBasicTypes.IMAGE.getName() );
-		registerHibernateType( Types.NUMERIC, StandardBasicTypes.BIG_DECIMAL.getName() );
-		registerHibernateType( Types.DECIMAL, StandardBasicTypes.BIG_DECIMAL.getName() );
-		registerHibernateType( Types.BLOB, StandardBasicTypes.BLOB.getName() );
-		registerHibernateType( Types.CLOB, StandardBasicTypes.CLOB.getName() );
-		registerHibernateType( Types.REAL, StandardBasicTypes.FLOAT.getName() );
+		registerHibernateType( Types.BIGINT, StandardSpiBasicTypes.BIG_INTEGER.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.BINARY, StandardSpiBasicTypes.BINARY.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.BIT, StandardSpiBasicTypes.BOOLEAN.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.BOOLEAN, StandardSpiBasicTypes.BOOLEAN.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.CHAR, StandardSpiBasicTypes.CHARACTER.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.CHAR, 1, StandardSpiBasicTypes.CHARACTER.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.CHAR, 255, StandardSpiBasicTypes.STRING.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.DATE, StandardSpiBasicTypes.DATE.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.DOUBLE, StandardSpiBasicTypes.DOUBLE.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.FLOAT, StandardSpiBasicTypes.FLOAT.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.INTEGER, StandardSpiBasicTypes.INTEGER.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.SMALLINT, StandardSpiBasicTypes.SHORT.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.TINYINT, StandardSpiBasicTypes.BYTE.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.TIME, StandardSpiBasicTypes.TIME.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.TIMESTAMP, StandardSpiBasicTypes.TIMESTAMP.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.VARCHAR, StandardSpiBasicTypes.STRING.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.NVARCHAR, StandardSpiBasicTypes.NSTRING.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.VARBINARY, StandardSpiBasicTypes.BINARY.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.LONGVARCHAR, StandardSpiBasicTypes.TEXT.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.LONGVARBINARY, StandardSpiBasicTypes.IMAGE.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.NUMERIC, StandardSpiBasicTypes.BIG_DECIMAL.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.DECIMAL, StandardSpiBasicTypes.BIG_DECIMAL.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.BLOB, StandardSpiBasicTypes.BLOB.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.CLOB, StandardSpiBasicTypes.CLOB.getJavaTypeDescriptor().getTypeName() );
+		registerHibernateType( Types.REAL, org.hibernate.type.spi.StandardSpiBasicTypes.FLOAT.getJavaTypeDescriptor().getTypeName() );
 
 		if(supportsPartitionBy()) {
 			registerKeyword( "PARTITION" );
@@ -331,6 +337,25 @@ public abstract class Dialect implements ConversionContext {
 		return result;
 	}
 
+	public String getTypeName(int code, Size size) throws HibernateException {
+		if ( size == null ) {
+			return getTypeName( code );
+		}
+		else {
+			String result = typeNames.get( code, size.getLength(), size.getPrecision(), size.getScale() );
+			if ( result == null ) {
+				throw new HibernateException(
+						String.format(
+								"No type mapping for java.sql.Types code: %s, length: %s",
+								code,
+								size.getLength()
+						)
+				);
+			}
+			return result;
+		}
+	}
+
 	/**
 	 * Get the name of the database type associated with the given
 	 * {@link java.sql.Types} typecode with the given storage specification
@@ -361,7 +386,7 @@ public abstract class Dialect implements ConversionContext {
 	 * @return The database type name
 	 */
 	public String getCastTypeName(int code) {
-		return getTypeName( code, Column.DEFAULT_LENGTH, Column.DEFAULT_PRECISION, Column.DEFAULT_SCALE );
+		return getTypeName( code, Size.Builder.DEFAULT_LENGTH, Size.Builder.DEFAULT_PRECISION, Size.Builder.DEFAULT_SCALE );
 	}
 
 	/**
@@ -376,6 +401,10 @@ public abstract class Dialect implements ConversionContext {
 	 * @return The cast expression
 	 */
 	public String cast(String value, int jdbcTypeCode, int length, int precision, int scale) {
+		return cast( value, jdbcTypeCode, (long) length, precision, scale );
+	}
+
+	public String cast(String value, int jdbcTypeCode, long length, int precision, int scale) {
 		if ( jdbcTypeCode == Types.CHAR ) {
 			return "cast(" + value + " as char(" + length + "))";
 		}
@@ -386,8 +415,8 @@ public abstract class Dialect implements ConversionContext {
 
 	/**
 	 * Return an expression casting the value to the specified type.  Simply calls
-	 * {@link #cast(String, int, int, int, int)} passing {@link Column#DEFAULT_PRECISION} and
-	 * {@link Column#DEFAULT_SCALE} as the precision/scale.
+	 * {@link #cast(String, int, int, int, int)} passing {@link Size.Builder#DEFAULT_PRECISION} and
+	 * {@link Size.Builder#DEFAULT_SCALE} as the precision/scale.
 	 *
 	 * @param value The value to cast
 	 * @param jdbcTypeCode The JDBC type code to cast to
@@ -396,12 +425,16 @@ public abstract class Dialect implements ConversionContext {
 	 * @return The cast expression
 	 */
 	public String cast(String value, int jdbcTypeCode, int length) {
-		return cast( value, jdbcTypeCode, length, Column.DEFAULT_PRECISION, Column.DEFAULT_SCALE );
+		return cast( value, jdbcTypeCode, (long) length );
+	}
+
+	public String cast(String value, int jdbcTypeCode, long length) {
+		return cast( value, jdbcTypeCode, length, Size.Builder.DEFAULT_PRECISION, Size.Builder.DEFAULT_SCALE );
 	}
 
 	/**
 	 * Return an expression casting the value to the specified type.  Simply calls
-	 * {@link #cast(String, int, int, int, int)} passing {@link Column#DEFAULT_LENGTH} as the length
+	 * {@link #cast(String, int, int, int, int)} passing {@link Size.Builder#DEFAULT_LENGTH} as the length
 	 *
 	 * @param value The value to cast
 	 * @param jdbcTypeCode The JDBC type code to cast to
@@ -411,7 +444,7 @@ public abstract class Dialect implements ConversionContext {
 	 * @return The cast expression
 	 */
 	public String cast(String value, int jdbcTypeCode, int precision, int scale) {
-		return cast( value, jdbcTypeCode, Column.DEFAULT_LENGTH, precision, scale );
+		return cast( value, jdbcTypeCode, Size.Builder.DEFAULT_LENGTH, precision, scale );
 	}
 
 	/**
@@ -442,9 +475,9 @@ public abstract class Dialect implements ConversionContext {
 	 * Allows the dialect to override a {@link SqlTypeDescriptor}.
 	 * <p/>
 	 * If the passed {@code sqlTypeDescriptor} allows itself to be remapped (per
-	 * {@link org.hibernate.type.descriptor.sql.SqlTypeDescriptor#canBeRemapped()}), then this method uses
+	 * {@link SqlTypeDescriptor#canBeRemapped()}), then this method uses
 	 * {@link #getSqlTypeDescriptorOverride}  to get an optional override based on the SQL code returned by
-	 * {@link SqlTypeDescriptor#getSqlType()}.
+	 * {@link SqlTypeDescriptor#getJdbcTypeCode()}.
 	 * <p/>
 	 * If this dialect does not provide an override or if the {@code sqlTypeDescriptor} does not allow itself to be
 	 * remapped, then this method simply returns the original passed {@code sqlTypeDescriptor}
@@ -464,37 +497,7 @@ public abstract class Dialect implements ConversionContext {
 			return sqlTypeDescriptor;
 		}
 
-		final SqlTypeDescriptor overridden = getSqlTypeDescriptorOverride( sqlTypeDescriptor.getSqlType() );
-		return overridden == null ? sqlTypeDescriptor : overridden;
-	}
-
-	/**
-	 * Allows the dialect to override a {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor}.
-	 * <p/>
-	 * If the passed {@code sqlTypeDescriptor} allows itself to be remapped (per
-	 * {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor#canBeRemapped()}), then this method uses
-	 * {@link #getSqlTypeDescriptorOverride}  to get an optional override based on the SQL code returned by
-	 * {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor#getJdbcTypeCode()}.
-	 * <p/>
-	 * If this dialect does not provide an override or if the {@code sqlTypeDescriptor} does not allow itself to be
-	 * remapped, then this method simply returns the original passed {@code sqlTypeDescriptor}
-	 *
-	 * @param sqlTypeDescriptor The {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor} to override
-	 * @return The {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor} that should be used for this dialect;
-	 *         if there is no override, then original {@code sqlTypeDescriptor} is returned.
-	 * @throws IllegalArgumentException if {@code sqlTypeDescriptor} is null.
-	 *
-	 * @see #getSqlTypeDescriptorOverride
-	 */
-	public org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor remapSqlTypeDescriptor(org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor sqlTypeDescriptor) {
-		if ( sqlTypeDescriptor == null ) {
-			throw new IllegalArgumentException( "sqlTypeDescriptor is null" );
-		}
-		if ( ! sqlTypeDescriptor.canBeRemapped() ) {
-			return sqlTypeDescriptor;
-		}
-
-		final org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor overridden = getSqlTypeDescriptorForOverride( sqlTypeDescriptor.getJdbcTypeCode() );
+		final SqlTypeDescriptor overridden = getSqlTypeDescriptorOverride( sqlTypeDescriptor.getJdbcTypeCode() );
 		return overridden == null ? sqlTypeDescriptor : overridden;
 	}
 
@@ -506,18 +509,7 @@ public abstract class Dialect implements ConversionContext {
 	 * @return The {@link org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor} to use as an override, or {@code null} if there is no override.
 	 */
 	protected org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor getSqlTypeDescriptorForOverride(int sqlCode) {
-		org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor descriptor;
-		switch ( sqlCode ) {
-			case Types.CLOB: {
-				descriptor = useInputStreamToInsertBlob() ? ClobSqlDescriptor.STREAM_BINDING : null;
-				break;
-			}
-			default: {
-				descriptor = null;
-				break;
-			}
-		}
-		return descriptor;
+		return (org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor)getSqlTypeDescriptorOverride( sqlCode );
 	}
 
 	/**
@@ -531,7 +523,7 @@ public abstract class Dialect implements ConversionContext {
 		SqlTypeDescriptor descriptor;
 		switch ( sqlCode ) {
 			case Types.CLOB: {
-				descriptor = useInputStreamToInsertBlob() ? ClobTypeDescriptor.STREAM_BINDING : null;
+				descriptor = useInputStreamToInsertBlob() ? ClobSqlDescriptor.STREAM_BINDING : null;
 				break;
 			}
 			default: {
@@ -1990,37 +1982,62 @@ public abstract class Dialect implements ConversionContext {
 
 	// DDL support ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	private StandardTableExporter tableExporter = new StandardTableExporter( this );
-	private StandardSequenceExporter sequenceExporter = new StandardSequenceExporter( this );
-	private StandardIndexExporter indexExporter = new StandardIndexExporter( this );
-	private StandardForeignKeyExporter foreignKeyExporter = new StandardForeignKeyExporter( this );
-	private StandardUniqueKeyExporter uniqueKeyExporter = new StandardUniqueKeyExporter( this );
-	private StandardAuxiliaryDatabaseObjectExporter auxiliaryObjectExporter = new StandardAuxiliaryDatabaseObjectExporter( this );
+	private StandardTableExporter tableExporter;
+	private StandardSequenceExporter sequenceExporter;
+	private StandardIndexExporter indexExporter;
+	private StandardForeignKeyExporter foreignKeyExporter;
+	private StandardUniqueKeyExporter uniqueKeyExporter;
+	private StandardAuxiliaryDatabaseObjectExporter auxiliaryObjectExporter;
+	private StandardTableAlterable tableAlter;
 
-	public Exporter<Table> getTableExporter() {
+	public Exporter<ExportableTable> getTableExporter() {
+		if ( tableExporter == null ) {
+			tableExporter = new StandardTableExporter( this );
+		}
 		return tableExporter;
 	}
 
 	public Exporter<Sequence> getSequenceExporter() {
+		if ( sequenceExporter == null ) {
+			sequenceExporter = new StandardSequenceExporter( this );
+		}
 		return sequenceExporter;
 	}
 
 	public Exporter<Index> getIndexExporter() {
+		if ( indexExporter == null ) {
+			indexExporter = new StandardIndexExporter( this );
+		}
 		return indexExporter;
 	}
 
 	public Exporter<ForeignKey> getForeignKeyExporter() {
+		if ( foreignKeyExporter == null ) {
+			foreignKeyExporter = new StandardForeignKeyExporter( this );
+		}
 		return foreignKeyExporter;
 	}
 
-	public Exporter<Constraint> getUniqueKeyExporter() {
+	public Exporter<UniqueKey> getUniqueKeyExporter() {
+		if ( uniqueKeyExporter == null ) {
+			uniqueKeyExporter = new StandardUniqueKeyExporter( this );
+		}
 		return uniqueKeyExporter;
 	}
 
 	public Exporter<AuxiliaryDatabaseObject> getAuxiliaryDatabaseObjectExporter() {
+		if ( auxiliaryObjectExporter == null ) {
+			auxiliaryObjectExporter = new StandardAuxiliaryDatabaseObjectExporter();
+		}
 		return auxiliaryObjectExporter;
 	}
 
+	public Alterable<ExportableTable> getTableAlterable() {
+		if ( tableAlter == null ) {
+			tableAlter = new StandardTableAlterable( this );
+		}
+		return tableAlter;
+	}
 	/**
 	 * Does this dialect support catalog creation?
 	 *
@@ -3047,5 +3064,50 @@ public abstract class Dialect implements ConversionContext {
 
 	protected String prependComment(String sql, String comment) {
 		return  "/* " + comment + " */ " + sql;
+	}
+
+	public int getPreferredSqlTypeCodeForBoolean() {
+		// BIT is the safest option as most databases do not support a
+		// boolean data-type.  And BIT happens to be the JDBC recommended
+		// mapping
+		return Types.BIT;
+	}
+
+	public DefaultSizeStrategy getDefaultSizeStrategy(){
+		return defaultSizeStrategy;
+	}
+
+	public void setDefaultSizeStrategy(DefaultSizeStrategy defaultSizeStrategy){
+		this.defaultSizeStrategy = defaultSizeStrategy;
+	}
+
+	public static class DefaultSizeStrategyImpl implements DefaultSizeStrategy {
+		@Override
+		public Size resolveDefaultSize(org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor sqlType, JavaTypeDescriptor javaType) {
+			final Size.Builder builder = new Size.Builder();
+			int jdbcTypeCode = sqlType.getJdbcTypeCode();
+
+			if ( jdbcTypeCode == Types.VARCHAR
+					|| jdbcTypeCode == Types.VARBINARY
+					|| jdbcTypeCode == Types.LONGVARBINARY
+					|| jdbcTypeCode == Types.CHAR
+					|| jdbcTypeCode == Types.LONGVARCHAR
+					|| jdbcTypeCode == Types.NCHAR
+					|| jdbcTypeCode == Types.NVARCHAR
+					|| jdbcTypeCode == Types.LONGNVARCHAR ) {
+				builder.setLength( Size.Builder.DEFAULT_LENGTH );
+				return builder.build();
+			}
+			else if ( jdbcTypeCode == Types.FLOAT ) {
+				builder.setPrecision( Size.Builder.DEFAULT_PRECISION );
+				return builder.build();
+			}
+			else if ( jdbcTypeCode == Types.NUMERIC ) {
+				builder.setPrecision( Size.Builder.DEFAULT_PRECISION );
+				builder.setScale( Size.Builder.DEFAULT_SCALE );
+				return builder.build();
+			}
+			return null;
+		}
 	}
 }

@@ -9,7 +9,7 @@ package org.hibernate.envers.enhanced;
 import org.hibernate.HibernateException;
 import org.hibernate.boot.model.relational.AuxiliaryDatabaseObject;
 import org.hibernate.boot.model.relational.Database;
-import org.hibernate.boot.model.relational.QualifiedName;
+import org.hibernate.naming.spi.QualifiedName;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.Oracle8iDialect;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
@@ -58,6 +58,12 @@ public class OrderedSequenceStructure extends SequenceStructure {
 	}
 
 	private class OrderedSequence implements AuxiliaryDatabaseObject {
+
+		@Override
+		public String getIdentifier() {
+			return getName();
+		}
+
 		@Override
 		public String getExportIdentifier() {
 			return getName();

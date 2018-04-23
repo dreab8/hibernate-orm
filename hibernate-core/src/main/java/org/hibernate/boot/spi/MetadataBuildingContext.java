@@ -6,6 +6,7 @@
  */
 package org.hibernate.boot.spi;
 
+import org.hibernate.boot.model.TypeDefinition;
 import org.hibernate.boot.model.naming.ObjectNameNormalizer;
 
 /**
@@ -20,6 +21,11 @@ import org.hibernate.boot.model.naming.ObjectNameNormalizer;
  */
 public interface MetadataBuildingContext {
 	BootstrapContext getBootstrapContext();
+
+	TypeDefinition resolveTypeDefinition(String typeName);
+
+	void addTypeDefinition(TypeDefinition typeDefinition);
+
 	/**
 	 * Access to the options specified by the {@link org.hibernate.boot.MetadataBuilder}
 	 *
@@ -57,4 +63,12 @@ public interface MetadataBuildingContext {
 	 * @return
 	 */
 	ObjectNameNormalizer getObjectNameNormalizer();
+
+	/**
+	 * Handles the more "global" resolution of this question.  Added mainly
+	 * to cache this part of the resolution.  From the perspective of
+	 * using this value JdbcRecommendedSqlTypeMappingContext#getPreferredSqlTypeCodeForBoolean
+	 * is the one used for the resolution; this method simply acts as a fallback.
+	 */
+	int getPreferredSqlTypeCodeForBoolean();
 }

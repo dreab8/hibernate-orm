@@ -91,7 +91,7 @@ public abstract class IndexedCollection extends Collection {
 	}
 
 	public void validate(Mapping mapping) throws MappingException {
-		super.validate( mapping );
+		super.validate( );
 
 		assert getElement() != null : "IndexedCollection index not bound : " + getRole();
 

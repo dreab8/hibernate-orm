@@ -7,6 +7,7 @@
 package org.hibernate.boot.model.naming;
 
 import org.hibernate.boot.model.source.spi.AttributePath;
+import org.hibernate.naming.Identifier;
 
 /**
  * Context for determining the implicit name for a collection table.
@@ -21,19 +22,19 @@ public interface ImplicitCollectionTableNameSource extends ImplicitNameSource {
 	  *
 	  * @return Owning entity's table name.
 	  */
-	public Identifier getOwningPhysicalTableName();
+	Identifier getOwningPhysicalTableName();
 
 	/**
 	 * Access to entity naming information for the owning side.
 	 *
 	 * @return Owning entity naming information
 	 */
-	public EntityNaming getOwningEntityNaming();
+	EntityNaming getOwningEntityNaming();
 
 	/**
 	 * Access to the name of the attribute, from the owning side, that defines the association.
 	 *
 	 * @return The owning side's attribute name.
 	 */
-	public AttributePath getOwningAttributePath();
+	AttributePath getOwningAttributePath();
 }
