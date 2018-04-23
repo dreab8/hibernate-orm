@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.FloatTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.FloatJavaDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#FLOAT FLOAT} and {@link Float}
@@ -23,7 +23,7 @@ public class FloatType extends AbstractSingleColumnStandardBasicType<Float> impl
 	public static final Float ZERO = 0.0f;
 
 	public FloatType() {
-		super( org.hibernate.type.descriptor.sql.FloatTypeDescriptor.INSTANCE, FloatTypeDescriptor.INSTANCE );
+		super( org.hibernate.type.descriptor.sql.FloatTypeDescriptor.INSTANCE, FloatJavaDescriptor.INSTANCE );
 	}
 	@Override
 	public String getName() {

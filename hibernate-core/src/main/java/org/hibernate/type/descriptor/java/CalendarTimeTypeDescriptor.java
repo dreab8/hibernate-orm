@@ -14,6 +14,7 @@ import java.util.GregorianCalendar;
 
 import org.hibernate.internal.util.compare.CalendarComparator;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.internal.CalendarJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.TemporalSqlDescriptor;
 
@@ -26,7 +27,7 @@ public class CalendarTimeTypeDescriptor extends AbstractTypeDescriptor<Calendar>
 	public static final CalendarTimeTypeDescriptor INSTANCE = new CalendarTimeTypeDescriptor();
 
 	protected CalendarTimeTypeDescriptor() {
-		super( Calendar.class, CalendarTypeDescriptor.CalendarMutabilityPlan.INSTANCE );
+		super( Calendar.class, CalendarJavaDescriptor.CalendarMutabilityPlan.INSTANCE );
 	}
 
 	@Override

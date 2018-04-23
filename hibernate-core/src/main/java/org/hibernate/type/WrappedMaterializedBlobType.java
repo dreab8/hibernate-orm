@@ -5,7 +5,7 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.type;
-import org.hibernate.type.descriptor.java.ByteArrayTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.ByteArrayJavaDescriptor;
 import org.hibernate.type.descriptor.sql.BlobTypeDescriptor;
 
 /**
@@ -18,7 +18,7 @@ public class WrappedMaterializedBlobType extends AbstractSingleColumnStandardBas
 	public static final WrappedMaterializedBlobType INSTANCE = new WrappedMaterializedBlobType();
 
 	public WrappedMaterializedBlobType() {
-		super( BlobTypeDescriptor.DEFAULT, ByteArrayTypeDescriptor.INSTANCE );
+		super( BlobTypeDescriptor.DEFAULT, ByteArrayJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

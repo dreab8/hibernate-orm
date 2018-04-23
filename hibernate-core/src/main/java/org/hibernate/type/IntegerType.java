@@ -11,7 +11,7 @@ import java.util.Comparator;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.descriptor.java.IntegerTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.IntegerJavaDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#INTEGER INTEGER} and @link Integer}
@@ -27,7 +27,7 @@ public class IntegerType extends AbstractSingleColumnStandardBasicType<Integer>
 	public static final Integer ZERO = 0;
 
 	public IntegerType() {
-		super( org.hibernate.type.descriptor.sql.IntegerTypeDescriptor.INSTANCE, IntegerTypeDescriptor.INSTANCE );
+		super( org.hibernate.type.descriptor.sql.IntegerTypeDescriptor.INSTANCE, IntegerJavaDescriptor.INSTANCE );
 	}
 
 	@Override

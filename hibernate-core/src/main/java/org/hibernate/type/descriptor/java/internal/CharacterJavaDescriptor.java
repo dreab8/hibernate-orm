@@ -4,12 +4,14 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.sql.Types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.Primitive;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
@@ -18,10 +20,10 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class CharacterTypeDescriptor extends AbstractTypeDescriptor<Character> {
-	public static final CharacterTypeDescriptor INSTANCE = new CharacterTypeDescriptor();
+public class CharacterJavaDescriptor extends AbstractBasicJavaDescriptor<Character> implements Primitive<Character> {
+	public static final CharacterJavaDescriptor INSTANCE = new CharacterJavaDescriptor();
 
-	public CharacterTypeDescriptor() {
+	public CharacterJavaDescriptor() {
 		super( Character.class );
 	}
 
@@ -60,6 +62,7 @@ public class CharacterTypeDescriptor extends AbstractTypeDescriptor<Character> {
 		}
 		throw unknownUnwrap( type );
 	}
+
 	@Override
 	public <X> Character wrap(X value, WrapperOptions options) {
 		if ( value == null ) {
@@ -77,5 +80,15 @@ public class CharacterTypeDescriptor extends AbstractTypeDescriptor<Character> {
 			return (char) nbr.shortValue();
 		}
 		throw unknownWrap( value.getClass() );
+	}
+
+	@Override
+	public Class getPrimitiveClass() {
+		return char.class;
+	}
+
+	@Override
+	public Character getDefaultValue() {
+		throw new UnsupportedOperationException( "char has no non-null default" );
 	}
 }

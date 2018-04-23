@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +21,11 @@ import org.hibernate.engine.jdbc.BlobProxy;
 import org.hibernate.engine.jdbc.WrappedBlob;
 import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.DataHelper;
+import org.hibernate.type.descriptor.java.IncomparableComparator;
+import org.hibernate.type.descriptor.java.MutabilityPlan;
+import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
@@ -33,8 +38,8 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  * @author Steve Ebersole
  * @author Brett Meyer
  */
-public class BlobTypeDescriptor extends AbstractTypeDescriptor<Blob> {
-	public static final BlobTypeDescriptor INSTANCE = new BlobTypeDescriptor();
+public class BlobJavaDescriptor extends AbstractBasicJavaDescriptor<Blob> {
+	public static final BlobJavaDescriptor INSTANCE = new BlobJavaDescriptor();
 
 	public static class BlobMutabilityPlan implements MutabilityPlan<Blob> {
 		public static final BlobMutabilityPlan INSTANCE = new BlobMutabilityPlan();
@@ -60,7 +65,7 @@ public class BlobTypeDescriptor extends AbstractTypeDescriptor<Blob> {
 		}
 	}
 
-	public BlobTypeDescriptor() {
+	public BlobJavaDescriptor() {
 		super( Blob.class, BlobMutabilityPlan.INSTANCE );
 	}
 
@@ -156,7 +161,7 @@ public class BlobTypeDescriptor extends AbstractTypeDescriptor<Blob> {
 		}
 
 		// Support multiple return types from
-		// org.hibernate.type.descriptor.sql.BlobTypeDescriptor
+		// org.hibernate.type.descriptor.sql.BlobJavaDescriptor
 		if ( Blob.class.isAssignableFrom( value.getClass() ) ) {
 			return options.getLobCreator().wrap( (Blob) value );
 		}

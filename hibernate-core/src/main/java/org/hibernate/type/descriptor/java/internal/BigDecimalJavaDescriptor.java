@@ -61,6 +61,9 @@ public class BigDecimalJavaDescriptor extends AbstractNumericJavaDescriptor<BigD
 		if ( Float.class.isAssignableFrom( type ) ) {
 			return (X) Float.valueOf( value.floatValue() );
 		}
+		if ( String.class.equals( type ) ) {
+			return (X) type.toString();
+		}
 		throw unknownUnwrap( type );
 	}
 
@@ -76,6 +79,9 @@ public class BigDecimalJavaDescriptor extends AbstractNumericJavaDescriptor<BigD
 		}
 		if ( Number.class.isInstance( value ) ) {
 			return BigDecimal.valueOf( ( (Number) value ).doubleValue() );
+		}
+		if ( String.class.isInstance( value ) ) {
+			return new BigDecimal( (String) value );
 		}
 		throw unknownWrap( value.getClass() );
 	}

@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.DoubleTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.DoubleJavaDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#DOUBLE DOUBLE} and {@link Double}
@@ -23,7 +23,7 @@ public class DoubleType extends AbstractSingleColumnStandardBasicType<Double> im
 	public static final Double ZERO = 0.0;
 
 	public DoubleType() {
-		super( org.hibernate.type.descriptor.sql.DoubleTypeDescriptor.INSTANCE, DoubleTypeDescriptor.INSTANCE );
+		super( org.hibernate.type.descriptor.sql.DoubleTypeDescriptor.INSTANCE, DoubleJavaDescriptor.INSTANCE );
 	}
 	@Override
 	public String getName() {

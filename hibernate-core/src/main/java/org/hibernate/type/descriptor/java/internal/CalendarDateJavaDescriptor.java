@@ -4,44 +4,55 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.sql.Types;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import javax.persistence.TemporalType;
+
+import org.hibernate.cfg.Environment;
 import org.hibernate.internal.util.compare.CalendarComparator;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.TemporalSqlDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * Descriptor for {@link java.util.Calendar} handling, but just for the date (month, day, year) portion.
  *
  * @author Steve Ebersole
  */
-public class CalendarDateTypeDescriptor extends AbstractTypeDescriptor<Calendar> {
-	public static final CalendarDateTypeDescriptor INSTANCE = new CalendarDateTypeDescriptor();
+public class CalendarDateJavaDescriptor
+		extends AbstractBasicJavaDescriptor<Calendar>
+		implements TemporalJavaDescriptor<Calendar> {
+	public static final CalendarDateJavaDescriptor INSTANCE = new CalendarDateJavaDescriptor();
 
-	protected CalendarDateTypeDescriptor() {
-		super( Calendar.class, CalendarTypeDescriptor.CalendarMutabilityPlan.INSTANCE );
+	/**
+	 * Note that this is the pattern used exclusively to read/write these "Calendar date"
+	 * values as Strings, not to format nor consume them as JDBC literals.  Uses
+	 * java.time.format.DateTimeFormatter#ISO_OFFSET_DATE
+	 */
+	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE;
+
+	protected CalendarDateJavaDescriptor() {
+		super( Calendar.class, CalendarJavaDescriptor.CalendarMutabilityPlan.INSTANCE );
 	}
 
-	@Override
-	public TemporalSqlDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return (TemporalSqlDescriptor) context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.DATE );
-	}
-
-	public String toString(Calendar value) {
-		return DateTypeDescriptor.INSTANCE.toString( value.getTime() );
+	public String toString(Calendar calendar) {
+		return calendar.toInstant().atZone( calendar.getTimeZone().toZoneId() ).format( FORMATTER );
 	}
 
 	public Calendar fromString(String string) {
-		Calendar result = new GregorianCalendar();
-		result.setTime( DateTypeDescriptor.INSTANCE.fromString( string ) );
-		return result;
+		final ZonedDateTime parsedZonedDateTime = ZonedDateTime.parse( string, FORMATTER );
+		return GregorianCalendar.from( parsedZonedDateTime );
 	}
 
 	@Override
@@ -65,6 +76,11 @@ public class CalendarDateTypeDescriptor extends AbstractTypeDescriptor<Calendar>
 		hashCode = 31 * hashCode + value.get(Calendar.MONTH);
 		hashCode = 31 * hashCode + value.get(Calendar.YEAR);
 		return hashCode;
+	}
+
+	@Override
+	public TemporalSqlDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return (TemporalSqlDescriptor) context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.DATE );
 	}
 
 	@Override
@@ -108,7 +124,33 @@ public class CalendarDateTypeDescriptor extends AbstractTypeDescriptor<Calendar>
 		}
 
 		Calendar cal = new GregorianCalendar();
-		cal.setTime( (Date) value );
+		if ( Environment.jvmHasTimestampBug() ) {
+			final long milliseconds = ( (Date) value ).getTime();
+			final long nanoseconds = java.sql.Timestamp.class.isInstance( value )
+					? ( (java.sql.Timestamp) value ).getNanos()
+					: 0;
+			cal.setTime( new Date( milliseconds + nanoseconds / 1000000 ) );
+		}
+		else {
+			cal.setTime( (Date) value );
+		}
 		return cal;
+	}
+
+	@Override
+	public TemporalType getPrecision() {
+		return TemporalType.DATE;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <X> TemporalJavaDescriptor<X> resolveTypeForPrecision(TemporalType precision, TypeConfiguration scope) {
+		if ( precision == TemporalType.DATE ) {
+			return (TemporalJavaDescriptor<X>) this;
+		}
+
+		final TemporalJavaDescriptor baseCalendarDescriptor = (TemporalJavaDescriptor) scope.getJavaTypeDescriptorRegistry()
+				.getDescriptor( Calendar.class );
+		return baseCalendarDescriptor.resolveTypeForPrecision( precision, scope );
 	}
 }

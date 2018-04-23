@@ -4,10 +4,12 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
-import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.Primitive;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import static java.lang.Boolean.FALSE;
@@ -18,19 +20,11 @@ import static java.lang.Boolean.TRUE;
  *
  * @author Steve Ebersole
  */
-public class BooleanTypeDescriptor extends AbstractTypeDescriptor<Boolean> {
-	public static final BooleanTypeDescriptor INSTANCE = new BooleanTypeDescriptor();
+public class BooleanJavaDescriptor extends AbstractBasicJavaDescriptor<Boolean> implements Primitive<Boolean> {
+	public static final BooleanJavaDescriptor INSTANCE = new BooleanJavaDescriptor();
 
-	private final char characterValueTrue;
-	private final char characterValueFalse;
-
-	private final char characterValueTrueLC;
-
-	private final String stringValueTrue;
-	private final String stringValueFalse;
-
-	public BooleanTypeDescriptor() {
-		this( 'Y', 'N' );
+	public BooleanJavaDescriptor() {
+		super( Boolean.class );
 	}
 
 	@Override
@@ -40,16 +34,6 @@ public class BooleanTypeDescriptor extends AbstractTypeDescriptor<Boolean> {
 		);
 	}
 
-	public BooleanTypeDescriptor(char characterValueTrue, char characterValueFalse) {
-		super( Boolean.class );
-		this.characterValueTrue = Character.toUpperCase( characterValueTrue );
-		this.characterValueFalse = Character.toUpperCase( characterValueFalse );
-
-		characterValueTrueLC = Character.toLowerCase( characterValueTrue );
-
-		stringValueTrue = String.valueOf( characterValueTrue );
-		stringValueFalse = String.valueOf( characterValueFalse );
-	}
 	@Override
 	public String toString(Boolean value) {
 		return value == null ? null : value.toString();
@@ -57,6 +41,36 @@ public class BooleanTypeDescriptor extends AbstractTypeDescriptor<Boolean> {
 	@Override
 	public Boolean fromString(String string) {
 		return Boolean.valueOf( string );
+	}
+
+	public int toInt(Boolean value) {
+		return value ? 1 : 0;
+	}
+
+	public Byte toByte(Boolean value) {
+		return (byte) toInt( value );
+	}
+
+	public Short toShort(Boolean value) {
+		return (short) toInt( value );
+	}
+
+	public Integer toInteger(Boolean value) {
+		return toInt( value );
+	}
+
+	public Long toLong(Boolean value) {
+		return (long) toInt( value );
+	}
+
+	@Override
+	public Class getPrimitiveClass() {
+		return boolean.class;
+	}
+
+	@Override
+	public Boolean getDefaultValue() {
+		return Boolean.FALSE;
 	}
 
 	@SuppressWarnings({ "unchecked" })
@@ -78,16 +92,24 @@ public class BooleanTypeDescriptor extends AbstractTypeDescriptor<Boolean> {
 			return (X) toInteger( value );
 		}
 		if ( Long.class.isAssignableFrom( type ) ) {
-			return (X) toInteger( value );
+			return (X) toLong( value );
 		}
+//		if ( Character.class.isAssignableFrom( type ) ) {
+//			return (X) Character.valueOf( value ? characterValueTrue : characterValueFalse );
+//		}
+//		if ( String.class.isAssignableFrom( type ) ) {
+//			return (X) (value ? stringValueTrue : stringValueFalse);
+//		}
 		if ( Character.class.isAssignableFrom( type ) ) {
-			return (X) Character.valueOf( value ? characterValueTrue : characterValueFalse );
+			final char charValue = value ? 'T' : 'F';
+			return (X) Character.valueOf( charValue );
 		}
 		if ( String.class.isAssignableFrom( type ) ) {
-			return (X) (value ? stringValueTrue : stringValueFalse);
+			return (X) value.toString();
 		}
 		throw unknownUnwrap( type );
 	}
+
 	@Override
 	public <X> Boolean wrap(X value, WrapperOptions options) {
 		if ( value == null ) {
@@ -103,40 +125,17 @@ public class BooleanTypeDescriptor extends AbstractTypeDescriptor<Boolean> {
 		if ( Character.class.isInstance( value ) ) {
 			return isTrue( (Character) value ) ? TRUE : FALSE;
 		}
+//		if ( String.class.isInstance( value ) ) {
+//			return isTrue( ( (String) value ).charAt( 0 ) ) ? TRUE : FALSE;
+//		}
 		if ( String.class.isInstance( value ) ) {
-			return isTrue((String) value) ? TRUE : FALSE;
+			return Boolean.valueOf( (String) value );
 		}
 		throw unknownWrap( value.getClass() );
 	}
 
-	private boolean isTrue(String strValue) {
-		if (strValue != null && !strValue.isEmpty()) {
-			return isTrue(strValue.charAt(0));
-		}
-		return false;
-	}
-
 	private boolean isTrue(char charValue) {
-		return charValue == characterValueTrue || charValue == characterValueTrueLC;
-	}
-
-	public int toInt(Boolean value) {
-		return value ? 1 : 0;
-	}
-
-	public Byte toByte(Boolean value) {
-		return (byte) toInt( value );
-	}
-
-	public Short toShort(Boolean value) {
-		return (short) toInt( value );
-	}
-
-	public Integer toInteger(Boolean value) {
-		return toInt( value );
-	}
-
-	public Long toLong(Boolean value) {
-		return (long) toInt( value );
+//		return charValue == 't' || charValue == 'T' || charValue == 'y' || charValue == 'Y';
+		return charValue == 'T';
 	}
 }

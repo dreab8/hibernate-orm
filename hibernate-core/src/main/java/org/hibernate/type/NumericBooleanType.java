@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.BooleanTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.BooleanJavaDescriptor;
 import org.hibernate.type.descriptor.sql.IntegerTypeDescriptor;
 
 /**
@@ -24,7 +24,7 @@ public class NumericBooleanType
 	public static final NumericBooleanType INSTANCE = new NumericBooleanType();
 
 	public NumericBooleanType() {
-		super( IntegerTypeDescriptor.INSTANCE, BooleanTypeDescriptor.INSTANCE );
+		super( IntegerTypeDescriptor.INSTANCE, BooleanJavaDescriptor.INSTANCE );
 	}
 	@Override
 	public String getName() {

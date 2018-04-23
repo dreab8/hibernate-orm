@@ -1,11 +1,13 @@
 package org.hibernate.type.descriptor.java;
 
+import org.hibernate.type.descriptor.java.internal.BooleanJavaDescriptor;
+
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class BooleanTypeDescriptorTest {
-    private BooleanTypeDescriptor underTest = new BooleanTypeDescriptor();
+    private BooleanJavaDescriptor underTest = new BooleanJavaDescriptor();
 
     @Test
     public void testWrapShouldReturnTrueWhenYStringGiven() {

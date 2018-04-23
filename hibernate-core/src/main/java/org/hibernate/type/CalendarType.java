@@ -11,7 +11,7 @@ import java.util.Comparator;
 import java.util.GregorianCalendar;
 
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.descriptor.java.CalendarTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.CalendarJavaDescriptor;
 import org.hibernate.type.descriptor.sql.TimestampTypeDescriptor;
 
 /**
@@ -27,7 +27,7 @@ public class CalendarType
 	public static final CalendarType INSTANCE = new CalendarType();
 
 	public CalendarType() {
-		super( TimestampTypeDescriptor.INSTANCE, CalendarTypeDescriptor.INSTANCE );
+		super( TimestampTypeDescriptor.INSTANCE, CalendarJavaDescriptor.INSTANCE );
 	}
 
 	@Override

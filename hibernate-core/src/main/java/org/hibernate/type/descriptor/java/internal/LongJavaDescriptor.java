@@ -4,50 +4,54 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Types;
 
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractNumericJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.Primitive;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
- * Descriptor for {@link Double} handling.
+ * Descriptor for {@link Long} handling.
  *
  * @author Steve Ebersole
  */
-public class DoubleTypeDescriptor extends AbstractTypeDescriptor<Double> {
-	public static final DoubleTypeDescriptor INSTANCE = new DoubleTypeDescriptor();
+public class LongJavaDescriptor extends AbstractNumericJavaDescriptor<Long> implements Primitive<Long> {
+	public static final LongJavaDescriptor INSTANCE = new LongJavaDescriptor();
 
-	public DoubleTypeDescriptor() {
-		super( Double.class );
+	public LongJavaDescriptor() {
+		super( Long.class );
 	}
+
+	private static final Long ZERO = (long) 0;
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.DOUBLE );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.BIGINT );
 	}
 
 	@Override
-	public String toString(Double value) {
+	public String toString(Long value) {
 		return value == null ? null : value.toString();
 	}
 
 	@Override
-	public Double fromString(String string) {
-		return Double.valueOf( string );
+	public Long fromString(String string) {
+		return Long.valueOf( string );
 	}
 
 	@SuppressWarnings({ "unchecked" })
 	@Override
-	public <X> X unwrap(Double value, Class<X> type, WrapperOptions options) {
+	public <X> X unwrap(Long value, Class<X> type, WrapperOptions options) {
 		if ( value == null ) {
 			return null;
 		}
-		if ( Double.class.isAssignableFrom( type ) ) {
+		if ( Long.class.isAssignableFrom( type ) ) {
 			return (X) value;
 		}
 		if ( Byte.class.isAssignableFrom( type ) ) {
@@ -59,14 +63,14 @@ public class DoubleTypeDescriptor extends AbstractTypeDescriptor<Double> {
 		if ( Integer.class.isAssignableFrom( type ) ) {
 			return (X) Integer.valueOf( value.intValue() );
 		}
-		if ( Long.class.isAssignableFrom( type ) ) {
-			return (X) Long.valueOf( value.longValue() );
+		if ( Double.class.isAssignableFrom( type ) ) {
+			return (X) Double.valueOf( value.doubleValue() );
 		}
 		if ( Float.class.isAssignableFrom( type ) ) {
 			return (X) Float.valueOf( value.floatValue() );
 		}
 		if ( BigInteger.class.isAssignableFrom( type ) ) {
-			return (X) BigInteger.valueOf( value.longValue() );
+			return (X) BigInteger.valueOf( value );
 		}
 		if ( BigDecimal.class.isAssignableFrom( type ) ) {
 			return (X) BigDecimal.valueOf( value );
@@ -76,20 +80,36 @@ public class DoubleTypeDescriptor extends AbstractTypeDescriptor<Double> {
 		}
 		throw unknownUnwrap( type );
 	}
+
 	@Override
-	public <X> Double wrap(X value, WrapperOptions options) {
+	public <X> Long wrap(X value, WrapperOptions options) {
 		if ( value == null ) {
 			return null;
 		}
-		if ( Double.class.isInstance( value ) ) {
-			return (Double) value;
+		if ( Long.class.isInstance( value ) ) {
+			return (Long) value;
 		}
 		if ( Number.class.isInstance( value ) ) {
-			return ( (Number) value ).doubleValue();
+			return ( (Number) value ).longValue();
 		}
 		else if ( String.class.isInstance( value ) ) {
-			return Double.valueOf( ( (String) value ) );
+			return Long.valueOf( ( (String) value ) );
 		}
 		throw unknownWrap( value.getClass() );
 	}
+
+	@Override
+	public Class getPrimitiveClass() {
+		return long.class;
+	}
+
+	@Override
+	public Long getDefaultValue() {
+		return ZERO;
+	}
+
+//	@Override
+//	public VersionSupport<Long> getVersionSupport() {
+//		return LongVersionSupport.INSTANCE;
+//	}
 }

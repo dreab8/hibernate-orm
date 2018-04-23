@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -18,6 +18,10 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.jdbc.BinaryStream;
 import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.ArrayMutabilityPlan;
+import org.hibernate.type.descriptor.java.DataHelper;
+import org.hibernate.type.descriptor.java.IncomparableComparator;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
@@ -26,11 +30,11 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class ByteArrayTypeDescriptor extends AbstractTypeDescriptor<Byte[]> {
-	public static final ByteArrayTypeDescriptor INSTANCE = new ByteArrayTypeDescriptor();
+public class ByteArrayJavaDescriptor extends AbstractBasicJavaDescriptor<Byte[]> {
+	public static final ByteArrayJavaDescriptor INSTANCE = new ByteArrayJavaDescriptor();
 
 	@SuppressWarnings({ "unchecked" })
-	public ByteArrayTypeDescriptor() {
+	public ByteArrayJavaDescriptor() {
 		super( Byte[].class, ArrayMutabilityPlan.INSTANCE );
 	}
 
@@ -73,6 +77,7 @@ public class ByteArrayTypeDescriptor extends AbstractTypeDescriptor<Byte[]> {
 		}
 		return buf.toString();
 	}
+
 	@Override
 	public Byte[] fromString(String string) {
 		if ( string == null ) {
@@ -119,6 +124,7 @@ public class ByteArrayTypeDescriptor extends AbstractTypeDescriptor<Byte[]> {
 
 		throw unknownUnwrap( type );
 	}
+
 	@Override
 	public <X> Byte[] wrap(X value, WrapperOptions options) {
 		if ( value == null ) {

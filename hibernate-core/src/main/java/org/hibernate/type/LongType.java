@@ -11,7 +11,7 @@ import java.util.Comparator;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.descriptor.java.LongTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.LongJavaDescriptor;
 import org.hibernate.type.descriptor.sql.BigIntTypeDescriptor;
 
 /**
@@ -29,7 +29,7 @@ public class LongType
 	private static final Long ZERO = (long) 0;
 
 	public LongType() {
-		super( BigIntTypeDescriptor.INSTANCE, LongTypeDescriptor.INSTANCE );
+		super( BigIntTypeDescriptor.INSTANCE, LongJavaDescriptor.INSTANCE );
 	}
 
 	@Override

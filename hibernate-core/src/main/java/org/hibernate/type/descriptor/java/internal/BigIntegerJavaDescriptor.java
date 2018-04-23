@@ -4,13 +4,14 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Types;
 
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractNumericJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
@@ -19,36 +20,16 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class BigIntegerTypeDescriptor extends AbstractTypeDescriptor<BigInteger> {
-	public static final BigIntegerTypeDescriptor INSTANCE = new BigIntegerTypeDescriptor();
+public class BigIntegerJavaDescriptor extends AbstractNumericJavaDescriptor<BigInteger> {
+	public static final BigIntegerJavaDescriptor INSTANCE = new BigIntegerJavaDescriptor();
 
-	public BigIntegerTypeDescriptor() {
+	public BigIntegerJavaDescriptor() {
 		super( BigInteger.class );
 	}
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
 		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.BIGINT );
-	}
-
-	@Override
-	public String toString(BigInteger value) {
-		return value.toString();
-	}
-
-	@Override
-	public BigInteger fromString(String string) {
-		return new BigInteger( string );
-	}
-
-	@Override
-	public int extractHashCode(BigInteger value) {
-		return value.intValue();
-	}
-
-	@Override
-	public boolean areEqual(BigInteger one, BigInteger another) {
-		return one == another || ( one != null && another != null && one.compareTo( another ) == 0 );
 	}
 
 	@Override
@@ -81,6 +62,9 @@ public class BigIntegerTypeDescriptor extends AbstractTypeDescriptor<BigInteger>
 		if ( Float.class.isAssignableFrom( type ) ) {
 			return (X) Float.valueOf( value.floatValue() );
 		}
+		if ( String.class.equals( type ) ) {
+			return (X) value.toString();
+		}
 		throw unknownUnwrap( type );
 	}
 
@@ -97,6 +81,9 @@ public class BigIntegerTypeDescriptor extends AbstractTypeDescriptor<BigInteger>
 		}
 		if ( Number.class.isInstance( value ) ) {
 			return BigInteger.valueOf( ( (Number) value ).longValue() );
+		}
+		if ( String.class.isInstance( value ) ) {
+			return new BigInteger( (String) value );
 		}
 		throw unknownWrap( value.getClass() );
 	}

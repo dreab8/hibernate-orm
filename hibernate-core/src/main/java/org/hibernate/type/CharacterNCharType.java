@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.CharacterTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.CharacterJavaDescriptor;
 import org.hibernate.type.descriptor.sql.NCharTypeDescriptor;
 
 /**
@@ -25,7 +25,7 @@ public class CharacterNCharType
 	public static final CharacterNCharType INSTANCE = new CharacterNCharType();
 
 	public CharacterNCharType() {
-		super( NCharTypeDescriptor.INSTANCE, CharacterTypeDescriptor.INSTANCE );
+		super( NCharTypeDescriptor.INSTANCE, CharacterJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

@@ -4,50 +4,53 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Types;
 
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractNumericJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.Primitive;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
- * Descriptor for {@link Integer} handling.
+ * Descriptor for {@link Float} handling.
  *
  * @author Steve Ebersole
  */
-public class IntegerTypeDescriptor extends AbstractTypeDescriptor<Integer> {
-	public static final IntegerTypeDescriptor INSTANCE = new IntegerTypeDescriptor();
+public class FloatJavaDescriptor extends AbstractNumericJavaDescriptor<Float> implements Primitive<Float> {
+	public static final FloatJavaDescriptor INSTANCE = new FloatJavaDescriptor();
 
-	public IntegerTypeDescriptor() {
-		super( Integer.class );
+	public static final Float ZERO = 0.0f;
+
+	public FloatJavaDescriptor() {
+		super( Float.class );
 	}
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.INTEGER );
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.FLOAT );
 	}
 
 	@Override
-	public String toString(Integer value) {
+	public String toString(Float value) {
 		return value == null ? null : value.toString();
 	}
-
 	@Override
-	public Integer fromString(String string) {
-		return string == null ? null : Integer.valueOf( string );
+	public Float fromString(String string) {
+		return Float.valueOf( string );
 	}
 
 	@SuppressWarnings({ "unchecked" })
 	@Override
-	public <X> X unwrap(Integer value, Class<X> type, WrapperOptions options) {
+	public <X> X unwrap(Float value, Class<X> type, WrapperOptions options) {
 		if ( value == null ) {
 			return null;
 		}
-		if ( Integer.class.isAssignableFrom( type ) ) {
+		if ( Float.class.isAssignableFrom( type ) ) {
 			return (X) value;
 		}
 		if ( Byte.class.isAssignableFrom( type ) ) {
@@ -56,17 +59,17 @@ public class IntegerTypeDescriptor extends AbstractTypeDescriptor<Integer> {
 		if ( Short.class.isAssignableFrom( type ) ) {
 			return (X) Short.valueOf( value.shortValue() );
 		}
+		if ( Integer.class.isAssignableFrom( type ) ) {
+			return (X) Integer.valueOf( value.intValue() );
+		}
 		if ( Long.class.isAssignableFrom( type ) ) {
 			return (X) Long.valueOf( value.longValue() );
 		}
 		if ( Double.class.isAssignableFrom( type ) ) {
 			return (X) Double.valueOf( value.doubleValue() );
 		}
-		if ( Float.class.isAssignableFrom( type ) ) {
-			return (X) Float.valueOf( value.floatValue() );
-		}
 		if ( BigInteger.class.isAssignableFrom( type ) ) {
-			return (X) BigInteger.valueOf( value );
+			return (X) BigInteger.valueOf( value.longValue() );
 		}
 		if ( BigDecimal.class.isAssignableFrom( type ) ) {
 			return (X) BigDecimal.valueOf( value );
@@ -77,19 +80,29 @@ public class IntegerTypeDescriptor extends AbstractTypeDescriptor<Integer> {
 		throw unknownUnwrap( type );
 	}
 	@Override
-	public <X> Integer wrap(X value, WrapperOptions options) {
+	public <X> Float wrap(X value, WrapperOptions options) {
 		if ( value == null ) {
 			return null;
 		}
-		if ( Integer.class.isInstance( value ) ) {
-			return (Integer) value;
+		if ( Float.class.isInstance( value ) ) {
+			return (Float) value;
 		}
 		if ( Number.class.isInstance( value ) ) {
-			return ( (Number) value ).intValue();
+			return ( (Number) value ).floatValue();
 		}
-		if ( String.class.isInstance( value ) ) {
-			return Integer.valueOf( ( (String) value ) );
+		else if ( String.class.isInstance( value ) ) {
+			return Float.valueOf( ( (String) value ) );
 		}
 		throw unknownWrap( value.getClass() );
+	}
+
+	@Override
+	public Class getPrimitiveClass() {
+		return float.class;
+	}
+
+	@Override
+	public Float getDefaultValue() {
+		return ZERO;
 	}
 }

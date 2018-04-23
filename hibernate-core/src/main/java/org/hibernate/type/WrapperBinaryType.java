@@ -5,7 +5,7 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.type;
-import org.hibernate.type.descriptor.java.ByteArrayTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.ByteArrayJavaDescriptor;
 import org.hibernate.type.descriptor.sql.VarbinaryTypeDescriptor;
 
 /**
@@ -18,7 +18,7 @@ public class WrapperBinaryType extends AbstractSingleColumnStandardBasicType<Byt
 	public static final WrapperBinaryType INSTANCE = new WrapperBinaryType();
 
 	public WrapperBinaryType() {
-		super( VarbinaryTypeDescriptor.INSTANCE, ByteArrayTypeDescriptor.INSTANCE );
+		super( VarbinaryTypeDescriptor.INSTANCE, ByteArrayJavaDescriptor.INSTANCE );
 	}
 
 	@Override

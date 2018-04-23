@@ -46,7 +46,7 @@ public class TypeOverrideTest extends BaseCoreFunctionalTestCase {
 		// no override
 		assertSame( IntegerTypeDescriptor.INSTANCE, remapSqlTypeDescriptor( IntegerTypeDescriptor.INSTANCE ) );
 
-		// A few dialects explicitly override BlobTypeDescriptor.DEFAULT
+		// A few dialects explicitly override BlobJavaDescriptor.DEFAULT
 		if ( PostgreSQL81Dialect.class.isInstance( getDialect() ) || PostgreSQLDialect.class.isInstance( getDialect() ) )  {
 			assertSame(
 					BlobTypeDescriptor.BLOB_BINDING,

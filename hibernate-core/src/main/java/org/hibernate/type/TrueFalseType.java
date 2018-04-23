@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.BooleanTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.BooleanJavaDescriptor;
 import org.hibernate.type.descriptor.sql.CharTypeDescriptor;
 
 /**
@@ -25,7 +25,7 @@ public class TrueFalseType
 	public static final TrueFalseType INSTANCE = new TrueFalseType();
 
 	public TrueFalseType() {
-		super( CharTypeDescriptor.INSTANCE, new BooleanTypeDescriptor( 'T', 'F' ) );
+		super( CharTypeDescriptor.INSTANCE, new BooleanJavaDescriptor() );
 	}
 	@Override
 	public String getName() {

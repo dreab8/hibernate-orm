@@ -4,24 +4,28 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
+
 import java.sql.Types;
 
 import org.hibernate.type.descriptor.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractNumericJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.Primitive;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
- * Descriptor for {@link Byte} handling.
+ * Descriptor for {@link Short} handling.
  *
  * @author Steve Ebersole
- * @author Lukasz Antoniak (lukasz dot antoniak at gmail dot com)
  */
-public class ByteTypeDescriptor extends AbstractTypeDescriptor<Byte> {
-	public static final ByteTypeDescriptor INSTANCE = new ByteTypeDescriptor();
+public class ShortJavaDescriptor extends AbstractNumericJavaDescriptor<Short> implements Primitive<Short> {
+	public static final ShortJavaDescriptor INSTANCE = new ShortJavaDescriptor();
 
-	public ByteTypeDescriptor() {
-		super( Byte.class );
+	private static final Short ZERO = (short) 0;
+
+	public ShortJavaDescriptor() {
+		super( Short.class );
 	}
 
 	@Override
@@ -30,25 +34,26 @@ public class ByteTypeDescriptor extends AbstractTypeDescriptor<Byte> {
 	}
 
 	@Override
-	public String toString(Byte value) {
+	public String toString(Short value) {
 		return value == null ? null : value.toString();
 	}
+
 	@Override
-	public Byte fromString(String string) {
-		return Byte.valueOf( string );
+	public Short fromString(String string) {
+		return Short.valueOf( string );
 	}
 
 	@SuppressWarnings({ "unchecked" })
 	@Override
-	public <X> X unwrap(Byte value, Class<X> type, WrapperOptions options) {
+	public <X> X unwrap(Short value, Class<X> type, WrapperOptions options) {
 		if ( value == null ) {
 			return null;
 		}
-		if ( Byte.class.isAssignableFrom( type ) ) {
+		if ( Short.class.isAssignableFrom( type ) ) {
 			return (X) value;
 		}
-		if ( Short.class.isAssignableFrom( type ) ) {
-			return (X) Short.valueOf( value.shortValue() );
+		if ( Byte.class.isAssignableFrom( type ) ) {
+			return (X) Byte.valueOf( value.byteValue() );
 		}
 		if ( Integer.class.isAssignableFrom( type ) ) {
 			return (X) Integer.valueOf( value.intValue() );
@@ -68,19 +73,34 @@ public class ByteTypeDescriptor extends AbstractTypeDescriptor<Byte> {
 		throw unknownUnwrap( type );
 	}
 	@Override
-	public <X> Byte wrap(X value, WrapperOptions options) {
+	public <X> Short wrap(X value, WrapperOptions options) {
 		if ( value == null ) {
 			return null;
 		}
-		if ( Byte.class.isInstance( value ) ) {
-			return (Byte) value;
+		if ( Short.class.isInstance( value ) ) {
+			return (Short) value;
 		}
 		if ( Number.class.isInstance( value ) ) {
-			return ( (Number) value ).byteValue();
+			return ( (Number) value ).shortValue();
 		}
 		if ( String.class.isInstance( value ) ) {
-			return Byte.valueOf( ( (String) value ) );
+			return Short.valueOf( ( (String) value ) );
 		}
 		throw unknownWrap( value.getClass() );
 	}
+
+	@Override
+	public Class getPrimitiveClass() {
+		return short.class;
+	}
+
+	@Override
+	public Short getDefaultValue() {
+		return ZERO;
+	}
+
+//	@Override
+//	public VersionSupport<Short> getVersionSupport() {
+//		return ShortVersionSupport.INSTANCE;
+//	}
 }

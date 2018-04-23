@@ -6,7 +6,7 @@
  */
 package org.hibernate.test.annotations.lob;
 import org.hibernate.type.AbstractSingleColumnStandardBasicType;
-import org.hibernate.type.descriptor.java.ByteArrayTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.ByteArrayJavaDescriptor;
 import org.hibernate.type.descriptor.sql.LongVarbinaryTypeDescriptor;
 
 /**
@@ -18,7 +18,7 @@ public class WrappedImageType extends AbstractSingleColumnStandardBasicType<Byte
 	public static final WrappedImageType INSTANCE = new WrappedImageType();
 
 	public WrappedImageType() {
-		super( LongVarbinaryTypeDescriptor.INSTANCE, ByteArrayTypeDescriptor.INSTANCE );
+		super( LongVarbinaryTypeDescriptor.INSTANCE, ByteArrayJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

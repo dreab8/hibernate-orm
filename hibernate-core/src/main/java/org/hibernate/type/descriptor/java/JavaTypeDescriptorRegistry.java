@@ -17,6 +17,18 @@ import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.java.internal.BigDecimalJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.BigIntegerJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.BlobJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.BooleanJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.ByteArrayJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.ByteJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.CalendarJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.CharacterJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.DoubleJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.FloatJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.IntegerJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.LongJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.ShortJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.RegistryHelper;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -42,24 +54,24 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 	private ConcurrentHashMap<Class, JavaTypeDescriptor> descriptorsByClass = new ConcurrentHashMap<>();
 
 	public JavaTypeDescriptorRegistry() {
-		addDescriptorInternal( ByteTypeDescriptor.INSTANCE );
-		addDescriptorInternal( BooleanTypeDescriptor.INSTANCE );
-		addDescriptorInternal( CharacterTypeDescriptor.INSTANCE );
-		addDescriptorInternal( ShortTypeDescriptor.INSTANCE );
-		addDescriptorInternal( IntegerTypeDescriptor.INSTANCE );
-		addDescriptorInternal( LongTypeDescriptor.INSTANCE );
-		addDescriptorInternal( FloatTypeDescriptor.INSTANCE );
-		addDescriptorInternal( DoubleTypeDescriptor.INSTANCE );
+		addDescriptorInternal( ByteJavaDescriptor.INSTANCE );
+		addDescriptorInternal( BooleanJavaDescriptor.INSTANCE );
+		addDescriptorInternal( CharacterJavaDescriptor.INSTANCE );
+		addDescriptorInternal( ShortJavaDescriptor.INSTANCE );
+		addDescriptorInternal( IntegerJavaDescriptor.INSTANCE );
+		addDescriptorInternal( LongJavaDescriptor.INSTANCE );
+		addDescriptorInternal( FloatJavaDescriptor.INSTANCE );
+		addDescriptorInternal( DoubleJavaDescriptor.INSTANCE );
 		addDescriptorInternal( BigDecimalJavaDescriptor.INSTANCE );
-		addDescriptorInternal( BigIntegerTypeDescriptor.INSTANCE );
+		addDescriptorInternal( BigIntegerJavaDescriptor.INSTANCE );
 
 		addDescriptorInternal( StringTypeDescriptor.INSTANCE );
 
-		addDescriptorInternal( BlobTypeDescriptor.INSTANCE );
+		addDescriptorInternal( BlobJavaDescriptor.INSTANCE );
 		addDescriptorInternal( ClobTypeDescriptor.INSTANCE );
 		addDescriptorInternal( NClobTypeDescriptor.INSTANCE );
 
-		addDescriptorInternal( ByteArrayTypeDescriptor.INSTANCE );
+		addDescriptorInternal( ByteArrayJavaDescriptor.INSTANCE );
 		addDescriptorInternal( CharacterArrayTypeDescriptor.INSTANCE );
 		addDescriptorInternal( PrimitiveByteArrayTypeDescriptor.INSTANCE );
 		addDescriptorInternal( PrimitiveCharacterArrayTypeDescriptor.INSTANCE );
@@ -72,7 +84,7 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 		addDescriptorInternal( OffsetTimeJavaDescriptor.INSTANCE );
 		addDescriptorInternal( ZonedDateTimeJavaDescriptor.INSTANCE );
 
-		addDescriptorInternal( CalendarTypeDescriptor.INSTANCE );
+		addDescriptorInternal( CalendarJavaDescriptor.INSTANCE );
 		addDescriptorInternal( DateTypeDescriptor.INSTANCE );
 		descriptorsByClass.put( java.sql.Date.class, JdbcDateTypeDescriptor.INSTANCE );
 		descriptorsByClass.put( java.sql.Time.class, JdbcTimeTypeDescriptor.INSTANCE );

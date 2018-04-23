@@ -11,7 +11,7 @@ import java.util.Comparator;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.descriptor.java.ByteTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.ByteJavaDescriptor;
 import org.hibernate.type.descriptor.sql.TinyIntTypeDescriptor;
 
 /**
@@ -29,7 +29,7 @@ public class ByteType
 	private static final Byte ZERO = (byte) 0;
 
 	public ByteType() {
-		super( TinyIntTypeDescriptor.INSTANCE, ByteTypeDescriptor.INSTANCE );
+		super( TinyIntTypeDescriptor.INSTANCE, ByteJavaDescriptor.INSTANCE );
 	}
 
 	@Override

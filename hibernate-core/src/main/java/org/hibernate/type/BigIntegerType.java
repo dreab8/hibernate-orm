@@ -9,8 +9,7 @@ package org.hibernate.type;
 import java.math.BigInteger;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.BigIntegerTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BigIntTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.BigIntegerJavaDescriptor;
 import org.hibernate.type.descriptor.sql.NumericTypeDescriptor;
 
 /**
@@ -26,7 +25,7 @@ public class BigIntegerType
 	public static final BigIntegerType INSTANCE = new BigIntegerType();
 
 	public BigIntegerType() {
-		super( NumericTypeDescriptor.INSTANCE, BigIntegerTypeDescriptor.INSTANCE );
+		super( NumericTypeDescriptor.INSTANCE, BigIntegerJavaDescriptor.INSTANCE );
 	}
 
 	@Override
@@ -41,11 +40,11 @@ public class BigIntegerType
 
 	@Override
 	public String objectToSQLString(BigInteger value, Dialect dialect) {
-		return BigIntegerTypeDescriptor.INSTANCE.toString( value );
+		return BigIntegerJavaDescriptor.INSTANCE.toString( value );
 	}
 
 	@Override
 	public BigInteger stringToObject(String string) {
-		return BigIntegerTypeDescriptor.INSTANCE.fromString( string );
+		return BigIntegerJavaDescriptor.INSTANCE.fromString( string );
 	}
 }

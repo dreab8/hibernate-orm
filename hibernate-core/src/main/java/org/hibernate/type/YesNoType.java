@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.BooleanTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.BooleanJavaDescriptor;
 import org.hibernate.type.descriptor.sql.CharTypeDescriptor;
 
 /**
@@ -25,7 +25,7 @@ public class YesNoType
 	public static final YesNoType INSTANCE = new YesNoType();
 
 	public YesNoType() {
-		super( CharTypeDescriptor.INSTANCE, BooleanTypeDescriptor.INSTANCE );
+		super( CharTypeDescriptor.INSTANCE, BooleanJavaDescriptor.INSTANCE );
 	}
 	@Override
 	public String getName() {

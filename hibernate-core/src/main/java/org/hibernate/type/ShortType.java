@@ -11,7 +11,7 @@ import java.util.Comparator;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.descriptor.java.ShortTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.ShortJavaDescriptor;
 import org.hibernate.type.descriptor.sql.SmallIntTypeDescriptor;
 
 /**
@@ -29,7 +29,7 @@ public class ShortType
 	private static final Short ZERO = (short) 0;
 
 	public ShortType() {
-		super( SmallIntTypeDescriptor.INSTANCE, ShortTypeDescriptor.INSTANCE );
+		super( SmallIntTypeDescriptor.INSTANCE, ShortJavaDescriptor.INSTANCE );
 	}
 
 	@Override
