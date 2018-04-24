@@ -30,7 +30,7 @@ import org.hibernate.dialect.Oracle8iDialect;
 import org.hibernate.dialect.PostgreSQL81Dialect;
 import org.hibernate.dialect.SQLServerDialect;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
-import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.StringType;
 import org.hibernate.userguide.model.AddressType;
 import org.hibernate.userguide.model.Call;
 import org.hibernate.userguide.model.CreditCardPayment;
@@ -737,7 +737,7 @@ public class HQLTest extends BaseEntityManagerFunctionalTestCase {
 				"select p " +
 				"from Person p " +
 				"where p.name like :name" )
-			.setParameter( "name", "J%", StringTypeImpl.INSTANCE );
+			.setParameter( "name", "J%", StringType.INSTANCE );
 			//end::hql-api-parameter-example[]
 		});
 	}

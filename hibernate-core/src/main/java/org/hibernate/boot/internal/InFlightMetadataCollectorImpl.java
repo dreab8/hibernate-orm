@@ -360,36 +360,6 @@ public class InFlightMetadataCollectorImpl implements InFlightMetadataCollector 
 	}
 
 	@Override
-	public void addTypeDefinition(TypeDefinition typeDefinition) {
-		if ( typeDefinition == null ) {
-			throw new IllegalArgumentException( "Type definition is null" );
-		}
-
-		// Need to register both by name and registration keys.
-		if ( !StringHelper.isEmpty( typeDefinition.getName() ) ) {
-			addTypeDefinition( typeDefinition.getName(), typeDefinition );
-		}
-
-		if ( typeDefinition.getRegistrationKeys() != null ) {
-			for ( String registrationKey : typeDefinition.getRegistrationKeys() ) {
-				addTypeDefinition( registrationKey, typeDefinition );
-			}
-		}
-	}
-
-	private void addTypeDefinition(String registrationKey, TypeDefinition typeDefinition) {
-		final TypeDefinition previous = typeDefinitionMap.put(
-				registrationKey, typeDefinition );
-		if ( previous != null ) {
-			log.debugf(
-					"Duplicate typedef name [%s] now -> %s",
-					registrationKey,
-					typeDefinition.getTypeImplementorClass().getName()
-			);
-		}
-	}
-
-	@Override
 	public ClassmateContext getClassmateContext() {
 		return bootstrapContext.getClassmateContext();
 	}
@@ -401,7 +371,7 @@ public class InFlightMetadataCollectorImpl implements InFlightMetadataCollector 
 	@Override
 	public void addAttributeConverter(Class<? extends AttributeConverter> converterClass) {
 		attributeConverterManager.addConverter(
-				new ClassBasedConverterDescriptor( converterClass, getBootstrapContext().getClassmateContext() )
+				new ClassBasedConverterDescriptor( converterClass, getBootstrapContext() )
 		);
 	}
 

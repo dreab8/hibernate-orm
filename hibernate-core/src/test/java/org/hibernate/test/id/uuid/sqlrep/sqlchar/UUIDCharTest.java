@@ -7,7 +7,7 @@
 package org.hibernate.test.id.uuid.sqlrep.sqlchar;
 
 import org.hibernate.cfg.Configuration;
-import org.hibernate.type.UUIDCharTypeImpl;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.test.id.uuid.sqlrep.sqlbinary.UUIDBinaryTest;
 
@@ -17,14 +17,7 @@ import org.hibernate.test.id.uuid.sqlrep.sqlbinary.UUIDBinaryTest;
 public class UUIDCharTest extends UUIDBinaryTest {
 	@Override
 	public void configure(Configuration cfg) {
-		cfg.registerTypeOverride(
-				new UUIDCharTypeImpl() {
-					@Override
-					protected boolean registerUnderJavaType() {
-						return true;
-					}
-				}
-		);
+		cfg.registerTypeOverride( StandardSpiBasicTypes.UUID_CHAR );
 	}
 
 	@Override

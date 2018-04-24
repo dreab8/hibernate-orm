@@ -6,19 +6,26 @@
  */
 package org.hibernate.type.descriptor.java.spi;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.sql.Blob;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.hibernate.HibernateException;
 import org.hibernate.boot.model.TypeContributor;
+import org.hibernate.engine.jdbc.BinaryStream;
+import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
 import org.hibernate.internal.util.SerializationHelper;
 import org.hibernate.type.descriptor.java.internal.EnumJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.JavaTypeDescriptorBaseline;
+import org.hibernate.type.descriptor.java.internal.SerializableJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarbinarySqlDescriptor;
+import org.hibernate.type.internal.BasicTypeImpl;
 import org.hibernate.type.spi.TypeConfiguration;
 import org.hibernate.type.spi.TypeConfigurationAware;
 
@@ -94,7 +101,7 @@ public class JavaTypeDescriptorRegistry implements JavaTypeDescriptorBaseline.Ba
 					TypeContributor.class.getName(),
 					TypeConfiguration.class.getName()
 			);
-			return new OnTheFlySerializableJavaDescriptor( javaType );
+			return new SerializableJavaDescriptor( javaType );
 		}
 
 		throw new HibernateException(
@@ -112,63 +119,6 @@ public class JavaTypeDescriptorRegistry implements JavaTypeDescriptorBaseline.Ba
 				" either directly or through a registered %s accessing the %s ";
 	}
 
-	public static class OnTheFlySerializableJavaDescriptor<T extends Serializable> extends AbstractBasicJavaDescriptor<T> {
-		private final SqlTypeDescriptor sqlTypeDescriptor;
-
-		public OnTheFlySerializableJavaDescriptor(Class<T> type) {
-			super( type );
-
-			// todo (6.0) : would be nice to expose for config by user
-			// todo (6.0) : ^^ might also be nice to allow them to plug in a "JavaTypeDescriptorResolver"
-			// 		- that allows them to hook into the #getDescriptor call either as the primary or as a fallback
-
-
-			log.debugf(
-					"Could not find matching JavaTypeDescriptor for requested Java class [%s]; using fallback via its Serializable interface.  " +
-							"This means Hibernate does not know how to perform certain basic operations in relation to this Java type" +
-							"which can lead to those operations having a large performance impact.  Consider registering these " +
-							"JavaTypeDescriptors with the %s during bootstrap, either directly or through a registered %s " +
-							"accessing the %s ",
-					getJavaType().getName(),
-					JavaTypeDescriptorRegistry.class.getName(),
-					TypeContributor.class.getName(),
-					TypeConfiguration.class.getName()
-			);
-
-
-			sqlTypeDescriptor = VarbinarySqlDescriptor.INSTANCE;
-		}
-
-		@Override
-		public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-			return sqlTypeDescriptor;
-		}
-
-		@Override
-		public <X> X unwrap(T value, Class<X> type, WrapperOptions options) {
-			if ( type.equals( byte[].class ) ) {
-				throw new UnsupportedOperationException( "Cannot unwrap Serializable to format other than byte[]" );
-			}
-
-			return (X) SerializationHelper.serialize( value );
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public <X> T wrap(X value, WrapperOptions options) {
-			if ( value == null ) {
-				return null;
-			}
-
-			if ( value.getClass().equals( byte[].class ) ) {
-				throw new UnsupportedOperationException( "Cannot unwrap Serializable to format other than byte[]" );
-			}
-
-			final byte[] bytes = (byte[]) value;
-
-			return (T) SerializationHelper.deserialize( bytes );
-		}
-	}
 
 	@SuppressWarnings("unchecked")
 	public <T> JavaTypeDescriptor<T> getDescriptor(String javaTypeName) {

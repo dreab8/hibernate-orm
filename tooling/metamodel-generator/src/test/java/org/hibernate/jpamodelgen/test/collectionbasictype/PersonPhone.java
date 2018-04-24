@@ -13,7 +13,7 @@ import org.hibernate.jpamodelgen.test.collectionbasictype.extras.Phone;
  * @author Vlad Mihalcea
  */
 @Entity(name = "Person")
-@TypeDef( name = "comma_delimited_strings", typeClass = CommaDelimitedStringsTypeImpl.class)
+@TypeDef( name = "comma_delimited_strings", typeClass = CommaDelimitedStringsType.class)
 public class PersonPhone {
 
 	@Id

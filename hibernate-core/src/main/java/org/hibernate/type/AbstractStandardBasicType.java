@@ -44,20 +44,25 @@ public abstract class AbstractStandardBasicType<T>
 	// Don't use final here.  Need to initialize after-the-fact
 	// by DynamicParameterizedTypes.
 	private SqlTypeDescriptor sqlTypeDescriptor;
-	private JavaTypeDescriptor<T> javaTypeDescriptor;
+	private BasicJavaDescriptor<T> javaTypeDescriptor;
 	// sqlTypes need always to be in sync with sqlTypeDescriptor
 	private int[] sqlTypes;
 
 	public AbstractStandardBasicType(SqlTypeDescriptor sqlTypeDescriptor, JavaTypeDescriptor<T> javaTypeDescriptor) {
 		this.sqlTypeDescriptor = sqlTypeDescriptor;
 		this.sqlTypes = new int[] { sqlTypeDescriptor.getSqlType() };
-		this.javaTypeDescriptor = javaTypeDescriptor;
+		this.javaTypeDescriptor = (BasicJavaDescriptor)javaTypeDescriptor;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public BasicJavaDescriptor<T> getJavaTypeDescriptor() {
-		return (BasicJavaDescriptor<T>) javaTypeDescriptor;
+		return javaTypeDescriptor;
+	}
+
+	@Override
+	public SqlTypeDescriptor getSqlTypeDescriptor() {
+		return sqlTypeDescriptor;
 	}
 
 	public T fromString(String string) {
@@ -96,13 +101,6 @@ public abstract class AbstractStandardBasicType<T>
 		return value == null ? ArrayHelper.FALSE : ArrayHelper.TRUE;
 	}
 
-	@Override
-	public String[] getRegistrationKeys() {
-		return registerUnderJavaType()
-				? new String[] { getName(), javaTypeDescriptor.getJavaType().getName() }
-				: new String[] { getName() };
-	}
-
 	protected boolean registerUnderJavaType() {
 		return false;
 	}
@@ -116,14 +114,6 @@ public abstract class AbstractStandardBasicType<T>
 	}
 	
 	// final implementations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-	public final void setJavaTypeDescriptor( JavaTypeDescriptor<T> javaTypeDescriptor ) {
-		this.javaTypeDescriptor = javaTypeDescriptor;
-	}
-
-	public final SqlTypeDescriptor getSqlTypeDescriptor() {
-		return sqlTypeDescriptor;
-	}
 
 	public final void setSqlTypeDescriptor( SqlTypeDescriptor sqlTypeDescriptor ) {
 		this.sqlTypeDescriptor = sqlTypeDescriptor;
@@ -265,6 +255,10 @@ public abstract class AbstractStandardBasicType<T>
 		return remapSqlTypeDescriptor( options ).getExtractor( javaTypeDescriptor ).extract( rs, name, options );
 	}
 
+	public final void setJavaTypeDescriptor( BasicJavaDescriptor<T> javaTypeDescriptor ) {
+		this.javaTypeDescriptor = javaTypeDescriptor;
+	}
+
 	public Object get(ResultSet rs, String name, SharedSessionContractImplementor session) throws HibernateException, SQLException {
 		return nullSafeGet( rs, name, session );
 	}
@@ -337,20 +331,6 @@ public abstract class AbstractStandardBasicType<T>
 		return nullSafeGet(rs, names, session, owner);
 	}
 
-	@Override
-	public final Object resolve(Object value, SharedSessionContractImplementor session, Object owner) throws HibernateException {
-		return value;
-	}
-
-	@Override
-	public final Object semiResolve(Object value, SharedSessionContractImplementor session, Object owner) throws HibernateException {
-		return value;
-	}
-
-	@Override
-	public final Type getSemiResolvedType(SessionFactoryImplementor factory) {
-		return this;
-	}
 
 	@Override
 	@SuppressWarnings({ "unchecked" })

@@ -13,7 +13,7 @@ import org.hibernate.type.spi.BooleanBasicType;
 /**
  * @author Steve Ebersole
  */
-public class BooleanBasicTypeImpl<U> extends BasicTypeImpl<Boolean> implements BooleanBasicType<U> {
+public class BooleanBasicTypeImpl<U> extends BasicTypeImpl<Boolean> implements org.hibernate.type.spi.BooleanBasicType<U> {
 	private final U trueValue;
 	private final U falseValue;
 

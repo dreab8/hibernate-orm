@@ -18,7 +18,7 @@ import org.hibernate.annotations.TypeDef;
  * @author Janario Oliveira
  */
 @Entity
-@TypeDef(typeClass = ImplicitSerializableTypeImpl.class, defaultForType = ImplicitSerializable.class)
+@TypeDef(typeClass = ImplicitSerializableType.class, defaultForType = ImplicitSerializable.class)
 public class EntitySerialize {
 	@Id
 	@GeneratedValue
@@ -27,12 +27,12 @@ public class EntitySerialize {
 	@Lob
 	ExplicitSerializable explicitLob;
 	
-	@Type(type = "org.hibernate.test.annotations.lob.ExplicitSerializableTypeImpl")
+	@Type(type = "org.hibernate.test.annotations.lob.ExplicitSerializableType")
 	ExplicitSerializable explicit;
 
 	ImplicitSerializable implicit;
 
-	@Type(type = "org.hibernate.test.annotations.lob.ExplicitSerializableTypeImpl")
+	@Type(type = "org.hibernate.test.annotations.lob.ExplicitSerializableType")
 	ImplicitSerializable explicitOverridingImplicit;
 
 	/**

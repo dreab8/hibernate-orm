@@ -55,7 +55,7 @@ public class BitSetTypeDefTest extends BaseCoreFunctionalTestCase {
 	@TypeDef(
 		name = "bitset",
 		defaultForType = BitSet.class,
-		typeClass = BitSetTypeImpl.class
+		typeClass = BitSetType.class
 	)
 	public static class Product {
 

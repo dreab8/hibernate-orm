@@ -23,7 +23,7 @@ import org.hibernate.cfg.AttributeConverterDefinition;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
-import org.hibernate.type.descriptor.converter.AttributeConverterTypeImplAdapter;
+import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
@@ -92,8 +92,8 @@ public class ParameterizedAttributeConverterParameterTypeTest extends BaseUnitTe
 
 		{
 			Property prop = pc.getProperty( "someStrings" );
-			AttributeConverterTypeImplAdapter type = assertTyping(
-					AttributeConverterTypeImplAdapter.class,
+			AttributeConverterTypeAdapter type = assertTyping(
+					AttributeConverterTypeAdapter.class,
 					prop.getType()
 			);
 
@@ -102,8 +102,8 @@ public class ParameterizedAttributeConverterParameterTypeTest extends BaseUnitTe
 
 		{
 			Property prop = pc.getProperty( "someIntegers" );
-			AttributeConverterTypeImplAdapter type = assertTyping(
-					AttributeConverterTypeImplAdapter.class,
+			AttributeConverterTypeAdapter type = assertTyping(
+					AttributeConverterTypeAdapter.class,
 					prop.getType()
 			);
 

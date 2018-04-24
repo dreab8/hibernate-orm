@@ -22,10 +22,10 @@ import org.hibernate.hql.internal.ast.tree.SelectClause;
 import org.hibernate.hql.internal.classic.ClassicQueryTranslatorFactory;
 import org.hibernate.hql.spi.QueryTranslator;
 import org.hibernate.hql.spi.QueryTranslatorFactory;
-import org.hibernate.type.BigDecimalTypeImpl;
-import org.hibernate.type.BigIntegerTypeImpl;
-import org.hibernate.type.DoubleTypeImpl;
-import org.hibernate.type.LongTypeImpl;
+import org.hibernate.type.BigDecimalType;
+import org.hibernate.type.BigIntegerType;
+import org.hibernate.type.DoubleType;
+import org.hibernate.type.LongType;
 
 import org.hibernate.testing.SkipForDialect;
 import org.hibernate.testing.TestForIssue;
@@ -79,61 +79,61 @@ public class CriteriaHQLAlignmentTest extends QueryTranslatorTestCase {
 		// EJB3: COUNT returns Long
 		QueryTranslatorImpl translator = createNewQueryTranslator( "select count(*) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", LongTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", LongType.INSTANCE, translator.getReturnTypes()[0] );
 		
 		translator = createNewQueryTranslator( "select count(h.heightInches) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", LongTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", LongType.INSTANCE, translator.getReturnTypes()[0] );
 				
 		// MAX, MIN return the type of the state-field to which they are applied. 
 		translator = createNewQueryTranslator( "select max(h.heightInches) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", DoubleTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", DoubleType.INSTANCE, translator.getReturnTypes()[0] );
 		
 		translator = createNewQueryTranslator( "select max(h.id) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", LongTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", LongType.INSTANCE, translator.getReturnTypes()[0] );
 		
 		// AVG returns Double.
 		translator = createNewQueryTranslator( "select avg(h.heightInches) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", DoubleTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", DoubleType.INSTANCE, translator.getReturnTypes()[0] );
 		
 		translator = createNewQueryTranslator( "select avg(h.id) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", DoubleTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", DoubleType.INSTANCE, translator.getReturnTypes()[0] );
 		
 		translator = createNewQueryTranslator( "select avg(h.bigIntegerValue) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", DoubleTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", DoubleType.INSTANCE, translator.getReturnTypes()[0] );
 		
         // SUM returns Long when applied to state-fields of integral types (other than BigInteger);
  	    translator = createNewQueryTranslator( "select sum(h.id) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", LongTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", LongType.INSTANCE, translator.getReturnTypes()[0] );
 		
 		translator = createNewQueryTranslator( "select sum(h.intValue) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", LongTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", LongType.INSTANCE, translator.getReturnTypes()[0] );
 		
 		// SUM returns Double when applied to state-fields of floating point types; 
 		translator = createNewQueryTranslator( "select sum(h.heightInches) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", DoubleTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", DoubleType.INSTANCE, translator.getReturnTypes()[0] );
 
 		translator = createNewQueryTranslator( "select sum(h.floatValue) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", DoubleTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", DoubleType.INSTANCE, translator.getReturnTypes()[0] );
 		
 	    // SUM returns BigInteger when applied to state-fields of type BigInteger 
 		translator = createNewQueryTranslator( "select sum(h.bigIntegerValue) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", BigIntegerTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", BigIntegerType.INSTANCE, translator.getReturnTypes()[0] );
 		
 		// SUM and BigDecimal when applied to state-fields of type BigDecimal.
 		translator = createNewQueryTranslator( "select sum(h.bigDecimalValue) from Human h" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", BigDecimalTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", BigDecimalType.INSTANCE, translator.getReturnTypes()[0] );
 
 		// special case to test classicquery special case handling of count(*)
 		String hql = "select count(*) from Human h";
@@ -142,7 +142,7 @@ public class CriteriaHQLAlignmentTest extends QueryTranslatorTestCase {
 				sessionFactory(), null );
 		oldQueryTranslator.compile( Collections.EMPTY_MAP, true);
 		assertEquals( "incorrect return type count", 1, oldQueryTranslator.getReturnTypes().length );
-		assertEquals( "incorrect return type", LongTypeImpl.INSTANCE, oldQueryTranslator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", LongType.INSTANCE, oldQueryTranslator.getReturnTypes()[0] );
 
 	}
 

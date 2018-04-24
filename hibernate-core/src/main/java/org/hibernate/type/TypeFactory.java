@@ -16,6 +16,10 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.tuple.component.ComponentMetamodel;
+import org.hibernate.type.descriptor.java.internal.SerializableJavaDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarbinarySqlDescriptor;
+import org.hibernate.type.internal.BasicTypeImpl;
+import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.spi.TypeConfiguration;
 import org.hibernate.type.spi.TypeConfigurationAware;
 import org.hibernate.usertype.CompositeUserType;
@@ -186,15 +190,18 @@ public final class TypeFactory implements Serializable {
 	}
 
 	/**
-	 * Build a {@link SerializableTypeImpl} from the given {@link Serializable} class.
+	 * Build a {@link SerializableType} from the given {@link Serializable} class.
 	 *
 	 * @param serializableClass The {@link Serializable} class.
 	 * @param <T> The actual class type (extends Serializable)
 	 *
-	 * @return The built {@link SerializableTypeImpl}
+	 * @return The built {@link SerializableType}
 	 */
-	public static <T extends Serializable> SerializableTypeImpl<T> serializable(Class<T> serializableClass) {
-		return new SerializableTypeImpl<T>( serializableClass );
+	public static <T extends Serializable> BasicType<T> serializable(Class<T> serializableClass) {
+		return new BasicTypeImpl<>(
+				new SerializableJavaDescriptor( serializableClass ),
+				VarbinarySqlDescriptor.INSTANCE
+		);
 	}
 
 

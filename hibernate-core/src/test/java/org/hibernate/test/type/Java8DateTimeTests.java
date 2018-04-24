@@ -25,8 +25,9 @@ import org.hibernate.Session;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
 import org.hibernate.type.AbstractStandardBasicType;
-import org.hibernate.type.SerializableTypeImpl;
+import org.hibernate.type.descriptor.java.internal.SerializableJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.spi.BasicType;
 
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
 import org.junit.Test;
@@ -51,7 +52,7 @@ public class Java8DateTimeTests extends BaseNonConfigCoreFunctionalTestCase {
 			final Property propertyBinding = (Property) propertyBindingIterator.next();
 			assertFalse(
 					"Found property bound as Serializable : " + propertyBinding.getName(),
-					propertyBinding.getType() instanceof SerializableTypeImpl
+					( (BasicType) propertyBinding.getType() ).getJavaTypeDescriptor() instanceof SerializableJavaDescriptor
 			);
 		}
 

@@ -189,7 +189,7 @@ public class UnionSubclassTest extends BaseCoreFunctionalTestCase {
 		s.flush();
 		
 		// Test value conversion during insert
-		// Value returned by Oracle native query is a Types.NUMERIC, which is mapped to a BigDecimalTypeImpl;
+		// Value returned by Oracle native query is a Types.NUMERIC, which is mapped to a BigDecimalType;
 		// Cast returned value to Number then call Number.doubleValue() so it works on all dialects.
 		Double heightViaSql =
 				( (Number)s.createSQLQuery("select height_centimeters from UPerson where name='Emmanuel'").uniqueResult() ).doubleValue();

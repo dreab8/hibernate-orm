@@ -6,6 +6,8 @@
  */
 package org.hibernate.metamodel.model.domain.spi;
 
+import java.util.Comparator;
+
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.spi.StandardSpiBasicTypes;
@@ -37,5 +39,10 @@ public class IntegerVersionSupport implements VersionSupport<Integer> {
 	@Override
 	public boolean isEqual(Integer x, Integer y) throws HibernateException {
 		return StandardSpiBasicTypes.INTEGER.areEqual( x, y );
+	}
+
+	@Override
+	public Comparator<Integer> getComparator() {
+		return StandardSpiBasicTypes.INTEGER.getJavaTypeDescriptor().getComparator();
 	}
 }

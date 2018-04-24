@@ -41,7 +41,7 @@ public class CollectionAsBasicTest extends BaseUnitTestCase {
 		StandardServiceRegistry ssr = new StandardServiceRegistryBuilder().build();
 		try {
 			Metadata metadata = new MetadataSources(ssr).addAnnotatedClass( Post.class )
-					.getMetadataBuilder().applyBasicType( new DelimitedStringsTypeImpl() )
+					.getMetadataBuilder().applyBasicType( new DelimitedStringsType() )
 					.build();
 			PersistentClass postBinding = metadata.getEntityBinding( Post.class.getName() );
 			Property tagsAttribute = postBinding.getProperty( "tags" );
@@ -61,9 +61,9 @@ public class CollectionAsBasicTest extends BaseUnitTestCase {
 		Set<String> tags;
 	}
 
-	public static class DelimitedStringsTypeImpl extends BasicTypeImpl<Set> {
+	public static class DelimitedStringsType extends BasicTypeImpl<Set> {
 
-		public DelimitedStringsTypeImpl() {
+		public DelimitedStringsType() {
 			super(
 					VarcharSqlDescriptor.INSTANCE,
 					new DelimitedStringsJavaTypeDescriptor()

@@ -5,6 +5,7 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.test.util;
+
 import java.io.InputStream;
 import java.io.Serializable;
 
@@ -15,7 +16,6 @@ import org.junit.Test;
 import org.hibernate.LockMode;
 import org.hibernate.bytecode.spi.ByteCodeHelper;
 import org.hibernate.internal.util.SerializationHelper;
-import org.hibernate.type.SerializableTypeImpl;
 
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 
@@ -23,7 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
 /**
- * This is basically a test to assert the expectations of {@link SerializableTypeImpl}
+ * This is basically a test to assert the expectations of {@link org.hibernate.type.spi.StandardSpiBasicTypes#SERIALIZABLE}
  * in regards to deserializing bytes from second level caches.
  *
  * @author Steve Ebersole
@@ -49,10 +49,10 @@ public class SerializationHelperTest extends BaseUnitTestCase {
 		Class clazz = Thread.currentThread().getContextClassLoader().loadClass( "org.hibernate.test.util.SerializableThing" );
 		Object instance = clazz.newInstance();
 
-		// SerializableTypeImpl.toBytes() logic, as called from SerializableTypeImpl.disassemble()
+		// SerializableType.toBytes() logic, as called from SerializableType.disassemble()
 		byte[] bytes = SerializationHelper.serialize( (Serializable) instance );
 
-		// SerializableTypeImpl.fromBytes() logic, as called from SerializableTypeImpl.assemble
+		// SerializableType.fromBytes() logic, as called from SerializableType.assemble
 		//		NOTE : specifically we use Serializable.class.getClassLoader for the CL in many cases
 		//			which are the problematic cases
 		Object instance2 = SerializationHelper.deserialize( bytes, Serializable.class.getClassLoader() );
@@ -69,10 +69,10 @@ public class SerializationHelperTest extends BaseUnitTestCase {
 			instance.getClass().getClassLoader() 
 		);
 
-		// SerializableTypeImpl.toBytes() logic, as called from SerializableTypeImpl.disassemble()
+		// SerializableType.toBytes() logic, as called from SerializableType.disassemble()
 		byte[] bytes = SerializationHelper.serialize( (Serializable) instance );
 
-		// SerializableTypeImpl.fromBytes() logic, as called from SerializableTypeImpl.assemble
+		// SerializableType.fromBytes() logic, as called from SerializableType.assemble
 		// NOTE : specifically we use custom so that LockType.class is not found
 		//        until the 3rd loader (because loader1 == loader2, the custom classloader)
 		Object instance2 = SerializationHelper.deserialize( bytes, custom );

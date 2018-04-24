@@ -19,13 +19,11 @@ import org.hibernate.annotations.AnyMetaDef;
 import org.hibernate.annotations.common.reflection.XClass;
 import org.hibernate.boot.internal.ClassmateContext;
 import org.hibernate.boot.model.IdentifierGeneratorDefinition;
-import org.hibernate.boot.model.TypeDefinition;
 import org.hibernate.boot.model.convert.internal.InstanceBasedConverterDescriptor;
 import org.hibernate.boot.model.convert.spi.ConverterAutoApplyHandler;
 import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.relational.AuxiliaryDatabaseObject;
-import org.hibernate.boot.model.relational.Database;
 import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.boot.model.source.spi.LocalMetadataBuildingContext;
 import org.hibernate.cfg.AnnotatedClassType;
@@ -180,15 +178,6 @@ public interface InFlightMetadataCollector extends Mapping, MetadataImplementor 
 	void addNamedEntityGraph(NamedEntityGraphDefinition namedEntityGraphDefinition);
 
 	/**
-	 * Adds a type definition to this metadata repository.
-	 *
-	 * @param typeDefinition The named type definition to add.
-	 *
-	 * @throws DuplicateMappingException If a TypeDefinition already exists with that name.
-	 */
-	void addTypeDefinition(TypeDefinition typeDefinition);
-
-	/**
 	 * Adds a filter definition to this repository.
 	 *
 	 * @param definition The filter definition to add.
@@ -226,7 +215,7 @@ public interface InFlightMetadataCollector extends Mapping, MetadataImplementor 
 		addAttributeConverter(
 				new InstanceBasedConverterDescriptor(
 						converter.getAttributeConverter(),
-						getBootstrapContext().getClassmateContext()
+						getBootstrapContext()
 				)
 		);
 	}

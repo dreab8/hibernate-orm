@@ -259,7 +259,7 @@ public interface Type<T> extends Serializable {
 	 *
 	 * @return The comparison result.  See {@link java.util.Comparator#compare} for a discussion.
 	 */
-	int compare(Object x, Object y);
+	int compare(T x, T y);
 
 	/**
 	 * Should the parent be considered dirty, given both the old and current value?

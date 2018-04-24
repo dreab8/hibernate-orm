@@ -20,15 +20,15 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.dialect.PostgreSQL81Dialect;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
-import org.hibernate.type.CharacterArrayTypeImpl;
-import org.hibernate.type.CharacterNCharTypeImpl;
-import org.hibernate.type.CharacterTypeImpl;
-import org.hibernate.type.MaterializedClobTypeImpl;
-import org.hibernate.type.MaterializedNClobTypeImpl;
-import org.hibernate.type.NClobTypeImpl;
-import org.hibernate.type.NTextTypeImpl;
-import org.hibernate.type.StringNVarcharTypeImpl;
-import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.CharacterArrayType;
+import org.hibernate.type.CharacterNCharType;
+import org.hibernate.type.CharacterType;
+import org.hibernate.type.MaterializedClobType;
+import org.hibernate.type.MaterializedNClobType;
+import org.hibernate.type.NClobType;
+import org.hibernate.type.NTextType;
+import org.hibernate.type.StringNVarcharType;
+import org.hibernate.type.StringType;
 
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.Test;
@@ -83,39 +83,39 @@ public class SimpleNationalizedTest extends BaseUnitTestCase {
 			Property prop = pc.getProperty( "nvarcharAtt" );
 			if(metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ){
 				// See issue HHH-10693
-				assertSame( StringTypeImpl.INSTANCE, prop.getType() );
+				assertSame( StringType.INSTANCE, prop.getType() );
 			}else{
-				assertSame( StringNVarcharTypeImpl.INSTANCE, prop.getType() );
+				assertSame( StringNVarcharType.INSTANCE, prop.getType() );
 			}
 
 			prop = pc.getProperty( "materializedNclobAtt" );
 			if(metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ){
 				// See issue HHH-10693
-				assertSame( MaterializedClobTypeImpl.INSTANCE, prop.getType() );
+				assertSame( MaterializedClobType.INSTANCE, prop.getType() );
 			}else {
-				assertSame( MaterializedNClobTypeImpl.INSTANCE, prop.getType() );
+				assertSame( MaterializedNClobType.INSTANCE, prop.getType() );
 			}
 			prop = pc.getProperty( "nclobAtt" );
-			assertSame( NClobTypeImpl.INSTANCE, prop.getType() );
+			assertSame( NClobType.INSTANCE, prop.getType() );
 
 			prop = pc.getProperty( "nlongvarcharcharAtt" );
-			assertSame( NTextTypeImpl.INSTANCE, prop.getType() );
+			assertSame( NTextType.INSTANCE, prop.getType() );
 
 			prop = pc.getProperty( "ncharArrAtt" );
 			if(metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ){
 				// See issue HHH-10693
-				assertSame( CharacterArrayTypeImpl.INSTANCE, prop.getType() );
+				assertSame( CharacterArrayType.INSTANCE, prop.getType() );
 			}else {
-				assertSame( StringNVarcharTypeImpl.INSTANCE, prop.getType() );
+				assertSame( StringNVarcharType.INSTANCE, prop.getType() );
 			}
 
 			prop = pc.getProperty( "ncharacterAtt" );
 			if ( metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ) {
 				// See issue HHH-10693
-				assertSame( CharacterTypeImpl.INSTANCE, prop.getType() );
+				assertSame( CharacterType.INSTANCE, prop.getType() );
 			}
 			else {
-				assertSame( CharacterNCharTypeImpl.INSTANCE, prop.getType() );
+				assertSame( CharacterNCharType.INSTANCE, prop.getType() );
 			}
 		}
 		finally {

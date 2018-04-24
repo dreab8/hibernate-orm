@@ -33,7 +33,7 @@ import org.hibernate.persister.walking.spi.EntityDefinition;
 import org.hibernate.tuple.entity.EntityMetamodel;
 import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.type.Type;
-import org.hibernate.type.VersionType;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * Contract describing mapping information and persistence logic for a particular strategy of entity mapping.  A given
@@ -297,7 +297,7 @@ public interface EntityPersister extends EntityDefinition {
 	 *
 	 * @return The type of the version property; or null, if not versioned.
 	 */
-	VersionType getVersionType();
+	BasicType getVersionType();
 
 	/**
 	 * If {@link #isVersioned()}, then what is the index of the property

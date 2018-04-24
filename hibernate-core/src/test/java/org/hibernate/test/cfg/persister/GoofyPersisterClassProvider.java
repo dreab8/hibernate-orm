@@ -54,7 +54,7 @@ import org.hibernate.tuple.entity.EntityMetamodel;
 import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.Type;
-import org.hibernate.type.VersionType;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
@@ -224,7 +224,7 @@ public class GoofyPersisterClassProvider implements PersisterClassResolver {
 		}
 
 		@Override
-		public VersionType getVersionType() {
+		public BasicType getVersionType() {
 			return null;
 		}
 

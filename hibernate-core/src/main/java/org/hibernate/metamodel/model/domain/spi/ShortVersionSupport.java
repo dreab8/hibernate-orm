@@ -6,6 +6,8 @@
  */
 package org.hibernate.metamodel.model.domain.spi;
 
+import java.util.Comparator;
+
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.spi.StandardSpiBasicTypes;
@@ -37,5 +39,10 @@ public class ShortVersionSupport implements VersionSupport<Short> {
 	@Override
 	public boolean isEqual(Short x, Short y) throws HibernateException {
 		return StandardSpiBasicTypes.SHORT.areEqual( x, y );
+	}
+
+	@Override
+	public Comparator<Short> getComparator() {
+		return StandardSpiBasicTypes.SHORT.getJavaTypeDescriptor().getComparator();
 	}
 }

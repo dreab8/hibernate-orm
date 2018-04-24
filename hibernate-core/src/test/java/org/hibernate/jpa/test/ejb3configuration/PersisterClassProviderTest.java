@@ -53,7 +53,7 @@ import org.hibernate.tuple.entity.BytecodeEnhancementMetadataNonPojoImpl;
 import org.hibernate.tuple.entity.EntityMetamodel;
 import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.type.Type;
-import org.hibernate.type.VersionType;
+import org.hibernate.type.spi.BasicType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -251,7 +251,7 @@ public class PersisterClassProviderTest {
 		}
 
 		@Override
-		public VersionType getVersionType() {
+		public BasicType getVersionType() {
 			return null;
 		}
 

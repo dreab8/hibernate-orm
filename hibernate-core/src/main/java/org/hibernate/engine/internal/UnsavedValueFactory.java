@@ -13,11 +13,11 @@ import org.hibernate.InstantiationException;
 import org.hibernate.MappingException;
 import org.hibernate.engine.spi.IdentifierValue;
 import org.hibernate.engine.spi.VersionValue;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.property.access.spi.Getter;
 import org.hibernate.type.IdentifierType;
 import org.hibernate.type.PrimitiveType;
 import org.hibernate.type.Type;
-import org.hibernate.type.VersionType;
 
 /**
  * Helper for dealing with unsaved value handling
@@ -109,7 +109,7 @@ public class UnsavedValueFactory {
 	 *
 	 * @param versionUnsavedValue The mapping defined unsaved value
 	 * @param versionGetter The version attribute getter
-	 * @param versionType The mapping type for the version
+	 * @param versionSupport The mapping type for the version
 	 * @param constructor The constructor for the entity
 	 *
 	 * @return The appropriate VersionValue
@@ -117,7 +117,7 @@ public class UnsavedValueFactory {
 	public static VersionValue getUnsavedVersionValue(
 			String versionUnsavedValue, 
 			Getter versionGetter,
-			VersionType versionType,
+			VersionSupport versionSupport,
 			Constructor constructor) {
 		
 		if ( versionUnsavedValue == null ) {
@@ -125,7 +125,7 @@ public class UnsavedValueFactory {
 				final Object defaultValue = versionGetter.get( instantiate( constructor ) );
 				// if the version of a newly instantiated object is not the same
 				// as the version seed value, use that as the unsaved-value
-				return versionType.isEqual( versionType.seed( null ), defaultValue )
+				return versionSupport.isEqual( versionSupport.seed( null ), defaultValue )
 						? VersionValue.UNDEFINED
 						: new VersionValue( defaultValue );
 			}

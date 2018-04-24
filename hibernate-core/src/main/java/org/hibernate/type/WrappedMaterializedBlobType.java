@@ -1,0 +1,29 @@
+/*
+ * Hibernate, Relational Persistence for Idiomatic Java
+ *
+ * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
+ * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
+ */
+package org.hibernate.type;
+import org.hibernate.type.descriptor.java.internal.ByteArrayJavaDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BlobSqlDescriptor;
+import org.hibernate.type.internal.BasicTypeImpl;
+
+/**
+ * A type that maps JDBC {@link java.sql.Types#BLOB BLOB} and {@code Byte[]}.
+ * A type that maps an SQL BLOB to Java Byte[].
+ *
+ * @author Strong Liu
+ */
+public class WrappedMaterializedBlobType extends BasicTypeImpl<Byte[]> {
+	public static final WrappedMaterializedBlobType INSTANCE = new WrappedMaterializedBlobType();
+
+	public WrappedMaterializedBlobType() {
+		super( BlobSqlDescriptor.DEFAULT, ByteArrayJavaDescriptor.INSTANCE );
+	}
+
+	public String getName() {
+		// todo name these annotation types for addition to the registry
+		return null;
+	}
+}

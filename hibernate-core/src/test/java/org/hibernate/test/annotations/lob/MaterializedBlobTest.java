@@ -14,7 +14,7 @@ import org.hibernate.Session;
 import org.hibernate.testing.DialectChecks;
 import org.hibernate.testing.RequiresDialectFeature;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
-import org.hibernate.type.MaterializedBlobTypeImpl;
+import org.hibernate.type.MaterializedBlobType;
 import org.hibernate.type.Type;
 
 import static org.junit.Assert.assertEquals;
@@ -34,7 +34,7 @@ public class MaterializedBlobTest extends BaseCoreFunctionalTestCase {
 	public void testTypeSelection() {
 		int index = sessionFactory().getEntityPersister( MaterializedBlobEntity.class.getName() ).getEntityMetamodel().getPropertyIndex( "theBytes" );
 		Type  type = sessionFactory().getEntityPersister( MaterializedBlobEntity.class.getName() ).getEntityMetamodel().getProperties()[index].getType();
-		assertEquals( MaterializedBlobTypeImpl.INSTANCE, type );
+		assertEquals( MaterializedBlobType.INSTANCE, type );
 	}
 
 	@Test

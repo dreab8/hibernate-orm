@@ -11,19 +11,19 @@
  */
 @TypeDef(
 		name = "wrapped_char_text",
-		typeClass = CharacterArrayTextTypeImpl.class
+		typeClass = CharacterArrayTextType.class
 		)
 @TypeDef(
 		name = "char_text",
-		typeClass = PrimitiveCharacterArrayTextTypeImpl.class
+		typeClass = PrimitiveCharacterArrayTextType.class
 )
 @TypeDef(
 		name = "wrapped_image",
-		typeClass = WrappedImageTypeImpl.class
+		typeClass = WrappedImageType.class
 )
 @TypeDef(
 		name = "serializable_image",
-		typeClass = SerializableToImageTypeImpl.class
+		typeClass = SerializableToImageType.class
 )
 package org.hibernate.test.annotations.lob;
 

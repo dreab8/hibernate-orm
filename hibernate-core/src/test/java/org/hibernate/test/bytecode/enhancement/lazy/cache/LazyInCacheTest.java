@@ -93,7 +93,7 @@ public class LazyInCacheTest extends BaseCoreFunctionalTestCase {
         List<Tag> tags = new ArrayList<>();
 
         @Basic( fetch = FetchType.LAZY )
-        @Type( type = "org.hibernate.type.BinaryTypeImpl" )
+        @Type( type = "org.hibernate.type.BinaryType" )
         byte[] data;
     }
 

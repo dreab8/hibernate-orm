@@ -15,9 +15,9 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.mapping.PersistentClass;
-import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
-import org.hibernate.type.descriptor.converter.AttributeConverterTypeImplAdapter;
+import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
 
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.After;
@@ -58,7 +58,7 @@ public class SimpleXmlOverriddenTest extends BaseUnitTestCase {
 
 		PersistentClass pc = metadata.getEntityBinding( TheEntity.class.getName() );
 		Type type = pc.getProperty( "it" ).getType();
-		AttributeConverterTypeImplAdapter adapter = assertTyping( AttributeConverterTypeImplAdapter.class, type );
+		AttributeConverterTypeAdapter adapter = assertTyping( AttributeConverterTypeAdapter.class, type );
 		assertTrue( SillyStringConverter.class.isAssignableFrom( adapter.getAttributeConverter().getConverterJavaTypeDescriptor().getJavaType() ) );
 	}
 
@@ -75,7 +75,7 @@ public class SimpleXmlOverriddenTest extends BaseUnitTestCase {
 
 		PersistentClass pc = metadata.getEntityBinding( TheEntity.class.getName() );
 		Type type = pc.getProperty( "it" ).getType();
-		assertTyping( StringTypeImpl.class, type );
+		assertTyping( StringType.class, type );
 	}
 
 	/**
@@ -91,7 +91,7 @@ public class SimpleXmlOverriddenTest extends BaseUnitTestCase {
 
 		PersistentClass pc = metadata.getEntityBinding( TheEntity2.class.getName() );
 		Type type = pc.getProperty( "it" ).getType();
-		assertTyping( StringTypeImpl.class, type );
+		assertTyping( StringType.class, type );
 	}
 
 	@Entity(name="TheEntity")

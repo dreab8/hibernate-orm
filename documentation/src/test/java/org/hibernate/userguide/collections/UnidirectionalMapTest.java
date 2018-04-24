@@ -22,6 +22,7 @@ import javax.persistence.MapKey;
 import javax.persistence.MapKeyTemporal;
 import javax.persistence.OneToMany;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
 

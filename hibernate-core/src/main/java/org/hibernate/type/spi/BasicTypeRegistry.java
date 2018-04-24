@@ -12,12 +12,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Incubating;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 import org.hibernate.type.internal.BasicTypeImpl;
+import org.hibernate.usertype.CompositeUserType;
+import org.hibernate.usertype.UserType;
 
 /**
  * Registry for BasicType instances.  Lookup is primarily done by Java type
@@ -248,5 +251,13 @@ public class BasicTypeRegistry {
 		for ( String key : keys ) {
 			registry.put( key, type );
 		}
+	}
+
+	public void register(UserType type, String[] keys) {
+		throw new NotYetImplementedFor6Exception( "Registering UserType not yet supported" );
+	}
+
+	public void register(CompositeUserType type, String[] keys) {
+		throw new NotYetImplementedFor6Exception( "Registering CompositeUserType not yet supported" );
 	}
 }

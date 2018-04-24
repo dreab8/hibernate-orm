@@ -39,8 +39,8 @@ import org.hibernate.query.QueryParameter;
 import org.hibernate.query.spi.QueryParameterBinding;
 import org.hibernate.query.spi.QueryParameterBindings;
 import org.hibernate.query.spi.QueryParameterListBinding;
-import org.hibernate.type.SerializableTypeImpl;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 /**
  * Manages the group of QueryParameterBinding for a particular query.
@@ -265,10 +265,10 @@ public class QueryParameterBindingsImpl implements QueryParameterBindings {
 //
 //			if ( type == null ) {
 //				log.debugf(
-//						"Binding for positional-parameter [%s] did not define type, using SerializableTypeImpl",
+//						"Binding for positional-parameter [%s] did not define type, using SerializableType",
 //						entry.getKey().getPosition()
 //				);
-//				type = SerializableTypeImpl.INSTANCE;
+//				type = SerializableType.INSTANCE;
 //			}
 //
 //			types.add( type );
@@ -336,7 +336,7 @@ public class QueryParameterBindingsImpl implements QueryParameterBindings {
 			Type bindType = entry.getValue().getBindType();
 			if ( bindType == null ) {
 				log.debugf( "Binding for parameter [%s] did not define type", key );
-				bindType = SerializableTypeImpl.INSTANCE;
+				bindType = StandardSpiBasicTypes.SERIALIZABLE;
 			}
 
 			collectedBindings.put(

@@ -13,7 +13,7 @@ import javax.persistence.Id;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.userguide.collections.type.CommaDelimitedStringsTypeImpl;
+import org.hibernate.userguide.collections.type.CommaDelimitedStringsType;
 
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class BasicTypeCollectionTest extends BaseCoreFunctionalTestCase {
 	protected Configuration constructAndConfigureConfiguration() {
 		Configuration configuration = super.constructAndConfigureConfiguration();
 		configuration.registerTypeContributor( (typeContributions, serviceRegistry) -> {
-			typeContributions.contributeType( new CommaDelimitedStringsTypeImpl() );
+			typeContributions.contributeType( new CommaDelimitedStringsType(), "comma_delimited_strings" );
 		} );
 		return configuration;
 	}

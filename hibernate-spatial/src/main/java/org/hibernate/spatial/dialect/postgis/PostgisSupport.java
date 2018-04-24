@@ -11,9 +11,9 @@ import java.io.Serializable;
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.spatial.GeolatteGeometryJavaTypeDescriptor;
-import org.hibernate.spatial.GeolatteGeometryTypeImpl;
+import org.hibernate.spatial.GeolatteGeometryType;
 import org.hibernate.spatial.JTSGeometryJavaTypeDescriptor;
-import org.hibernate.spatial.JTSGeometryTypeImpl;
+import org.hibernate.spatial.JTSGeometryType;
 import org.hibernate.spatial.SpatialAggregate;
 import org.hibernate.spatial.SpatialDialect;
 import org.hibernate.spatial.SpatialFunction;
@@ -28,8 +28,8 @@ public class PostgisSupport implements SpatialDialect, Serializable {
 	private PostgisFunctions postgisFunctions = new PostgisFunctions();
 
 	void contributeTypes(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
-		typeContributions.contributeType( new GeolatteGeometryTypeImpl( PGGeometryTypeDescriptor.INSTANCE ) );
-		typeContributions.contributeType( new JTSGeometryTypeImpl( PGGeometryTypeDescriptor.INSTANCE ) );
+		typeContributions.contributeType( new GeolatteGeometryType( PGGeometryTypeDescriptor.INSTANCE ) );
+		typeContributions.contributeType( new JTSGeometryType( PGGeometryTypeDescriptor.INSTANCE ) );
 
 		typeContributions.contributeJavaTypeDescriptor( GeolatteGeometryJavaTypeDescriptor.INSTANCE );
 		typeContributions.contributeJavaTypeDescriptor( JTSGeometryJavaTypeDescriptor.INSTANCE );

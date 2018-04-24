@@ -25,7 +25,8 @@ import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.SessionFactoryRegistry;
 import org.hibernate.metamodel.internal.MetamodelImpl;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
-import org.hibernate.type.BasicTypeRegistry;
+import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.spi.BasicTypeRegistry;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeFactory;
 import org.hibernate.type.TypeResolver;
@@ -78,10 +79,10 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 		this.javaTypeDescriptorRegistry = new JavaTypeDescriptorRegistry( this );
 		this.sqlTypeDescriptorRegistry = new SqlTypeDescriptorRegistry( this );
 
-		this.basicTypeRegistry = new BasicTypeRegistry();
+		this.basicTypeRegistry = new BasicTypeRegistry(this);
 		this.typeFactory = new TypeFactory( this );
 		this.typeResolver = new TypeResolver( this, typeFactory );
-
+		StandardBasicTypes.prime( this );
 		TypeConfigurationRegistry.INSTANCE.registerTypeConfiguration( this );
 	}
 

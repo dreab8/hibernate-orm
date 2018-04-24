@@ -19,6 +19,7 @@ import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.mapping.KeyValue;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.property.access.spi.Getter;
 import org.hibernate.property.access.spi.PropertyAccess;
@@ -31,7 +32,7 @@ import org.hibernate.tuple.entity.VersionProperty;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.Type;
-import org.hibernate.type.VersionType;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * Responsible for generation of runtime metamodel {@link Property} representations.
@@ -103,10 +104,12 @@ public final class PropertyFactory {
 			boolean lazyAvailable) {
 		String mappedUnsavedValue = ( (KeyValue) property.getValue() ).getNullValue();
 
+		BasicType type = (BasicType) property.getType();
+		VersionSupport versionSupport = type.getJavaTypeDescriptor().getVersionSupport();
 		VersionValue unsavedValue = UnsavedValueFactory.getUnsavedVersionValue(
 				mappedUnsavedValue,
 				getGetter( property ),
-				(VersionType) property.getType(),
+				versionSupport,
 				getConstructor( property.getPersistentClass() )
 		);
 

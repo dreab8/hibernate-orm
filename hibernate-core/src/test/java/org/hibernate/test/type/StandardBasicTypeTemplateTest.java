@@ -9,7 +9,7 @@ package org.hibernate.test.type;
 import java.net.URL;
 
 import org.hibernate.type.spi.BasicType;
-import org.hibernate.type.StandardBasicTypeImplTemplate;
+import org.hibernate.type.StandardBasicTypeTemplate;
 import org.hibernate.type.descriptor.java.internal.UrlJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 import org.hibernate.type.spi.TypeConfiguration;
@@ -22,7 +22,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hibernate.testing.junit4.ExtraAssertions.assertTyping;
 
 /**
- * Test making sure StandardBasicTypeImplTemplate works
+ * Test making sure StandardBasicTypeTemplate works
  *
  * @author Steve Ebersole
  */
@@ -35,16 +35,16 @@ public class StandardBasicTypeTemplateTest extends BaseUnitTestCase {
 		TypeConfiguration typeConfiguration = new TypeConfiguration();
 		typeConfiguration.getJavaTypeDescriptorRegistry().addDescriptor( ValidatingUrlJavaJavaDescriptor.INSTANCE );
 		typeConfiguration.getBasicTypeRegistry().register(
-				new StandardBasicTypeImplTemplate<>(
+				new StandardBasicTypeTemplate<>(
 						VarcharSqlDescriptor.INSTANCE,
 						ValidatingUrlJavaJavaDescriptor.INSTANCE,
 						REG_KEY
 				)
 		);
 
-		final BasicType registeredType = typeConfiguration.getBasicTypeRegistry().getRegisteredType( REG_KEY );
+		final BasicType registeredType = typeConfiguration.getBasicTypeRegistry().getBasicType( REG_KEY );
 		assertThat( registeredType, notNullValue() );
-		assertTyping( StandardBasicTypeImplTemplate.class, registeredType );
+		assertTyping( StandardBasicTypeTemplate.class, registeredType );
 	}
 
 	private static class ValidatingUrlJavaJavaDescriptor extends UrlJavaDescriptor {

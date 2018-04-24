@@ -11,7 +11,8 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
-import org.hibernate.type.BinaryTypeImpl;
+
+import org.hibernate.type.BinaryType;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -47,11 +48,11 @@ public abstract class AbstractGeneratedPropertyTest extends BaseCoreFunctionalTe
 			s = openSession();
 			t = s.beginTransaction();
 			entity = ( GeneratedPropertyEntity ) s.get( GeneratedPropertyEntity.class, entity.getId() );
-			assertTrue( BinaryTypeImpl.INSTANCE.isEqual( bytes, entity.getLastModified() ) );
+			assertTrue( BinaryType.INSTANCE.isEqual( bytes, entity.getLastModified() ) );
 			t.commit();
 			s.close();
 
-			assertTrue( BinaryTypeImpl.INSTANCE.isEqual( bytes, entity.getLastModified() ) );
+			assertTrue( BinaryType.INSTANCE.isEqual( bytes, entity.getLastModified() ) );
 
 			s = openSession();
 			t = s.beginTransaction();

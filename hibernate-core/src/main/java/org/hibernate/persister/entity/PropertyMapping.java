@@ -28,18 +28,18 @@ public interface PropertyMapping {
 	/**
 	 * Given a component path expression, get the type of the property
 	 */
-	public Type toType(String propertyName) throws QueryException;
+	Type toType(String propertyName) throws QueryException;
 
 	/**
 	 * Obtain aliased column/formula fragments for the specified property path.
 	 */
-	public String[] toColumns(String alias, String propertyName) throws QueryException;
+	String[] toColumns(String alias, String propertyName) throws QueryException;
 	/**
 	 * Given a property path, return the corresponding column name(s).
 	 */
-	public String[] toColumns(String propertyName) throws QueryException, UnsupportedOperationException;
+	String[] toColumns(String propertyName) throws QueryException, UnsupportedOperationException;
 	/**
 	 * Get the type of the thing containing the properties
 	 */
-	public Type getType();
+	Type getType();
 }

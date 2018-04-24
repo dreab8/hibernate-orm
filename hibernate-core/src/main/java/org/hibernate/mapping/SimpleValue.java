@@ -20,12 +20,10 @@ import javax.persistence.AttributeConverter;
 import org.hibernate.FetchMode;
 import org.hibernate.MappingException;
 import org.hibernate.annotations.common.reflection.XProperty;
-import org.hibernate.boot.model.convert.internal.ClassBasedConverterDescriptor;
 import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.boot.model.convert.spi.JpaAttributeConverterCreationContext;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
-import org.hibernate.boot.spi.InFlightMetadataCollector;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.AvailableSettings;
@@ -44,10 +42,11 @@ import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.metamodel.model.convert.spi.JpaAttributeConverter;
 import org.hibernate.resource.beans.spi.ManagedBeanRegistry;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.BinaryTypeImpl;
-import org.hibernate.type.RowVersionTypeImpl;
+import org.hibernate.type.BinaryType;
+import org.hibernate.type.RowVersionType;
 import org.hibernate.type.Type;
-import org.hibernate.type.descriptor.converter.AttributeConverterTypeImplAdapter;
+import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.sql.spi.JdbcTypeNameMapper;
 import org.hibernate.type.descriptor.converter.AttributeConverterSqlTypeDescriptorAdapter;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
@@ -60,7 +59,7 @@ import org.hibernate.usertype.DynamicParameterizedType;
  * Any value that maps to columns.
  * @author Gavin King
  */
-public class SimpleValue implements KeyValue {
+public abstract class SimpleValue implements KeyValue {
 	private static final CoreMessageLogger log = CoreLogging.messageLogger( SimpleValue.class );
 
 	public static final String DEFAULT_ID_GEN_STRATEGY = "assigned";
@@ -119,6 +118,10 @@ public class SimpleValue implements KeyValue {
 
 	public MetadataImplementor getMetadata() {
 		return metadata;
+	}
+
+	public MetadataBuildingContext getMetadataBuildingContext() {
+		return buildingContext;
 	}
 
 	@Override
@@ -195,26 +198,6 @@ public class SimpleValue implements KeyValue {
 	}
 
 	public void setTypeName(String typeName) {
-		if ( typeName != null && typeName.startsWith( AttributeConverterTypeImplAdapter.NAME_PREFIX ) ) {
-			final String converterClassName = typeName.substring( AttributeConverterTypeImplAdapter.NAME_PREFIX.length() );
-			final ClassLoaderService cls = getMetadata()
-					.getMetadataBuildingOptions()
-					.getServiceRegistry()
-					.getService( ClassLoaderService.class );
-			try {
-				final Class<? extends AttributeConverter> converterClass = cls.classForName( converterClassName );
-				this.attributeConverterDescriptor = new ClassBasedConverterDescriptor(
-						converterClass,
-						false,
-						( (InFlightMetadataCollector) getMetadata() ).getClassmateContext()
-				);
-				return;
-			}
-			catch (Exception e) {
-				log.logBadHbmAttributeConverterType( typeName, e.getMessage() );
-			}
-		}
-
 		this.typeName = typeName;
 	}
 
@@ -225,6 +208,7 @@ public class SimpleValue implements KeyValue {
 	public boolean isVersion() {
 		return isVersion;
 	}
+
 	public void makeNationalized() {
 		this.isNationalized = true;
 	}
@@ -446,7 +430,8 @@ public class SimpleValue implements KeyValue {
 	}
 
 	public boolean isValid(Mapping mapping) throws MappingException {
-		return getColumnSpan()==getType().getColumnSpan(mapping);
+		Type type = getType();
+		return getColumnSpan() == type.getColumnSpan( mapping );
 	}
 
 	public Type getType() throws MappingException {
@@ -464,12 +449,12 @@ public class SimpleValue implements KeyValue {
 			createParameterImpl();
 		}
 
-		Type result = getMetadata().getTypeConfiguration().getTypeResolver().heuristicType( typeName, typeParameters );
-		// if this is a byte[] version/timestamp, then we need to use RowVersionTypeImpl
-		// instead of BinaryTypeImpl (HHH-10413)
-		if ( isVersion && BinaryTypeImpl.class.isInstance( result ) ) {
-			log.debug( "version is BinaryTypeImpl; changing to RowVersionTypeImpl" );
-			result = RowVersionTypeImpl.INSTANCE;
+		Type result = getMetadata().getTypeConfiguration().getBasicTypeRegistry().getBasicType( typeName );
+		// if this is a byte[] version/timestamp, then we need to use RowVersionType
+		// instead of BinaryType (HHH-10413)
+		if ( isVersion && BinaryType.class.isInstance( result ) ) {
+			log.debug( "version is BinaryType; changing to RowVersionType" );
+			result = RowVersionType.INSTANCE;
 		}
 		if ( result == null ) {
 			String msg = "Could not determine type for: " + typeName;
@@ -636,15 +621,15 @@ public class SimpleValue implements KeyValue {
 				jpaAttributeConverter.getRelationalJavaTypeDescriptor()
 		);
 
-		// todo : cache the AttributeConverterTypeImplAdapter in case that AttributeConverter is applied multiple times.
+		// todo : cache the AttributeConverterTypeAdapter in case that AttributeConverter is applied multiple times.
 
-		final String name = AttributeConverterTypeImplAdapter.NAME_PREFIX + jpaAttributeConverter.getConverterJavaTypeDescriptor().getJavaType().getName();
+		final String name = AttributeConverterTypeAdapter.NAME_PREFIX + jpaAttributeConverter.getConverterJavaTypeDescriptor().getJavaType().getName();
 		final String description = String.format(
 				"BasicType adapter for AttributeConverter<%s,%s>",
 				jpaAttributeConverter.getDomainJavaTypeDescriptor().getJavaType().getSimpleName(),
 				jpaAttributeConverter.getRelationalJavaTypeDescriptor().getJavaType().getSimpleName()
 		);
-		return new AttributeConverterTypeImplAdapter(
+		return new AttributeConverterTypeAdapter(
 				name,
 				description,
 				jpaAttributeConverter,
@@ -818,5 +803,10 @@ public class SimpleValue implements KeyValue {
 		public String[] getColumns() {
 			return columns;
 		}
+	}
+
+	public interface TypeDescriptorResolver {
+		SqlTypeDescriptor resolveSqlTypeDescriptor();
+		JavaTypeDescriptor resolveJavaTypeDescriptor();
 	}
 }

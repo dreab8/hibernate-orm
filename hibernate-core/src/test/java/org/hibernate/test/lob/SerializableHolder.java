@@ -8,13 +8,12 @@
 //$Id: $
 
 package org.hibernate.test.lob;
-import java.io.Serializable;
 
-import org.hibernate.type.SerializableTypeImpl;
+import java.io.Serializable;
 
 /**
  * An entity containing serializable data which is
- * mapped via the {@link SerializableTypeImpl}.
+ * mapped via the {@link org.hibernate.type.spi.StandardSpiBasicTypes#SERIALIZABLE}.
  *
  * @author Steve Ebersole
  */

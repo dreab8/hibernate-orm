@@ -17,7 +17,7 @@ import javax.persistence.Table;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
-import org.hibernate.type.OffsetDateTimeTypeImpl;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
@@ -95,7 +95,7 @@ public class OffsetDateTimeTest extends BaseNonConfigCoreFunctionalTestCase {
 		final Session s = openSession();
 		try {
 			Query query = s.createQuery( "from OffsetDateTimeEvent o where o.startDate = :date" );
-			query.setParameter( "date", startDate, OffsetDateTimeTypeImpl.INSTANCE );
+			query.setParameter( "date", startDate, StandardSpiBasicTypes.OFFSET_DATE_TIME );
 			List<OffsetDateTimeEvent> list = query.list();
 			assertThat( list.size(), is( 1 ) );
 		}
@@ -120,7 +120,9 @@ public class OffsetDateTimeTest extends BaseNonConfigCoreFunctionalTestCase {
 		try {
 			final OffsetDateTimeEvent offsetDateEvent = s.get( OffsetDateTimeEvent.class, 1L );
 			assertThat(
-					OffsetDateTimeTypeImpl.INSTANCE.getComparator().compare( offsetDateEvent.startDate, startdate ),
+					StandardSpiBasicTypes.OFFSET_DATE_TIME.getJavaTypeDescriptor()
+							.getComparator()
+							.compare( offsetDateEvent.startDate, startdate ),
 					is( 0 )
 			);
 		}

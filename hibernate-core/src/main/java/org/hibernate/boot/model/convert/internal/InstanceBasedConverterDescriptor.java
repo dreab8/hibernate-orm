@@ -8,8 +8,8 @@ package org.hibernate.boot.model.convert.internal;
 
 import javax.persistence.AttributeConverter;
 
-import org.hibernate.boot.internal.ClassmateContext;
 import org.hibernate.boot.model.convert.spi.JpaAttributeConverterCreationContext;
+import org.hibernate.boot.spi.BootstrapContext;
 import org.hibernate.resource.beans.spi.ManagedBean;
 import org.hibernate.resource.beans.spi.ProvidedInstanceManagedBeanImpl;
 
@@ -24,15 +24,15 @@ public class InstanceBasedConverterDescriptor extends AbstractConverterDescripto
 
 	public InstanceBasedConverterDescriptor(
 			AttributeConverter converterInstance,
-			ClassmateContext classmateContext) {
-		this( converterInstance, null, classmateContext );
+			BootstrapContext context) {
+		this( converterInstance, null, context );
 	}
 
 	public InstanceBasedConverterDescriptor(
 			AttributeConverter converterInstance,
 			Boolean forceAutoApply,
-			ClassmateContext classmateContext) {
-		super( converterInstance.getClass(), forceAutoApply, classmateContext );
+			BootstrapContext context) {
+		super( converterInstance.getClass(), forceAutoApply, context );
 		this.converterInstance = converterInstance;
 	}
 

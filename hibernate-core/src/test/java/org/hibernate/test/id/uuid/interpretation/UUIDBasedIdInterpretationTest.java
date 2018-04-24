@@ -25,16 +25,19 @@ import org.hibernate.dialect.MySQL5Dialect;
 import org.hibernate.dialect.PostgreSQL94Dialect;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.tool.schema.Action;
-import org.hibernate.type.PostgresUUIDTypeImpl;
-import org.hibernate.type.Type;
-import org.hibernate.type.UUIDBinaryTypeImpl;
+import org.hibernate.type.PostgresUUIDType;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.UUIDJavaDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.testing.RequiresDialect;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.Test;
 
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -43,11 +46,15 @@ import static org.junit.Assert.assertThat;
 public class UUIDBasedIdInterpretationTest extends BaseUnitTestCase {
 
 	@Test
-	@TestForIssue( jiraKey = "HHH-10564")
+	@TestForIssue(jiraKey = "HHH-10564")
 	public void testH2() {
 		StandardServiceRegistry ssr = buildStandardServiceRegistry( H2Dialect.class );
 		try {
-			checkUuidTypeUsed( ssr, UUIDBinaryTypeImpl.class );
+			checkUuidTypeUsed(
+					ssr,
+					StandardSpiBasicTypes.UUID_BINARY.getJavaTypeDescriptor(),
+					StandardSpiBasicTypes.UUID_BINARY.getSqlTypeDescriptor()
+			);
 		}
 		finally {
 			StandardServiceRegistryBuilder.destroy( ssr );
@@ -58,7 +65,9 @@ public class UUIDBasedIdInterpretationTest extends BaseUnitTestCase {
 		return buildStandardServiceRegistry( dialectClass, false );
 	}
 
-	private StandardServiceRegistry buildStandardServiceRegistry(Class<? extends Dialect> dialectClass, boolean exportSchema) {
+	private StandardServiceRegistry buildStandardServiceRegistry(
+			Class<? extends Dialect> dialectClass,
+			boolean exportSchema) {
 		final StandardServiceRegistryBuilder ssrb = new StandardServiceRegistryBuilder();
 		ssrb.applySetting( AvailableSettings.DIALECT, dialectClass );
 		if ( exportSchema ) {
@@ -67,21 +76,29 @@ public class UUIDBasedIdInterpretationTest extends BaseUnitTestCase {
 		return ssrb.build();
 	}
 
-	private void checkUuidTypeUsed(StandardServiceRegistry ssr, Class<? extends Type> uuidTypeClass) {
+	private void checkUuidTypeUsed(
+			StandardServiceRegistry ssr,
+			JavaTypeDescriptor javaTypeDescriptor,
+			SqlTypeDescriptor sqlTypeDescriptor) {
 		final Metadata metadata = new MetadataSources( ssr )
 				.addAnnotatedClass( UuidIdEntity.class )
 				.buildMetadata();
 		final PersistentClass entityBinding = metadata.getEntityBinding( UuidIdEntity.class.getName() );
-		final Type idPropertyType = entityBinding.getIdentifier().getType();
-		assertThat( idPropertyType, instanceOf( uuidTypeClass ) );
+		final BasicType idPropertyType = (BasicType) entityBinding.getIdentifier().getType();
+		assertThat( idPropertyType.getJavaTypeDescriptor(), is( javaTypeDescriptor ) );
+		assertThat( idPropertyType.getSqlTypeDescriptor(), is( sqlTypeDescriptor ) );
 	}
 
 	@Test
-	@TestForIssue( jiraKey = "HHH-10564")
+	@TestForIssue(jiraKey = "HHH-10564")
 	public void testMySQL() {
 		StandardServiceRegistry ssr = buildStandardServiceRegistry( MySQL5Dialect.class );
 		try {
-			checkUuidTypeUsed( ssr, UUIDBinaryTypeImpl.class );
+			checkUuidTypeUsed(
+					ssr,
+					StandardSpiBasicTypes.UUID_BINARY.getJavaTypeDescriptor(),
+					StandardSpiBasicTypes.UUID_BINARY.getSqlTypeDescriptor()
+			);
 		}
 		finally {
 			StandardServiceRegistryBuilder.destroy( ssr );
@@ -89,11 +106,15 @@ public class UUIDBasedIdInterpretationTest extends BaseUnitTestCase {
 	}
 
 	@Test
-	@TestForIssue( jiraKey = "HHH-10564")
+	@TestForIssue(jiraKey = "HHH-10564")
 	public void testPostgreSQL() {
 		StandardServiceRegistry ssr = buildStandardServiceRegistry( PostgreSQL94Dialect.class );
 		try {
-			checkUuidTypeUsed( ssr, PostgresUUIDTypeImpl.class );
+			checkUuidTypeUsed(
+					ssr,
+					UUIDJavaDescriptor.INSTANCE,
+					PostgresUUIDType.PostgresUUIDSqlTypeDescriptor.INSTANCE
+			);
 		}
 		finally {
 			StandardServiceRegistryBuilder.destroy( ssr );
@@ -101,7 +122,7 @@ public class UUIDBasedIdInterpretationTest extends BaseUnitTestCase {
 	}
 
 	@Test
-	@TestForIssue( jiraKey = "HHH-10564")
+	@TestForIssue(jiraKey = "HHH-10564")
 	@RequiresDialect(H2Dialect.class)
 	public void testBinaryRuntimeUsage() {
 		StandardServiceRegistry ssr = buildStandardServiceRegistry( H2Dialect.class, true );

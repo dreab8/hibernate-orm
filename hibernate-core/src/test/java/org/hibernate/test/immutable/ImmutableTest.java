@@ -20,7 +20,7 @@ import org.hibernate.dialect.Oracle8iDialect;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 
-import org.hibernate.type.TextTypeImpl;
+import org.hibernate.type.TextType;
 import org.hibernate.type.internal.BasicTypeImpl;
 import org.hibernate.type.descriptor.sql.spi.ClobSqlDescriptor;
 
@@ -36,20 +36,20 @@ import static org.junit.Assert.fail;
  * @author Gavin King
  */
 public class ImmutableTest extends BaseCoreFunctionalTestCase {
-	private static class TextAsMaterializedClobTypeImpl extends BasicTypeImpl<String> {
-		public final static TextAsMaterializedClobTypeImpl INSTANCE = new TextAsMaterializedClobTypeImpl();
-		public TextAsMaterializedClobTypeImpl() {
-			super( ClobSqlDescriptor.DEFAULT, TextTypeImpl.INSTANCE.getJavaTypeDescriptor() );
+	private static class TextAsMaterializedClobType extends BasicTypeImpl<String> {
+		public final static TextAsMaterializedClobType INSTANCE = new TextAsMaterializedClobType();
+		public TextAsMaterializedClobType() {
+			super( ClobSqlDescriptor.DEFAULT, TextType.INSTANCE.getJavaTypeDescriptor() );
 		}
 		public String getName() {
-			return TextTypeImpl.INSTANCE.getName();
+			return TextType.INSTANCE.getName();
 		}
 	}
 
 	@Override
 	public void configure(Configuration cfg) {
 		if ( Oracle8iDialect.class.isInstance( getDialect() ) ) {
-			cfg.registerTypeOverride( TextAsMaterializedClobTypeImpl.INSTANCE );
+			cfg.registerTypeOverride( TextAsMaterializedClobType.INSTANCE );
 		}
 		cfg.setProperty( Environment.GENERATE_STATISTICS, "true");
 		cfg.setProperty( Environment.STATEMENT_BATCH_SIZE, "0" );

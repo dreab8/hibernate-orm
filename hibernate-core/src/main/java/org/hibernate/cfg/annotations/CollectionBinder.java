@@ -1536,8 +1536,10 @@ public abstract class CollectionBinder {
 			else {
 				holder.prepare( property );
 
-				SimpleValueBinder elementBinder = new SimpleValueBinder();
-				elementBinder.setBuildingContext( buildingContext );
+				BasicValueBinder elementBinder = new BasicValueBinder(
+						BasicValueBinder.Kind.COLLECTION_ELEMENT,
+						buildingContext
+				);
 				elementBinder.setReturnedClassName( collType.getName() );
 				if ( elementColumns == null || elementColumns.length == 0 ) {
 					elementColumns = new Ejb3Column[1];
@@ -1565,7 +1567,6 @@ public abstract class CollectionBinder {
 						holder.resolveElementAttributeConverterDescriptor( property, elementClass )
 				);
 				elementBinder.setPersistentClassName( propertyHolder.getEntityName() );
-				elementBinder.setAccessType( accessType );
 				collValue.setElement( elementBinder.make() );
 				String orderBy = adjustUserSuppliedValueCollectionOrderingFragment( hqlOrderBy );
 				if ( orderBy != null ) {

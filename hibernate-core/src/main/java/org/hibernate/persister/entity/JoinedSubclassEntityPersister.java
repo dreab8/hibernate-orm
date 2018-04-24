@@ -38,9 +38,10 @@ import org.hibernate.sql.CaseFragment;
 import org.hibernate.sql.InFragment;
 import org.hibernate.sql.Insert;
 import org.hibernate.sql.SelectFragment;
-import org.hibernate.type.DiscriminatorType;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.BasicType;
+
 import org.jboss.logging.Logger;
 
 import java.io.Serializable;
@@ -115,7 +116,7 @@ public class JoinedSubclassEntityPersister extends AbstractEntityPersister {
 
 	private final Object discriminatorValue;
 	private final String discriminatorSQLString;
-	private final DiscriminatorType discriminatorType;
+	private final BasicType discriminatorType;
 	private final String explicitDiscriminatorColumnName;
 	private final String discriminatorAlias;
 
@@ -154,7 +155,7 @@ public class JoinedSubclassEntityPersister extends AbstractEntityPersister {
 					explicitDiscriminatorColumnName = column.getQuotedName( factory.getDialect() );
 					discriminatorAlias = column.getAlias( factory.getDialect(), persistentClass.getRootTable() );
 				}
-				discriminatorType = (DiscriminatorType) persistentClass.getDiscriminator().getType();
+				discriminatorType = (BasicType) persistentClass.getDiscriminator().getType();
 				if ( persistentClass.isDiscriminatorValueNull() ) {
 					discriminatorValue = NULL_DISCRIMINATOR;
 					discriminatorSQLString = InFragment.NULL;
@@ -165,8 +166,8 @@ public class JoinedSubclassEntityPersister extends AbstractEntityPersister {
 				}
 				else {
 					try {
-						discriminatorValue = discriminatorType.stringToObject( persistentClass.getDiscriminatorValue() );
-						discriminatorSQLString = discriminatorType.objectToSQLString( discriminatorValue, factory.getDialect() );
+						discriminatorValue = discriminatorType.getJavaTypeDescriptor().fromString( persistentClass.getDiscriminatorValue() );
+						discriminatorSQLString = discriminatorType.getJavaTypeDescriptor().toString( discriminatorValue );
 					}
 					catch (ClassCastException cce) {
 						throw new MappingException("Illegal discriminator type: " + discriminatorType.getName() );
@@ -179,7 +180,7 @@ public class JoinedSubclassEntityPersister extends AbstractEntityPersister {
 			else {
 				explicitDiscriminatorColumnName = null;
 				discriminatorAlias = IMPLICIT_DISCRIMINATOR_ALIAS;
-				discriminatorType = StandardBasicTypes.INTEGER;
+				discriminatorType = (BasicType) StandardBasicTypes.INTEGER;
 				try {
 					discriminatorValue = persistentClass.getSubclassId();
 					discriminatorSQLString = discriminatorValue.toString();
@@ -192,7 +193,7 @@ public class JoinedSubclassEntityPersister extends AbstractEntityPersister {
 		else {
 			explicitDiscriminatorColumnName = null;
 			discriminatorAlias = IMPLICIT_DISCRIMINATOR_ALIAS;
-			discriminatorType = StandardBasicTypes.INTEGER;
+			discriminatorType = (BasicType) StandardBasicTypes.INTEGER;
 			discriminatorValue = null;
 			discriminatorSQLString = null;
 		}
@@ -522,7 +523,7 @@ public class JoinedSubclassEntityPersister extends AbstractEntityPersister {
 						}
 						else {
 							try {
-								discriminatorValue = discriminatorType.stringToObject( sc.getDiscriminatorValue() );
+								discriminatorValue = discriminatorType.getJavaTypeDescriptor().fromString( sc.getDiscriminatorValue() );
 							}
 							catch (ClassCastException cce) {
 								throw new MappingException( "Illegal discriminator type: " + discriminatorType.getName() );

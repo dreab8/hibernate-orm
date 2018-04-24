@@ -86,6 +86,7 @@ import org.hibernate.boot.model.source.spi.Sortable;
 import org.hibernate.boot.model.source.spi.TableSource;
 import org.hibernate.boot.model.source.spi.TableSpecificationSource;
 import org.hibernate.boot.model.source.spi.VersionAttributeSource;
+import org.hibernate.boot.model.type.internal.BasicTypeResolverExplicitNamedImpl;
 import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
 import org.hibernate.boot.spi.InFlightMetadataCollector;
 import org.hibernate.boot.spi.InFlightMetadataCollector.EntityTableXref;
@@ -110,6 +111,7 @@ import org.hibernate.mapping.Array;
 import org.hibernate.mapping.AttributeContainer;
 import org.hibernate.mapping.Backref;
 import org.hibernate.mapping.Bag;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.Component;
@@ -140,13 +142,12 @@ import org.hibernate.mapping.UniqueKey;
 import org.hibernate.mapping.Value;
 import org.hibernate.tuple.GeneratedValueGeneration;
 import org.hibernate.tuple.GenerationTiming;
-import org.hibernate.type.BlobTypeImpl;
-import org.hibernate.type.ClobTypeImpl;
+import org.hibernate.type.BlobType;
+import org.hibernate.type.ClobType;
 import org.hibernate.type.internal.BasicTypeImpl;
 import org.hibernate.type.spi.BasicType;
-import org.hibernate.type.DiscriminatorType;
 import org.hibernate.type.ForeignKeyDirection;
-import org.hibernate.type.NClobTypeImpl;
+import org.hibernate.type.NClobType;
 import org.hibernate.type.TypeResolver;
 
 /**
@@ -702,7 +703,7 @@ public class ModelBinder {
 			RootClass rootEntityDescriptor) {
 		final IdentifierSourceSimple idSource = (IdentifierSourceSimple) hierarchySource.getIdentifierSource();
 
-		final SimpleValue idValue = new SimpleValue(
+		final BasicValue idValue = new BasicValue(
 				sourceDocument,
 				rootEntityDescriptor.getTable()
 		);
@@ -997,7 +998,7 @@ public class ModelBinder {
 			RootClass rootEntityDescriptor) {
 		final VersionAttributeSource versionAttributeSource = hierarchySource.getVersionAttributeSource();
 
-		final SimpleValue versionValue = new SimpleValue(
+		final BasicValue versionValue = new BasicValue(
 				sourceDocument,
 				rootEntityDescriptor.getTable()
 		);
@@ -1059,7 +1060,7 @@ public class ModelBinder {
 			MappingDocument sourceDocument,
 			final EntityHierarchySourceImpl hierarchySource,
 			RootClass rootEntityDescriptor) {
-		final SimpleValue discriminatorValue = new SimpleValue(
+		final BasicValue discriminatorValue = new BasicValue(
 				sourceDocument,
 				rootEntityDescriptor.getTable()
 		);
@@ -1161,7 +1162,7 @@ public class ModelBinder {
 					final Property attribute = createBasicAttribute(
 							mappingDocument,
 							basicAttributeSource,
-							new SimpleValue( mappingDocument, table ),
+							new BasicValue( mappingDocument, table ),
 							entityDescriptor.getClassName()
 					);
 
@@ -1889,7 +1890,7 @@ public class ModelBinder {
 	private Property createBasicAttribute(
 			MappingDocument sourceDocument,
 			final SingularAttributeSourceBasic attributeSource,
-			SimpleValue value,
+			BasicValue value,
 			String containingClassName) {
 		final String attributeName = attributeSource.getName();
 
@@ -1984,14 +1985,14 @@ public class ModelBinder {
 
 	private static boolean isLob(Integer sqlType, String sqlTypeName) {
 		if ( sqlType != null ) {
-			return ClobTypeImpl.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType ||
-					BlobTypeImpl.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType ||
-					NClobTypeImpl.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType;
+			return ClobType.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType ||
+					BlobType.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType ||
+					NClobType.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType;
 		}
 		else if ( sqlTypeName != null ) {
-			return ClobTypeImpl.INSTANCE.getName().equalsIgnoreCase( sqlTypeName ) ||
-					BlobTypeImpl.INSTANCE.getName().equalsIgnoreCase( sqlTypeName ) ||
-					NClobTypeImpl.INSTANCE.getName().equalsIgnoreCase( sqlTypeName );
+			return ClobType.INSTANCE.getName().equalsIgnoreCase( sqlTypeName ) ||
+					BlobType.INSTANCE.getName().equalsIgnoreCase( sqlTypeName ) ||
+					NClobType.INSTANCE.getName().equalsIgnoreCase( sqlTypeName );
 		}
 		return false;
 	}
@@ -2357,14 +2358,12 @@ public class ModelBinder {
 		if ( discriminatorTypeResolution != null ) {
 			anyBinding.setMetaType( discriminatorTypeResolution.typeName );
 			try {
-				final DiscriminatorType metaType = (DiscriminatorType) sourceDocument.getMetadataCollector()
-						.getTypeResolver()
-						.heuristicType( discriminatorTypeResolution.typeName );
-
+				final BasicType metaType = sourceDocument.getMetadataCollector()
+						.getTypeConfiguration().getBasicTypeRegistry().getBasicType( discriminatorTypeResolution.typeName );
 				final HashMap anyValueBindingMap = new HashMap();
 				for ( Map.Entry<String,String> discriminatorValueMappings : anyMapping.getDiscriminatorSource().getValueMappings().entrySet() ) {
 					try {
-						final Object discriminatorValue = metaType.stringToObject( discriminatorValueMappings.getKey() );
+						final Object discriminatorValue = metaType.getJavaTypeDescriptor().fromString( discriminatorValueMappings.getKey() );
 						final String mappedEntityName = sourceDocument.qualifyClassName( discriminatorValueMappings.getValue() );
 
 						//noinspection unchecked
@@ -2726,7 +2725,7 @@ public class ModelBinder {
 				attribute = createBasicAttribute(
 						sourceDocument,
 						(SingularAttributeSourceBasic) attributeSource,
-						new SimpleValue( sourceDocument, component.getTable() ),
+						new BasicValue( sourceDocument, component.getTable() ),
 						component.getComponentClassName()
 				);
 			}
@@ -2789,22 +2788,20 @@ public class ModelBinder {
 			MappingDocument mappingDocument,
 			HibernateTypeSource typeSource,
 			SimpleValue simpleValue) {
-		if ( mappingDocument.getBuildingOptions().useNationalizedCharacterData() ) {
-			simpleValue.makeNationalized();
-		}
+		if ( simpleValue instanceof BasicValue ) {
+			BasicValue basicValue = BasicValue.class.cast( simpleValue );
+			if ( mappingDocument.getBuildingOptions().useNationalizedCharacterData() ) {
+				basicValue.makeNationalized();
+			}
 
-		final TypeResolution typeResolution = resolveType( mappingDocument, typeSource );
-		if ( typeResolution == null ) {
-			// no explicit type info was found
-			return;
-		}
-
-		if ( CollectionHelper.isNotEmpty( typeResolution.parameters ) ) {
-			simpleValue.setTypeParameters( typeResolution.parameters );
-		}
-
-		if ( typeResolution.typeName != null ) {
-			simpleValue.setTypeName( typeResolution.typeName );
+			if ( !StringHelper.isEmpty( typeSource.getName() ) ) {
+				basicValue.setBasicTypeResolver(
+						new BasicTypeResolverExplicitNamedImpl(
+								mappingDocument,
+								typeSource.getName()
+						)
+				);
+			}
 		}
 	}
 
@@ -3030,8 +3027,6 @@ public class ModelBinder {
 	private void registerSecondPass(SecondPass secondPass, MetadataBuildingContext context) {
 		context.getMetadataCollector().addSecondPass( secondPass );
 	}
-
-
 
 	public static final class DelayedPropertyReferenceHandlerImpl implements InFlightMetadataCollector.DelayedPropertyReferenceHandler {
 		public final String referencedEntityName;
@@ -3348,7 +3343,7 @@ public class ModelBinder {
 			final CollectionIdSource idSource = getPluralAttributeSource().getCollectionIdSource();
 			if ( idSource != null ) {
 				final IdentifierCollection idBagBinding = (IdentifierCollection) getCollectionBinding();
-				final SimpleValue idBinding = new SimpleValue(
+				final BasicValue idBinding = new BasicValue(
 						mappingDocument,
 						idBagBinding.getCollectionTable()
 				);
@@ -3390,7 +3385,7 @@ public class ModelBinder {
 			if ( getPluralAttributeSource().getElementSource() instanceof PluralAttributeElementSourceBasic ) {
 				final PluralAttributeElementSourceBasic elementSource =
 						(PluralAttributeElementSourceBasic) getPluralAttributeSource().getElementSource();
-				final SimpleValue elementBinding = new SimpleValue(
+				final BasicValue elementBinding = new BasicValue(
 						getMappingDocument(),
 						getCollectionBinding().getCollectionTable()
 				);
@@ -3800,10 +3795,7 @@ public class ModelBinder {
 		final PluralAttributeSequentialIndexSource indexSource =
 				(PluralAttributeSequentialIndexSource) attributeSource.getIndexSource();
 
-		final SimpleValue indexBinding = new SimpleValue(
-				mappingDocument,
-				collectionBinding.getCollectionTable()
-		);
+		final BasicValue indexBinding = new BasicValue( mappingDocument, collectionBinding.getCollectionTable() );
 
 		bindSimpleValueType(
 				mappingDocument,
@@ -3847,15 +3839,13 @@ public class ModelBinder {
 		if ( pluralAttributeSource.getIndexSource() instanceof PluralAttributeMapKeySourceBasic ) {
 			final PluralAttributeMapKeySourceBasic mapKeySource =
 					(PluralAttributeMapKeySourceBasic) pluralAttributeSource.getIndexSource();
-			final SimpleValue value = new SimpleValue(
-					mappingDocument,
-					collectionBinding.getCollectionTable()
-			);
+			final BasicValue value = new BasicValue( mappingDocument, collectionBinding.getCollectionTable() );
 			bindSimpleValueType(
 					mappingDocument,
 					mapKeySource.getTypeInformation(),
 					value
 			);
+
 			if ( !value.isTypeSpecified() ) {
 				throw new MappingException(
 						"map index element must specify a type: "

@@ -7,6 +7,7 @@
 package org.hibernate.metamodel.model.domain.spi;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -37,5 +38,10 @@ public class LocalDateTimeVersionSupport implements VersionSupport<LocalDateTime
 	@Override
 	public boolean isEqual(LocalDateTime x, LocalDateTime y) throws HibernateException {
 		return StandardSpiBasicTypes.LOCAL_DATE_TIME.areEqual( x, y );
+	}
+
+	@Override
+	public Comparator<LocalDateTime> getComparator() {
+		return StandardSpiBasicTypes.LOCAL_DATE_TIME.getJavaTypeDescriptor().getComparator();
 	}
 }

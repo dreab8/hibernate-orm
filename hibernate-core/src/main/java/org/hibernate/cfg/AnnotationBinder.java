@@ -129,6 +129,7 @@ import org.hibernate.annotations.common.reflection.XProperty;
 import org.hibernate.boot.model.IdGeneratorStrategyInterpreter;
 import org.hibernate.boot.model.IdentifierGeneratorDefinition;
 import org.hibernate.boot.model.TypeDefinition;
+import org.hibernate.boot.model.type.internal.BasicTypeResolverExplicitNamedImpl;
 import org.hibernate.boot.spi.InFlightMetadataCollector;
 import org.hibernate.boot.spi.InFlightMetadataCollector.EntityTableXref;
 import org.hibernate.boot.spi.MetadataBuildingContext;
@@ -140,7 +141,6 @@ import org.hibernate.cfg.annotations.MapKeyJoinColumnDelegator;
 import org.hibernate.cfg.annotations.Nullability;
 import org.hibernate.cfg.annotations.PropertyBinder;
 import org.hibernate.cfg.annotations.QueryBinder;
-import org.hibernate.cfg.annotations.SimpleValueBinder;
 import org.hibernate.cfg.annotations.TableBinder;
 import org.hibernate.engine.OptimisticLockStyle;
 import org.hibernate.engine.spi.FilterDefinition;
@@ -149,6 +149,7 @@ import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.loader.PropertyPath;
 import org.hibernate.mapping.Any;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.Component;
 import org.hibernate.mapping.Constraint;
 import org.hibernate.mapping.DependantValue;
@@ -532,7 +533,8 @@ public final class AnnotationBinder {
 
 		//TODO: be more strict with secondarytable allowance (not for ids, not for secondary table join columns etc)
 		InheritanceState inheritanceState = inheritanceStatePerClass.get( clazzToProcess );
-		AnnotatedClassType classType = context.getMetadataCollector().getClassType( clazzToProcess );
+		final InFlightMetadataCollector metadataCollector = context.getMetadataCollector();
+		AnnotatedClassType classType = metadataCollector.getClassType( clazzToProcess );
 
 		//Queries declared in MappedSuperclass should be usable in Subclasses
 		if ( AnnotatedClassType.EMBEDDABLE_SUPERCLASS.equals( classType ) ) {
@@ -633,7 +635,7 @@ public final class AnnotationBinder {
 					: checkAnn.constraints();
 
 			EntityTableXref denormalizedTableXref = inheritanceState.hasDenormalizedTable()
-					? context.getMetadataCollector().getEntityTableXref( superEntity.getEntityName() )
+					? metadataCollector.getEntityTableXref( superEntity.getEntityName() )
 					: null;
 
 			entityBinder.bindTable(
@@ -653,7 +655,7 @@ public final class AnnotationBinder {
 			if ( inheritanceState.getType() == InheritanceType.SINGLE_TABLE ) {
 				// we at least need to properly set up the EntityTableXref
 				entityBinder.bindTableForDiscriminatedSubclass(
-						context.getMetadataCollector().getEntityTableXref( superEntity.getEntityName() )
+						metadataCollector.getEntityTableXref( superEntity.getEntityName() )
 				);
 			}
 		}
@@ -1313,13 +1315,13 @@ public final class AnnotationBinder {
 		Filters filtersAnn = annotatedElement.getAnnotation( Filters.class );
 		if ( filtersAnn != null ) {
 			for ( Filter filter : filtersAnn.value() ) {
-				entityBinder.addFilter(filter);
+				entityBinder.addFilter( filter );
 			}
 		}
 
 		Filter filterAnn = annotatedElement.getAnnotation( Filter.class );
 		if ( filterAnn != null ) {
-			entityBinder.addFilter(filterAnn);
+			entityBinder.addFilter( filterAnn );
 		}
 	}
 
@@ -1339,7 +1341,13 @@ public final class AnnotationBinder {
 	private static void bindFilterDef(FilterDef defAnn, MetadataBuildingContext context) {
 		Map<String, org.hibernate.type.Type> params = new HashMap<>();
 		for ( ParamDef param : defAnn.parameters() ) {
-			params.put( param.name(), context.getMetadataCollector().getTypeResolver().heuristicType( param.type() ) );
+			params.put(
+					param.name(),
+					context.getMetadataCollector()
+							.getTypeConfiguration()
+							.getBasicTypeRegistry()
+							.getBasicType( param.type() )
+			);
 		}
 		FilterDefinition def = new FilterDefinition( defAnn.name(), defAnn.defaultCondition(), params );
 		LOG.debugf( "Binding filter definition: %s", def.getFilterName() );
@@ -1377,12 +1385,13 @@ public final class AnnotationBinder {
 			if ( LOG.isDebugEnabled() ) {
 				LOG.debugf( typeBindMessageF, defAnn.name() );
 			}
-			context.getMetadataCollector().addTypeDefinition(
+			context.addTypeDefinition(
 					new TypeDefinition(
 							defAnn.name(),
 							defAnn.typeClass(),
 							null,
-							params
+							params,
+							context.getBootstrapContext().getTypeConfiguration()
 					)
 			);
 		}
@@ -1391,12 +1400,13 @@ public final class AnnotationBinder {
 			if ( LOG.isDebugEnabled() ) {
 				LOG.debugf( typeBindMessageF, defAnn.defaultForType().getName() );
 			}
-			context.getMetadataCollector().addTypeDefinition(
+			context.addTypeDefinition(
 					new TypeDefinition(
 							defAnn.defaultForType().getName(),
 							defAnn.typeClass(),
-							new String[]{ defAnn.defaultForType().getName() },
-							params
+							new String[] { defAnn.defaultForType().getName() },
+							params,
+							context.getBootstrapContext().getTypeConfiguration()
 					)
 			);
 		}
@@ -1433,7 +1443,6 @@ public final class AnnotationBinder {
 		}
 	}
 
-
 	private static void bindDiscriminatorColumnToRootPersistentClass(
 			RootClass rootClass,
 			Ejb3DiscriminatorColumn discriminatorColumn,
@@ -1446,7 +1455,11 @@ public final class AnnotationBinder {
 			}
 			discriminatorColumn.setJoins( secondaryTables );
 			discriminatorColumn.setPropertyHolder( propertyHolder );
-			SimpleValue discriminatorColumnBinding = new SimpleValue( context, rootClass.getTable() );
+			BasicValue discriminatorColumnBinding = new BasicValue( context, rootClass.getTable() );
+			discriminatorColumnBinding.setBasicTypeResolver( new BasicTypeResolverExplicitNamedImpl(
+					context,
+					discriminatorColumn.getDiscriminatorTypeName()
+			) );
 			rootClass.setDiscriminator( discriminatorColumnBinding );
 			discriminatorColumn.linkWithValue( discriminatorColumnBinding );
 			discriminatorColumnBinding.setTypeName( discriminatorColumn.getDiscriminatorTypeName() );
@@ -1462,7 +1475,7 @@ public final class AnnotationBinder {
 	 * @param propertyContainer Metadata about a class and its properties
 	 *
 	 * @return the number of id properties found while iterating the elements of {@code annotatedClass} using
-	 *         the determined access strategy, {@code false} otherwise.
+	 * the determined access strategy, {@code false} otherwise.
 	 */
 	static int addElementsOfClass(
 			List<PropertyData> elements,
@@ -1531,8 +1544,8 @@ public final class AnnotationBinder {
 							 */
 							boolean isRequiredAnnotationPresent = false;
 							JoinColumns groupAnnotation = prop.getAnnotation( JoinColumns.class );
-							if ( (prop.isAnnotationPresent( JoinColumn.class )
-									&& prop.getAnnotation( JoinColumn.class ).name().equals( columnName )) ) {
+							if ( ( prop.isAnnotationPresent( JoinColumn.class )
+									&& prop.getAnnotation( JoinColumn.class ).name().equals( columnName ) ) ) {
 								isRequiredAnnotationPresent = true;
 							}
 							else if ( prop.isAnnotationPresent( JoinColumns.class ) ) {
@@ -1615,7 +1628,11 @@ public final class AnnotationBinder {
 
 		final boolean traceEnabled = LOG.isTraceEnabled();
 		if ( traceEnabled ) {
-			LOG.tracev( "Processing annotations of {0}.{1}" , propertyHolder.getEntityName(), inferredData.getPropertyName() );
+			LOG.tracev(
+					"Processing annotations of {0}.{1}",
+					propertyHolder.getEntityName(),
+					inferredData.getPropertyName()
+			);
 		}
 
 		final XProperty property = inferredData.getProperty();
@@ -1693,7 +1710,7 @@ public final class AnnotationBinder {
 			if ( traceEnabled ) {
 				LOG.tracev( "{0} is a version property", inferredData.getPropertyName() );
 			}
-			RootClass rootClass = ( RootClass ) propertyHolder.getPersistentClass();
+			RootClass rootClass = (RootClass) propertyHolder.getPersistentClass();
 			propertyBinder.setColumns( columns );
 			Property prop = propertyBinder.makePropertyValueAndBind();
 			setVersionInformation( property, propertyBinder );
@@ -1713,7 +1730,7 @@ public final class AnnotationBinder {
 				rootClass.setDeclaredVersion( prop );
 			}
 
-			SimpleValue simpleValue = ( SimpleValue ) prop.getValue();
+			SimpleValue simpleValue = (SimpleValue) prop.getValue();
 			simpleValue.setNullValue( "undefined" );
 			rootClass.setOptimisticLockStyle( OptimisticLockStyle.VERSION );
 			if ( traceEnabled ) {
@@ -2094,7 +2111,9 @@ public final class AnnotationBinder {
 				else if ( manyToManyAnn != null ) {
 					mappedBy = manyToManyAnn.mappedBy();
 					collectionBinder.setTargetEntity(
-							context.getBootstrapContext().getReflectionManager().toXClass( manyToManyAnn.targetEntity() )
+							context.getBootstrapContext()
+									.getReflectionManager()
+									.toXClass( manyToManyAnn.targetEntity() )
 					);
 					collectionBinder.setCascadeStrategy(
 							getCascadeStrategy(
@@ -2131,7 +2150,8 @@ public final class AnnotationBinder {
 					collectionBinder.setUpdatable( false );
 				}
 				if ( property.isAnnotationPresent( CollectionId.class ) ) { //do not compute the generators unless necessary
-					HashMap<String, IdentifierGeneratorDefinition> localGenerators = ( HashMap<String, IdentifierGeneratorDefinition> ) classGenerators.clone();
+					HashMap<String, IdentifierGeneratorDefinition> localGenerators = (HashMap<String, IdentifierGeneratorDefinition>) classGenerators
+							.clone();
 					localGenerators.putAll( buildGenerators( property, context ) );
 					collectionBinder.setLocalGenerators( localGenerators );
 
@@ -2194,7 +2214,7 @@ public final class AnnotationBinder {
 							isId,
 							inheritanceStatePerClass,
 							referencedEntityName,
-							isOverridden ? ( Ejb3JoinColumn[] ) columns : null
+							isOverridden ? (Ejb3JoinColumn[]) columns : null
 					);
 				}
 				else {
@@ -2341,10 +2361,9 @@ public final class AnnotationBinder {
 	}
 
 	private static void setVersionInformation(XProperty property, PropertyBinder propertyBinder) {
-		propertyBinder.getSimpleValueBinder().setVersion( true );
-		if(property.isAnnotationPresent( Source.class )) {
+		if ( property.isAnnotationPresent( Source.class ) ) {
 			Source source = property.getAnnotation( Source.class );
-			propertyBinder.getSimpleValueBinder().setTimestampVersionType( source.value().typeName() );
+			propertyBinder.getBasicValueBinder().setTimestampVersionType( source.value().typeName() );
 		}
 	}
 
@@ -2816,59 +2835,42 @@ public final class AnnotationBinder {
 		/*
 		 * Fill simple value and property since and Id is a property
 		 */
-		PersistentClass persistentClass = propertyHolder.getPersistentClass();
+		final PersistentClass persistentClass = propertyHolder.getPersistentClass();
 		if ( !( persistentClass instanceof RootClass ) ) {
 			throw new AnnotationException(
 					"Unable to define/override @Id(s) on a subclass: "
 							+ propertyHolder.getEntityName()
 			);
 		}
-		RootClass rootClass = ( RootClass ) persistentClass;
-		String persistentClassName = rootClass.getClassName();
+		final RootClass rootClass = (RootClass) persistentClass;
 		SimpleValue id;
 		final String propertyName = inferredData.getPropertyName();
-		if ( isComposite ) {
-			id = fillComponent(
-					propertyHolder,
-					inferredData,
-					baseInferredData,
-					propertyAccessor,
-					false,
-					entityBinder,
-					isEmbedded,
-					isIdentifierMapper,
-					false,
-					buildingContext,
-					inheritanceStatePerClass
-			);
-			Component componentId = ( Component ) id;
-			componentId.setKey( true );
-			if ( rootClass.getIdentifier() != null ) {
-				throw new AnnotationException( componentId.getComponentClassName() + " must not have @Id properties when used as an @EmbeddedId" );
-			}
-			if ( componentId.getPropertySpan() == 0 ) {
-				throw new AnnotationException( componentId.getComponentClassName() + " has no persistent id property" );
-			}
-			//tuplizers
-			XProperty property = inferredData.getProperty();
-			setupComponentTuplizer( property, componentId );
-		}
-		else {
-			//TODO I think this branch is never used. Remove.
 
-			for ( Ejb3Column column : columns ) {
-				column.forceNotNull(); //this is an id
-			}
-			SimpleValueBinder value = new SimpleValueBinder();
-			value.setPropertyName( propertyName );
-			value.setReturnedClassName( inferredData.getTypeName() );
-			value.setColumns( columns );
-			value.setPersistentClassName( persistentClassName );
-			value.setBuildingContext( buildingContext );
-			value.setType( inferredData.getProperty(), inferredData.getClassOrElement(), persistentClassName, null );
-			value.setAccessType( propertyAccessor );
-			id = value.make();
+		id = fillComponent(
+				propertyHolder,
+				inferredData,
+				baseInferredData,
+				propertyAccessor,
+				false,
+				entityBinder,
+				isEmbedded,
+				isIdentifierMapper,
+				false,
+				buildingContext,
+				inheritanceStatePerClass
+		);
+		final Component componentId = (Component) id;
+		componentId.setKey( true );
+		if ( rootClass.getIdentifier() != null ) {
+			throw new AnnotationException( componentId.getComponentClassName() + " must not have @Id properties when used as an @EmbeddedId" );
 		}
+		if ( componentId.getPropertySpan() == 0 ) {
+			throw new AnnotationException( componentId.getComponentClassName() + " has no persistent id property" );
+		}
+		//tuplizers
+		XProperty property = inferredData.getProperty();
+		setupComponentTuplizer( property, componentId );
+
 		rootClass.setIdentifier( id );
 		if ( isGlobalGeneratorNameGlobal( buildingContext ) ) {
 			SecondPass secondPass = new IdGeneratorResolverSecondPass(

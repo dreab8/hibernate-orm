@@ -25,7 +25,8 @@ import org.hibernate.annotations.TypeDef;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
-import org.hibernate.type.LongTypeImpl;
+
+import org.hibernate.type.LongType;
 import org.hibernate.usertype.UserType;
 
 public class UserTypeNonComparableIdTest extends BaseCoreFunctionalTestCase {
@@ -119,7 +120,7 @@ public class UserTypeNonComparableIdTest extends BaseCoreFunctionalTestCase {
 
 	public static class CustomIdType implements UserType {
 
-		public static final LongTypeImpl SQL_TYPE = LongTypeImpl.INSTANCE;
+		public static final LongType SQL_TYPE = LongType.INSTANCE;
 
 		@Override
 		public int[] sqlTypes() {

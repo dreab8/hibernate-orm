@@ -7,6 +7,7 @@
 package org.hibernate.metamodel.model.domain.spi;
 
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -37,5 +38,10 @@ public class OffsetDateTimeVersionSupport implements VersionSupport<OffsetDateTi
 	@Override
 	public boolean isEqual(OffsetDateTime x, OffsetDateTime y) throws HibernateException {
 		return StandardSpiBasicTypes.OFFSET_DATE_TIME.areEqual( x, y );
+	}
+
+	@Override
+	public Comparator<OffsetDateTime> getComparator() {
+		return StandardSpiBasicTypes.OFFSET_DATE_TIME.getJavaTypeDescriptor().getComparator();
 	}
 }

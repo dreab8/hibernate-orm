@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.Type;
-import org.hibernate.type.VersionType;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * Parameter bind specification used for optimisitc lock version seeding (from insert statements).
@@ -20,14 +20,14 @@ import org.hibernate.type.VersionType;
  * @author Steve Ebersole
  */
 public class VersionTypeSeedParameterSpecification implements ParameterSpecification {
-	private final VersionType type;
+	private final BasicType type;
 
 	/**
 	 * Constructs a version seed parameter bind specification.
 	 *
 	 * @param type The version type.
 	 */
-	public VersionTypeSeedParameterSpecification(VersionType type) {
+	public VersionTypeSeedParameterSpecification(BasicType type) {
 		this.type = type;
 	}
 
@@ -37,7 +37,7 @@ public class VersionTypeSeedParameterSpecification implements ParameterSpecifica
 			QueryParameters qp,
 			SharedSessionContractImplementor session,
 			int position) throws SQLException {
-		type.nullSafeSet( statement, type.seed( session ), position, session );
+		type.nullSafeSet( statement, type.getJavaTypeDescriptor().getVersionSupport().seed( session ), position, session );
 		return 1;
 	}
 

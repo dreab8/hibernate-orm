@@ -6,6 +6,8 @@
  */
 package org.hibernate.metamodel.model.domain.spi;
 
+import java.util.Comparator;
+
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.spi.StandardSpiBasicTypes;
@@ -37,5 +39,10 @@ public class LongVersionSupport implements VersionSupport<Long> {
 	@Override
 	public boolean isEqual(Long x, Long y) throws HibernateException {
 		return StandardSpiBasicTypes.LONG.areEqual( x, y );
+	}
+
+	@Override
+	public Comparator<Long> getComparator() {
+		return StandardSpiBasicTypes.LONG.getJavaTypeDescriptor().getComparator();
 	}
 }

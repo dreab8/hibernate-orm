@@ -38,7 +38,7 @@ import org.hibernate.usertype.UserVersionType;
  */
 public class CustomType
 		extends AbstractType
-		implements IdentifierType, DiscriminatorType, VersionType, StringRepresentableType, ProcedureParameterNamedBinder, ProcedureParameterExtractionAware {
+		implements IdentifierType, StringRepresentableType, ProcedureParameterNamedBinder, ProcedureParameterExtractionAware {
 
 	private final UserType userType;
 	private final String name;
@@ -197,26 +197,6 @@ public class CustomType
 	@Override
 	public Object stringToObject(String xml) {
 		return fromStringValue( xml );
-	}
-
-	@Override
-	public String objectToSQLString(Object value, Dialect dialect) throws Exception {
-		return ( (EnhancedUserType) getUserType() ).objectToSQLString( value);
-	}
-
-	@Override
-	public Comparator getComparator() {
-		return (Comparator) getUserType();
-	}
-
-	@Override
-	public Object next(Object current, SharedSessionContractImplementor session) {
-		return ( (UserVersionType) getUserType() ).next( current, session );
-	}
-
-	@Override
-	public Object seed(SharedSessionContractImplementor session) {
-		return ( (UserVersionType) getUserType() ).seed( session );
 	}
 
 	@Override

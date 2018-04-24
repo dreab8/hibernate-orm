@@ -8,8 +8,9 @@ package org.hibernate.engine.internal;
 
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.CoreMessageLogger;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.type.VersionType;
+import org.hibernate.type.spi.BasicType;
 
 import org.jboss.logging.Logger;
 
@@ -31,27 +32,27 @@ public final class Versioning {
 	}
 
 	/**
-	 * Create an initial optimistic locking value according the {@link VersionType}
+	 * Create an initial optimistic locking value according the {@link VersionSupport}
 	 * contract for the version property.
 	 *
-	 * @param versionType The version type.
+	 * @param versionSupport The version support.
 	 * @param session The originating session
 	 * @return The initial optimistic locking value
 	 */
-	private static Object seed(VersionType versionType, SharedSessionContractImplementor session) {
-		final Object seed = versionType.seed( session );
+	private static Object seed(VersionSupport versionSupport, SharedSessionContractImplementor session) {
+		final Object seed = versionSupport.seed( session );
 		LOG.tracef( "Seeding: %s", seed );
 		return seed;
 	}
 
 	/**
-	 * Create an initial optimistic locking value according the {@link VersionType}
+	 * Create an initial optimistic locking value
 	 * contract for the version property <b>if required</b> and inject it into
 	 * the snapshot state.
 	 *
 	 * @param fields The current snapshot state
 	 * @param versionProperty The index of the version property
-	 * @param versionType The version type
+	 * @param versionSupport The version support
 	 * @param session The originating session
 	 * @return True if we injected a new version value into the fields array; false
 	 * otherwise.
@@ -59,7 +60,7 @@ public final class Versioning {
 	public static boolean seedVersion(
 			Object[] fields,
 			int versionProperty,
-			VersionType versionType,
+			VersionSupport versionSupport,
 			SharedSessionContractImplementor session) {
 		final Object initialVersion = fields[versionProperty];
 		if (
@@ -70,7 +71,7 @@ public final class Versioning {
 			// TODO: shift it into unsaved-value strategy
 			( (initialVersion instanceof Number) && ( (Number) initialVersion ).longValue()<0 )
 		) {
-			fields[versionProperty] = seed( versionType, session );
+			fields[versionProperty] = seed( versionSupport, session );
 			return true;
 		}
 		LOG.tracev( "Using initial version: {0}", initialVersion );
@@ -79,22 +80,21 @@ public final class Versioning {
 
 
 	/**
-	 * Generate the next increment in the optimistic locking value according
-	 * the {@link VersionType} contract for the version property.
+	 * Generate the next increment in the optimistic locking value
 	 *
 	 * @param version The current version
-	 * @param versionType The version type
+	 * @param versionSupport The version support
 	 * @param session The originating session
 	 * @return The incremented optimistic locking value.
 	 */
 	@SuppressWarnings("unchecked")
-	public static Object increment(Object version, VersionType versionType, SharedSessionContractImplementor session) {
-		final Object next = versionType.next( version, session );
+	public static Object increment(Object version, VersionSupport versionSupport, SharedSessionContractImplementor session) {
+		final Object next = versionSupport.next( version, session );
 		if ( LOG.isTraceEnabled() ) {
 			LOG.tracef(
 					"Incrementing: %s to %s",
-					versionType.toLoggableString( version, session.getFactory() ),
-					versionType.toLoggableString( next, session.getFactory() )
+					versionSupport.toLoggableString( version ),
+					versionSupport.toLoggableString( next )
 			);
 		}
 		return next;

@@ -12,8 +12,8 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
-import org.hibernate.type.DbTimestampTypeImpl;
-import org.hibernate.type.TimestampTypeImpl;
+import org.hibernate.type.DbTimestampType;
+import org.hibernate.type.TimestampType;
 
 import org.hibernate.testing.AfterClassOnce;
 import org.hibernate.testing.BeforeClassOnce;
@@ -51,12 +51,12 @@ public class TimestampTest extends BaseUnitTestCase {
 
 	@Test
 	public void testTimestampSourceIsVM() throws Exception {
-		assertTimestampSource( VMTimestamped.class, TimestampTypeImpl.class );
+		assertTimestampSource( VMTimestamped.class, TimestampType.class );
 	}
 
 	@Test
 	public void testTimestampSourceIsDB() throws Exception {
-		assertTimestampSource( DBTimestamped.class, DbTimestampTypeImpl.class );
+		assertTimestampSource( DBTimestamped.class, DbTimestampType.class );
 	}
 
 	private void assertTimestampSource(Class<?> clazz, Class<?> expectedTypeClass) throws Exception {

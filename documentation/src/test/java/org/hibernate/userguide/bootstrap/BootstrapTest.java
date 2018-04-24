@@ -57,7 +57,7 @@ import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.service.spi.SessionFactoryServiceRegistry;
-import org.hibernate.userguide.mapping.basic.BitSetTypeImpl;
+import org.hibernate.userguide.mapping.basic.BitSetType;
 import org.hibernate.userguide.mapping.basic.BitSetUserType;
 
 import org.junit.Test;
@@ -572,7 +572,7 @@ public class BootstrapTest {
 
 			MetadataBuilder metadataBuilder = sources.getMetadataBuilder();
 
-			metadataBuilder.applyBasicType( BitSetTypeImpl.INSTANCE );
+			metadataBuilder.applyBasicType( BitSetType.INSTANCE );
 			//end::basic-custom-type-register-BasicType-example[]
 		}
 		catch (Exception ignore) {

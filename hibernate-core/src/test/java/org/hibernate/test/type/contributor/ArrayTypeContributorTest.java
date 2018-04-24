@@ -36,10 +36,10 @@ public class ArrayTypeContributorTest extends BaseCoreFunctionalTestCase {
 	protected Configuration constructAndConfigureConfiguration() {
 		Configuration configuration = super.constructAndConfigureConfiguration();
 		configuration.registerTypeContributor( (typeContributions, serviceRegistry) -> {
-			typeContributions.contributeType( ArrayTypeImpl.INSTANCE,
+			typeContributions.contributeType( ArrayType.INSTANCE,
 											  new String[] {
 					  MyList.class.getName(),
-					  ArrayTypeImpl.INSTANCE.getName()
+					  ArrayType.INSTANCE.getName()
 				}
 			);
 		} );
@@ -59,7 +59,7 @@ public class ArrayTypeContributorTest extends BaseCoreFunctionalTestCase {
 		doInHibernate( this::sessionFactory, session -> {
 			List<CorporateUser> users = session.createQuery(
 				"select u from CorporateUser u where u.emailAddresses = :address", CorporateUser.class )
-			.setParameter( "address", new Array(), ArrayTypeImpl.INSTANCE )
+			.setParameter( "address", new Array(), ArrayType.INSTANCE )
 			.getResultList();
 
 			assertTrue( users.isEmpty() );

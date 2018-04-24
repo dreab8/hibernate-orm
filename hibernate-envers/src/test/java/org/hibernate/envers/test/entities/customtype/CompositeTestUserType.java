@@ -13,8 +13,8 @@ import java.sql.SQLException;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.IntegerTypeImpl;
-import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.IntegerType;
+import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
 import org.hibernate.usertype.CompositeUserType;
 
@@ -28,7 +28,7 @@ public class CompositeTestUserType implements CompositeUserType {
 	}
 
 	public Type[] getPropertyTypes() {
-		return new Type[] {StringTypeImpl.INSTANCE, IntegerTypeImpl.INSTANCE};
+		return new Type[] {StringType.INSTANCE, IntegerType.INSTANCE};
 	}
 
 	public Object getPropertyValue(final Object component, final int property) throws HibernateException {
@@ -91,8 +91,8 @@ public class CompositeTestUserType implements CompositeUserType {
 			final int index, final SharedSessionContractImplementor session)
 			throws HibernateException, SQLException {
 		if ( value == null ) {
-			st.setNull( index, StringTypeImpl.INSTANCE.sqlType() );
-			st.setNull( index + 1, IntegerTypeImpl.INSTANCE.sqlType() );
+			st.setNull( index, StringType.INSTANCE.sqlType() );
+			st.setNull( index + 1, IntegerType.INSTANCE.sqlType() );
 		}
 		else {
 			final Component comp = (Component) value;

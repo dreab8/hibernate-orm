@@ -39,13 +39,13 @@ import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.pretty.MessageHelper;
 import org.hibernate.type.CompositeType;
-import org.hibernate.type.IntegerTypeImpl;
-import org.hibernate.type.LongTypeImpl;
-import org.hibernate.type.PostgresUUIDTypeImpl;
-import org.hibernate.type.StringTypeImpl;
 import org.hibernate.type.Type;
-import org.hibernate.type.UUIDBinaryTypeImpl;
-import org.hibernate.type.UUIDCharTypeImpl;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.IntegerJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.LongJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.UUIDJavaDescriptor;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * Base class implementing {@link org.hibernate.collection.spi.PersistentCollection}
@@ -1243,12 +1243,14 @@ public abstract class AbstractPersistentCollection implements Serializable, Pers
 	}
 
 	private static boolean mayUseIdDirect(Type idType) {
-		return idType == StringTypeImpl.INSTANCE
-			|| idType == IntegerTypeImpl.INSTANCE
-			|| idType == LongTypeImpl.INSTANCE
-			|| idType == UUIDBinaryTypeImpl.INSTANCE
-			|| idType == UUIDCharTypeImpl.INSTANCE
-			|| idType == PostgresUUIDTypeImpl.INSTANCE;
+		if ( BasicType.class.isInstance( idType ) ) {
+			JavaTypeDescriptor javaTypeDescriptor = ( (BasicType) idType ).getJavaTypeDescriptor();
+			return javaTypeDescriptor == StringJavaDescriptor.INSTANCE
+					|| javaTypeDescriptor == IntegerJavaDescriptor.INSTANCE
+					|| javaTypeDescriptor == LongJavaDescriptor.INSTANCE
+					|| javaTypeDescriptor == UUIDJavaDescriptor.INSTANCE;
+		}
+		return false;
 	}
 
 	/**

@@ -27,7 +27,7 @@ public class TestTypeContributor implements TypeContributor {
 	public static final String NAME = "test-type";
 
 	public void contribute(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
-		typeContributions.contributeType( new TestType(), NAME );
+		typeContributions.contributeType( new TestType(), new String[] { NAME } );
 	}
 
 	public static class TestType implements UserType {

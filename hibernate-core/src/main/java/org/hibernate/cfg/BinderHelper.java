@@ -61,6 +61,7 @@ import org.hibernate.mapping.SyntheticProperty;
 import org.hibernate.mapping.Table;
 import org.hibernate.mapping.ToOne;
 import org.hibernate.mapping.Value;
+import org.hibernate.type.spi.BasicType;
 
 import org.jboss.logging.Logger;
 
@@ -962,11 +963,13 @@ public class BinderHelper {
 			value.setMetaType( metaAnnDef.metaType() );
 
 			HashMap values = new HashMap();
-			org.hibernate.type.Type metaType = context.getMetadataCollector().getTypeResolver().heuristicType( value.getMetaType() );
+			BasicType metaType = context.getMetadataCollector()
+					.getTypeConfiguration()
+					.getBasicTypeRegistry()
+					.getBasicType( value.getMetaType() );
 			for (MetaValue metaValue : metaAnnDef.metaValues()) {
 				try {
-					Object discrim = ( (org.hibernate.type.DiscriminatorType) metaType ).stringToObject( metaValue
-							.value() );
+					Object discrim = metaType.getJavaTypeDescriptor().fromString( metaValue.value() );
 					String entityName = metaValue.targetEntity().getName();
 					values.put( discrim, entityName );
 				}

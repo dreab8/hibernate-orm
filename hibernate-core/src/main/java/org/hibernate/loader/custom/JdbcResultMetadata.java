@@ -14,6 +14,7 @@ import java.sql.Types;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * Simplified access to JDBC ResultSetMetaData
@@ -63,7 +64,7 @@ class JdbcResultMetadata {
 		}
 	}
 
-	public Type getHibernateType(int columnPos) throws SQLException {
+	public BasicType getHibernateType(int columnPos) throws SQLException {
 		int columnType = resultSetMetaData.getColumnType( columnPos );
 		int scale = resultSetMetaData.getScale( columnPos );
 		int precision = resultSetMetaData.getPrecision( columnPos );
@@ -73,13 +74,14 @@ class JdbcResultMetadata {
 			length = resultSetMetaData.getColumnDisplaySize( columnPos );
 		}
 
-		return factory.getTypeResolver().heuristicType(
-				factory.getDialect().getHibernateTypeName(
-						columnType,
-						length,
-						precision,
-						scale
-				)
+		String hibernateTypeName = factory.getDialect().getHibernateTypeName(
+				columnType,
+				length,
+				precision,
+				scale
+		);
+		return factory.getMetamodel().getTypeConfiguration().getBasicTypeRegistry().getBasicType(
+				hibernateTypeName
 		);
 	}
 }

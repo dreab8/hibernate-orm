@@ -16,7 +16,7 @@ import java.util.TimeZone;
 
 import org.hibernate.engine.jdbc.LobCreator;
 import org.hibernate.engine.jdbc.NonContextualLobCreator;
-import org.hibernate.type.MaterializedNClobTypeImpl;
+import org.hibernate.type.MaterializedNClobType;
 import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -28,8 +28,8 @@ import org.junit.Test;
  * @author Gail Badner
  */
 public class MaterializedNClobBindTest {
-	private static final ValueBinder<String> binder = MaterializedNClobTypeImpl.INSTANCE.getSqlTypeDescriptor().getBinder(
-			MaterializedNClobTypeImpl.INSTANCE.getJavaTypeDescriptor()
+	private static final ValueBinder<String> binder = MaterializedNClobType.INSTANCE.getSqlTypeDescriptor().getBinder(
+			MaterializedNClobType.INSTANCE.getJavaTypeDescriptor()
 	);
 
 	@Test

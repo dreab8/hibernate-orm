@@ -15,6 +15,7 @@ import org.hibernate.annotations.Source;
 import org.hibernate.annotations.SourceType;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.hibernate.testing.transaction.TransactionUtil.doInJPA;
@@ -24,6 +25,7 @@ import static org.junit.Assert.assertNull;
 /**
  * @author Vlad Mihalcea
  */
+@Ignore
 public class VersionSourceTest extends BaseEntityManagerFunctionalTestCase {
 
 	@Override

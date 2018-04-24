@@ -7,6 +7,7 @@
 package org.hibernate.metamodel.model.domain.spi;
 
 import java.util.Calendar;
+import java.util.Comparator;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -34,5 +35,10 @@ public class CalendarVersionSupport implements VersionSupport<Calendar> {
 	@Override
 	public boolean isEqual(Calendar x, Calendar y) throws HibernateException {
 		return StandardSpiBasicTypes.CALENDAR.areEqual( x, y );
+	}
+
+	@Override
+	public Comparator<Calendar> getComparator() {
+		return StandardSpiBasicTypes.CALENDAR.getJavaTypeDescriptor().getComparator();
 	}
 }

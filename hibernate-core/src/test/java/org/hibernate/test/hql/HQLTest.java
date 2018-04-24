@@ -50,9 +50,9 @@ import org.hibernate.hql.internal.ast.tree.SelectClause;
 import org.hibernate.hql.internal.ast.util.ASTUtil;
 import org.hibernate.hql.spi.QueryTranslator;
 import org.hibernate.hql.spi.QueryTranslatorFactory;
-import org.hibernate.type.CalendarDateTypeImpl;
-import org.hibernate.type.DoubleTypeImpl;
-import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.CalendarDateType;
+import org.hibernate.type.DoubleType;
+import org.hibernate.type.StringType;
 
 import org.hibernate.testing.DialectChecks;
 import org.hibernate.testing.FailureExpected;
@@ -282,21 +282,21 @@ public class HQLTest extends QueryTranslatorTestCase {
 	public void testDateTimeArithmeticReturnTypesAndParameterGuessing() {
 		QueryTranslatorImpl translator = createNewQueryTranslator( "select o.orderDate - o.orderDate from Order o" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", DoubleTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", DoubleType.INSTANCE, translator.getReturnTypes()[0] );
 		translator = createNewQueryTranslator( "select o.orderDate + 2 from Order o" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", CalendarDateTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", CalendarDateType.INSTANCE, translator.getReturnTypes()[0] );
 		translator = createNewQueryTranslator( "select o.orderDate -2 from Order o" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", CalendarDateTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect return type", CalendarDateType.INSTANCE, translator.getReturnTypes()[0] );
 
 		translator = createNewQueryTranslator( "from Order o where o.orderDate > ?1" );
-		assertEquals( "incorrect expected param type", CalendarDateTypeImpl.INSTANCE, translator.getParameterTranslations().getPositionalParameterInformation( 1 ).getExpectedType() );
+		assertEquals( "incorrect expected param type", CalendarDateType.INSTANCE, translator.getParameterTranslations().getPositionalParameterInformation( 1 ).getExpectedType() );
 
 		translator = createNewQueryTranslator( "select o.orderDate + ?1 from Order o" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", CalendarDateTypeImpl.INSTANCE, translator.getReturnTypes()[0] );
-		assertEquals( "incorrect expected param type", DoubleTypeImpl.INSTANCE, translator.getParameterTranslations().getPositionalParameterInformation( 1 ).getExpectedType() );
+		assertEquals( "incorrect return type", CalendarDateType.INSTANCE, translator.getReturnTypes()[0] );
+		assertEquals( "incorrect expected param type", DoubleType.INSTANCE, translator.getParameterTranslations().getPositionalParameterInformation( 1 ).getExpectedType() );
 
 	}
 
@@ -828,7 +828,7 @@ public class HQLTest extends QueryTranslatorTestCase {
 		list.add("'skinny'");
 		assertTranslation(
 				"from Animal an where an.description = " +
-						concat.render( StringTypeImpl.INSTANCE, list, sessionFactory() )
+						concat.render( StringType.INSTANCE, list, sessionFactory() )
 		);
 	}
 

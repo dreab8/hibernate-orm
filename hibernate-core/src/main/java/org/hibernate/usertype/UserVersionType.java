@@ -15,7 +15,7 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
  * 
  * @author Gavin King
  */
-public interface UserVersionType extends UserType, Comparator {
+public interface UserVersionType extends UserType {
 	/**
 	 * Generate an initial version.
 	 *

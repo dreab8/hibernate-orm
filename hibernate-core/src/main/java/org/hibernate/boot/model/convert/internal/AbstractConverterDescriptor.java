@@ -11,13 +11,15 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 import org.hibernate.AnnotationException;
-import org.hibernate.boot.internal.ClassmateContext;
 import org.hibernate.boot.model.convert.spi.AutoApplicableConverterDescriptor;
 import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.boot.model.convert.spi.JpaAttributeConverterCreationContext;
+import org.hibernate.boot.spi.BootstrapContext;
 import org.hibernate.metamodel.model.convert.internal.JpaAttributeConverterImpl;
 import org.hibernate.metamodel.model.convert.spi.JpaAttributeConverter;
 import org.hibernate.resource.beans.spi.ManagedBean;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 import com.fasterxml.classmate.ResolvedType;
 
@@ -29,17 +31,33 @@ public abstract class AbstractConverterDescriptor implements ConverterDescriptor
 
 	private final ResolvedType domainType;
 	private final ResolvedType jdbcType;
+	private final TypeConfiguration typeConfiguration;
 
 	private final AutoApplicableConverterDescriptor autoApplicableDescriptor;
+
+	@Override
+	public BasicJavaDescriptor<?> getDomainType() {
+		return typeConfiguration.getBasicTypeRegistry()
+				.getBasicType( domainType.getErasedType() )
+				.getJavaTypeDescriptor();
+	}
+
+	@Override
+	public BasicJavaDescriptor<?> getJdbcType() {
+		return typeConfiguration.getBasicTypeRegistry()
+				.getBasicType( jdbcType.getErasedType() )
+				.getJavaTypeDescriptor();
+	}
 
 	@SuppressWarnings("WeakerAccess")
 	public AbstractConverterDescriptor(
 			Class<? extends AttributeConverter> converterClass,
 			Boolean forceAutoApply,
-			ClassmateContext classmateContext) {
+			BootstrapContext context) {
 		this.converterClass = converterClass;
+		this.typeConfiguration = context.getTypeConfiguration();
 
-		final ResolvedType converterType = classmateContext.getTypeResolver().resolve( converterClass );
+		final ResolvedType converterType = context.getClassmateContext().getTypeResolver().resolve( converterClass );
 		final List<ResolvedType> converterParamTypes = converterType.typeParametersFor( AttributeConverter.class );
 		if ( converterParamTypes == null ) {
 			throw new AnnotationException(

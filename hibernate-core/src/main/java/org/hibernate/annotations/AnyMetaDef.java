@@ -9,7 +9,7 @@ package org.hibernate.annotations;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 
-import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.StringType;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -37,7 +37,7 @@ public @interface AnyMetaDef {
 
 	/**
 	 * Names the discriminator Hibernate Type for this Any/ManyToAny mapping.  The default is to use
-	 * {@link StringTypeImpl}
+	 * {@link StringType}
 	 */
 	String metaType();
 

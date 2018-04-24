@@ -7,6 +7,7 @@
 package org.hibernate.metamodel.model.domain.spi;
 
 import java.time.Instant;
+import java.util.Comparator;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -37,5 +38,10 @@ public class InstantVersionSupport implements VersionSupport<Instant> {
 	@Override
 	public boolean isEqual(Instant x, Instant y) throws HibernateException {
 		return StandardSpiBasicTypes.INSTANT.areEqual( x, y );
+	}
+
+	@Override
+	public Comparator<Instant> getComparator() {
+		return StandardSpiBasicTypes.INSTANT.getJavaTypeDescriptor().getComparator();
 	}
 }

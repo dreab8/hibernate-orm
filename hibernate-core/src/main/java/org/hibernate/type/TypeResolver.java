@@ -25,7 +25,7 @@ import org.hibernate.usertype.UserType;
  */
 @Deprecated
 public class TypeResolver implements Serializable {
-	private final BasicTypeRegistry basicTypeRegistry;
+	private final org.hibernate.type.spi.BasicTypeRegistry basicTypeRegistry;
 	private final TypeFactory typeFactory;
 
 	public TypeResolver(TypeConfiguration typeConfiguration, TypeFactory typeFactory){
@@ -75,7 +75,7 @@ public class TypeResolver implements Serializable {
 	 * @return The registered type
 	 */
 	public BasicType basic(String name) {
-		return basicTypeRegistry.getRegisteredType( name );
+		return basicTypeRegistry.getBasicType( name );
 	}
 
 	/**

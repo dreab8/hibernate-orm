@@ -122,9 +122,11 @@ import org.hibernate.service.spi.SessionFactoryServiceRegistryFactory;
 import org.hibernate.stat.spi.StatisticsImplementor;
 import org.hibernate.tool.schema.spi.DelayedDropAction;
 import org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator;
-import org.hibernate.type.SerializableTypeImpl;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeResolver;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
+import org.hibernate.type.spi.TypeConfiguration;
 
 import org.jboss.logging.Logger;
 
@@ -172,6 +174,7 @@ public final class SessionFactoryImpl implements SessionFactoryImplementor {
 
 	// todo : org.hibernate.jpa.boot.spi.PersistenceUnitDescriptor too?
 
+	private final transient TypeConfiguration typeConfiguration;
 	private final transient MetamodelImplementor metamodel;
 	private final transient CriteriaBuilderImpl criteriaBuilder;
 	private final PersistenceUnitUtil jpaPersistenceUnitUtil;
@@ -290,7 +293,7 @@ public final class SessionFactoryImpl implements SessionFactoryImplementor {
 			} );
 
 			LOG.debug( "Instantiated session factory" );
-
+			this.typeConfiguration = metadata.getTypeConfiguration();
 			this.metamodel = metadata.getTypeConfiguration().scope( this , bootstrapContext);
 			( (MetamodelImpl) this.metamodel ).initialize(
 					metadata,
@@ -1079,26 +1082,7 @@ public final class SessionFactoryImpl implements SessionFactoryImplementor {
 
 	@Override
 	public Type resolveParameterBindType(Class clazz){
-		String typename = clazz.getName();
-		Type type = getTypeResolver().heuristicType( typename );
-		boolean serializable = type != null && type instanceof SerializableTypeImpl;
-		if ( type == null || serializable ) {
-			try {
-				getMetamodel().entityPersister( clazz.getName() );
-			}
-			catch (MappingException me) {
-				if ( serializable ) {
-					return type;
-				}
-				else {
-					throw new HibernateException( "Could not determine a type for class: " + typename );
-				}
-			}
-			return getTypeHelper().entity( clazz );
-		}
-		else {
-			return type;
-		}
+		return typeConfiguration.getBasicTypeRegistry().getBasicType( clazz );
 	}
 
 	public static Interceptor configuredInterceptor(Interceptor interceptor, SessionFactoryOptions options) {

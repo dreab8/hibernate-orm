@@ -53,7 +53,7 @@ public class ClassType implements Serializable {
 
 	@Override
 	public String toString() {
-		return "ClassTypeImpl(type = " + type + ", description = " + description + ")";
+		return "ClassType(type = " + type + ", description = " + description + ")";
 	}
 
 	@Override

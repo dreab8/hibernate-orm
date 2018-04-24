@@ -6,10 +6,14 @@
  */
 package org.hibernate.testing.boot;
 
+import java.sql.Types;
+
 import org.hibernate.boot.internal.BootstrapContextImpl;
 import org.hibernate.boot.internal.InFlightMetadataCollectorImpl;
 import org.hibernate.boot.internal.MetadataBuilderImpl;
+import org.hibernate.boot.model.TypeDefinition;
 import org.hibernate.boot.model.naming.ObjectNameNormalizer;
+import org.hibernate.boot.model.type.internal.TypeDefinitionRegistryImpl;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.BootstrapContext;
@@ -28,6 +32,8 @@ public class MetadataBuildingContextTestingImpl implements MetadataBuildingConte
 	private final MappingDefaults mappingDefaults;
 	private final InFlightMetadataCollector metadataCollector;
 	private final BootstrapContext bootstrapContext;
+	private final TypeDefinitionRegistryImpl typeDefinitionRegistry;
+
 
 	private final ObjectNameNormalizer objectNameNormalizer;
 
@@ -47,12 +53,24 @@ public class MetadataBuildingContextTestingImpl implements MetadataBuildingConte
 				return MetadataBuildingContextTestingImpl.this;
 			}
 		};
+		this.typeDefinitionRegistry = new TypeDefinitionRegistryImpl( bootstrapContext.getTypeConfiguration() );
 	}
 
 	@Override
 	public BootstrapContext getBootstrapContext() {
 		return bootstrapContext;
 	}
+	@Override
+	public TypeDefinition resolveTypeDefinition(String typeName) {
+		return typeDefinitionRegistry.resolve( typeName );
+	}
+
+	@Override
+	public void addTypeDefinition(TypeDefinition typeDefinition) {
+		typeDefinitionRegistry.register( typeDefinition );
+	}
+
+
 
 	@Override
 	public MetadataBuildingOptions getBuildingOptions() {
@@ -77,5 +95,10 @@ public class MetadataBuildingContextTestingImpl implements MetadataBuildingConte
 	@Override
 	public ObjectNameNormalizer getObjectNameNormalizer() {
 		return objectNameNormalizer;
+	}
+
+	@Override
+	public int getPreferredSqlTypeCodeForBoolean() {
+		return Types.BIT;
 	}
 }

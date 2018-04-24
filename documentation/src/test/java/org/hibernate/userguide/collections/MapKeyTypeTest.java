@@ -140,7 +140,7 @@ public class MapKeyTypeTest extends BaseEntityManagerFunctionalTestCase {
 		)
 		@MapKeyType(
 			@Type(
-				type = "org.hibernate.userguide.collections.type.TimestampEpochTypeImpl"
+				type = "org.hibernate.userguide.collections.type.TimestampEpochType"
 			)
 		)
 		@MapKeyColumn( name = "call_timestamp_epoch" )

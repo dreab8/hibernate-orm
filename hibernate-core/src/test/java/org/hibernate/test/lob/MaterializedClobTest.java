@@ -6,14 +6,14 @@
  */
 package org.hibernate.test.lob;
 
-import org.hibernate.type.MaterializedClobTypeImpl;
+import org.hibernate.type.MaterializedClobType;
 
 import org.hibernate.testing.DialectChecks;
 import org.hibernate.testing.RequiresDialectFeature;
 
 /**
  * Tests eager materialization and mutation of data mapped by
- * {@link MaterializedClobTypeImpl}.
+ * {@link MaterializedClobType}.
  *
  * @author Gail Badner
  */

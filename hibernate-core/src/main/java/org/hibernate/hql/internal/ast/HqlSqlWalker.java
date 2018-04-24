@@ -86,9 +86,9 @@ import org.hibernate.persister.entity.Queryable;
 import org.hibernate.sql.JoinType;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.CompositeType;
-import org.hibernate.type.DbTimestampTypeImpl;
+import org.hibernate.type.DbTimestampType;
 import org.hibernate.type.Type;
-import org.hibernate.type.VersionType;
+import org.hibernate.type.spi.BasicType;
 import org.hibernate.usertype.UserVersionType;
 
 import antlr.ASTFactory;
@@ -924,8 +924,8 @@ public class HqlSqlWalker extends HqlSqlBaseWalker implements ErrorReporter, Par
 				persister.isVersionPropertyInsertable();
 		if ( includeVersionProperty ) {
 			// We need to seed the version value as part of this bulk insert
-			VersionType versionType = persister.getVersionType();
-			AST versionValueNode = null;
+			BasicType versionType = persister.getVersionType();
+			AST versionValueNode;
 
 			if ( sessionFactoryHelper.getFactory().getDialect().supportsParametersInInsertSelect() ) {
 				int[] sqlTypes = versionType.sqlTypes( sessionFactoryHelper.getFactory() );
@@ -968,7 +968,7 @@ public class HqlSqlWalker extends HqlSqlBaseWalker implements ErrorReporter, Par
 			else {
 				if ( isIntegral( versionType ) ) {
 					try {
-						Object seedValue = versionType.seed( null );
+						Object seedValue = versionType.getJavaTypeDescriptor().getVersionSupport().seed( null );
 						versionValueNode = getASTFactory().create( HqlSqlTokenTypes.SQL_TOKEN, seedValue.toString() );
 					}
 					catch (Throwable t) {
@@ -1002,8 +1002,8 @@ public class HqlSqlWalker extends HqlSqlBaseWalker implements ErrorReporter, Par
 	}
 
 	private boolean isDatabaseGeneratedTimestamp(Type type) {
-		// currently only the Hibernate-supplied DbTimestampTypeImpl is supported here
-		return DbTimestampTypeImpl.class.isAssignableFrom( type.getClass() );
+		// currently only the Hibernate-supplied DbTimestampType is supported here
+		return DbTimestampType.class.isAssignableFrom( type.getClass() );
 	}
 
 	private boolean isIntegral(Type type) {
@@ -1396,7 +1396,7 @@ public class HqlSqlWalker extends HqlSqlBaseWalker implements ErrorReporter, Par
 				throw new SemanticException( "increment option specified for update of non-versioned entity" );
 			}
 
-			VersionType versionType = persister.getVersionType();
+			BasicType versionType = persister.getVersionType();
 			if ( versionType instanceof UserVersionType ) {
 				throw new SemanticException( "user-defined version types not supported for increment option" );
 			}
@@ -1432,7 +1432,7 @@ public class HqlSqlWalker extends HqlSqlBaseWalker implements ErrorReporter, Par
 		}
 	}
 
-	private boolean isTimestampBasedVersion(VersionType versionType) {
+	private boolean isTimestampBasedVersion(BasicType versionType) {
 		final Class javaType = versionType.getReturnedClass();
 		return Date.class.isAssignableFrom( javaType )
 				|| Calendar.class.isAssignableFrom( javaType );

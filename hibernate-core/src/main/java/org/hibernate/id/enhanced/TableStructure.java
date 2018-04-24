@@ -34,7 +34,7 @@ import org.hibernate.id.IntegralDataTypeHolder;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.jdbc.AbstractReturningWork;
 import org.hibernate.mapping.Table;
-import org.hibernate.type.LongTypeImpl;
+import org.hibernate.type.LongType;
 
 import org.jboss.logging.Logger;
 
@@ -273,7 +273,7 @@ public class TableStructure implements DatabaseStructure {
 				database,
 				table,
 				valueColumnNameText,
-				LongTypeImpl.INSTANCE
+				LongType.INSTANCE
 		);
 		table.addColumn( valueColumn );
 

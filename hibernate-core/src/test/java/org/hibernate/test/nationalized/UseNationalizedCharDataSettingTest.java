@@ -19,10 +19,10 @@ import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.PostgreSQL81Dialect;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
-import org.hibernate.type.CharacterNCharTypeImpl;
-import org.hibernate.type.CharacterTypeImpl;
-import org.hibernate.type.StringNVarcharTypeImpl;
-import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.CharacterNCharType;
+import org.hibernate.type.CharacterType;
+import org.hibernate.type.StringNVarcharType;
+import org.hibernate.type.StringType;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
@@ -53,9 +53,9 @@ public class UseNationalizedCharDataSettingTest extends BaseUnitTestCase {
 			final Property nameAttribute = pc.getProperty( "name" );
 			if(metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ){
 				// See issue HHH-10693
-				assertSame( StringTypeImpl.INSTANCE, nameAttribute.getType() );
+				assertSame( StringType.INSTANCE, nameAttribute.getType() );
 			}else {
-				assertSame( StringNVarcharTypeImpl.INSTANCE, nameAttribute.getType() );
+				assertSame( StringNVarcharType.INSTANCE, nameAttribute.getType() );
 			}
 
 		}
@@ -79,9 +79,9 @@ public class UseNationalizedCharDataSettingTest extends BaseUnitTestCase {
 			final PersistentClass pc = metadata.getEntityBinding( NationalizedBySettingEntity.class.getName() );
 			final Property nameAttribute = pc.getProperty( "flag" );
 			if(metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ){
-				assertSame( CharacterTypeImpl.INSTANCE, nameAttribute.getType() );
+				assertSame( CharacterType.INSTANCE, nameAttribute.getType() );
 			}else {
-				assertSame( CharacterNCharTypeImpl.INSTANCE, nameAttribute.getType() );
+				assertSame( CharacterNCharType.INSTANCE, nameAttribute.getType() );
 			}
 
 		}

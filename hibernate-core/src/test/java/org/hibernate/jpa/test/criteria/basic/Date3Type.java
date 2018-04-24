@@ -16,8 +16,8 @@ import java.util.GregorianCalendar;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 import org.hibernate.usertype.CompositeUserType;
 
 /**
@@ -32,7 +32,11 @@ public class Date3Type implements CompositeUserType {
 
 	@Override
 	public Type[] getPropertyTypes() {
-		return new Type[] { StandardBasicTypes.INTEGER, StandardBasicTypes.INTEGER, StandardBasicTypes.INTEGER };
+		return new Type[] {
+				StandardSpiBasicTypes.INTEGER,
+				StandardSpiBasicTypes.INTEGER,
+				StandardSpiBasicTypes.INTEGER
+		};
 	}
 
 	@Override
@@ -100,9 +104,9 @@ public class Date3Type implements CompositeUserType {
 		Calendar c = GregorianCalendar.getInstance();
 		c.setTime( date );
 
-		Integer year = StandardBasicTypes.INTEGER.nullSafeGet( rs, names[0], session );
-		Integer month = StandardBasicTypes.INTEGER.nullSafeGet( rs, names[1], session );
-		Integer day = StandardBasicTypes.INTEGER.nullSafeGet( rs, names[2], session );
+		Integer year = StandardSpiBasicTypes.INTEGER.nullSafeGet( rs, names[0], session );
+		Integer month = StandardSpiBasicTypes.INTEGER.nullSafeGet( rs, names[1], session );
+		Integer day = StandardSpiBasicTypes.INTEGER.nullSafeGet( rs, names[2], session );
 
 		c.set( year, month, day );
 
@@ -115,9 +119,9 @@ public class Date3Type implements CompositeUserType {
 		Calendar c = GregorianCalendar.getInstance();
 		c.setTime( date );
 
-		StandardBasicTypes.INTEGER.nullSafeSet( st, c.get( Calendar.YEAR ), index, session );
-		StandardBasicTypes.INTEGER.nullSafeSet( st, c.get( Calendar.MONTH ), index + 1, session );
-		StandardBasicTypes.INTEGER.nullSafeSet( st, c.get( Calendar.DAY_OF_MONTH ), index + 2, session );
+		StandardSpiBasicTypes.INTEGER.nullSafeSet( st, c.get( Calendar.YEAR ), index, session );
+		StandardSpiBasicTypes.INTEGER.nullSafeSet( st, c.get( Calendar.MONTH ), index + 1, session );
+		StandardSpiBasicTypes.INTEGER.nullSafeSet( st, c.get( Calendar.DAY_OF_MONTH ), index + 2, session );
 	}
 
 	@Override

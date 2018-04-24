@@ -6,6 +6,8 @@
  */
 package org.hibernate.metamodel.model.domain.spi;
 
+import java.util.Comparator;
+
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 
@@ -58,5 +60,12 @@ public interface VersionSupport<T> {
 	 * @throws HibernateException A problem occurred performing the comparison
 	 */
 	boolean isEqual(T x, T y) throws HibernateException;
+
+	/**
+	 * Get a comparator for version values.
+	 *
+	 * @return The comparator to use to compare different version values.
+	 */
+	Comparator<T> getComparator();
 
 }

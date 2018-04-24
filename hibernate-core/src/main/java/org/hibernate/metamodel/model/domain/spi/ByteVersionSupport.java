@@ -6,6 +6,8 @@
  */
 package org.hibernate.metamodel.model.domain.spi;
 
+import java.util.Comparator;
+
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.spi.StandardSpiBasicTypes;
@@ -37,5 +39,10 @@ public class ByteVersionSupport implements VersionSupport<Byte> {
 	@Override
 	public boolean isEqual(Byte x, Byte y) throws HibernateException {
 		return StandardSpiBasicTypes.BYTE.areEqual( x, y );
+	}
+
+	@Override
+	public Comparator<Byte> getComparator() {
+		return StandardSpiBasicTypes.BYTE.getJavaTypeDescriptor().getComparator();
 	}
 }

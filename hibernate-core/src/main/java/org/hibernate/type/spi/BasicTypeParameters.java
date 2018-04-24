@@ -10,6 +10,8 @@ import java.util.Comparator;
 
 import org.hibernate.Incubating;
 //import org.hibernate.type.converter.spi.AttributeConverterDefinition;
+import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
+import org.hibernate.type.converter.spi.AttributeConverterDefinition;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -23,7 +25,7 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 public interface BasicTypeParameters<T> {
 	BasicJavaDescriptor<T> getJavaTypeDescriptor();
 	SqlTypeDescriptor getSqlTypeDescriptor();
-//	AttributeConverterDefinition getAttributeConverterDefinition();
+	ConverterDescriptor getAttributeConverterDefinition();
 	MutabilityPlan<T> getMutabilityPlan();
 	Comparator<T> getComparator();
 	javax.persistence.TemporalType getTemporalPrecision();

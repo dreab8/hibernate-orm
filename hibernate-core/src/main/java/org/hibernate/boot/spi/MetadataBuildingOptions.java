@@ -53,19 +53,6 @@ public interface MetadataBuildingOptions {
 	MappingDefaults getMappingDefaults();
 
 	/**
-	 * Access the list of BasicType registrations.  These are the BasicTypes explicitly
-	 * registered via calls to:<ul>
-	 *     <li>{@link org.hibernate.boot.MetadataBuilder#applyBasicType(BasicType)}</li>
-	 *     <li>{@link org.hibernate.boot.MetadataBuilder#applyBasicType(BasicType, String[])}</li>
-	 *     <li>{@link org.hibernate.boot.MetadataBuilder#applyBasicType(org.hibernate.usertype.UserType, java.lang.String[])}</li>
-	 *     <li>{@link org.hibernate.boot.MetadataBuilder#applyBasicType(org.hibernate.usertype.CompositeUserType, java.lang.String[])}</li>
-	 * </ul>
-	 *
-	 * @return The BasicType registrations
-	 */
-	List<BasicTypeRegistration> getBasicTypeRegistrations();
-
-	/**
 	 * Retrieve the Hibernate Commons Annotations ReflectionManager to use.
 	 *
 	 * @return The Hibernate Commons Annotations ReflectionManager to use.

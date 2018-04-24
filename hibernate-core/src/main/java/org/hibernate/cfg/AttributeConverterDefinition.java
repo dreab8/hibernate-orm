@@ -274,7 +274,7 @@ public class AttributeConverterDefinition implements AttributeConverterInfo {
 		return new InstanceBasedConverterDescriptor(
 				getAttributeConverter(),
 				isAutoApply(),
-				context.getBootstrapContext().getClassmateContext()
+				context.getBootstrapContext()
 		);
 	}
 }

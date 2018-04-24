@@ -11,7 +11,7 @@ package org.hibernate.type.spi;
  * true/false value on the JDBC side (aka the "unwrap" type as determined by
  * {@link org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor#unwrap}).
  * <p/>
- *  E.g. for a BooleanBasicType that maps a boolean to database CHAR column, the
+ *  E.g. for a BooleanBasicTypeImpl that maps a boolean to database CHAR column, the
  * unwrap type would be Character.
  *
  * @param <U> The "unwrap" type of the boolean value.

@@ -15,6 +15,7 @@ import java.sql.Types;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 import org.hibernate.usertype.EnhancedUserType;
 
 /**
@@ -58,7 +59,7 @@ public class ClassificationType implements EnhancedUserType {
 
 	@Override
 	public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner) throws HibernateException, SQLException {
-		Integer ordinal = StandardBasicTypes.INTEGER.nullSafeGet( rs, names[0], session );
+		Integer ordinal = StandardSpiBasicTypes.INTEGER.nullSafeGet( rs, names[0], session );
 		return Classification.valueOf( ordinal );
 	}
 

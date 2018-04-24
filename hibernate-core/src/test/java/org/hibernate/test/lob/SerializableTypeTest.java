@@ -6,21 +6,19 @@
  */
 package org.hibernate.test.lob;
 
-import org.junit.Test;
-
 import org.hibernate.Session;
 import org.hibernate.dialect.SybaseASE15Dialect;
-import org.hibernate.type.SerializableTypeImpl;
 
 import org.hibernate.testing.SkipForDialect;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 /**
- * Tests of {@link SerializableTypeImpl}
- * 
+ * Tests of {@link org.hibernate.type.spi.StandardSpiBasicTypes#SERIALIZABLE}
+ *
  * @author Steve Ebersole
  */
 public class SerializableTypeTest extends BaseCoreFunctionalTestCase {
@@ -33,7 +31,7 @@ public class SerializableTypeTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Test
-    @SkipForDialect( value = SybaseASE15Dialect.class, jiraKey = "HHH-6425")
+	@SkipForDialect(value = SybaseASE15Dialect.class, jiraKey = "HHH-6425")
 	public void testNewSerializableType() {
 		final String initialPayloadText = "Initial payload";
 		final String changedPayloadText = "Changed payload";
@@ -48,7 +46,7 @@ public class SerializableTypeTest extends BaseCoreFunctionalTestCase {
 
 		s = openSession();
 		s.beginTransaction();
-		holder = ( SerializableHolder ) s.get( SerializableHolder.class, holder.getId() );
+		holder = s.get( SerializableHolder.class, holder.getId() );
 		assertNull( holder.getSerialData() );
 		holder.setSerialData( new SerializableData( initialPayloadText ) );
 		s.getTransaction().commit();
@@ -56,8 +54,8 @@ public class SerializableTypeTest extends BaseCoreFunctionalTestCase {
 
 		s = openSession();
 		s.beginTransaction();
-		holder = ( SerializableHolder ) s.get( SerializableHolder.class, holder.getId() );
-		SerializableData serialData = ( SerializableData ) holder.getSerialData();
+		holder = s.get( SerializableHolder.class, holder.getId() );
+		SerializableData serialData = (SerializableData) holder.getSerialData();
 		assertEquals( initialPayloadText, serialData.getPayload() );
 		holder.setSerialData( new SerializableData( changedPayloadText ) );
 		s.getTransaction().commit();
@@ -65,8 +63,8 @@ public class SerializableTypeTest extends BaseCoreFunctionalTestCase {
 
 		s = openSession();
 		s.beginTransaction();
-		holder = ( SerializableHolder ) s.get( SerializableHolder.class, holder.getId() );
-		serialData = ( SerializableData ) holder.getSerialData();
+		holder = s.get( SerializableHolder.class, holder.getId() );
+		serialData = (SerializableData) holder.getSerialData();
 		assertEquals( changedPayloadText, serialData.getPayload() );
 		holder.setSerialData( null );
 		s.getTransaction().commit();
@@ -74,7 +72,7 @@ public class SerializableTypeTest extends BaseCoreFunctionalTestCase {
 
 		s = openSession();
 		s.beginTransaction();
-		holder = ( SerializableHolder ) s.get( SerializableHolder.class, holder.getId() );
+		holder = s.get( SerializableHolder.class, holder.getId() );
 		assertNull( holder.getSerialData() );
 		holder.setSerialData( new SerializableData( empty ) );
 		s.getTransaction().commit();
@@ -82,8 +80,8 @@ public class SerializableTypeTest extends BaseCoreFunctionalTestCase {
 
 		s = openSession();
 		s.beginTransaction();
-		holder = ( SerializableHolder ) s.get( SerializableHolder.class, holder.getId() );
-		serialData = ( SerializableData ) holder.getSerialData();
+		holder = s.get( SerializableHolder.class, holder.getId() );
+		serialData = (SerializableData) holder.getSerialData();
 		assertEquals( empty, serialData.getPayload() );
 		s.delete( holder );
 		s.getTransaction().commit();

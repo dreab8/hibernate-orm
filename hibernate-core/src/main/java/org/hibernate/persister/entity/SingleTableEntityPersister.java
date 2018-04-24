@@ -41,8 +41,9 @@ import org.hibernate.sql.InFragment;
 import org.hibernate.sql.Insert;
 import org.hibernate.sql.SelectFragment;
 import org.hibernate.type.AssociationType;
-import org.hibernate.type.DiscriminatorType;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * The default implementation of the <tt>EntityPersister</tt> interface.
@@ -95,7 +96,7 @@ public class SingleTableEntityPersister extends AbstractEntityPersister {
 	private final String discriminatorFormula;
 	private final String discriminatorFormulaTemplate;
 	private final String discriminatorAlias;
-	private final Type discriminatorType;
+	private final BasicType discriminatorType;
 	private final Object discriminatorValue;
 	private final String discriminatorSQLValue;
 	private final boolean discriminatorInsertable;
@@ -317,7 +318,7 @@ public class SingleTableEntityPersister extends AbstractEntityPersister {
 				discriminatorFormula = null;
 				discriminatorFormulaTemplate = null;
 			}
-			discriminatorType = persistentClass.getDiscriminator().getType();
+			discriminatorType = (BasicType) persistentClass.getDiscriminator().getType();
 			if ( persistentClass.isDiscriminatorValueNull() ) {
 				discriminatorValue = NULL_DISCRIMINATOR;
 				discriminatorSQLValue = InFragment.NULL;
@@ -331,9 +332,9 @@ public class SingleTableEntityPersister extends AbstractEntityPersister {
 			else {
 				discriminatorInsertable = persistentClass.isDiscriminatorInsertable() && !discrimValue.hasFormula();
 				try {
-					DiscriminatorType dtype = (DiscriminatorType) discriminatorType;
-					discriminatorValue = dtype.stringToObject( persistentClass.getDiscriminatorValue() );
-					discriminatorSQLValue = dtype.objectToSQLString( discriminatorValue, factory.getDialect() );
+					BasicJavaDescriptor javaTypeDescriptor = discriminatorType.getJavaTypeDescriptor();
+					discriminatorValue = javaTypeDescriptor.fromString( persistentClass.getDiscriminatorValue() );
+					discriminatorSQLValue = '\'' + javaTypeDescriptor.toString( discriminatorValue ) + '\'';
 				}
 				catch (ClassCastException cce) {
 					throw new MappingException( "Illegal discriminator type: " + discriminatorType.getName() );
@@ -423,9 +424,8 @@ public class SingleTableEntityPersister extends AbstractEntityPersister {
 				}
 				else {
 					try {
-						DiscriminatorType dtype = (DiscriminatorType) discriminatorType;
 						addSubclassByDiscriminatorValue(
-								dtype.stringToObject( sc.getDiscriminatorValue() ),
+								discriminatorType.getJavaTypeDescriptor().fromString( sc.getDiscriminatorValue() ),
 								sc.getEntityName()
 						);
 					}

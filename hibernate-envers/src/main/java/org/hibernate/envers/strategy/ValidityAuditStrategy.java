@@ -36,8 +36,8 @@ import org.hibernate.sql.Update;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.ComponentType;
 import org.hibernate.type.MapType;
-import org.hibernate.type.MaterializedClobTypeImpl;
-import org.hibernate.type.MaterializedNClobTypeImpl;
+import org.hibernate.type.MaterializedClobType;
+import org.hibernate.type.MaterializedNClobType;
 import org.hibernate.type.Type;
 
 import static org.hibernate.envers.internal.entities.mapper.relation.query.QueryConstants.MIDDLE_ENTITY_ALIAS;
@@ -293,7 +293,7 @@ public class ValidityAuditStrategy implements AuditStrategy {
 				// required for Embeddables
 				return true;
 			}
-			else if ( collectionElementType instanceof MaterializedClobTypeImpl || collectionElementType instanceof MaterializedNClobTypeImpl ) {
+			else if ( collectionElementType instanceof MaterializedClobType || collectionElementType instanceof MaterializedNClobType ) {
 				// for Map<> using @Lob annotations
 				return collectionType instanceof MapType;
 			}

@@ -638,28 +638,28 @@ public final class StandardSpiBasicTypes {
 
 		handle(
 				BOOLEAN,
-				"org.hibernate.type.BooleanTypeImpl",
+				"org.hibernate.type.BooleanType",
 				typeConfiguration,
 				"boolean", boolean.class.getName(), Boolean.class.getName()
 		);
 
 		handle(
 				NUMERIC_BOOLEAN,
-				"org.hibernate.type.NumericBooleanTypeImpl",
+				"org.hibernate.type.NumericBooleanType",
 				typeConfiguration,
 				"numeric_boolean"
 		);
 
 		handle(
 				TRUE_FALSE,
-				"org.hibernate.type.TrueFalseTypeImpl",
+				"org.hibernate.type.TrueFalseType",
 				typeConfiguration,
 				"true_false"
 		);
 
 		handle(
 				YES_NO,
-				"org.hibernate.type.YesNoTypeImpl",
+				"org.hibernate.type.YesNoType",
 				typeConfiguration,
 				"yes_no"
 		);
@@ -670,35 +670,35 @@ public final class StandardSpiBasicTypes {
 
 		handle(
 				BYTE,
-				"org.hibernate.type.ByteTypeImpl",
+				"org.hibernate.type.ByteType",
 				typeConfiguration,
 				"byte", byte.class.getName(), Byte.class.getName()
 		);
 
 		handle(
 				BINARY,
-				"org.hibernate.type.BinaryTypeImpl",
+				"org.hibernate.type.BinaryType",
 				typeConfiguration,
 				"binary", "byte[]", byte[].class.getName()
 		);
 
 		handle(
 				WRAPPER_BINARY,
-				"org.hibernate.type.WrapperBinaryTypeImpl",
+				"org.hibernate.type.WrapperBinaryType",
 				typeConfiguration,
 				"wrapper-binary", "Byte[]", Byte[].class.getName()
 		);
 
 		handle(
 				IMAGE,
-				"org.hibernate.type.ImageTypeImpl",
+				"org.hibernate.type.ImageType",
 				typeConfiguration,
 				"image"
 		);
 
 		handle(
 				BLOB,
-				"org.hibernate.type.BlobTypeImpl",
+				"org.hibernate.type.BlobType",
 				typeConfiguration,
 				"blob",
 				Blob.class.getName()
@@ -706,14 +706,14 @@ public final class StandardSpiBasicTypes {
 
 		handle(
 				MATERIALIZED_BLOB,
-				"org.hibernate.type.MaterializedBlobTypeImpl",
+				"org.hibernate.type.MaterializedBlobType",
 				typeConfiguration,
 				"materialized_blob"
 		);
 
 		handle(
 				WRAPPED_MATERIALIZED_BLOB,
-				"org.hibernate.type.MaterializedBlobTypeImpl",
+				"org.hibernate.type.MaterializedBlobType",
 				typeConfiguration,
 				"wrapped_materialized_blob"
 		);
@@ -724,49 +724,49 @@ public final class StandardSpiBasicTypes {
 
 		handle(
 				SHORT,
-				"org.hibernate.type.ShortTypeImpl",
+				"org.hibernate.type.ShortType",
 				typeConfiguration,
 				"short", short.class.getName(), Short.class.getName()
 		);
 
 		handle(
 				INTEGER,
-				"org.hibernate.type.IntegerTypeImpl",
+				"org.hibernate.type.IntegerType",
 				typeConfiguration,
 				"integer", int.class.getName(), Integer.class.getName()
 		);
 
 		handle(
 				LONG,
-				"org.hibernate.type.LongTypeImpl",
+				"org.hibernate.type.LongType",
 				typeConfiguration,
 				"long", long.class.getName(), Long.class.getName()
 		);
 
 		handle(
 				FLOAT,
-				"org.hibernate.type.FloatTypeImpl",
+				"org.hibernate.type.FloatType",
 				typeConfiguration,
 				"float", float.class.getName(), Float.class.getName()
 		);
 
 		handle(
 				DOUBLE,
-				"org.hibernate.type.DoubleTypeImpl",
+				"org.hibernate.type.DoubleType",
 				typeConfiguration,
 				"double", double.class.getName(), Double.class.getName()
 		);
 
 		handle(
 				BIG_INTEGER,
-				"org.hibernate.type.BigIntegerTypeImpl",
+				"org.hibernate.type.BigIntegerType",
 				typeConfiguration,
 				"big_integer", BigInteger.class.getName()
 		);
 
 		handle(
 				BIG_DECIMAL,
-				"org.hibernate.type.BigDecimalTypeImpl",
+				"org.hibernate.type.BigDecimalType",
 				typeConfiguration,
 				"big_decimal", BigDecimal.class.getName()
 		);
@@ -777,7 +777,7 @@ public final class StandardSpiBasicTypes {
 
 		handle(
 				CHARACTER,
-				"org.hibernate.type.CharacterTypeImpl",
+				"org.hibernate.type.CharacterType",
 				typeConfiguration,
 				"character", char.class.getName(), Character.class.getName()
 		);
@@ -791,98 +791,98 @@ public final class StandardSpiBasicTypes {
 
 		handle(
 				STRING,
-				"org.hibernate.type.StringTypeImpl",
+				"org.hibernate.type.StringType",
 				typeConfiguration,
 				"string", String.class.getName()
 		);
 
 		handle(
 				NSTRING,
-				"org.hibernate.type.StringNVarcharTypeImpl",
+				"org.hibernate.type.StringNVarcharType",
 				typeConfiguration,
 				"nstring"
 		);
 
 		handle(
 				CHAR_ARRAY,
-				"org.hibernate.type.CharArrayTypeImpl",
+				"org.hibernate.type.CharArrayType",
 				typeConfiguration,
 				"characters", "char[]", char[].class.getName()
 		);
 
 		handle(
 				CHARACTER_ARRAY,
-				"org.hibernate.type.CharacterArrayTypeImpl",
+				"org.hibernate.type.CharacterArrayType",
 				typeConfiguration,
 				"wrapper-characters", Character[].class.getName(), "Character[]"
 		);
 
 		handle(
 				TEXT,
-				"org.hibernate.type.TextTypeImpl",
+				"org.hibernate.type.TextType",
 				typeConfiguration,
 				"text"
 		);
 
 		handle(
 				NTEXT,
-				"org.hibernate.type.NTextTypeImpl",
+				"org.hibernate.type.NTextType",
 				typeConfiguration,
 				"ntext"
 		);
 
 		handle(
 				CLOB,
-				"org.hibernate.type.ClobTypeImpl",
+				"org.hibernate.type.ClobType",
 				typeConfiguration,
 				"clob", Clob.class.getName()
 		);
 
 		handle(
 				NCLOB,
-				"org.hibernate.type.NClobTypeImpl",
+				"org.hibernate.type.NClobType",
 				typeConfiguration,
 				"nclob", NClob.class.getName()
 		);
 
 		handle(
 				MATERIALIZED_CLOB,
-				"org.hibernate.type.MaterializedClobTypeImpl",
+				"org.hibernate.type.MaterializedClobType",
 				typeConfiguration,
 				"materialized_clob"
 		);
 
 		handle(
 				MATERIALIZED_CLOB_CHAR_ARRAY,
-				"org.hibernate.type.PrimitiveCharacterArrayClobTypeImpl",
+				"org.hibernate.type.PrimitiveCharacterArrayClobType",
 				typeConfiguration,
 				"materialized_clob_char_array"
 		);
 
 		handle(
 				MATERIALIZED_CLOB_CHARACTER_ARRAY,
-				"org.hibernate.type.CharacterArrayClobTypeImpl",
+				"org.hibernate.type.CharacterArrayClobType",
 				typeConfiguration,
 				"materialized_clob_character_array"
 		);
 
 		handle(
 				MATERIALIZED_NCLOB,
-				"org.hibernate.type.MaterializedNClobTypeImpl",
+				"org.hibernate.type.MaterializedNClobType",
 				typeConfiguration,
 				"materialized_nclob"
 		);
 
 		handle(
 				MATERIALIZED_NCLOB_CHARACTER_ARRAY,
-				"org.hibernate.type.CharacterArrayNClobTypeImpl",
+				"org.hibernate.type.CharacterArrayNClobType",
 				typeConfiguration,
 				"materialized_nclob_character_array"
 		);
 
 		handle(
 				MATERIALIZED_NCLOB_CHAR_ARRAY,
-				"org.hibernate.type.PrimitiveCharacterArrayNClobTypeImpl",
+				"org.hibernate.type.PrimitiveCharacterArrayNClobType",
 				typeConfiguration,
 				"materialized_nclob_char_array"
 		);
@@ -893,98 +893,98 @@ public final class StandardSpiBasicTypes {
 
 		handle(
 				DURATION,
-				"org.hibernate.type.DurationTypeImpl",
+				"org.hibernate.type.DurationType",
 				typeConfiguration,
 				Duration.class.getSimpleName(), Duration.class.getName()
 		);
 
 		handle(
 				LOCAL_DATE_TIME,
-				"org.hibernate.type.LocalDateTimeTypeImpl",
+				"org.hibernate.type.LocalDateTimeType",
 				typeConfiguration,
 				LocalDateTime.class.getSimpleName(), LocalDateTime.class.getName()
 		);
 
 		handle(
 				LOCAL_DATE,
-				"org.hibernate.type.LocalDateTypeImpl",
+				"org.hibernate.type.LocalDateType",
 				typeConfiguration,
 				LocalDate.class.getSimpleName(), LocalDate.class.getName()
 		);
 
 		handle(
 				LOCAL_TIME,
-				"org.hibernate.type.LocalTimeTypeImpl",
+				"org.hibernate.type.LocalTimeType",
 				typeConfiguration,
 				LocalTime.class.getSimpleName(), LocalTime.class.getName()
 		);
 
 		handle(
 				OFFSET_DATE_TIME,
-				"org.hibernate.type.OffsetDateTimeTypeImpl",
+				"org.hibernate.type.OffsetDateTimeType",
 				typeConfiguration,
 				OffsetDateTime.class.getSimpleName(), OffsetDateTime.class.getName()
 		);
 
 		handle(
 				OFFSET_TIME,
-				"org.hibernate.type.OffsetTimeTypeImpl",
+				"org.hibernate.type.OffsetTimeType",
 				typeConfiguration,
 				OffsetTime.class.getSimpleName(), OffsetTime.class.getName()
 		);
 
 		handle(
 				ZONED_DATE_TIME,
-				"org.hibernate.type.ZonedDateTimeTypeImpl",
+				"org.hibernate.type.ZonedDateTimeType",
 				typeConfiguration,
 				ZonedDateTime.class.getSimpleName(), ZonedDateTime.class.getName()
 		);
 
 		handle(
 				DATE,
-				"org.hibernate.type.DateTypeImpl",
+				"org.hibernate.type.DateType",
 				typeConfiguration,
 				"date", java.sql.Date.class.getName()
 		);
 
 		handle(
 				TIME,
-				"org.hibernate.type.TimeTypeImpl",
+				"org.hibernate.type.TimeType",
 				typeConfiguration,
 				"time", java.sql.Time.class.getName()
 		);
 
 		handle(
 				TIMESTAMP,
-				"org.hibernate.type.TimestampTypeImpl",
+				"org.hibernate.type.TimestampType",
 				typeConfiguration,
 				"timestamp", java.sql.Timestamp.class.getName(), Date.class.getName()
 		);
 
 		handle(
 				CALENDAR,
-				"org.hibernate.type.CalendarTypeImpl",
+				"org.hibernate.type.CalendarType",
 				typeConfiguration,
 				"calendar", Calendar.class.getName(), GregorianCalendar.class.getName()
 		);
 
 		handle(
 				CALENDAR_DATE,
-				"org.hibernate.type.CalendarDateTypeImpl",
+				"org.hibernate.type.CalendarDateType",
 				typeConfiguration,
 				"calendar_date"
 		);
 
 		handle(
 				CALENDAR_TIME,
-				"org.hibernate.type.CalendarTimeTypeImpl",
+				"org.hibernate.type.CalendarTimeType",
 				typeConfiguration,
 				"calendar_date"
 		);
 
 		handle(
 				INSTANT,
-				"org.hibernate.type.InstantTypeImpl",
+				"org.hibernate.type.InstantType",
 				typeConfiguration,
 				"instant", Instant.class.getName()
 		);
@@ -995,14 +995,14 @@ public final class StandardSpiBasicTypes {
 
 		handle(
 				UUID_BINARY,
-				"org.hibernate.type.UUIDBinaryTypeImpl",
+				"org.hibernate.type.UUIDBinaryType",
 				typeConfiguration,
 				"uuid-binary", UUID.class.getName()
 		);
 
 		handle(
 				UUID_CHAR,
-				"org.hibernate.type.UUIDCharTypeImpl",
+				"org.hibernate.type.UUIDCharType",
 				typeConfiguration,
 				"uuid-char"
 		);
@@ -1013,21 +1013,21 @@ public final class StandardSpiBasicTypes {
 
 		handle(
 				CLASS,
-				"org.hibernate.type.ClassTypeImpl",
+				"org.hibernate.type.ClassType",
 				typeConfiguration,
 				"class", Class.class.getName()
 		);
 
 		handle(
 				CURRENCY,
-				"org.hibernate.type.CurrencyTypeImpl",
+				"org.hibernate.type.CurrencyType",
 				typeConfiguration,
 				"currency", Currency.class.getSimpleName(), Currency.class.getName()
 		);
 
 		handle(
 				LOCALE,
-				"org.hibernate.type.LocaleTypeImpl",
+				"org.hibernate.type.LocaleType",
 				typeConfiguration,
 				"locale",
 				Locale.class.getName()
@@ -1035,31 +1035,31 @@ public final class StandardSpiBasicTypes {
 
 		handle(
 				SERIALIZABLE,
-				"org.hibernate.type.SerializableTypeImpl",
+				"org.hibernate.type.SerializableType",
 				typeConfiguration,
 				"serializable", Serializable.class.getName()
 		);
 
 		handle(
 				TIMEZONE,
-				"org.hibernate.type.TimeZoneTypeImpl",
+				"org.hibernate.type.TimeZoneType",
 				typeConfiguration,
 				"timezone", TimeZone.class.getName()
 		);
 
 		handle(
 				URL,
-				"org.hibernate.type.UrlTypeImpl",
+				"org.hibernate.type.UrlType",
 				typeConfiguration,
 				"url", java.net.URL.class.getName()
 		);
 
 
-		// todo (6.0) - ? how to handle DbTimestampTypeImpl?
-		//		DbTimestampTypeImpl was really just a variant of TimestampTypeImpl with overridden
+		// todo (6.0) - ? how to handle DbTimestampType?
+		//		DbTimestampType was really just a variant of TimestampType with overridden
 		//		version (opt lock) support
-		//handle( DbTimestampTypeImpl.INSTANCE, typeConfiguration, basicTypeProducerRegistry, "dbtimestamp" );
-		//handle( new AdaptedImmutableTypeImpl( DbTimestampTypeImpl.INSTANCE ), typeConfiguration,
+		//handle( DbTimestampType.INSTANCE, typeConfiguration, basicTypeProducerRegistry, "dbtimestamp" );
+		//handle( new AdaptedImmutableType( DbTimestampType.INSTANCE ), typeConfiguration,
 		//		basicTypeProducerRegistry, "imm_dbtimestamp" );
 
 	}

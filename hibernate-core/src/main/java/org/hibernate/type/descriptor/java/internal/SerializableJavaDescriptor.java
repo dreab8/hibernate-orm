@@ -135,7 +135,7 @@ public class SerializableJavaDescriptor<T extends Serializable> extends Abstract
 				throw new HibernateException( e );
 			}
 		}
-		else if ( getJavaType() == null && getJavaType().isInstance( value ) ) {
+		else if ( getJavaType() != null && getJavaType().isInstance( value ) ) {
 			return (T) value;
 		}
 		throw unknownWrap( value.getClass() );

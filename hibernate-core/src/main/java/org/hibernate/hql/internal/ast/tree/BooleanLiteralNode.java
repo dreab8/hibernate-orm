@@ -11,7 +11,7 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.type.LiteralType;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
-import org.hibernate.type.descriptor.converter.AttributeConverterTypeImplAdapter;
+import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
 
 /**
  * Represents a boolean literal within a query.
@@ -49,8 +49,8 @@ public class BooleanLiteralNode extends LiteralNode implements ExpectedTypeAware
 	public String getRenderText(SessionFactoryImplementor sessionFactory) {
 		final boolean literalValue = getValue();
 
-		if ( expectedType instanceof AttributeConverterTypeImplAdapter ) {
-			return determineConvertedValue( (AttributeConverterTypeImplAdapter) expectedType, literalValue );
+		if ( expectedType instanceof AttributeConverterTypeAdapter ) {
+			return determineConvertedValue( (AttributeConverterTypeAdapter) expectedType, literalValue );
 		}
 		else if ( expectedType instanceof LiteralType ) {
 			try {

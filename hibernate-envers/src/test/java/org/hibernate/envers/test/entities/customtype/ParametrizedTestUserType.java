@@ -15,7 +15,7 @@ import java.util.Properties;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.StringType;
 import org.hibernate.usertype.ParameterizedType;
 import org.hibernate.usertype.UserType;
 
@@ -39,7 +39,7 @@ public class ParametrizedTestUserType implements UserType, ParameterizedType {
 
 	public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
 			throws HibernateException, SQLException {
-		return StringTypeImpl.INSTANCE.nullSafeGet( rs, names[0], session );
+		return StringType.INSTANCE.nullSafeGet( rs, names[0], session );
 	}
 
 	public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session)
@@ -52,10 +52,10 @@ public class ParametrizedTestUserType implements UserType, ParameterizedType {
 			if ( !v.endsWith( param2 ) ) {
 				v = v + param2;
 			}
-			StringTypeImpl.INSTANCE.nullSafeSet( st, v, index, session );
+			StringType.INSTANCE.nullSafeSet( st, v, index, session );
 		}
 		else {
-			StringTypeImpl.INSTANCE.nullSafeSet( st, null, index, session );
+			StringType.INSTANCE.nullSafeSet( st, null, index, session );
 		}
 	}
 

@@ -41,7 +41,7 @@ public class ColumnTransformerTest extends BaseCoreFunctionalTestCase {
 		s.flush();
 
 		// Test value conversion during insert
-		// Value returned by Oracle native query is a Types.NUMERIC, which is mapped to a BigDecimalTypeImpl;
+		// Value returned by Oracle native query is a Types.NUMERIC, which is mapped to a BigDecimalType;
 		// Cast returned value to Number then call Number.doubleValue() so it works on all dialects.
 		double heightViaSql =
 				( (Number)s.createSQLQuery("select size_in_cm from t_staff where t_staff.id=1").uniqueResult() )

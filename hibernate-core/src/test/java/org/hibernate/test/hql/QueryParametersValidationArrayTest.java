@@ -60,7 +60,7 @@ public class QueryParametersValidationArrayTest extends BaseEntityManagerFunctio
 				"from Event " +
 				"where readings = :readings" )
 			.unwrap( NativeQuery.class )
-			.setParameter( "readings", new String[]{null, "a"}, StringArrayTypeImpl.INSTANCE )
+			.setParameter( "readings", new String[]{null, "a"}, StringArrayType.INSTANCE )
 			.getResultList();
 		});
 	}
@@ -76,12 +76,12 @@ public class QueryParametersValidationArrayTest extends BaseEntityManagerFunctio
 		private String[] readings;
 	}
 
-	public static class StringArrayTypeImpl
+	public static class StringArrayType
 			extends BasicTypeImpl<String[]> {
 
-		public static final StringArrayTypeImpl INSTANCE = new StringArrayTypeImpl();
+		public static final StringArrayType INSTANCE = new StringArrayType();
 
-		public StringArrayTypeImpl() {
+		public StringArrayType() {
 			super( StringArraySqlTypeDescriptor.INSTANCE, StringArrayTypeDescriptor.INSTANCE);
 		}
 

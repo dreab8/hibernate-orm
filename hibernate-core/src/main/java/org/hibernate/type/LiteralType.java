@@ -25,6 +25,6 @@ public interface LiteralType<T> {
 	 * 
 	 * @throws Exception Indicates an issue converting the value to literal string.
 	 */
-	public String objectToSQLString(T value, Dialect dialect) throws Exception;
+	String objectToSQLString(T value, Dialect dialect) throws Exception;
 
 }

@@ -46,7 +46,6 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.selector.spi.StrategySelector;
-import org.hibernate.boot.spi.BasicTypeRegistration;
 import org.hibernate.boot.spi.BootstrapContext;
 import org.hibernate.boot.spi.JpaOrmXmlPersistenceUnitDefaultAware;
 import org.hibernate.boot.spi.MappingDefaults;
@@ -243,26 +242,26 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 	}
 
 	@Override
-	public MetadataBuilder applyBasicType(BasicType type) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type ) );
+	public MetadataBuilder applyBasicType(org.hibernate.type.spi.BasicType type) {
+		bootstrapContext.getTypeConfiguration().getBasicTypeRegistry().register( type );
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyBasicType(BasicType type, String... keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		bootstrapContext.getTypeConfiguration().getBasicTypeRegistry().register( type, keys );
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyBasicType(UserType type, String... keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		bootstrapContext.getTypeConfiguration().getBasicTypeRegistry().register( type, keys );
 		return this;
 	}
 
 	@Override
 	public MetadataBuilder applyBasicType(CompositeUserType type, String... keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		bootstrapContext.getTypeConfiguration().getBasicTypeRegistry().register( type, keys );
 		return this;
 	}
 
@@ -273,23 +272,18 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 	}
 
 	@Override
-	public void contributeType(BasicType type) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type ) );
-	}
-
-	@Override
 	public void contributeType(BasicType type, String... keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		bootstrapContext.getTypeConfiguration().getBasicTypeRegistry().register( type, keys );
 	}
 
 	@Override
 	public void contributeType(UserType type, String[] keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		bootstrapContext.getTypeConfiguration().getBasicTypeRegistry().register( type, keys );
 	}
 
 	@Override
 	public void contributeType(CompositeUserType type, String[] keys) {
-		options.basicTypeRegistrations.add( new BasicTypeRegistration( type, keys ) );
+		bootstrapContext.getTypeConfiguration().getBasicTypeRegistry().register( type, keys );
 	}
 
 	@Override
@@ -300,6 +294,12 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 	@Override
 	public void contributeSqlTypeDescriptor(SqlTypeDescriptor descriptor) {
 		this.bootstrapContext.getTypeConfiguration().getSqlTypeDescriptorRegistry().addDescriptor( descriptor );
+	}
+
+	@Override
+	public void contributeType(org.hibernate.type.spi.BasicType type) {
+		// register the BasicType with the BasicTypeRegistry
+		this.bootstrapContext.getTypeConfiguration().getBasicTypeRegistry().register( type );
 	}
 
 	@Override
@@ -362,7 +362,7 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 						return new ClassBasedConverterDescriptor(
 								attributeConverterClass,
 								null,
-								context.getBootstrapContext().getClassmateContext()
+								context.getBootstrapContext()
 						);
 					}
 				}
@@ -384,7 +384,7 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 						return new ClassBasedConverterDescriptor(
 								attributeConverterClass,
 								autoApply,
-								context.getBootstrapContext().getClassmateContext()
+								context.getBootstrapContext()
 						);
 					}
 				}
@@ -406,7 +406,7 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 						return new InstanceBasedConverterDescriptor(
 								attributeConverter,
 								null,
-								context.getBootstrapContext().getClassmateContext()
+								context.getBootstrapContext()
 						);
 					}
 				}
@@ -428,7 +428,7 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 						return new InstanceBasedConverterDescriptor(
 								attributeConverter,
 								autoApply,
-								context.getBootstrapContext().getClassmateContext()
+								context.getBootstrapContext()
 						);
 					}
 				}
@@ -596,8 +596,6 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 		private final MappingDefaultsImpl mappingDefaults;
 		// todo (6.0) : remove bootstrapContext property along with the deprecated methods
 		private BootstrapContext bootstrapContext;
-
-		private ArrayList<BasicTypeRegistration> basicTypeRegistrations = new ArrayList<>();
 
 		private ImplicitNamingStrategy implicitNamingStrategy;
 		private PhysicalNamingStrategy physicalNamingStrategy;
@@ -773,11 +771,6 @@ public class MetadataBuilderImpl implements MetadataBuilderImplementor, TypeCont
 		@Override
 		public MappingDefaults getMappingDefaults() {
 			return mappingDefaults;
-		}
-
-		@Override
-		public List<BasicTypeRegistration> getBasicTypeRegistrations() {
-			return basicTypeRegistrations;
 		}
 
 		@Override

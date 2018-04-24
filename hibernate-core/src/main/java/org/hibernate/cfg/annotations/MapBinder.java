@@ -42,6 +42,7 @@ import org.hibernate.cfg.PropertyPreloadedData;
 import org.hibernate.cfg.SecondPass;
 import org.hibernate.dialect.HSQLDialect;
 import org.hibernate.internal.util.StringHelper;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.Component;
@@ -179,7 +180,12 @@ public class MapBinder extends CollectionBinder {
 					mapProperty.getPersistentClass() :
 					associatedClass;
 			Value indexValue = createFormulatedValue(
-					mapProperty.getValue(), map, targetPropertyName, associatedClass, targetPropertyPersistentClass, buildingContext
+					mapProperty.getValue(),
+					map,
+					targetPropertyName,
+					associatedClass,
+					targetPropertyPersistentClass,
+					buildingContext
 			);
 			map.setIndex( indexValue );
 		}
@@ -253,7 +259,7 @@ public class MapBinder extends CollectionBinder {
 				propertyHolder.startingProperty( property );
 				holder.prepare( property );
 
-				PersistentClass owner = mapValue.getOwner();
+				final PersistentClass owner = mapValue.getOwner();
 				AccessType accessType;
 				// FIXME support @Access for collection of elements
 				// String accessType = access != null ? access.value() : null;
@@ -299,8 +305,10 @@ public class MapBinder extends CollectionBinder {
 					mapValue.setIndex( component );
 				}
 				else {
-					SimpleValueBinder elementBinder = new SimpleValueBinder();
-					elementBinder.setBuildingContext( buildingContext );
+					BasicValueBinder elementBinder = new BasicValueBinder(
+							BasicValueBinder.Kind.COLLECTION_INDEX,
+							buildingContext
+					);
 					elementBinder.setReturnedClassName( mapKeyType );
 
 					Ejb3Column[] elementColumns = mapKeyColumns;
@@ -312,7 +320,7 @@ public class MapBinder extends CollectionBinder {
 						column.setLength( Ejb3Column.DEFAULT_COLUMN_LENGTH );
 						column.setLogicalColumnName( Collection.DEFAULT_KEY_COLUMN_NAME );
 						//TODO create an EMPTY_JOINS collection
-						column.setJoins( new HashMap<String, Join>() );
+						column.setJoins( new HashMap<>() );
 						column.setBuildingContext( buildingContext );
 						column.bind();
 						elementColumns[0] = column;
@@ -324,7 +332,6 @@ public class MapBinder extends CollectionBinder {
 					elementBinder.setColumns( elementColumns );
 					//do not call setType as it extract the type from @Type
 					//the algorithm generally does not apply for map key anyway
-					elementBinder.setKey(true);
 					elementBinder.setType(
 							property,
 							keyXClass,
@@ -332,7 +339,6 @@ public class MapBinder extends CollectionBinder {
 							holder.mapKeyAttributeConverterDescriptor( property, keyXClass )
 					);
 					elementBinder.setPersistentClassName( propertyHolder.getEntityName() );
-					elementBinder.setAccessType( accessType );
 					mapValue.setIndex( elementBinder.make() );
 				}
 			}
@@ -495,9 +501,12 @@ public class MapBinder extends CollectionBinder {
 				targetManyToOne.setReferencedEntityName( sourceManyToOne.getReferencedEntityName() );
 				targetValue = targetManyToOne;
 			}
-			else {
-				targetValue = new SimpleValue( getBuildingContext(), collection.getCollectionTable() );
+			else if ( value instanceof BasicValue ) {
+				targetValue = new BasicValue( getBuildingContext(), collection.getCollectionTable() );
 				targetValue.copyTypeFrom( sourceValue );
+			}
+			else {
+				throw new AssertionFailure( "Unknown type encounters for map key: " + value.getClass() );
 			}
 			Iterator columns = sourceValue.getColumnIterator();
 			Random random = new Random();

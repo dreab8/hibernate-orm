@@ -18,7 +18,7 @@ import javax.persistence.PreUpdate;
 import org.hibernate.Session;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
-import org.hibernate.type.descriptor.converter.AttributeConverterTypeImplAdapter;
+import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
@@ -99,8 +99,8 @@ public class XmlWithExplicitConvertAnnotationsTest extends BaseNonConfigCoreFunc
 	public void testSimpleConvertUsage() throws MalformedURLException {
 		final EntityPersister ep = sessionFactory().getEntityPersister( Entity1.class.getName() );
 		final Type theDatePropertyType = ep.getPropertyType( "theDate" );
-		final AttributeConverterTypeImplAdapter type = assertTyping(
-				AttributeConverterTypeImplAdapter.class,
+		final AttributeConverterTypeAdapter type = assertTyping(
+				AttributeConverterTypeAdapter.class,
 				theDatePropertyType
 		);
 		assertTrue( LongToDateConverter.class.isAssignableFrom( type.getAttributeConverter().getConverterJavaTypeDescriptor().getJavaType() ) );

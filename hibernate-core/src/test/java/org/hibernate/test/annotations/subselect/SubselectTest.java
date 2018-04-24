@@ -13,7 +13,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
-import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.StringType;
 
 /**
  * @author Sharath Reddy
@@ -47,7 +47,7 @@ public class SubselectTest extends BaseCoreFunctionalTestCase {
 		
 		//Because we use 'synchronize' annotation, this query should trigger session flush
 		Query query = s.createQuery("from HighestBid b where b.name = :name");
-		query.setParameter( "name", "widget", StringTypeImpl.INSTANCE );
+		query.setParameter( "name", "widget", StringType.INSTANCE );
 		HighestBid highestBid = (HighestBid) query.list().iterator().next();
 		
 		Assert.assertEquals( 200.0, highestBid.getAmount(), 0.01 );

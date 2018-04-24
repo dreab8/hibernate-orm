@@ -54,7 +54,7 @@ import org.hibernate.testing.SkipForDialect;
 import org.hibernate.transform.Transformers;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
 import org.junit.Test;
 
@@ -468,9 +468,9 @@ public class FumTest extends LegacyTestCase {
 		for ( int k=0; k<types.length; k++) {
 			assertTrue( types[k]!=null );
 		}
-		assertTrue(types[0] instanceof StringTypeImpl );
+		assertTrue(types[0] instanceof StringType );
 		assertTrue(types[1] instanceof EntityType);
-		assertTrue(types[2] instanceof StringTypeImpl );
+		assertTrue(types[2] instanceof StringType );
 		Iterator iter = qu.iterate();
 		int j = 0;
 		while ( iter.hasNext() ) {

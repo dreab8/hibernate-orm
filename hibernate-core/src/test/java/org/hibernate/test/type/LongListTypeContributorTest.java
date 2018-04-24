@@ -145,18 +145,18 @@ public class LongListTypeContributorTest extends BaseEntityManagerFunctionalTest
 		@Override
 		public void contribute(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
 //			JavaTypeDescriptorRegistry.INSTANCE.addDescriptor( StringifiedCollectionJavaTypeDescriptor.INSTANCE );
-			typeContributions.contributeType( StringifiedCollectionTypeImpl.INSTANCE );
+			typeContributions.contributeType( StringifiedCollectionType.INSTANCE );
 		}
 
-		private static class StringifiedCollectionTypeImpl
+		private static class StringifiedCollectionType
 				extends BasicTypeImpl<LongList> {
 
 			private final String[] regKeys;
 			private final String name;
 
-			public static final StringifiedCollectionTypeImpl INSTANCE = new StringifiedCollectionTypeImpl();
+			public static final StringifiedCollectionType INSTANCE = new StringifiedCollectionType();
 
-			public StringifiedCollectionTypeImpl() {
+			public StringifiedCollectionType() {
 				super( LongVarcharSqlDescriptor.INSTANCE,
 					   StringifiedCollectionJavaTypeDescriptor.INSTANCE );
 				regKeys = new String[]{ LongList.class.getName() };
@@ -168,10 +168,10 @@ public class LongListTypeContributorTest extends BaseEntityManagerFunctionalTest
 				return name;
 			}
 
-			@Override
-			public String[] getRegistrationKeys() {
-				return regKeys.clone();
-			}
+//			@Override
+//			public String[] getRegistrationKeys() {
+//				return regKeys.clone();
+//			}
 
 			@Override
 			protected boolean registerUnderJavaType() {

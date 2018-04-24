@@ -413,7 +413,11 @@ public class DefaultFlushEntityEventListener implements FlushEntityEventListener
 				);
 
 				final Object nextVersion = isVersionIncrementRequired ?
-						Versioning.increment( entry.getVersion(), persister.getVersionType(), event.getSession() ) :
+						Versioning.increment(
+								entry.getVersion(),
+								persister.getVersionType().getJavaTypeDescriptor().getVersionSupport(),
+								event.getSession()
+						) :
 						entry.getVersion(); //use the current version
 
 				Versioning.setVersion( values, nextVersion, persister );

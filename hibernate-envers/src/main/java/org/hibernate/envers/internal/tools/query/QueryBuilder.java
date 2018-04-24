@@ -252,7 +252,7 @@ public class QueryBuilder {
 				query.setParameter(
 						paramValue.getKey(),
 						paramValue.getValue(),
-						new CustomType( new RevisionTypeType() )
+						new RevisionTypeType()
 				);
 			}
 			else {

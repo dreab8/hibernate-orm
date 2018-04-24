@@ -5,7 +5,7 @@ import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.IntegerTypeImpl;
+import org.hibernate.type.IntegerType;
 import org.hibernate.usertype.UserType;
 
 import org.hibernate.testing.TestForIssue;
@@ -98,8 +98,8 @@ public class AttributeOverrideEnhancedUserTypeTest extends BaseNonConfigCoreFunc
 		@Override
 		public int[] sqlTypes() {
 			return new int[]{
-                IntegerTypeImpl.INSTANCE.sqlType(),
-                IntegerTypeImpl.INSTANCE.sqlType(),
+                IntegerType.INSTANCE.sqlType(),
+                IntegerType.INSTANCE.sqlType(),
 			};
 		}
 
@@ -129,21 +129,21 @@ public class AttributeOverrideEnhancedUserTypeTest extends BaseNonConfigCoreFunc
 		@Override
 		public Object nullSafeGet(final ResultSet rs, final String[] names, final SharedSessionContractImplementor session, final Object owner) throws HibernateException, SQLException {
 			assert names.length == 2;
-			final Integer year = IntegerTypeImpl.INSTANCE.nullSafeGet( rs, names[0], session);
-			final Integer month = IntegerTypeImpl.INSTANCE.nullSafeGet( rs, names[1], session);
+			final Integer year = IntegerType.INSTANCE.nullSafeGet( rs, names[0], session);
+			final Integer month = IntegerType.INSTANCE.nullSafeGet( rs, names[1], session);
 			return year == null || month == null ? null : YearMonth.of(year, month);
 		}
 
 		@Override
 		public void nullSafeSet(final PreparedStatement st, final Object value, final int index, final SharedSessionContractImplementor session) throws HibernateException, SQLException {
 			if (value == null) {
-				IntegerTypeImpl.INSTANCE.set( st, null, index, session);
-				IntegerTypeImpl.INSTANCE.set( st, null, index + 1, session);
+				IntegerType.INSTANCE.set( st, null, index, session);
+				IntegerType.INSTANCE.set( st, null, index + 1, session);
 			} else {
 				final YearMonth YearMonth = (YearMonth) value;
 
-				IntegerTypeImpl.INSTANCE.set( st, YearMonth.getYear(), index, session);
-				IntegerTypeImpl.INSTANCE.set( st, YearMonth.getMonthValue(), index + 1, session);
+				IntegerType.INSTANCE.set( st, YearMonth.getYear(), index, session);
+				IntegerType.INSTANCE.set( st, YearMonth.getMonthValue(), index + 1, session);
 			}
 		}
 

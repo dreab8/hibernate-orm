@@ -14,9 +14,9 @@ import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.config.spi.ConfigurationService.Converter;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.spatial.GeolatteGeometryJavaTypeDescriptor;
-import org.hibernate.spatial.GeolatteGeometryTypeImpl;
+import org.hibernate.spatial.GeolatteGeometryType;
 import org.hibernate.spatial.JTSGeometryJavaTypeDescriptor;
-import org.hibernate.spatial.JTSGeometryTypeImpl;
+import org.hibernate.spatial.JTSGeometryType;
 import org.hibernate.spatial.SpatialAggregate;
 import org.hibernate.spatial.SpatialDialect;
 import org.hibernate.spatial.SpatialFunction;
@@ -33,7 +33,7 @@ public class HANASpatialDialect extends HANAColumnStoreDialect implements Spatia
 		registerColumnType( HANAGeometryTypeDescriptor.INSTANCE.getSqlType(), "ST_GEOMETRY" );
 		registerColumnType( HANAPointTypeDescriptor.INSTANCE.getSqlType(), "ST_POINT" );
 
-		registerHibernateType( Types.OTHER, new GeolatteGeometryTypeImpl( HANAGeometryTypeDescriptor.INSTANCE ).getName() );
+		registerHibernateType( Types.OTHER, new GeolatteGeometryType( HANAGeometryTypeDescriptor.INSTANCE ).getName() );
 
 		/*
 		 * Hibernate Spatial functions
@@ -299,12 +299,12 @@ public class HANASpatialDialect extends HANAColumnStoreDialect implements Spatia
 				Boolean.FALSE ).booleanValue();
 
 		if ( determineCrsIdFromDatabase ) {
-			typeContributions.contributeType( new GeolatteGeometryTypeImpl( HANAGeometryTypeDescriptor.CRS_LOADING_INSTANCE ) );
-			typeContributions.contributeType( new JTSGeometryTypeImpl( HANAGeometryTypeDescriptor.CRS_LOADING_INSTANCE ) );
+			typeContributions.contributeType( new GeolatteGeometryType( HANAGeometryTypeDescriptor.CRS_LOADING_INSTANCE ) );
+			typeContributions.contributeType( new JTSGeometryType( HANAGeometryTypeDescriptor.CRS_LOADING_INSTANCE ) );
 		}
 		else {
-			typeContributions.contributeType( new GeolatteGeometryTypeImpl( HANAGeometryTypeDescriptor.INSTANCE ) );
-			typeContributions.contributeType( new JTSGeometryTypeImpl( HANAGeometryTypeDescriptor.INSTANCE ) );
+			typeContributions.contributeType( new GeolatteGeometryType( HANAGeometryTypeDescriptor.INSTANCE ) );
+			typeContributions.contributeType( new JTSGeometryType( HANAGeometryTypeDescriptor.INSTANCE ) );
 		}
 
 		typeContributions.contributeJavaTypeDescriptor( GeolatteGeometryJavaTypeDescriptor.INSTANCE );

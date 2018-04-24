@@ -26,24 +26,8 @@ import org.hibernate.query.CommonQueryContract;
 import org.hibernate.query.ParameterMetadata;
 import org.hibernate.query.QueryParameter;
 import org.hibernate.transform.ResultTransformer;
-import org.hibernate.type.BigDecimalTypeImpl;
-import org.hibernate.type.BigIntegerTypeImpl;
-import org.hibernate.type.BinaryTypeImpl;
-import org.hibernate.type.BooleanTypeImpl;
-import org.hibernate.type.ByteTypeImpl;
-import org.hibernate.type.CharacterTypeImpl;
-import org.hibernate.type.DateTypeImpl;
-import org.hibernate.type.DoubleTypeImpl;
-import org.hibernate.type.FloatTypeImpl;
-import org.hibernate.type.IntegerTypeImpl;
-import org.hibernate.type.LocaleTypeImpl;
-import org.hibernate.type.LongTypeImpl;
-import org.hibernate.type.ShortTypeImpl;
-import org.hibernate.type.StringTypeImpl;
-import org.hibernate.type.TextTypeImpl;
-import org.hibernate.type.TimeTypeImpl;
-import org.hibernate.type.TimestampTypeImpl;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 /**
  * Represents an HQL/JPQL query or a compiled Criteria query
@@ -722,7 +706,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setString(int position, String val) {
-		setParameter( position, val, StringTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.STRING );
 		return this;
 	}
 
@@ -740,7 +724,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCharacter(int position, char val) {
-		setParameter( position, val, CharacterTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.CHARACTER );
 		return this;
 	}
 
@@ -758,7 +742,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBoolean(int position, boolean val) {
-		setParameter( position, val, determineProperBooleanType( position, val, BooleanTypeImpl.INSTANCE ) );
+		setParameter( position, val, determineProperBooleanType( position, val, StandardSpiBasicTypes.BOOLEAN ) );
 		return this;
 	}
 
@@ -776,7 +760,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setByte(int position, byte val) {
-		setParameter( position, val, ByteTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.BYTE );
 		return this;
 	}
 
@@ -794,7 +778,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setShort(int position, short val) {
-		setParameter( position, val, ShortTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.SHORT );
 		return this;
 	}
 
@@ -812,7 +796,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setInteger(int position, int val) {
-		setParameter( position, val, IntegerTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.INTEGER );
 		return this;
 	}
 
@@ -830,7 +814,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setLong(int position, long val) {
-		setParameter( position, val, LongTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.LONG );
 		return this;
 	}
 
@@ -848,7 +832,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setFloat(int position, float val) {
-		setParameter( position, val, FloatTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.FLOAT );
 		return this;
 	}
 
@@ -866,7 +850,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setDouble(int position, double val) {
-		setParameter( position, val, DoubleTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.DOUBLE );
 		return this;
 	}
 
@@ -884,7 +868,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBinary(int position, byte[] val) {
-		setParameter( position, val, BinaryTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.BINARY );
 		return this;
 	}
 
@@ -902,7 +886,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setText(int position, String val) {
-		setParameter( position, val, TextTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.TEXT );
 		return this;
 	}
 
@@ -938,7 +922,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setLocale(int position, Locale val) {
-		setParameter( position, val, LocaleTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.LOCALE );
 		return this;
 	}
 
@@ -956,7 +940,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBigDecimal(int position, BigDecimal val) {
-		setParameter( position, val, BigDecimalTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.BIG_DECIMAL );
 		return this;
 	}
 
@@ -974,7 +958,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBigInteger(int position, BigInteger val) {
-		setParameter( position, val, BigIntegerTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.BIG_INTEGER );
 		return this;
 	}
 
@@ -992,7 +976,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setDate(int position, Date val) {
-		setParameter( position, val, DateTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.DATE );
 		return this;
 	}
 
@@ -1010,7 +994,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setTime(int position, Date val) {
-		setParameter( position, val, TimeTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.TIME );
 		return this;
 	}
 
@@ -1028,7 +1012,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setTimestamp(int position, Date val) {
-		setParameter( position, val, TimestampTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.TIMESTAMP );
 		return this;
 	}
 
@@ -1046,7 +1030,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCalendar(int position, Calendar val) {
-		setParameter( position, val, TimestampTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.TIMESTAMP );
 		return this;
 	}
 
@@ -1064,7 +1048,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCalendarDate(int position, Calendar val) {
-		setParameter( position, val, DateTypeImpl.INSTANCE );
+		setParameter( position, val, StandardSpiBasicTypes.DATE );
 		return this;
 	}
 
@@ -1082,7 +1066,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setString(String name, String val) {
-		setParameter( name, val, StringTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.STRING );
 		return this;
 	}
 
@@ -1100,7 +1084,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCharacter(String name, char val) {
-		setParameter( name, val, CharacterTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.CHARACTER );
 		return this;
 	}
 
@@ -1118,7 +1102,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBoolean(String name, boolean val) {
-		setParameter( name, val, determineProperBooleanType( name, val, BooleanTypeImpl.INSTANCE ) );
+		setParameter( name, val, determineProperBooleanType( name, val, StandardSpiBasicTypes.BOOLEAN ) );
 		return this;
 	}
 
@@ -1136,7 +1120,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setByte(String name, byte val) {
-		setParameter( name, val, ByteTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.BYTE );
 		return this;
 	}
 
@@ -1154,7 +1138,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setShort(String name, short val) {
-		setParameter( name, val, ShortTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.SHORT );
 		return this;
 	}
 
@@ -1172,7 +1156,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setInteger(String name, int val) {
-		setParameter( name, val, IntegerTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.INTEGER );
 		return this;
 	}
 
@@ -1190,7 +1174,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setLong(String name, long val) {
-		setParameter( name, val, LongTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.LONG );
 		return this;
 	}
 
@@ -1208,7 +1192,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setFloat(String name, float val) {
-		setParameter( name, val, FloatTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.FLOAT );
 		return this;
 	}
 
@@ -1226,7 +1210,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setDouble(String name, double val) {
-		setParameter( name, val, DoubleTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.DOUBLE );
 		return this;
 	}
 
@@ -1244,7 +1228,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBinary(String name, byte[] val) {
-		setParameter( name, val, BinaryTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.BINARY );
 		return this;
 	}
 
@@ -1262,7 +1246,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setText(String name, String val) {
-		setParameter( name, val, TextTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.TEXT );
 		return this;
 	}
 
@@ -1297,7 +1281,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setLocale(String name, Locale val) {
-		setParameter( name, val, TextTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.TEXT );
 		return this;
 	}
 
@@ -1314,7 +1298,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBigDecimal(String name, BigDecimal val) {
-		setParameter( name, val, BigDecimalTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.BIG_DECIMAL );
 		return this;
 	}
 
@@ -1331,7 +1315,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBigInteger(String name, BigInteger val) {
-		setParameter( name, val, BigIntegerTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.BIG_INTEGER );
 		return this;
 	}
 
@@ -1349,7 +1333,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setDate(String name, Date val) {
-		setParameter( name, val, DateTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.DATE );
 		return this;
 	}
 
@@ -1367,7 +1351,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setTime(String name, Date val) {
-		setParameter( name, val, TimeTypeImpl.INSTANCE );
+		setParameter( name, val, StandardSpiBasicTypes.TIME );
 		return this;
 	}
 
@@ -1385,7 +1369,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setTimestamp(String name, Date value) {
-		setParameter( name, value, TimestampTypeImpl.INSTANCE );
+		setParameter( name, value, StandardSpiBasicTypes.TIMESTAMP );
 		return this;
 	}
 
@@ -1403,7 +1387,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCalendar(String name, Calendar value) {
-		setParameter( name, value, TimestampTypeImpl.INSTANCE );
+		setParameter( name, value, StandardSpiBasicTypes.TIMESTAMP );
 		return this;
 	}
 
@@ -1421,7 +1405,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCalendarDate(String name, Calendar value) {
-		setParameter( name, value, DateTypeImpl.INSTANCE );
+		setParameter( name, value, StandardSpiBasicTypes.DATE );
 		return this;
 	}
 

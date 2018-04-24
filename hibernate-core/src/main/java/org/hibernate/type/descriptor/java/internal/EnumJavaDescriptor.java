@@ -22,7 +22,8 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 public class EnumJavaDescriptor<T extends Enum> extends AbstractBasicJavaDescriptor<T> {
 
 	// The recommended Jdbc type code used for EnumType.ORDINAL
-	public final static int ORDINAL_JDBC_TYPE_CODE = Types.INTEGER;
+	public final static int RECOMMENDED_ORDINAL_JDBC_TYPE_CODE = Types.INTEGER;
+	private boolean isOrdinal = true;
 
 	@SuppressWarnings("unchecked")
 	public EnumJavaDescriptor(Class<T> type) {
@@ -32,12 +33,14 @@ public class EnumJavaDescriptor<T extends Enum> extends AbstractBasicJavaDescrip
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
 		if ( context.getEnumeratedType() != null && context.getEnumeratedType() == EnumType.STRING ) {
+			isOrdinal =false;
 			return context.isNationalized()
 					? context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.NVARCHAR )
 					: context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.VARCHAR );
 		}
 		else {
-			return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( ORDINAL_JDBC_TYPE_CODE );
+			return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor(
+					RECOMMENDED_ORDINAL_JDBC_TYPE_CODE );
 		}
 	}
 
@@ -55,13 +58,26 @@ public class EnumJavaDescriptor<T extends Enum> extends AbstractBasicJavaDescrip
 	@Override
 	@SuppressWarnings("unchecked")
 	public <X> X unwrap(T value, Class<X> type, WrapperOptions options) {
-		return (X) value;
+		if ( isOrdinal ) {
+			return (X) toOrdinal( value );
+		}
+		else {
+			return (X) toName( value );
+		}
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <X> T wrap(X value, WrapperOptions options) {
-		return (T) value;
+		if ( value == null ) {
+			return null;
+		}
+		else if ( isOrdinal ) {
+			return fromOrdinal( (Integer) value );
+		}
+		else {
+			return fromName( (String) value );
+		}
 	}
 
 	public <E extends Enum> Integer toOrdinal(E domainForm) {

@@ -22,7 +22,6 @@ import org.hibernate.IrrelevantEntity;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.internal.ClassmateContext;
 import org.hibernate.boot.model.convert.internal.InstanceBasedConverterDescriptor;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -32,13 +31,14 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.hql.internal.ast.tree.JavaConstantNode;
 import org.hibernate.internal.util.ConfigHelper;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
 import org.hibernate.mapping.SimpleValue;
 import org.hibernate.type.AbstractStandardBasicType;
+import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
 import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.Type;
-import org.hibernate.type.descriptor.converter.AttributeConverterTypeImplAdapter;
 import org.hibernate.type.descriptor.java.internal.EnumJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 
@@ -94,18 +94,19 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 	@Test
 	public void testBasicOperation() {
 
-		SimpleValue simpleValue = new SimpleValue( new MetadataBuildingContextTestingImpl() );
+		final MetadataBuildingContextTestingImpl buildingContext = new MetadataBuildingContextTestingImpl();
+		BasicValue simpleValue = new BasicValue( buildingContext, new org.hibernate.mapping.Table(  ) );
 		simpleValue.setJpaAttributeConverterDescriptor(
 				new InstanceBasedConverterDescriptor(
 						new StringClobConverter(),
-						new ClassmateContext()
+						buildingContext.getBootstrapContext()
 				)
 		);
 		simpleValue.setTypeUsingReflection( IrrelevantEntity.class.getName(), "name" );
 
 		Type type = simpleValue.getType();
 		assertNotNull( type );
-		if ( !AttributeConverterTypeImplAdapter.class.isInstance( type ) ) {
+		if ( !AttributeConverterTypeAdapter.class.isInstance( type ) ) {
 			fail( "AttributeConverter not applied" );
 		}
 		AbstractStandardBasicType basicType = assertTyping( AbstractStandardBasicType.class, type );
@@ -129,7 +130,7 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 			SimpleValue nameValue = (SimpleValue) nameProp.getValue();
 			Type type = nameValue.getType();
 			assertNotNull( type );
-			if ( AttributeConverterTypeImplAdapter.class.isInstance( type ) ) {
+			if ( AttributeConverterTypeAdapter.class.isInstance( type ) ) {
 				fail( "AttributeConverter with autoApply=false was auto applied" );
 			}
 		}
@@ -156,7 +157,7 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 			Type type = nameValue.getType();
 			assertNotNull( type );
 			assertTyping( BasicType.class, type );
-			if ( !AttributeConverterTypeImplAdapter.class.isInstance( type ) ) {
+			if ( !AttributeConverterTypeAdapter.class.isInstance( type ) ) {
 				fail( "AttributeConverter not applied" );
 			}
 			AbstractStandardBasicType basicType = assertTyping( AbstractStandardBasicType.class, type );
@@ -185,10 +186,10 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 			SimpleValue nameValue = (SimpleValue) nameProp.getValue();
 			Type type = nameValue.getType();
 			assertNotNull( type );
-			if ( !AttributeConverterTypeImplAdapter.class.isInstance( type ) ) {
+			if ( !AttributeConverterTypeAdapter.class.isInstance( type ) ) {
 				fail( "AttributeConverter not applied" );
 			}
-			AttributeConverterTypeImplAdapter basicType = assertTyping( AttributeConverterTypeImplAdapter.class, type );
+			AttributeConverterTypeAdapter basicType = assertTyping( AttributeConverterTypeAdapter.class, type );
 			assertSame( StringJavaDescriptor.INSTANCE, basicType.getJavaTypeDescriptor() );
 			assertEquals( Types.CLOB, basicType.getSqlTypeDescriptor().getSqlType() );
 		}
@@ -213,7 +214,7 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 			SimpleValue nameValue = (SimpleValue) nameProp.getValue();
 			Type type = nameValue.getType();
 			assertNotNull( type );
-			if ( AttributeConverterTypeImplAdapter.class.isInstance( type ) ) {
+			if ( AttributeConverterTypeAdapter.class.isInstance( type ) ) {
 				fail( "AttributeConverter applied (should not have been)" );
 			}
 			AbstractStandardBasicType basicType = assertTyping( AbstractStandardBasicType.class, type );
@@ -327,7 +328,7 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 			Type type = nameValue.getType();
 			assertNotNull( type );
 			assertTyping( BasicType.class, type );
-			if ( !AttributeConverterTypeImplAdapter.class.isInstance( type ) ) {
+			if ( !AttributeConverterTypeAdapter.class.isInstance( type ) ) {
 				fail( "AttributeConverter not applied" );
 			}
 			AbstractStandardBasicType basicType = assertTyping( AbstractStandardBasicType.class, type );

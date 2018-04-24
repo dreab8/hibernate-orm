@@ -15,6 +15,7 @@ import org.hibernate.internal.util.BytesHelper;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.sql.spi.BinarySqlDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
@@ -47,7 +48,7 @@ public class UUIDJavaDescriptor extends AbstractBasicJavaDescriptor<UUID> {
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return StringJavaDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
+		return BinarySqlDescriptor.INSTANCE;
 	}
 
 	@Override

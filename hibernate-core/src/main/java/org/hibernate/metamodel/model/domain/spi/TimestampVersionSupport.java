@@ -7,6 +7,7 @@
 package org.hibernate.metamodel.model.domain.spi;
 
 import java.sql.Timestamp;
+import java.util.Comparator;
 import java.util.Date;
 
 import org.hibernate.HibernateException;
@@ -38,5 +39,10 @@ public class TimestampVersionSupport implements VersionSupport<Date> {
 	@Override
 	public boolean isEqual(Date x, Date y) throws HibernateException {
 		return StandardSpiBasicTypes.TIMESTAMP.areEqual( x, y );
+	}
+
+	@Override
+	public Comparator<Date> getComparator() {
+		return StandardSpiBasicTypes.TIMESTAMP.getJavaTypeDescriptor().getComparator();
 	}
 }

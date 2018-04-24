@@ -11,9 +11,9 @@ import java.util.Properties;
 import org.hibernate.envers.configuration.internal.metadata.reader.PropertyAuditingData;
 import org.hibernate.envers.internal.entities.PropertyData;
 import org.hibernate.envers.internal.entities.mapper.SimpleMapperBuilder;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.SimpleValue;
 import org.hibernate.mapping.Value;
-import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.CustomType;
 import org.hibernate.type.EnumType;
 import org.hibernate.type.Type;
@@ -36,12 +36,13 @@ public final class BasicMetadataGenerator {
 			boolean insertable,
 			boolean key) {
 
-		if ( value.getType() instanceof BasicType ) {
+		if ( value instanceof BasicValue ) {
+			final BasicValue basicValue = (BasicValue) value;
 			if ( parent != null ) {
 				final Element propMapping = buildProperty(
 						parent,
 						propertyAuditingData,
-						value,
+						basicValue,
 						insertable,
 						key
 				);

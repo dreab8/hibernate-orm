@@ -16,6 +16,8 @@ import java.util.GregorianCalendar;
 
 import javax.persistence.TemporalType;
 
+import org.hibernate.metamodel.model.domain.spi.TimestampVersionSupport;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
 import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
@@ -194,5 +196,10 @@ public class JdbcTimestampJavaDescriptor extends AbstractBasicJavaDescriptor<Dat
 		}
 
 		throw new IllegalArgumentException( "Unrecognized JPA TemporalType precision [" + precision + "]" );
+	}
+
+	@Override
+	public VersionSupport<Date> getVersionSupport() {
+		return new TimestampVersionSupport();
 	}
 }

@@ -124,7 +124,7 @@ public abstract class AbstractPropertyHolder implements PropertyHolder {
 			return new ClassBasedConverterDescriptor(
 					conversion.getConverterClass(),
 					false,
-					context.getBootstrapContext().getClassmateContext()
+					context.getBootstrapContext()
 			);
 		}
 		catch (Exception e) {

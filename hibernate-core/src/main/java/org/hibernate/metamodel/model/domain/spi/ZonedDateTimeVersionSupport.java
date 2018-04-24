@@ -7,6 +7,7 @@
 package org.hibernate.metamodel.model.domain.spi;
 
 import java.time.ZonedDateTime;
+import java.util.Comparator;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -37,5 +38,10 @@ public class ZonedDateTimeVersionSupport implements VersionSupport<ZonedDateTime
 	@Override
 	public boolean isEqual(ZonedDateTime x, ZonedDateTime y) throws HibernateException {
 		return StandardSpiBasicTypes.ZONED_DATE_TIME.areEqual( x, y );
+	}
+
+	@Override
+	public Comparator<ZonedDateTime> getComparator() {
+		return StandardSpiBasicTypes.ZONED_DATE_TIME.getJavaTypeDescriptor().getComparator();
 	}
 }

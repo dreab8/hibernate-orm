@@ -9,6 +9,7 @@ package org.hibernate.boot.model.convert.spi;
 import javax.persistence.AttributeConverter;
 
 import org.hibernate.metamodel.model.convert.spi.JpaAttributeConverter;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 
 import com.fasterxml.classmate.ResolvedType;
 
@@ -17,11 +18,27 @@ import com.fasterxml.classmate.ResolvedType;
  *
  * @author Steve Ebersole
  */
-public interface ConverterDescriptor {
+public interface ConverterDescriptor<O,R> {
 	/**
 	 * The AttributeConverter class
 	 */
 	Class<? extends AttributeConverter> getAttributeConverterClass();
+
+	/**
+	 * The Java type of the user's domain model attribute, as defined by the AttributeConverter's
+	 * parameterized type signature.
+	 *
+	 * @return The application domain model's attribute Java Type
+	 */
+	BasicJavaDescriptor<O> getDomainType();
+
+	/**
+	 * The "intermediate" Java type of the JDBC/SQL datatype (as we'd read through ResultSet, e.g.), as
+	 * defined by the AttributeConverter's parameterized type signature.
+	 *
+	 * @return The "intermediate" JDBC/SQL Java type.
+	 */
+	BasicJavaDescriptor<R> getJdbcType();
 
 	/**
 	 * The resolved Classmate type descriptor for the conversion's domain type
