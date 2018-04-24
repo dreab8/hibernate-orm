@@ -9,7 +9,7 @@ package org.hibernate.test.type.descriptor.java;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import org.hibernate.type.descriptor.java.OffsetDateTimeJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.OffsetDateTimeJavaDescriptor;
 
 /**
  * @author Jordan Gigov

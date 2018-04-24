@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.LocalTimeJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.LocalTimeJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.TimeSqlDescriptor;
 
 /**

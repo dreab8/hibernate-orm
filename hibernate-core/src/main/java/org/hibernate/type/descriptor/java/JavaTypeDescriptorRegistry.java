@@ -19,6 +19,8 @@ import org.hibernate.type.descriptor.java.internal.ImmutableMutabilityPlan;
 import org.hibernate.type.descriptor.java.internal.LocalDateJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.LocalDateTimeJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.LocaleJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.NClobJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.OffsetDateTimeJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.internal.BigDecimalJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.BigIntegerJavaDescriptor;
@@ -84,7 +86,7 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 
 		addDescriptorInternal( BlobJavaDescriptor.INSTANCE );
 		addDescriptorInternal( ClobJavaDescriptor.INSTANCE );
-		addDescriptorInternal( NClobTypeDescriptor.INSTANCE );
+		addDescriptorInternal( NClobJavaDescriptor.INSTANCE );
 
 		addDescriptorInternal( ByteArrayJavaDescriptor.INSTANCE );
 		addDescriptorInternal( CharacterArrayJavaDescriptor.INSTANCE );

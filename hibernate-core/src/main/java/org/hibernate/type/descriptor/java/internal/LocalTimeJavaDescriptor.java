@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -15,26 +15,35 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 
-import org.hibernate.type.LocalTimeType;
-import org.hibernate.type.descriptor.java.internal.ImmutableMutabilityPlan;
-import org.hibernate.type.descriptor.spi.WrapperOptions;
+import javax.persistence.TemporalType;
+
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * Java type descriptor for the LocalDateTime type.
  *
  * @author Steve Ebersole
  */
-public class LocalTimeJavaDescriptor extends AbstractTypeDescriptor<LocalTime> {
+public class LocalTimeJavaDescriptor
+		extends AbstractBasicJavaDescriptor<LocalTime>
+		implements TemporalJavaDescriptor<LocalTime> {
 	/**
 	 * Singleton access
 	 */
 	public static final LocalTimeJavaDescriptor INSTANCE = new LocalTimeJavaDescriptor();
+
+	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern( "HH:mm:ss", Locale.ENGLISH );
 
 	@SuppressWarnings("unchecked")
 	public LocalTimeJavaDescriptor() {
@@ -48,12 +57,12 @@ public class LocalTimeJavaDescriptor extends AbstractTypeDescriptor<LocalTime> {
 
 	@Override
 	public String toString(LocalTime value) {
-		return LocalTimeType.FORMATTER.format( value );
+		return LocalTimeJavaDescriptor.FORMATTER.format( value );
 	}
 
 	@Override
 	public LocalTime fromString(String string) {
-		return LocalTime.from( LocalTimeType.FORMATTER.parse( string ) );
+		return (LocalTime) LocalTimeJavaDescriptor.FORMATTER.parse( string );
 	}
 
 	@Override
@@ -131,5 +140,26 @@ public class LocalTimeJavaDescriptor extends AbstractTypeDescriptor<LocalTime> {
 		}
 
 		throw unknownWrap( value.getClass() );
+	}
+
+	@Override
+	public TemporalType getPrecision() {
+		return TemporalType.TIME;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <X> TemporalJavaDescriptor<X> resolveTypeForPrecision(TemporalType precision, TypeConfiguration scope) {
+		if ( precision == TemporalType.TIME ) {
+			return (TemporalJavaDescriptor<X>) this;
+		}
+		if ( precision == TemporalType.TIMESTAMP ) {
+			return (TemporalJavaDescriptor<X>) scope.getJavaTypeDescriptorRegistry().getDescriptor( LocalTime.class );
+		}
+		if ( precision == TemporalType.DATE ) {
+			throw new IllegalArgumentException( "Cannot treat LocalDate as javax.persistence.TemporalType#TIME" );
+		}
+
+		throw new IllegalArgumentException( "Unrecognized JPA TemporalType precision [" + precision + "]" );
 	}
 }

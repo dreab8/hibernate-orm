@@ -13,8 +13,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import org.hibernate.type.descriptor.java.NClobTypeDescriptor;
-import org.hibernate.type.descriptor.java.OffsetDateTimeJavaDescriptor;
 import org.hibernate.type.descriptor.java.OffsetTimeJavaDescriptor;
 import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
 import org.hibernate.type.descriptor.java.PrimitiveCharacterArrayTypeDescriptor;
@@ -53,7 +51,7 @@ public class JavaTypeDescriptorBaseline {
 
 		target.addBaselineDescriptor( BlobJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( ClobJavaDescriptor.INSTANCE );
-		target.addBaselineDescriptor( NClobTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( NClobJavaDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( ByteArrayJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( CharacterArrayJavaDescriptor.INSTANCE );

@@ -4,29 +4,39 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import javax.persistence.TemporalType;
 
-import org.hibernate.type.OffsetDateTimeType;
-import org.hibernate.type.descriptor.java.internal.ImmutableMutabilityPlan;
-import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
+
+import org.jboss.logging.Logger;
 
 /**
  * Java type descriptor for the LocalDateTime type.
  *
  * @author Steve Ebersole
  */
-public class OffsetDateTimeJavaDescriptor extends AbstractTypeDescriptor<OffsetDateTime> {
+public class OffsetDateTimeJavaDescriptor
+		extends AbstractBasicJavaDescriptor<OffsetDateTime>
+		implements TemporalJavaDescriptor<OffsetDateTime> {
+	private static final Logger log = Logger.getLogger( OffsetDateTimeJavaDescriptor.class );
+
 	/**
 	 * Singleton access
 	 */
@@ -44,12 +54,12 @@ public class OffsetDateTimeJavaDescriptor extends AbstractTypeDescriptor<OffsetD
 
 	@Override
 	public String toString(OffsetDateTime value) {
-		return OffsetDateTimeType.FORMATTER.format( value );
+		return value.format( DateTimeFormatter.ISO_OFFSET_DATE_TIME );
 	}
 
 	@Override
 	public OffsetDateTime fromString(String string) {
-		return OffsetDateTime.from( OffsetDateTimeType.FORMATTER.parse( string ) );
+		return OffsetDateTime.parse( string, DateTimeFormatter.ISO_OFFSET_DATE_TIME );
 	}
 
 	@Override
@@ -121,4 +131,31 @@ public class OffsetDateTimeJavaDescriptor extends AbstractTypeDescriptor<OffsetD
 
 		throw unknownWrap( value.getClass() );
 	}
+
+	@Override
+	public TemporalType getPrecision() {
+		return TemporalType.TIMESTAMP;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <X> TemporalJavaDescriptor<X> resolveTypeForPrecision(TemporalType precision, TypeConfiguration scope) {
+		if ( precision == TemporalType.TIMESTAMP ) {
+			return (TemporalJavaDescriptor<X>) this;
+		}
+		if ( precision == TemporalType.DATE ) {
+			log.debugf( "No JPA TemporalType#TIME Java representation for LocalDateTime, using LocalDateTime" );
+			return (TemporalJavaDescriptor<X>) this;
+		}
+		if ( precision == TemporalType.TIME ) {
+			return (TemporalJavaDescriptor<X>) scope.getJavaTypeDescriptorRegistry().getDescriptor( OffsetTime.class );
+		}
+
+		throw new IllegalArgumentException( "Unrecognized JPA TemporalType precision [" + precision + "]" );
+	}
+
+//	@Override
+//	public VersionSupport<OffsetDateTime> getVersionSupport() {
+//		return OffsetDateTimeVersionSupport.INSTANCE;
+//	}
 }

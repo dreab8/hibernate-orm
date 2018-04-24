@@ -4,10 +4,11 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.io.Reader;
 import java.io.Serializable;
+import java.sql.Clob;
 import java.sql.NClob;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -19,9 +20,10 @@ import org.hibernate.engine.jdbc.NClobImplementer;
 import org.hibernate.engine.jdbc.NClobProxy;
 import org.hibernate.engine.jdbc.WrappedNClob;
 import org.hibernate.engine.jdbc.internal.CharacterStreamImpl;
-import org.hibernate.type.descriptor.java.internal.IncomparableComparator;
-import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.MutabilityPlan;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
@@ -32,8 +34,8 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class NClobTypeDescriptor extends AbstractTypeDescriptor<NClob> {
-	public static final NClobTypeDescriptor INSTANCE = new NClobTypeDescriptor();
+public class NClobJavaDescriptor extends AbstractBasicJavaDescriptor<NClob> {
+	public static final NClobJavaDescriptor INSTANCE = new NClobJavaDescriptor();
 
 	public static class NClobMutabilityPlan implements MutabilityPlan<NClob> {
 		public static final NClobMutabilityPlan INSTANCE = new NClobMutabilityPlan();
@@ -55,8 +57,16 @@ public class NClobTypeDescriptor extends AbstractTypeDescriptor<NClob> {
 		}
 	}
 
-	public NClobTypeDescriptor() {
+	public NClobJavaDescriptor() {
 		super( NClob.class, NClobMutabilityPlan.INSTANCE );
+	}
+
+	public String toString(NClob value) {
+		return LobStreamDataHelper.extractString( value );
+	}
+
+	public NClob fromString(String string) {
+		return NClobProxy.generateProxy( string );
 	}
 
 	@Override
@@ -74,14 +84,6 @@ public class NClobTypeDescriptor extends AbstractTypeDescriptor<NClob> {
 	@Override
 	public String extractLoggableRepresentation(NClob value) {
 		return value == null ? "null" : "{nclob}";
-	}
-
-	public String toString(NClob value) {
-		return DataHelper.extractString( value );
-	}
-
-	public NClob fromString(String string) {
-		return NClobProxy.generateProxy( string );
 	}
 
 	@Override
@@ -113,8 +115,8 @@ public class NClobTypeDescriptor extends AbstractTypeDescriptor<NClob> {
 					return (X) ( (NClobImplementer) value ).getUnderlyingStream();
 				}
 				else {
-					// otherwise we need to build a BinaryStream...
-					return (X) new CharacterStreamImpl( DataHelper.extractString( value.getCharacterStream() ) );
+					// otherwise we need to build a CharacterStream...
+					return (X) new CharacterStreamImpl( LobStreamDataHelper.extractString( value.getCharacterStream() ) );
 				}
 			}
 			else if (NClob.class.isAssignableFrom( type )) {
@@ -143,7 +145,7 @@ public class NClobTypeDescriptor extends AbstractTypeDescriptor<NClob> {
 		}
 		else if ( Reader.class.isAssignableFrom( value.getClass() ) ) {
 			Reader reader = (Reader) value;
-			return options.getLobCreator().createNClob( DataHelper.extractString( reader ) );
+			return options.getLobCreator().createNClob( LobStreamDataHelper.extractString( reader ) );
 		}
 
 		throw unknownWrap( value.getClass() );

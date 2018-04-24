@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.sql.NClob;
 
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.descriptor.java.NClobTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.NClobJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.NClobSqlDescriptor;
 
 /**
@@ -22,7 +22,7 @@ public class NClobType extends AbstractSingleColumnStandardBasicType<NClob> {
 	public static final NClobType INSTANCE = new NClobType();
 
 	public NClobType() {
-		super( NClobSqlDescriptor.DEFAULT, NClobTypeDescriptor.INSTANCE );
+		super( NClobSqlDescriptor.DEFAULT, NClobJavaDescriptor.INSTANCE );
 	}
 
 	@Override
