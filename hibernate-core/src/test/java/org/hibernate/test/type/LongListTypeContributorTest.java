@@ -20,8 +20,8 @@ import org.hibernate.jpa.boot.spi.TypeContributorList;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.AbstractSingleColumnStandardBasicType;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
-import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.LongVarcharSqlDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -179,7 +179,7 @@ public class LongListTypeContributorTest extends BaseEntityManagerFunctionalTest
 			}
 		}
 
-		private static class StringifiedCollectionJavaTypeDescriptor extends AbstractTypeDescriptor<LongList> {
+		private static class StringifiedCollectionJavaTypeDescriptor extends AbstractBasicJavaDescriptor<LongList> {
 
 			public static StringifiedCollectionJavaTypeDescriptor INSTANCE = new StringifiedCollectionJavaTypeDescriptor();
 

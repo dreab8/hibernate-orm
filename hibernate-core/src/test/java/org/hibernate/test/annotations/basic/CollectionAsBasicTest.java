@@ -22,8 +22,8 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
 import org.hibernate.type.AbstractSingleColumnStandardBasicType;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
-import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
 import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
@@ -76,7 +76,7 @@ public class CollectionAsBasicTest extends BaseUnitTestCase {
 		}
 	}
 
-	public static class DelimitedStringsJavaTypeDescriptor extends AbstractTypeDescriptor<Set> {
+	public static class DelimitedStringsJavaTypeDescriptor extends AbstractBasicJavaDescriptor<Set> {
 		public DelimitedStringsJavaTypeDescriptor() {
 			super(
 					Set.class,

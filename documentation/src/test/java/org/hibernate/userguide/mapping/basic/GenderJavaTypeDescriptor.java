@@ -3,7 +3,7 @@ package org.hibernate.userguide.mapping.basic;
 import java.sql.Types;
 
 import org.hibernate.type.descriptor.spi.WrapperOptions;
-import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.CharacterJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -12,7 +12,7 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  * @author Vlad Mihalcea
  */
 //tag::basic-enums-custom-type-example[]
-public class GenderJavaTypeDescriptor extends AbstractTypeDescriptor<Gender> {
+public class GenderJavaTypeDescriptor extends AbstractBasicJavaDescriptor<Gender> {
 
     public static final GenderJavaTypeDescriptor INSTANCE =
         new GenderJavaTypeDescriptor();

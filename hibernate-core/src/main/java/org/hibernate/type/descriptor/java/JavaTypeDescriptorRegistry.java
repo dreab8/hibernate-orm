@@ -30,6 +30,7 @@ import org.hibernate.type.descriptor.java.internal.TimeZoneJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.UUIDJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.UrlJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.ZonedDateTimeJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.internal.BigDecimalJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.BigIntegerJavaDescriptor;
@@ -184,7 +185,7 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 	}
 
 
-	public static class FallbackJavaTypeDescriptor<T> extends AbstractTypeDescriptor<T> {
+	public static class FallbackJavaTypeDescriptor<T> extends AbstractBasicJavaDescriptor<T> {
 		protected FallbackJavaTypeDescriptor(final Class<T> type) {
 			super( type, createMutabilityPlan( type ) );
 		}

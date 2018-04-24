@@ -10,8 +10,8 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
-import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
 import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -19,7 +19,7 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 /**
  * @author Vlad Mihalcea
  */
-public class CommaDelimitedStringMapJavaTypeDescriptor extends AbstractTypeDescriptor<Map> {
+public class CommaDelimitedStringMapJavaTypeDescriptor extends AbstractBasicJavaDescriptor<Map> {
 
     public static final String DELIMITER = ",";
 

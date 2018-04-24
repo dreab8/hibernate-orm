@@ -9,8 +9,8 @@ package org.hibernate.spatial;
 
 import java.sql.Types;
 
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
-import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -26,7 +26,7 @@ import org.geolatte.geom.jts.JTS;
  * @author Karel Maesen, Geovise BVBA
  * creation-date: 7/27/11
  */
-public class JTSGeometryJavaTypeDescriptor extends AbstractTypeDescriptor<Geometry> {
+public class JTSGeometryJavaTypeDescriptor extends AbstractBasicJavaDescriptor<Geometry> {
 
 	/**
 	 * An instance of this descriptor
