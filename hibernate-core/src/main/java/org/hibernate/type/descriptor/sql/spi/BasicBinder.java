@@ -11,11 +11,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 import org.hibernate.internal.CoreLogging;
-import org.hibernate.type.descriptor.JdbcTypeNameMapper;
 import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 import org.jboss.logging.Logger;
 
@@ -31,13 +29,13 @@ public abstract class BasicBinder<J> implements ValueBinder<J> {
 	private static final String NULL_BIND_MSG_TEMPLATE = "binding parameter [%s] as [%s] - [null]";
 
 	private final JavaTypeDescriptor<J> javaDescriptor;
-	private final org.hibernate.type.descriptor.sql.SqlTypeDescriptor sqlDescriptor;
+	private final SqlTypeDescriptor sqlDescriptor;
 
 	public JavaTypeDescriptor<J> getJavaDescriptor() {
 		return javaDescriptor;
 	}
 
-	public org.hibernate.type.descriptor.sql.SqlTypeDescriptor getSqlDescriptor() {
+	public SqlTypeDescriptor getSqlDescriptor() {
 		return sqlDescriptor;
 	}
 
@@ -55,11 +53,11 @@ public abstract class BasicBinder<J> implements ValueBinder<J> {
 						String.format(
 								NULL_BIND_MSG_TEMPLATE,
 								index,
-								JdbcTypeNameMapper.getTypeName( getSqlDescriptor().getSqlType() )
+								JdbcTypeNameMapper.getTypeName( getSqlDescriptor().getJdbcTypeCode() )
 						)
 				);
 			}
-			st.setNull( index, sqlDescriptor.getSqlType() );
+			st.setNull( index, sqlDescriptor.getJdbcTypeCode() );
 		}
 		else {
 			if ( traceEnabled ) {
@@ -67,7 +65,7 @@ public abstract class BasicBinder<J> implements ValueBinder<J> {
 						String.format(
 								BIND_MSG_TEMPLATE,
 								index,
-								JdbcTypeNameMapper.getTypeName( sqlDescriptor.getSqlType() ),
+								JdbcTypeNameMapper.getTypeName( sqlDescriptor.getJdbcTypeCode() ),
 								getJavaDescriptor().extractLoggableRepresentation( value )
 						)
 				);
@@ -85,11 +83,11 @@ public abstract class BasicBinder<J> implements ValueBinder<J> {
 						String.format(
 								NULL_BIND_MSG_TEMPLATE,
 								name,
-								JdbcTypeNameMapper.getTypeName( getSqlDescriptor().getSqlType() )
+								JdbcTypeNameMapper.getTypeName( getSqlDescriptor().getJdbcTypeCode() )
 						)
 				);
 			}
-			st.setNull( name, sqlDescriptor.getSqlType() );
+			st.setNull( name, sqlDescriptor.getJdbcTypeCode() );
 		}
 		else {
 			if ( traceEnabled ) {
@@ -97,7 +95,7 @@ public abstract class BasicBinder<J> implements ValueBinder<J> {
 						String.format(
 								BIND_MSG_TEMPLATE,
 								name,
-								JdbcTypeNameMapper.getTypeName( sqlDescriptor.getSqlType() ),
+								JdbcTypeNameMapper.getTypeName( sqlDescriptor.getJdbcTypeCode() ),
 								getJavaDescriptor().extractLoggableRepresentation( value )
 						)
 				);
