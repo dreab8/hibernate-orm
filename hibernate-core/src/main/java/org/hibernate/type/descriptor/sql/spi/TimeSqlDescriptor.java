@@ -42,7 +42,7 @@ public class TimeSqlDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.TIME;
+		return getSqlType();
 	}
 
 	@Override

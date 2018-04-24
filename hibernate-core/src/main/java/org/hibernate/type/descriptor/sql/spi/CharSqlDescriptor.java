@@ -23,4 +23,9 @@ public class CharSqlDescriptor extends VarcharSqlDescriptor {
 	public int getSqlType() {
 		return Types.CHAR;
 	}
+
+	@Override
+	public int getJdbcTypeCode() {
+		return getSqlType();
+	}
 }

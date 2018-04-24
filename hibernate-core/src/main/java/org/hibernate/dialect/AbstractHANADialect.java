@@ -343,6 +343,11 @@ public abstract class AbstractHANADialect extends Dialect {
 		}
 
 		@Override
+		public int getJdbcTypeCode() {
+			return getSqlType();
+		}
+
+		@Override
 		public boolean canBeRemapped() {
 			return true;
 		}
@@ -664,6 +669,11 @@ public abstract class AbstractHANADialect extends Dialect {
 		@Override
 		public int getSqlType() {
 			return Types.BLOB;
+		}
+
+		@Override
+		public int getJdbcTypeCode() {
+			return getSqlType();
 		}
 
 		@Override

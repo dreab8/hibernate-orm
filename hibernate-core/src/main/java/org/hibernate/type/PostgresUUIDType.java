@@ -58,6 +58,11 @@ public class PostgresUUIDType extends AbstractSingleColumnStandardBasicType<UUID
 		}
 
 		@Override
+		public int getJdbcTypeCode() {
+			return getSqlType();
+		}
+
+		@Override
 		public boolean canBeRemapped() {
 			return true;
 		}

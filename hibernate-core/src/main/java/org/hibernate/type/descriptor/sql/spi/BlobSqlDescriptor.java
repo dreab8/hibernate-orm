@@ -39,7 +39,7 @@ public abstract class BlobSqlDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.BLOB;
+		return getSqlType();
 	}
 
 	@Override

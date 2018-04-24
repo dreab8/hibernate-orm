@@ -47,7 +47,8 @@ public class SqlTypeDescriptorRegistry implements SqlTypeDescriptorBaseline.Base
 
 	@Override
 	public void addDescriptor(SqlTypeDescriptor sqlTypeDescriptor) {
-		descriptorMap.put( sqlTypeDescriptor.getJdbcTypeCode(), sqlTypeDescriptor );
+		int jdbcTypeCode = sqlTypeDescriptor.getJdbcTypeCode();
+		descriptorMap.put( jdbcTypeCode, sqlTypeDescriptor );
 	}
 
 	public SqlTypeDescriptor getDescriptor(int jdbcTypeCode) {

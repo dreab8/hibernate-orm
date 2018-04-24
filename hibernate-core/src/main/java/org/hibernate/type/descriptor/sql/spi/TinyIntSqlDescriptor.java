@@ -41,7 +41,7 @@ public class TinyIntSqlDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.TINYINT;
+		return getSqlType();
 	}
 
 	@Override

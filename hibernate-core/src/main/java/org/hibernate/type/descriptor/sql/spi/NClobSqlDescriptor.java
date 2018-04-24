@@ -35,7 +35,7 @@ public abstract class NClobSqlDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.NCLOB;
+		return getSqlType();
 	}
 
 	@Override

@@ -105,6 +105,11 @@ public class QueryParametersValidationArrayTest extends BaseEntityManagerFunctio
 		}
 
 		@Override
+		public int getJdbcTypeCode() {
+			return getSqlType();
+		}
+
+		@Override
 		public boolean canBeRemapped() {
 			return true;
 		}

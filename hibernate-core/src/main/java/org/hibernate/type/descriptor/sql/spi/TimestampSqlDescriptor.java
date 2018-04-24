@@ -42,7 +42,7 @@ public class TimestampSqlDescriptor implements TemporalSqlDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.TIMESTAMP;
+		return getSqlType();
 	}
 
 	@Override

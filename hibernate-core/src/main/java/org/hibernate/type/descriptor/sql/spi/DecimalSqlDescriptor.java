@@ -39,7 +39,7 @@ public class DecimalSqlDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.DECIMAL;
+		return getSqlType();
 	}
 
 	@Override

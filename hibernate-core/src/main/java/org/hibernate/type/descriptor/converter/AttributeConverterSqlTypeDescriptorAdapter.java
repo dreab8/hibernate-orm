@@ -56,6 +56,11 @@ public class AttributeConverterSqlTypeDescriptorAdapter implements SqlTypeDescri
 	}
 
 	@Override
+	public int getJdbcTypeCode() {
+		return getSqlType();
+	}
+
+	@Override
 	public boolean canBeRemapped() {
 		// any remapping of the underlying SqlTypeDescriptor should have
 		// happened prior to it being passed to us.

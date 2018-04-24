@@ -41,6 +41,11 @@ public class SDOGeometryTypeDescriptor implements SqlTypeDescriptor {
 	}
 
 	@Override
+	public int getJdbcTypeCode() {
+		return getSqlType();
+	}
+
+	@Override
 	public boolean canBeRemapped() {
 		return false;
 	}

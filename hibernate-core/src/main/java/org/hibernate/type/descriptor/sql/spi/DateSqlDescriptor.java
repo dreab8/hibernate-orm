@@ -42,7 +42,7 @@ public class DateSqlDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.DATE;
+		return getSqlType();
 	}
 
 	@Override

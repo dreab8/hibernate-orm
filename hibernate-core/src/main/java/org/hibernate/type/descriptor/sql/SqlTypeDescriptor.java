@@ -43,9 +43,7 @@ public interface SqlTypeDescriptor extends Serializable {
 	 *
 	 * @return typeCode The JDBC/SQL type-code
 	 */
-	default int getJdbcTypeCode(){
-		return getSqlType();
-	}
+	int getJdbcTypeCode();
 
 	/**
 	 * Is this descriptor available for remapping?

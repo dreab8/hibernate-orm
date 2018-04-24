@@ -38,7 +38,7 @@ public class IntegerSqlDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.INTEGER;
+		return getSqlType();
 	}
 
 	@Override

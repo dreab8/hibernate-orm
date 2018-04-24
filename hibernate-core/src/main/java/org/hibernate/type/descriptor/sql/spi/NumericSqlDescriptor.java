@@ -23,4 +23,9 @@ public class NumericSqlDescriptor extends DecimalSqlDescriptor {
 	public int getSqlType() {
 		return Types.NUMERIC;
 	}
+
+	@Override
+	public int getJdbcTypeCode() {
+		return getSqlType();
+	}
 }

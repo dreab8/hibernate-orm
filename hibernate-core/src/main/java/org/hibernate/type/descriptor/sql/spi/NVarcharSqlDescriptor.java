@@ -38,7 +38,7 @@ public class NVarcharSqlDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.NVARCHAR;
+		return getSqlType();
 	}
 
 	@Override

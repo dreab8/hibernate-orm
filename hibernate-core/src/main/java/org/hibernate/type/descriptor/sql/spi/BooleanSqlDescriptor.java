@@ -36,6 +36,11 @@ public class BooleanSqlDescriptor implements SqlTypeDescriptor {
 	}
 
 	@Override
+	public int getJdbcTypeCode() {
+		return getSqlType();
+	}
+
+	@Override
 	public boolean canBeRemapped() {
 		return true;
 	}

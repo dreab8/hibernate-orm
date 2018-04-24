@@ -38,7 +38,7 @@ public class SmallIntSqlDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.SMALLINT;
+		return getSqlType();
 	}
 
 	@Override

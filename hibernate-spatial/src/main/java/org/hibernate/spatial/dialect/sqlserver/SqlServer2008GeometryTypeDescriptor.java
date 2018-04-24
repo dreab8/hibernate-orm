@@ -46,6 +46,11 @@ public class SqlServer2008GeometryTypeDescriptor implements SqlTypeDescriptor {
 	}
 
 	@Override
+	public int getJdbcTypeCode() {
+		return getSqlType();
+	}
+
+	@Override
 	public boolean canBeRemapped() {
 		return false;
 	}

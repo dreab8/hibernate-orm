@@ -37,6 +37,11 @@ public class BigIntSqlDescriptor implements SqlTypeDescriptor {
 	}
 
 	@Override
+	public int getJdbcTypeCode() {
+		return getSqlType();
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
 	public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
 		return new JdbcLiteralFormatterNumericData( javaTypeDescriptor, Long.class );

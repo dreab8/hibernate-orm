@@ -38,7 +38,7 @@ public class VarcharSqlDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.VARCHAR;
+		return getSqlType();
 	}
 
 	@Override

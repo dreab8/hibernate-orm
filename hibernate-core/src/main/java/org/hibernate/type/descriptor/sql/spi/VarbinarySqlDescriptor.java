@@ -34,8 +34,9 @@ public class VarbinarySqlDescriptor implements SqlTypeDescriptor {
 		return Types.VARBINARY;
 	}
 
+	@Override
 	public int getJdbcTypeCode() {
-		return Types.VARBINARY;
+		return getSqlType();
 	}
 
 	@Override

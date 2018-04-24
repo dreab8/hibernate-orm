@@ -38,7 +38,7 @@ public class RealSqlDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public int getJdbcTypeCode() {
-		return Types.REAL;
+		return getSqlType();
 	}
 
 	@Override
