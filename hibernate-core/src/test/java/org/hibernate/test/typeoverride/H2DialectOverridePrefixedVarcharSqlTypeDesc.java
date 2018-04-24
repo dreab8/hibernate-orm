@@ -8,7 +8,7 @@ package org.hibernate.test.typeoverride;
 
 import org.hibernate.dialect.H2Dialect;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
  *
@@ -18,7 +18,7 @@ public class H2DialectOverridePrefixedVarcharSqlTypeDesc extends H2Dialect {
 	@Override
     public SqlTypeDescriptor remapSqlTypeDescriptor(SqlTypeDescriptor sqlTypeDescriptor) {
 		return  sqlTypeDescriptor == StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor() ?
-				VarcharTypeDescriptor.INSTANCE :
+				VarcharSqlDescriptor.INSTANCE :
 				super.remapSqlTypeDescriptor( sqlTypeDescriptor );
 	}
 }

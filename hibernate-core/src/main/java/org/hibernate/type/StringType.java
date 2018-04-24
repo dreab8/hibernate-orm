@@ -7,7 +7,7 @@
 package org.hibernate.type;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.StringTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#VARCHAR VARCHAR} and {@link String}
@@ -22,7 +22,7 @@ public class StringType
 	public static final StringType INSTANCE = new StringType();
 
 	public StringType() {
-		super( VarcharTypeDescriptor.INSTANCE, StringTypeDescriptor.INSTANCE );
+		super( VarcharSqlDescriptor.INSTANCE, StringTypeDescriptor.INSTANCE );
 	}
 
 	public String getName() {

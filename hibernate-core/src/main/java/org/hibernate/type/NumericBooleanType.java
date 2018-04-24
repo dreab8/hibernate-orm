@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.internal.BooleanJavaDescriptor;
-import org.hibernate.type.descriptor.sql.IntegerTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.IntegerSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#INTEGER INTEGER} and {@link Boolean} (using 1 and 0)
@@ -24,7 +24,7 @@ public class NumericBooleanType
 	public static final NumericBooleanType INSTANCE = new NumericBooleanType();
 
 	public NumericBooleanType() {
-		super( IntegerTypeDescriptor.INSTANCE, BooleanJavaDescriptor.INSTANCE );
+		super( IntegerSqlDescriptor.INSTANCE, BooleanJavaDescriptor.INSTANCE );
 	}
 	@Override
 	public String getName() {

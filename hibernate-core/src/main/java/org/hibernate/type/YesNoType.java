@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.internal.BooleanJavaDescriptor;
-import org.hibernate.type.descriptor.sql.CharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.CharSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#CHAR CHAR(1)} and {@link Boolean} (using 'Y' and 'N')
@@ -25,7 +25,7 @@ public class YesNoType
 	public static final YesNoType INSTANCE = new YesNoType();
 
 	public YesNoType() {
-		super( CharTypeDescriptor.INSTANCE, BooleanJavaDescriptor.INSTANCE );
+		super( CharSqlDescriptor.INSTANCE, BooleanJavaDescriptor.INSTANCE );
 	}
 	@Override
 	public String getName() {

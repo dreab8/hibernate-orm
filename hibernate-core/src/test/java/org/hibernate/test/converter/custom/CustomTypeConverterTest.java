@@ -30,8 +30,9 @@ public class CustomTypeConverterTest extends BaseUnitTestCase {
 	public void testConverterAppliedStaticRegistration() {
 		// this is how we told users to do it previously using the static reference -
 		//		make sure it still works for now
-		org.hibernate.type.descriptor.java.JavaTypeDescriptorRegistry.INSTANCE.addDescriptor( MyCustomJavaTypeDescriptor.INSTANCE );
-		org.hibernate.type.descriptor.sql.SqlTypeDescriptorRegistry.INSTANCE.addDescriptor( MyCustomSqlTypeDescriptor.INSTANCE );
+		TypeConfiguration typeConfiguration = new TypeConfiguration();
+		typeConfiguration.getJavaTypeDescriptorRegistry().addDescriptor( MyCustomJavaTypeDescriptor.INSTANCE );
+		typeConfiguration.getSqlTypeDescriptorRegistry().addDescriptor( MyCustomSqlTypeDescriptor.INSTANCE );
 
 		try ( final StandardServiceRegistry ssr = new StandardServiceRegistryBuilder()
 				.applySetting( AvailableSettings.HBM2DDL_AUTO, Action.CREATE_DROP )

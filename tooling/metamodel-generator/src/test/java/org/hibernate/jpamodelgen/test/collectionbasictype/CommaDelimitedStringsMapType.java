@@ -6,11 +6,10 @@
  */
 package org.hibernate.jpamodelgen.test.collectionbasictype;
 
-import java.util.List;
 import java.util.Map;
 
 import org.hibernate.type.AbstractSingleColumnStandardBasicType;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
  * @author Vlad Mihalcea
@@ -19,8 +18,8 @@ public class CommaDelimitedStringsMapType extends AbstractSingleColumnStandardBa
 
     public CommaDelimitedStringsMapType() {
         super(
-            VarcharTypeDescriptor.INSTANCE,
-            new CommaDelimitedStringMapJavaTypeDescriptor()
+                VarcharSqlDescriptor.INSTANCE,
+                new CommaDelimitedStringMapJavaTypeDescriptor()
         );
     }
 

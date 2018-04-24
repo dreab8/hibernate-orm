@@ -133,7 +133,7 @@ public class ClobJavaDescriptor extends AbstractBasicJavaDescriptor<Clob> {
 		}
 
 		// Support multiple return types from
-		// ClobTypeDescriptor
+		// ClobSqlDescriptor
 		if ( Clob.class.isAssignableFrom( value.getClass() ) ) {
 			return options.getLobCreator().wrap( (Clob) value );
 		}

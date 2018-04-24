@@ -21,10 +21,10 @@ import org.hibernate.dialect.SybaseASE15Dialect;
 import org.hibernate.dialect.SybaseDialect;
 import org.hibernate.testing.SkipForDialect;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
-import org.hibernate.type.descriptor.sql.BlobTypeDescriptor;
-import org.hibernate.type.descriptor.sql.IntegerTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BlobSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.IntegerSqlDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 import org.junit.Test;
 
 /**
@@ -44,30 +44,30 @@ public class TypeOverrideTest extends BaseCoreFunctionalTestCase {
 	@Test
 	public void testStandardBasicSqlTypeDescriptor() {
 		// no override
-		assertSame( IntegerTypeDescriptor.INSTANCE, remapSqlTypeDescriptor( IntegerTypeDescriptor.INSTANCE ) );
+		assertSame( IntegerSqlDescriptor.INSTANCE, remapSqlTypeDescriptor( IntegerSqlDescriptor.INSTANCE ) );
 
 		// A few dialects explicitly override BlobJavaDescriptor.DEFAULT
 		if ( PostgreSQL81Dialect.class.isInstance( getDialect() ) || PostgreSQLDialect.class.isInstance( getDialect() ) )  {
 			assertSame(
-					BlobTypeDescriptor.BLOB_BINDING,
-					getDialect().remapSqlTypeDescriptor( BlobTypeDescriptor.DEFAULT )
+					BlobSqlDescriptor.BLOB_BINDING,
+					getDialect().remapSqlTypeDescriptor( BlobSqlDescriptor.DEFAULT )
 			);
 		}
 		else if (SybaseDialect.class.isInstance( getDialect() )) {
 			assertSame(
-					BlobTypeDescriptor.PRIMITIVE_ARRAY_BINDING,
-					getDialect().remapSqlTypeDescriptor( BlobTypeDescriptor.DEFAULT )
+					BlobSqlDescriptor.PRIMITIVE_ARRAY_BINDING,
+					getDialect().remapSqlTypeDescriptor( BlobSqlDescriptor.DEFAULT )
 			);
 		}
 		else if ( AbstractHANADialect.class.isInstance( getDialect() ) ) {
 			assertSame(
 					( (AbstractHANADialect) getDialect() ).getBlobTypeDescriptor(),
-					getDialect().remapSqlTypeDescriptor( BlobTypeDescriptor.DEFAULT ) );
+					getDialect().remapSqlTypeDescriptor( BlobSqlDescriptor.DEFAULT ) );
 		}
 		else {
 			assertSame(
-					BlobTypeDescriptor.DEFAULT,
-					getDialect().remapSqlTypeDescriptor( BlobTypeDescriptor.DEFAULT )
+					BlobSqlDescriptor.DEFAULT,
+					getDialect().remapSqlTypeDescriptor( BlobSqlDescriptor.DEFAULT )
 			);
 		}
 	}
@@ -75,7 +75,7 @@ public class TypeOverrideTest extends BaseCoreFunctionalTestCase {
 	@Test
 	public void testNonStandardSqlTypeDescriptor() {
 		// no override
-		SqlTypeDescriptor sqlTypeDescriptor = new IntegerTypeDescriptor() {
+		SqlTypeDescriptor sqlTypeDescriptor = new IntegerSqlDescriptor() {
 			@Override
 			public boolean canBeRemapped() {
 				return false;
@@ -86,10 +86,10 @@ public class TypeOverrideTest extends BaseCoreFunctionalTestCase {
 
 	@Test
 	public void testDialectWithNonStandardSqlTypeDescriptor() {
-		assertNotSame( VarcharTypeDescriptor.INSTANCE, StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor() );
+		assertNotSame( VarcharSqlDescriptor.INSTANCE, StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor() );
 		final Dialect dialect = new H2DialectOverridePrefixedVarcharSqlTypeDesc();
 		final SqlTypeDescriptor remapped = remapSqlTypeDescriptor( dialect, StoredPrefixedStringType.PREFIXED_VARCHAR_TYPE_DESCRIPTOR );
-		assertSame( VarcharTypeDescriptor.INSTANCE, remapped );
+		assertSame( VarcharSqlDescriptor.INSTANCE, remapped );
 	}
 
 	private SqlTypeDescriptor remapSqlTypeDescriptor(SqlTypeDescriptor sqlTypeDescriptor) {

@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.internal.CharacterJavaDescriptor;
-import org.hibernate.type.descriptor.sql.NCharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.NCharSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#NCHAR NCHAR(1)} and {@link Character}
@@ -25,7 +25,7 @@ public class CharacterNCharType
 	public static final CharacterNCharType INSTANCE = new CharacterNCharType();
 
 	public CharacterNCharType() {
-		super( NCharTypeDescriptor.INSTANCE, CharacterJavaDescriptor.INSTANCE );
+		super( NCharSqlDescriptor.INSTANCE, CharacterJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

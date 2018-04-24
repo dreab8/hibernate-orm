@@ -10,7 +10,7 @@ import java.net.URL;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.UrlTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#VARCHAR VARCHAR} and {@link URL}
@@ -21,7 +21,7 @@ public class UrlType extends AbstractSingleColumnStandardBasicType<URL> implemen
 	public static final UrlType INSTANCE = new UrlType();
 
 	public UrlType() {
-		super( VarcharTypeDescriptor.INSTANCE, UrlTypeDescriptor.INSTANCE );
+		super( VarcharSqlDescriptor.INSTANCE, UrlTypeDescriptor.INSTANCE );
 	}
 
 	public String getName() {

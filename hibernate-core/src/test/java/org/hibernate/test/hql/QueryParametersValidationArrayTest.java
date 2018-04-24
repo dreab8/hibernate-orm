@@ -19,7 +19,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.H2Dialect;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.type.AbstractSingleColumnStandardBasicType;
@@ -29,8 +31,9 @@ import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
-import org.hibernate.type.descriptor.sql.BasicBinder;
-import org.hibernate.type.descriptor.sql.BasicExtractor;
+import org.hibernate.type.descriptor.sql.spi.BasicBinder;
+import org.hibernate.type.descriptor.sql.spi.BasicExtractor;
+import org.hibernate.type.descriptor.sql.spi.JdbcLiteralFormatter;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import org.hibernate.testing.RequiresDialect;
@@ -133,7 +136,12 @@ public class QueryParametersValidationArrayTest extends BaseEntityManagerFunctio
 			return new BasicExtractor<X>( javaTypeDescriptor, this) {
 				@Override
 				protected X doExtract(ResultSet rs, String name, WrapperOptions options) throws SQLException {
-					return javaTypeDescriptor.wrap(rs.getArray(name), options);
+					return javaTypeDescriptor.wrap( rs.getArray( name ), options );
+				}
+
+				@Override
+				protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+					return javaTypeDescriptor.wrap( rs.getArray( position ), options );
 				}
 
 				@Override
@@ -148,6 +156,10 @@ public class QueryParametersValidationArrayTest extends BaseEntityManagerFunctio
 			};
 		}
 
+		@Override
+		public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
+			return null;
+		}
 	}
 
 	public static class StringArrayTypeDescriptor

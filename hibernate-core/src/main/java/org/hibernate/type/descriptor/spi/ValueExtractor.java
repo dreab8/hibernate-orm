@@ -29,7 +29,16 @@ public interface ValueExtractor<X> {
 	 */
 	X extract(ResultSet rs, String name, WrapperOptions options) throws SQLException;
 
+	X extract(ResultSet rs, int position, WrapperOptions options) throws SQLException;
+
 	X extract(CallableStatement statement, int index, WrapperOptions options) throws SQLException;
 
-	X extract(CallableStatement statement, String[] paramNames, WrapperOptions options) throws SQLException;
+	default X extract(CallableStatement statement, String[] paramNames, WrapperOptions options) throws SQLException{
+		if ( paramNames.length > 1 ) {
+			throw new IllegalArgumentException( "Basic value extraction cannot handle multiple output parameters" );
+		}
+		return extract( statement, paramNames[0], options );
+	}
+
+	X extract(CallableStatement statement, String name, WrapperOptions options) throws SQLException;
 }

@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.internal.CharacterJavaDescriptor;
-import org.hibernate.type.descriptor.sql.CharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.CharSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#CHAR CHAR(1)} and {@link Character}
@@ -25,7 +25,7 @@ public class CharacterType
 	public static final CharacterType INSTANCE = new CharacterType();
 
 	public CharacterType() {
-		super( CharTypeDescriptor.INSTANCE, CharacterJavaDescriptor.INSTANCE );
+		super( CharSqlDescriptor.INSTANCE, CharacterJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

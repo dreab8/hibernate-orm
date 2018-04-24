@@ -15,7 +15,7 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.util.ZonedDateTimeComparator;
 import org.hibernate.type.descriptor.java.ZonedDateTimeJavaDescriptor;
-import org.hibernate.type.descriptor.sql.TimestampTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.TimestampSqlDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -32,7 +32,7 @@ public class ZonedDateTimeType
 	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern( "yyyy-MM-dd HH:mm:ss.S VV", Locale.ENGLISH );
 
 	public ZonedDateTimeType() {
-		super( TimestampTypeDescriptor.INSTANCE, ZonedDateTimeJavaDescriptor.INSTANCE );
+		super( TimestampSqlDescriptor.INSTANCE, ZonedDateTimeJavaDescriptor.INSTANCE );
 	}
 
 	@Override

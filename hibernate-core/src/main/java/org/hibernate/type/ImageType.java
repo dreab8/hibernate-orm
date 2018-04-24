@@ -6,7 +6,7 @@
  */
 package org.hibernate.type;
 import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
-import org.hibernate.type.descriptor.sql.LongVarbinaryTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.LongVarbinarySqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#LONGVARBINARY LONGVARBINARY} and {@code byte[]}
@@ -20,7 +20,7 @@ public class ImageType extends AbstractSingleColumnStandardBasicType<byte[]> {
 	public static final ImageType INSTANCE = new ImageType();
 
 	public ImageType() {
-		super( LongVarbinaryTypeDescriptor.INSTANCE, PrimitiveByteArrayTypeDescriptor.INSTANCE );
+		super( LongVarbinarySqlDescriptor.INSTANCE, PrimitiveByteArrayTypeDescriptor.INSTANCE );
 	}
 
 	public String getName() {

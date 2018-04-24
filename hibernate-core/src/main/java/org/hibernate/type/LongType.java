@@ -12,7 +12,7 @@ import java.util.Comparator;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.descriptor.java.internal.LongJavaDescriptor;
-import org.hibernate.type.descriptor.sql.BigIntTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BigIntSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#BIGINT BIGINT} and {@link Long}
@@ -29,7 +29,7 @@ public class LongType
 	private static final Long ZERO = (long) 0;
 
 	public LongType() {
-		super( BigIntTypeDescriptor.INSTANCE, LongJavaDescriptor.INSTANCE );
+		super( BigIntSqlDescriptor.INSTANCE, LongJavaDescriptor.INSTANCE );
 	}
 
 	@Override

@@ -18,9 +18,9 @@ import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.StringTypeDescriptor;
-import org.hibernate.type.descriptor.sql.ClobTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.ClobSqlDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.Test;
@@ -34,8 +34,8 @@ import static org.junit.Assert.assertNull;
 public class StringValueMappingTest extends BaseUnitTestCase {
 	private final StringTypeDescriptor stringJavaDescriptor = new StringTypeDescriptor();
 
-	private final VarcharTypeDescriptor varcharSqlDescriptor = new VarcharTypeDescriptor();
-	private final ClobTypeDescriptor clobSqlDescriptor = ClobTypeDescriptor.DEFAULT;
+	private final VarcharSqlDescriptor varcharSqlDescriptor = new VarcharSqlDescriptor();
+	private final ClobSqlDescriptor clobSqlDescriptor = ClobSqlDescriptor.DEFAULT;
 
 	private final WrapperOptions wrapperOptions = new WrapperOptions() {
 		public boolean useStreamForLobBinding() {

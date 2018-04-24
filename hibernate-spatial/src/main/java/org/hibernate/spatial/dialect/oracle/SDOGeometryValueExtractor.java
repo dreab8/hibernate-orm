@@ -14,7 +14,7 @@ import java.sql.Struct;
 
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BasicExtractor;
+import org.hibernate.type.descriptor.sql.spi.BasicExtractor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import org.geolatte.geom.Geometry;
@@ -45,6 +45,12 @@ public class SDOGeometryValueExtractor<X> extends BasicExtractor<X> {
 	@Override
 	protected X doExtract(ResultSet rs, String name, WrapperOptions options) throws SQLException {
 		final Object geomObj = rs.getObject( name );
+		return getJavaDescriptor().wrap( convert( geomObj ), options );
+	}
+
+	@Override
+	protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+		final Object geomObj = rs.getObject( position );
 		return getJavaDescriptor().wrap( convert( geomObj ), options );
 	}
 

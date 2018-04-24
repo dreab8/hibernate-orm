@@ -7,7 +7,7 @@
 package org.hibernate.type;
 
 import org.hibernate.type.descriptor.java.StringTypeDescriptor;
-import org.hibernate.type.descriptor.sql.NClobTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.NClobSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#CLOB CLOB} and {@link String}
@@ -20,7 +20,7 @@ public class MaterializedNClobType extends AbstractSingleColumnStandardBasicType
 	public static final MaterializedNClobType INSTANCE = new MaterializedNClobType();
 
 	public MaterializedNClobType() {
-		super( NClobTypeDescriptor.DEFAULT, StringTypeDescriptor.INSTANCE );
+		super( NClobSqlDescriptor.DEFAULT, StringTypeDescriptor.INSTANCE );
 	}
 
 	public String getName() {

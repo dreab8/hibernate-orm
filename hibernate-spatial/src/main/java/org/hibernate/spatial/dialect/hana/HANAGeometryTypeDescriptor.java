@@ -16,8 +16,9 @@ import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BasicBinder;
-import org.hibernate.type.descriptor.sql.BasicExtractor;
+import org.hibernate.type.descriptor.sql.spi.BasicBinder;
+import org.hibernate.type.descriptor.sql.spi.BasicExtractor;
+import org.hibernate.type.descriptor.sql.spi.JdbcLiteralFormatter;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import org.geolatte.geom.Geometry;
@@ -79,6 +80,16 @@ public class HANAGeometryTypeDescriptor implements SqlTypeDescriptor {
 			}
 
 			@Override
+			protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+				if ( HANAGeometryTypeDescriptor.this.determineCrsIdFromDatabase ) {
+					return getJavaDescriptor().wrap( HANASpatialUtils.toGeometry( rs, position ), options );
+				}
+				else {
+					return getJavaDescriptor().wrap( HANASpatialUtils.toGeometry( rs.getObject( position ) ), options );
+				}
+			}
+
+			@Override
 			protected X doExtract(CallableStatement statement, int index, WrapperOptions options) throws SQLException {
 				return getJavaDescriptor().wrap( HANASpatialUtils.toGeometry( statement.getObject( index ) ), options );
 			}
@@ -91,4 +102,8 @@ public class HANAGeometryTypeDescriptor implements SqlTypeDescriptor {
 		};
 	}
 
+	@Override
+	public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
+		return null;
+	}
 }

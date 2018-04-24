@@ -18,6 +18,7 @@ import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.JdbcLiteralFormatter;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import org.jboss.logging.Logger;
@@ -122,6 +123,11 @@ public class AttributeConverterSqlTypeDescriptorAdapter implements SqlTypeDescri
 			}
 
 			@Override
+			public X extract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+				return doConversion( realExtractor.extract( rs, position, options ) );
+			}
+
+			@Override
 			public X extract(CallableStatement statement, int index, WrapperOptions options) throws SQLException {
 				return doConversion( realExtractor.extract( statement, index, options ) );
 			}
@@ -132,6 +138,11 @@ public class AttributeConverterSqlTypeDescriptorAdapter implements SqlTypeDescri
 					throw new IllegalArgumentException( "Basic value extraction cannot handle multiple output parameters" );
 				}
 				return doConversion( realExtractor.extract( statement, paramNames, options ) );
+			}
+
+			@Override
+			public X extract(CallableStatement statement, String name, WrapperOptions options) throws SQLException {
+				return doConversion( realExtractor.extract( statement, name, options ) );
 			}
 
 			@SuppressWarnings("unchecked")
@@ -149,5 +160,10 @@ public class AttributeConverterSqlTypeDescriptorAdapter implements SqlTypeDescri
 				}
 			}
 		};
+	}
+
+	@Override
+	public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
+		return delegate.getJdbcLiteralFormatter( javaTypeDescriptor );
 	}
 }

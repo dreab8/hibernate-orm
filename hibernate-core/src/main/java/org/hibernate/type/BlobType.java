@@ -10,6 +10,7 @@ import java.sql.Blob;
 
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.descriptor.java.internal.BlobJavaDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BlobSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#BLOB BLOB} and {@link Blob}
@@ -21,7 +22,7 @@ public class BlobType extends AbstractSingleColumnStandardBasicType<Blob> {
 	public static final BlobType INSTANCE = new BlobType();
 
 	public BlobType() {
-		super( org.hibernate.type.descriptor.sql.BlobTypeDescriptor.DEFAULT, BlobJavaDescriptor.INSTANCE );
+		super( BlobSqlDescriptor.DEFAULT, BlobJavaDescriptor.INSTANCE );
 	}
 
 	@Override

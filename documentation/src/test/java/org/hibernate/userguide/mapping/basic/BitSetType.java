@@ -5,7 +5,7 @@ import java.util.BitSet;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.AbstractSingleColumnStandardBasicType;
 import org.hibernate.type.DiscriminatorType;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
  * @author Vlad Mihalcea
@@ -18,7 +18,7 @@ public class BitSetType
     public static final BitSetType INSTANCE = new BitSetType();
 
     public BitSetType() {
-        super( VarcharTypeDescriptor.INSTANCE, BitSetTypeDescriptor.INSTANCE );
+        super( VarcharSqlDescriptor.INSTANCE, BitSetTypeDescriptor.INSTANCE );
     }
 
     @Override

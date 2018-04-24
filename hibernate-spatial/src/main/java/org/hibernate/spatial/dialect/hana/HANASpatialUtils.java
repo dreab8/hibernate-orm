@@ -42,6 +42,26 @@ public class HANASpatialUtils {
 			}
 		}
 
+		return toGeometry( rs, buffer, tableName, columnName );
+	}
+
+	@SuppressWarnings("resource")
+	public static Geometry<?> toGeometry(ResultSet rs, int position) throws SQLException {
+		ByteBuffer buffer = toByteBuffer( rs.getObject( position ) );
+
+		if ( buffer == null ) {
+			return null;
+		}
+
+		// Get table and column names from the result set metadata
+		String tableName = rs.getMetaData().getTableName( position );
+		String columnName = rs.getMetaData().getColumnName( position );
+
+		return toGeometry( rs, buffer, tableName, columnName );
+	}
+
+	private static Geometry<?> toGeometry(ResultSet rs, ByteBuffer buffer, String tableName, String columnName)
+			throws SQLException {
 		assert tableName != null;
 		assert columnName != null;
 

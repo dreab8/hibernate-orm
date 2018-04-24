@@ -20,10 +20,10 @@ import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BasicBinder;
-import org.hibernate.type.descriptor.sql.BasicExtractor;
+import org.hibernate.type.descriptor.sql.spi.BasicBinder;
+import org.hibernate.type.descriptor.sql.spi.BasicExtractor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
  *
@@ -36,7 +36,7 @@ public class StoredPrefixedStringType
 	public static final String PREFIX = "PRE:";
 
 	public static final SqlTypeDescriptor PREFIXED_VARCHAR_TYPE_DESCRIPTOR =
-			new VarcharTypeDescriptor() {
+			new VarcharSqlDescriptor() {
 				public <X> ValueBinder<X> getBinder(final JavaTypeDescriptor<X> javaTypeDescriptor) {
 					return new BasicBinder<X>( javaTypeDescriptor, this ) {
 						@Override
@@ -59,6 +59,15 @@ public class StoredPrefixedStringType
 						@Override
 						protected X doExtract(ResultSet rs, String name, WrapperOptions options) throws SQLException {
 							String stringValue = rs.getString( name );
+							if ( ! stringValue.startsWith( PREFIX ) ) {
+								throw new AssertionFailure( "Value read from resultset does not have prefix." );
+							}
+							return javaTypeDescriptor.wrap( stringValue.substring( PREFIX.length() ), options );
+						}
+
+						@Override
+						protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+							String stringValue = rs.getString( position );
 							if ( ! stringValue.startsWith( PREFIX ) ) {
 								throw new AssertionFailure( "Value read from resultset does not have prefix." );
 							}

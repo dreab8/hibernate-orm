@@ -6,7 +6,7 @@
  */
 package org.hibernate.type;
 import org.hibernate.type.descriptor.java.StringTypeDescriptor;
-import org.hibernate.type.descriptor.sql.LongVarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.LongVarcharSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#LONGVARCHAR LONGVARCHAR} and {@link String}
@@ -19,7 +19,7 @@ public class TextType extends AbstractSingleColumnStandardBasicType<String> {
 	public static final TextType INSTANCE = new TextType();
 
 	public TextType() {
-		super( LongVarcharTypeDescriptor.INSTANCE, StringTypeDescriptor.INSTANCE );
+		super( LongVarcharSqlDescriptor.INSTANCE, StringTypeDescriptor.INSTANCE );
 	}
 
 	public String getName() { 

@@ -12,6 +12,7 @@ import java.sql.Types;
 import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.JdbcLiteralFormatter;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import org.geolatte.geom.codec.db.oracle.OracleJDBCTypeFactory;
@@ -63,4 +64,8 @@ public class SDOGeometryTypeDescriptor implements SqlTypeDescriptor {
 		return "MDSYS.SDO_GEOMETRY";
 	}
 
+	@Override
+	public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
+		return null;
+	}
 }

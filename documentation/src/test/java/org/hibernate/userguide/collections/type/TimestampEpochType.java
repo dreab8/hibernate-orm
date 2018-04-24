@@ -18,7 +18,7 @@ import org.hibernate.type.LiteralType;
 import org.hibernate.type.StringType;
 import org.hibernate.type.VersionType;
 import org.hibernate.type.descriptor.java.internal.JdbcTimestampJavaDescriptor;
-import org.hibernate.type.descriptor.sql.BigIntTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BigIntSqlDescriptor;
 
 /**
  * @author Vlad Mihalcea
@@ -33,7 +33,7 @@ public class TimestampEpochType
 
     public TimestampEpochType() {
         super(
-				BigIntTypeDescriptor.INSTANCE,
+				BigIntSqlDescriptor.INSTANCE,
 				JdbcTimestampJavaDescriptor.INSTANCE
         );
     }

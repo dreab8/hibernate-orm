@@ -10,7 +10,7 @@ import java.math.BigInteger;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.internal.BigIntegerJavaDescriptor;
-import org.hibernate.type.descriptor.sql.NumericTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.NumericSqlDescriptor;
 
 /**
  * A type that maps between a {@link java.sql.Types#NUMERIC NUMERIC} and {@link BigInteger}.
@@ -25,7 +25,7 @@ public class BigIntegerType
 	public static final BigIntegerType INSTANCE = new BigIntegerType();
 
 	public BigIntegerType() {
-		super( NumericTypeDescriptor.INSTANCE, BigIntegerJavaDescriptor.INSTANCE );
+		super( NumericSqlDescriptor.INSTANCE, BigIntegerJavaDescriptor.INSTANCE );
 	}
 
 	@Override

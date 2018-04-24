@@ -26,7 +26,7 @@ import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
 import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import org.hibernate.testing.junit4.BaseUnitTestCase;
@@ -65,7 +65,7 @@ public class CollectionAsBasicTest extends BaseUnitTestCase {
 
 		public DelimitedStringsType() {
 			super(
-					VarcharTypeDescriptor.INSTANCE,
+					VarcharSqlDescriptor.INSTANCE,
 					new DelimitedStringsJavaTypeDescriptor()
 			);
 		}

@@ -18,7 +18,7 @@ import org.hibernate.type.descriptor.java.internal.JavaTypeDescriptorBaseline;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarbinaryTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarbinarySqlDescriptor;
 import org.hibernate.type.spi.TypeConfiguration;
 import org.hibernate.type.spi.TypeConfigurationAware;
 
@@ -136,7 +136,7 @@ public class JavaTypeDescriptorRegistry implements JavaTypeDescriptorBaseline.Ba
 			);
 
 
-			sqlTypeDescriptor = VarbinaryTypeDescriptor.INSTANCE;
+			sqlTypeDescriptor = VarbinarySqlDescriptor.INSTANCE;
 		}
 
 		@Override

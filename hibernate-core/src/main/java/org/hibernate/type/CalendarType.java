@@ -12,7 +12,7 @@ import java.util.GregorianCalendar;
 
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.descriptor.java.internal.CalendarJavaDescriptor;
-import org.hibernate.type.descriptor.sql.TimestampTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.TimestampSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#TIMESTAMP TIMESTAMP} and {@link Calendar}
@@ -27,7 +27,7 @@ public class CalendarType
 	public static final CalendarType INSTANCE = new CalendarType();
 
 	public CalendarType() {
-		super( TimestampTypeDescriptor.INSTANCE, CalendarJavaDescriptor.INSTANCE );
+		super( TimestampSqlDescriptor.INSTANCE, CalendarJavaDescriptor.INSTANCE );
 	}
 
 	@Override

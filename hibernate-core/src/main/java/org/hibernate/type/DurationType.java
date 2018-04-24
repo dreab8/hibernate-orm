@@ -10,7 +10,7 @@ import java.time.Duration;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.internal.DurationJavaDescriptor;
-import org.hibernate.type.descriptor.sql.BigIntTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BigIntSqlDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -24,7 +24,7 @@ public class DurationType
 	public static final DurationType INSTANCE = new DurationType();
 
 	public DurationType() {
-		super( BigIntTypeDescriptor.INSTANCE, DurationJavaDescriptor.INSTANCE );
+		super( BigIntSqlDescriptor.INSTANCE, DurationJavaDescriptor.INSTANCE );
 	}
 
 	@Override

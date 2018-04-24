@@ -12,7 +12,7 @@ import java.util.Comparator;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.descriptor.java.internal.ByteJavaDescriptor;
-import org.hibernate.type.descriptor.sql.TinyIntTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.TinyIntSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#TINYINT TINYINT} and {@link Byte}
@@ -29,7 +29,7 @@ public class ByteType
 	private static final Byte ZERO = (byte) 0;
 
 	public ByteType() {
-		super( TinyIntTypeDescriptor.INSTANCE, ByteJavaDescriptor.INSTANCE );
+		super( TinyIntSqlDescriptor.INSTANCE, ByteJavaDescriptor.INSTANCE );
 	}
 
 	@Override

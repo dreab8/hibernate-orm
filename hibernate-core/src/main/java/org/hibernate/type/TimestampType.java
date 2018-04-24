@@ -14,7 +14,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.descriptor.java.internal.JdbcTimestampJavaDescriptor;
-import org.hibernate.type.descriptor.sql.TimestampTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.TimestampSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#TIMESTAMP TIMESTAMP} and {@link java.sql.Timestamp}
@@ -29,7 +29,7 @@ public class TimestampType
 	public static final TimestampType INSTANCE = new TimestampType();
 
 	public TimestampType() {
-		super( TimestampTypeDescriptor.INSTANCE, JdbcTimestampJavaDescriptor.INSTANCE );
+		super( TimestampSqlDescriptor.INSTANCE, JdbcTimestampJavaDescriptor.INSTANCE );
 	}
 
 	@Override

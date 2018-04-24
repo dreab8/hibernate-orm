@@ -28,8 +28,24 @@ public interface SqlTypeDescriptor extends Serializable {
 	 * Return the {@linkplain java.sql.Types JDBC type-code} for the column mapped by this type.
 	 *
 	 * @return typeCode The JDBC type-code
+	 *
+	 *
+	 * @deprecated since 6.0 use {@link #getJdbcTypeCode()} instead.
 	 */
+	@Deprecated
 	int getSqlType();
+
+	/**
+	 * Retrieve the JDBC/SQL type-code that this descriptor represents.
+	 * <p/>
+	 * For a "standard" type that would match the corresponding value in
+	 * {@link java.sql.Types}.
+	 *
+	 * @return typeCode The JDBC/SQL type-code
+	 */
+	default int getJdbcTypeCode(){
+		return getSqlType();
+	}
 
 	/**
 	 * Is this descriptor available for remapping?

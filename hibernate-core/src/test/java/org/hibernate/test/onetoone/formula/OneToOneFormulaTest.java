@@ -14,7 +14,7 @@ import org.hibernate.criterion.Property;
 import org.hibernate.dialect.Oracle8iDialect;
 import org.hibernate.type.AbstractSingleColumnStandardBasicType;
 import org.hibernate.type.TextType;
-import org.hibernate.type.descriptor.sql.ClobTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.ClobSqlDescriptor;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
@@ -38,7 +38,7 @@ public class OneToOneFormulaTest extends BaseCoreFunctionalTestCase {
 	private static class TextAsMaterializedClobType extends AbstractSingleColumnStandardBasicType<String> {
 		public final static TextAsMaterializedClobType INSTANCE = new TextAsMaterializedClobType();
 		public TextAsMaterializedClobType() {
-			super(  ClobTypeDescriptor.DEFAULT, TextType.INSTANCE.getJavaTypeDescriptor() );
+			super( ClobSqlDescriptor.DEFAULT, TextType.INSTANCE.getJavaTypeDescriptor() );
 		}
 		public String getName() {
 			return TextType.INSTANCE.getName();

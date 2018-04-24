@@ -6,7 +6,7 @@
  */
 package org.hibernate.type;
 import org.hibernate.type.descriptor.java.PrimitiveCharacterArrayTypeDescriptor;
-import org.hibernate.type.descriptor.sql.ClobTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.ClobSqlDescriptor;
 
 /**
  * Map a char[] to a Clob
@@ -17,7 +17,7 @@ public class PrimitiveCharacterArrayClobType extends AbstractSingleColumnStandar
 	public static final CharacterArrayClobType INSTANCE = new CharacterArrayClobType();
 
 	public PrimitiveCharacterArrayClobType() {
-		super( ClobTypeDescriptor.DEFAULT, PrimitiveCharacterArrayTypeDescriptor.INSTANCE );
+		super( ClobSqlDescriptor.DEFAULT, PrimitiveCharacterArrayTypeDescriptor.INSTANCE );
 	}
 
 	public String getName() {

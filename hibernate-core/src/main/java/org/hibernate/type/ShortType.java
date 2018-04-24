@@ -12,7 +12,7 @@ import java.util.Comparator;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.descriptor.java.internal.ShortJavaDescriptor;
-import org.hibernate.type.descriptor.sql.SmallIntTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SmallIntSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#SMALLINT SMALLINT} and {@link Short}
@@ -29,7 +29,7 @@ public class ShortType
 	private static final Short ZERO = (short) 0;
 
 	public ShortType() {
-		super( SmallIntTypeDescriptor.INSTANCE, ShortJavaDescriptor.INSTANCE );
+		super( SmallIntSqlDescriptor.INSTANCE, ShortJavaDescriptor.INSTANCE );
 	}
 
 	@Override

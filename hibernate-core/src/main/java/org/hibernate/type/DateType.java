@@ -10,6 +10,7 @@ import java.util.Date;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.internal.JdbcDateJavaDescriptor;
+import org.hibernate.type.descriptor.sql.spi.DateSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#DATE DATE} and {@link java.sql.Date}
@@ -24,7 +25,7 @@ public class DateType
 	public static final DateType INSTANCE = new DateType();
 
 	public DateType() {
-		super( org.hibernate.type.descriptor.sql.DateTypeDescriptor.INSTANCE, JdbcDateJavaDescriptor.INSTANCE );
+		super( DateSqlDescriptor.INSTANCE, JdbcDateJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

@@ -12,7 +12,7 @@ import java.util.Locale;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.OffsetTimeJavaDescriptor;
-import org.hibernate.type.descriptor.sql.TimeTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.TimeSqlDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -29,7 +29,7 @@ public class OffsetTimeType
 	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern( "HH:mm:ss.S xxxxx", Locale.ENGLISH );
 
 	public OffsetTimeType() {
-		super( TimeTypeDescriptor.INSTANCE, OffsetTimeJavaDescriptor.INSTANCE );
+		super( TimeSqlDescriptor.INSTANCE, OffsetTimeJavaDescriptor.INSTANCE );
 	}
 
 	@Override

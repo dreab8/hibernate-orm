@@ -23,6 +23,7 @@ import org.hibernate.type.AbstractSingleColumnStandardBasicType;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.LongVarcharSqlDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import org.hibernate.testing.TestForIssue;
@@ -156,7 +157,7 @@ public class LongListTypeContributorTest extends BaseEntityManagerFunctionalTest
 			public static final StringifiedCollectionType INSTANCE = new StringifiedCollectionType();
 
 			public StringifiedCollectionType() {
-				super( org.hibernate.type.descriptor.sql.LongVarcharTypeDescriptor.INSTANCE,
+				super( LongVarcharSqlDescriptor.INSTANCE,
 					   StringifiedCollectionJavaTypeDescriptor.INSTANCE );
 				regKeys = new String[]{ LongList.class.getName() };
 				name = "StringifiedCollection";
@@ -224,7 +225,7 @@ public class LongListTypeContributorTest extends BaseEntityManagerFunctionalTest
 
 			@Override
 			public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-				return org.hibernate.type.descriptor.sql.LongVarcharTypeDescriptor.INSTANCE;
+				return LongVarcharSqlDescriptor.INSTANCE;
 			}
 
 			@Override

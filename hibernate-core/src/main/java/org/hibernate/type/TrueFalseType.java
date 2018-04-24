@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.internal.BooleanJavaDescriptor;
-import org.hibernate.type.descriptor.sql.CharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.CharSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#CHAR CHAR(1)} and {@link Boolean} (using 'T' and 'F')
@@ -25,7 +25,7 @@ public class TrueFalseType
 	public static final TrueFalseType INSTANCE = new TrueFalseType();
 
 	public TrueFalseType() {
-		super( CharTypeDescriptor.INSTANCE, new BooleanJavaDescriptor() );
+		super( CharSqlDescriptor.INSTANCE, new BooleanJavaDescriptor() );
 	}
 	@Override
 	public String getName() {

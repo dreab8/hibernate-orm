@@ -6,7 +6,7 @@
  */
 package org.hibernate.type;
 import org.hibernate.type.descriptor.java.PrimitiveCharacterArrayTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#VARCHAR VARCHAR} and {@code char[]}
@@ -18,7 +18,7 @@ public class CharArrayType extends AbstractSingleColumnStandardBasicType<char[]>
 	public static final CharArrayType INSTANCE = new CharArrayType();
 
 	public CharArrayType() {
-		super( VarcharTypeDescriptor.INSTANCE, PrimitiveCharacterArrayTypeDescriptor.INSTANCE );
+		super( VarcharSqlDescriptor.INSTANCE, PrimitiveCharacterArrayTypeDescriptor.INSTANCE );
 	}
 
 	public String getName() {

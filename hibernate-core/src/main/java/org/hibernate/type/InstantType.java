@@ -17,7 +17,7 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.util.compare.ComparableComparator;
 import org.hibernate.type.descriptor.java.internal.InstantJavaDescriptor;
-import org.hibernate.type.descriptor.sql.TimestampTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.TimestampSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#TIMESTAMP TIMESTAMP} and {@link java.time.LocalDateTime}.
@@ -35,7 +35,7 @@ public class InstantType
 	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern( "yyyy-MM-dd HH:mm:ss.S 'Z'", Locale.ENGLISH );
 
 	public InstantType() {
-		super( TimestampTypeDescriptor.INSTANCE, InstantJavaDescriptor.INSTANCE );
+		super( TimestampSqlDescriptor.INSTANCE, InstantJavaDescriptor.INSTANCE );
 	}
 
 	@Override

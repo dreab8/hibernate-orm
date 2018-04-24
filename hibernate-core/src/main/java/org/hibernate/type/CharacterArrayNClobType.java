@@ -7,7 +7,7 @@
 package org.hibernate.type;
 
 import org.hibernate.type.descriptor.java.internal.CharacterArrayJavaDescriptor;
-import org.hibernate.type.descriptor.sql.NClobTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.NClobSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#NCLOB NCLOB} and {@link Character Character[]}
@@ -21,7 +21,7 @@ public class CharacterArrayNClobType extends AbstractSingleColumnStandardBasicTy
 	public static final CharacterArrayNClobType INSTANCE = new CharacterArrayNClobType();
 
 	public CharacterArrayNClobType() {
-		super( NClobTypeDescriptor.DEFAULT, CharacterArrayJavaDescriptor.INSTANCE );
+		super( NClobSqlDescriptor.DEFAULT, CharacterArrayJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

@@ -6,7 +6,7 @@
  */
 package org.hibernate.type;
 import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BlobTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BlobSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#BLOB BLOB} and {@code byte[]}
@@ -20,7 +20,7 @@ public class MaterializedBlobType extends AbstractSingleColumnStandardBasicType<
 	public static final MaterializedBlobType INSTANCE = new MaterializedBlobType();
 
 	public MaterializedBlobType() {
-		super( BlobTypeDescriptor.DEFAULT, PrimitiveByteArrayTypeDescriptor.INSTANCE );
+		super( BlobSqlDescriptor.DEFAULT, PrimitiveByteArrayTypeDescriptor.INSTANCE );
 	}
 
 	public String getName() {

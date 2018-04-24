@@ -15,9 +15,11 @@ import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BasicBinder;
+import org.hibernate.type.descriptor.sql.internal.JdbcLiteralFormatterCharacterData;
+import org.hibernate.type.descriptor.sql.spi.BasicBinder;
+import org.hibernate.type.descriptor.sql.spi.JdbcLiteralFormatter;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
  * A custom SqlTypeDescriptor.  For example, this might be used to provide support
@@ -78,6 +80,11 @@ public class MyCustomSqlTypeDescriptor implements SqlTypeDescriptor {
 
 	@Override
 	public <X> ValueExtractor<X> getExtractor(JavaTypeDescriptor<X> javaTypeDescriptor) {
-		return VarcharTypeDescriptor.INSTANCE.getExtractor( javaTypeDescriptor );
+		return VarcharSqlDescriptor.INSTANCE.getExtractor( javaTypeDescriptor );
+	}
+
+	@Override
+	public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
+		return new JdbcLiteralFormatterCharacterData( javaTypeDescriptor );
 	}
 }

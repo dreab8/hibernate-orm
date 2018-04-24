@@ -3,7 +3,7 @@ package org.hibernate.test.type.contributor;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.AbstractSingleColumnStandardBasicType;
 import org.hibernate.type.DiscriminatorType;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
  * @author Vlad Mihalcea
@@ -15,7 +15,7 @@ public class ArrayType
     public static final ArrayType INSTANCE = new ArrayType();
 
     public ArrayType() {
-        super( VarcharTypeDescriptor.INSTANCE, ArrayTypeDescriptor.INSTANCE );
+        super( VarcharSqlDescriptor.INSTANCE, ArrayTypeDescriptor.INSTANCE );
     }
 
     @Override

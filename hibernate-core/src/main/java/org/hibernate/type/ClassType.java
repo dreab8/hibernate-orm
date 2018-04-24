@@ -6,7 +6,7 @@
  */
 package org.hibernate.type;
 import org.hibernate.type.descriptor.java.internal.ClassJavaDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
  * A type that maps between {@link java.sql.Types#VARCHAR VARCHAR} and {@link Class}
@@ -18,7 +18,7 @@ public class ClassType extends AbstractSingleColumnStandardBasicType<Class> {
 	public static final ClassType INSTANCE = new ClassType();
 
 	public ClassType() {
-		super( VarcharTypeDescriptor.INSTANCE, ClassJavaDescriptor.INSTANCE );
+		super( VarcharSqlDescriptor.INSTANCE, ClassJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

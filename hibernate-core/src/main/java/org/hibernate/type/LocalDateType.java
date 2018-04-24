@@ -12,7 +12,7 @@ import java.util.Locale;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.LocalDateJavaDescriptor;
-import org.hibernate.type.descriptor.sql.DateTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.DateSqlDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -29,7 +29,7 @@ public class LocalDateType
 	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH );
 
 	public LocalDateType() {
-		super( DateTypeDescriptor.INSTANCE, LocalDateJavaDescriptor.INSTANCE );
+		super( DateSqlDescriptor.INSTANCE, LocalDateJavaDescriptor.INSTANCE );
 	}
 
 	@Override

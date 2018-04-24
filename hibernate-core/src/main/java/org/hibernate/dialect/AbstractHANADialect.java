@@ -87,19 +87,20 @@ import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.DataHelper;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BasicBinder;
-import org.hibernate.type.descriptor.sql.BasicExtractor;
-import org.hibernate.type.descriptor.sql.BitTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BlobTypeDescriptor;
-import org.hibernate.type.descriptor.sql.BooleanTypeDescriptor;
-import org.hibernate.type.descriptor.sql.CharTypeDescriptor;
-import org.hibernate.type.descriptor.sql.ClobTypeDescriptor;
-import org.hibernate.type.descriptor.sql.NCharTypeDescriptor;
-import org.hibernate.type.descriptor.sql.NClobTypeDescriptor;
-import org.hibernate.type.descriptor.sql.NVarcharTypeDescriptor;
-import org.hibernate.type.descriptor.sql.SmallIntTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.ClobSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BasicBinder;
+import org.hibernate.type.descriptor.sql.spi.BasicExtractor;
+import org.hibernate.type.descriptor.sql.spi.BitSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BlobSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.BooleanSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.CharSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.NCharSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.NClobSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.NVarcharSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SmallIntSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.JdbcLiteralFormatter;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
  * An abstract base class for HANA dialects. <br/>
@@ -398,6 +399,16 @@ public abstract class AbstractHANADialect extends Dialect {
 				}
 
 				@Override
+				protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+					Blob rsBlob = rs.getBlob( position );
+					if ( rsBlob == null || rsBlob.length() < HANAStreamBlobTypeDescriptor.this.maxLobPrefetchSize ) {
+						return javaTypeDescriptor.wrap( rsBlob, options );
+					}
+					Blob blob = new MaterializedBlob( DataHelper.extractBytes( rsBlob.getBinaryStream() ) );
+					return javaTypeDescriptor.wrap( blob, options );
+				}
+
+				@Override
 				protected X doExtract(CallableStatement statement, int index, WrapperOptions options) throws SQLException {
 					return javaTypeDescriptor.wrap( statement.getBlob( index ), options );
 				}
@@ -409,9 +420,14 @@ public abstract class AbstractHANADialect extends Dialect {
 			};
 		}
 
+		@Override
+		public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
+			// literal values for BLOB data is not supported.
+			return null;
+		}
 	}
 
-	// the ClobJavaDescriptor and NClobTypeDescriptor for HANA are slightly
+	// the ClobJavaDescriptor and NClobSqlDescriptor for HANA are slightly
 	// changed from the standard ones. The HANA JDBC driver currently closes any
 	// stream passed in via
 	// PreparedStatement.setCharacterStream(int,Reader,long)
@@ -419,7 +435,7 @@ public abstract class AbstractHANADialect extends Dialect {
 	// using non-contexual lob creation and HANA then closes our StringReader.
 	// see test case LobLocatorTest
 
-	private static class HANAClobTypeDescriptor extends ClobTypeDescriptor {
+	private static class HANAClobTypeDescriptor extends ClobSqlDescriptor {
 
 		/** serial version uid. */
 		private static final long serialVersionUID = -379042275442752102L;
@@ -495,6 +511,23 @@ public abstract class AbstractHANADialect extends Dialect {
 				}
 
 				@Override
+				protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+					Clob rsClob;
+					if ( HANAClobTypeDescriptor.this.useUnicodeStringTypes ) {
+						rsClob = rs.getNClob( position );
+					}
+					else {
+						rsClob = rs.getClob( position );
+					}
+
+					if ( rsClob == null || rsClob.length() < HANAClobTypeDescriptor.this.maxLobPrefetchSize ) {
+						return javaTypeDescriptor.wrap( rsClob, options );
+					}
+					Clob clob = new MaterializedNClob( DataHelper.extractString( rsClob ) );
+					return javaTypeDescriptor.wrap( clob, options );
+				}
+
+				@Override
 				protected X doExtract(CallableStatement statement, int index, WrapperOptions options) throws SQLException {
 					return javaTypeDescriptor.wrap( statement.getClob( index ), options );
 				}
@@ -515,14 +548,14 @@ public abstract class AbstractHANADialect extends Dialect {
 		}
 	}
 
-	private static class HANANClobTypeDescriptor extends NClobTypeDescriptor {
+	private static class HANANClobSqlDescriptor extends NClobSqlDescriptor {
 
 		/** serial version uid. */
 		private static final long serialVersionUID = 5651116091681647859L;
 
 		final int maxLobPrefetchSize;
 
-		public HANANClobTypeDescriptor(int maxLobPrefetchSize) {
+		public HANANClobSqlDescriptor(int maxLobPrefetchSize) {
 			this.maxLobPrefetchSize = maxLobPrefetchSize;
 		}
 
@@ -574,7 +607,17 @@ public abstract class AbstractHANADialect extends Dialect {
 				@Override
 				protected X doExtract(ResultSet rs, String name, WrapperOptions options) throws SQLException {
 					NClob rsNClob = rs.getNClob( name );
-					if ( rsNClob == null || rsNClob.length() < HANANClobTypeDescriptor.this.maxLobPrefetchSize ) {
+					if ( rsNClob == null || rsNClob.length() < HANANClobSqlDescriptor.this.maxLobPrefetchSize ) {
+						return javaTypeDescriptor.wrap( rsNClob, options );
+					}
+					NClob nClob = new MaterializedNClob( DataHelper.extractString( rsNClob ) );
+					return javaTypeDescriptor.wrap( nClob, options );
+				}
+
+				@Override
+				protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+					NClob rsNClob = rs.getNClob( position );
+					if ( rsNClob == null || rsNClob.length() < HANANClobSqlDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsNClob, options );
 					}
 					NClob nClob = new MaterializedNClob( DataHelper.extractString( rsNClob ) );
@@ -595,6 +638,12 @@ public abstract class AbstractHANADialect extends Dialect {
 
 		public int getMaxLobPrefetchSize() {
 			return this.maxLobPrefetchSize;
+		}
+
+		@Override
+		public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
+			// literal values for (N)CLOB data is not supported.
+			return null;
 		}
 	}
 
@@ -636,6 +685,16 @@ public abstract class AbstractHANADialect extends Dialect {
 				}
 
 				@Override
+				protected X doExtract(ResultSet rs, int position, WrapperOptions options) throws SQLException {
+					Blob rsBlob = rs.getBlob( position );
+					if ( rsBlob == null || rsBlob.length() < HANABlobTypeDescriptor.this.maxLobPrefetchSize ) {
+						return javaTypeDescriptor.wrap( rsBlob, options );
+					}
+					Blob blob = new MaterializedBlob( DataHelper.extractBytes( rsBlob.getBinaryStream() ) );
+					return javaTypeDescriptor.wrap( blob, options );
+				}
+
+				@Override
 				protected X doExtract(CallableStatement statement, int index, WrapperOptions options) throws SQLException {
 					return javaTypeDescriptor.wrap( statement.getBlob( index ), options );
 				}
@@ -653,10 +712,10 @@ public abstract class AbstractHANADialect extends Dialect {
 
 				@Override
 				protected void doBind(PreparedStatement st, X value, int index, WrapperOptions options) throws SQLException {
-					SqlTypeDescriptor descriptor = BlobTypeDescriptor.BLOB_BINDING;
+					SqlTypeDescriptor descriptor = BlobSqlDescriptor.BLOB_BINDING;
 					if ( byte[].class.isInstance( value ) ) {
 						// performance shortcut for binding BLOB data in byte[] format
-						descriptor = BlobTypeDescriptor.PRIMITIVE_ARRAY_BINDING;
+						descriptor = BlobSqlDescriptor.PRIMITIVE_ARRAY_BINDING;
 					}
 					else if ( options.useStreamForLobBinding() ) {
 						descriptor = HANABlobTypeDescriptor.this.hanaStreamBlobTypeDescriptor;
@@ -666,10 +725,10 @@ public abstract class AbstractHANADialect extends Dialect {
 
 				@Override
 				protected void doBind(CallableStatement st, X value, String name, WrapperOptions options) throws SQLException {
-					SqlTypeDescriptor descriptor = BlobTypeDescriptor.BLOB_BINDING;
+					SqlTypeDescriptor descriptor = BlobSqlDescriptor.BLOB_BINDING;
 					if ( byte[].class.isInstance( value ) ) {
 						// performance shortcut for binding BLOB data in byte[] format
-						descriptor = BlobTypeDescriptor.PRIMITIVE_ARRAY_BINDING;
+						descriptor = BlobSqlDescriptor.PRIMITIVE_ARRAY_BINDING;
 					}
 					else if ( options.useStreamForLobBinding() ) {
 						descriptor = HANABlobTypeDescriptor.this.hanaStreamBlobTypeDescriptor;
@@ -682,6 +741,12 @@ public abstract class AbstractHANADialect extends Dialect {
 		public int getMaxLobPrefetchSize() {
 			return this.maxLobPrefetchSize;
 		}
+
+		@Override
+		public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
+			// literal values for BLOB data is not supported.
+			return null;
+		}
 	}
 
 	private static final String MAX_LOB_PREFETCH_SIZE_PARAMETER_NAME = new String( "hibernate.dialect.hana.max_lob_prefetch_size" );
@@ -692,7 +757,7 @@ public abstract class AbstractHANADialect extends Dialect {
 	private static final Boolean USE_LEGACY_BOOLEAN_TYPE_DEFAULT_VALUE = Boolean.FALSE;
 	private static final Boolean USE_UNICODE_STRING_TYPES_DEFAULT_VALUE = Boolean.FALSE;
 
-	private HANANClobTypeDescriptor nClobTypeDescriptor = new HANANClobTypeDescriptor( MAX_LOB_PREFETCH_SIZE_DEFAULT_VALUE );
+	private HANANClobSqlDescriptor nClobTypeDescriptor = new HANANClobSqlDescriptor( MAX_LOB_PREFETCH_SIZE_DEFAULT_VALUE );
 
 	private HANABlobTypeDescriptor blobTypeDescriptor = new HANABlobTypeDescriptor( MAX_LOB_PREFETCH_SIZE_DEFAULT_VALUE );
 
@@ -1113,13 +1178,13 @@ public abstract class AbstractHANADialect extends Dialect {
 				return this.blobTypeDescriptor;
 			case Types.TINYINT:
 				// tinyint is unsigned on HANA
-				return SmallIntTypeDescriptor.INSTANCE;
+				return SmallIntSqlDescriptor.INSTANCE;
 			case Types.BOOLEAN:
-				return this.useLegacyBooleanType ? BitTypeDescriptor.INSTANCE : BooleanTypeDescriptor.INSTANCE;
+				return this.useLegacyBooleanType ? BitSqlDescriptor.INSTANCE : BooleanSqlDescriptor.INSTANCE;
 			case Types.VARCHAR:
-				return this.useUnicodeStringTypes ? NVarcharTypeDescriptor.INSTANCE : VarcharTypeDescriptor.INSTANCE;
+				return this.useUnicodeStringTypes ? NVarcharSqlDescriptor.INSTANCE : VarcharSqlDescriptor.INSTANCE;
 			case Types.CHAR:
-				return this.useUnicodeStringTypes ? NCharTypeDescriptor.INSTANCE : CharTypeDescriptor.INSTANCE;
+				return this.useUnicodeStringTypes ? NCharSqlDescriptor.INSTANCE : CharSqlDescriptor.INSTANCE;
 			default:
 				return super.getSqlTypeDescriptorOverride( sqlCode );
 		}
@@ -1526,7 +1591,7 @@ public abstract class AbstractHANADialect extends Dialect {
 				Integer.valueOf( maxLobPrefetchSizeDefault ) ).intValue();
 
 		if ( this.nClobTypeDescriptor.getMaxLobPrefetchSize() != maxLobPrefetchSize ) {
-			this.nClobTypeDescriptor = new HANANClobTypeDescriptor( maxLobPrefetchSize );
+			this.nClobTypeDescriptor = new HANANClobSqlDescriptor( maxLobPrefetchSize );
 		}
 
 		if ( this.blobTypeDescriptor.getMaxLobPrefetchSize() != maxLobPrefetchSize ) {
