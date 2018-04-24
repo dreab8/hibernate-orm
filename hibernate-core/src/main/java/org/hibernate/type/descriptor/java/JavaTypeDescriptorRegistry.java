@@ -16,6 +16,9 @@ import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.type.descriptor.java.internal.ImmutableMutabilityPlan;
+import org.hibernate.type.descriptor.java.internal.LocalDateJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.LocalDateTimeJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.LocaleJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.internal.BigDecimalJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.BigIntegerJavaDescriptor;
@@ -106,7 +109,7 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 		addDescriptorInternal( ClassJavaDescriptor.INSTANCE );
 
 		addDescriptorInternal( CurrencyJavaDescriptor.INSTANCE );
-		addDescriptorInternal( LocaleTypeDescriptor.INSTANCE );
+		addDescriptorInternal( LocaleJavaDescriptor.INSTANCE );
 		addDescriptorInternal( UrlTypeDescriptor.INSTANCE );
 		addDescriptorInternal( UUIDTypeDescriptor.INSTANCE );
 	}

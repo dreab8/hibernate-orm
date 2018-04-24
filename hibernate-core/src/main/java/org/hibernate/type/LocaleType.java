@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.util.Locale;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.LocaleTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.LocaleJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
@@ -24,7 +24,7 @@ public class LocaleType extends AbstractSingleColumnStandardBasicType<Locale>
 	public static final LocaleType INSTANCE = new LocaleType();
 
 	public LocaleType() {
-		super( VarcharSqlDescriptor.INSTANCE, LocaleTypeDescriptor.INSTANCE );
+		super( VarcharSqlDescriptor.INSTANCE, LocaleJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

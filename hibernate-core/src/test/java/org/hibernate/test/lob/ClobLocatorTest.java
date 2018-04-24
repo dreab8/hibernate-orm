@@ -12,7 +12,7 @@ import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.dialect.SybaseASE157Dialect;
 import org.hibernate.dialect.TeradataDialect;
-import org.hibernate.type.descriptor.java.DataHelper;
+import org.hibernate.type.descriptor.java.internal.LobStreamDataHelper;
 
 import org.hibernate.testing.DialectChecks;
 import org.hibernate.testing.RequiresDialectFeature;
@@ -165,7 +165,7 @@ public class ClobLocatorTest extends BaseCoreFunctionalTestCase {
 	}
 
 	public static String extractData(Clob clob) throws Exception {
-		return DataHelper.extractString( clob.getCharacterStream() );
+		return LobStreamDataHelper.extractString( clob.getCharacterStream() );
 	}
 
 	public static String buildString(int size, char baseChar) {

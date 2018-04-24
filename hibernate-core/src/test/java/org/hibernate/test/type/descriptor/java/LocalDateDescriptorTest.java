@@ -7,7 +7,7 @@
 package org.hibernate.test.type.descriptor.java;
 
 import java.time.LocalDate;
-import org.hibernate.type.descriptor.java.LocalDateJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.LocalDateJavaDescriptor;
 
 /**
  * @author Jordan Gigov

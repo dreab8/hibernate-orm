@@ -19,6 +19,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.jdbc.BinaryStream;
 import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
 import org.hibernate.internal.CoreMessageLogger;
+import org.hibernate.type.descriptor.java.internal.LobStreamDataHelper;
 
 import org.jboss.logging.Logger;
 
@@ -26,7 +27,10 @@ import org.jboss.logging.Logger;
  * A help for dealing with BLOB and CLOB data
  *
  * @author Steve Ebersole
+ *
+ * @deprecated since 6.0, use {@link LobStreamDataHelper} instead.
  */
+@Deprecated
 public final class DataHelper {
 	private DataHelper() {
 	}

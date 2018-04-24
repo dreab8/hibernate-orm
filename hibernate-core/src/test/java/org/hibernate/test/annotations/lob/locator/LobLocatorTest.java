@@ -16,7 +16,7 @@ import org.hibernate.testing.DialectChecks;
 import org.hibernate.testing.RequiresDialectFeature;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
-import org.hibernate.type.descriptor.java.DataHelper;
+import org.hibernate.type.descriptor.java.internal.LobStreamDataHelper;
 
 /**
  * @author Lukasz Antoniak (lukasz dot antoniak at gmail dot com)
@@ -74,7 +74,7 @@ public class LobLocatorTest extends BaseCoreFunctionalTestCase {
 
 	private void checkState(byte[] blob, String clob, Integer counter, LobHolder entity) throws SQLException {
 		Assert.assertEquals( counter, entity.getCounter() );
-		Assert.assertArrayEquals( blob, DataHelper.extractBytes( entity.getBlobLocator().getBinaryStream() ) );
-		Assert.assertEquals( clob, DataHelper.extractString( entity.getClobLocator() ) );
+		Assert.assertArrayEquals( blob, LobStreamDataHelper.extractBytes( entity.getBlobLocator().getBinaryStream() ) );
+		Assert.assertEquals( clob, LobStreamDataHelper.extractString( entity.getClobLocator() ) );
 	}
 }

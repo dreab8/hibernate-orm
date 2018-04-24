@@ -82,6 +82,7 @@ import org.hibernate.service.ServiceRegistry;
 import org.hibernate.tool.schema.internal.StandardTableExporter;
 import org.hibernate.tool.schema.spi.Exporter;
 import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.descriptor.java.internal.LobStreamDataHelper;
 import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
@@ -287,7 +288,7 @@ public abstract class AbstractHANADialect extends Dialect {
 
 		@Override
 		public long position(Clob searchstr, long start) throws SQLException {
-			return this.data.indexOf( DataHelper.extractString( searchstr ), (int) ( start - 1 ) );
+			return this.data.indexOf( LobStreamDataHelper.extractString( searchstr ), (int) ( start - 1 ) );
 		}
 
 		@Override
@@ -394,7 +395,7 @@ public abstract class AbstractHANADialect extends Dialect {
 					if ( rsBlob == null || rsBlob.length() < HANAStreamBlobTypeDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsBlob, options );
 					}
-					Blob blob = new MaterializedBlob( DataHelper.extractBytes( rsBlob.getBinaryStream() ) );
+					Blob blob = new MaterializedBlob( LobStreamDataHelper.extractBytes( rsBlob.getBinaryStream() ) );
 					return javaTypeDescriptor.wrap( blob, options );
 				}
 
@@ -404,7 +405,7 @@ public abstract class AbstractHANADialect extends Dialect {
 					if ( rsBlob == null || rsBlob.length() < HANAStreamBlobTypeDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsBlob, options );
 					}
-					Blob blob = new MaterializedBlob( DataHelper.extractBytes( rsBlob.getBinaryStream() ) );
+					Blob blob = new MaterializedBlob( LobStreamDataHelper.extractBytes( rsBlob.getBinaryStream() ) );
 					return javaTypeDescriptor.wrap( blob, options );
 				}
 
@@ -506,7 +507,7 @@ public abstract class AbstractHANADialect extends Dialect {
 					if ( rsClob == null || rsClob.length() < HANAClobTypeDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsClob, options );
 					}
-					Clob clob = new MaterializedNClob( DataHelper.extractString( rsClob ) );
+					Clob clob = new MaterializedNClob( LobStreamDataHelper.extractString( rsClob ) );
 					return javaTypeDescriptor.wrap( clob, options );
 				}
 
@@ -523,7 +524,7 @@ public abstract class AbstractHANADialect extends Dialect {
 					if ( rsClob == null || rsClob.length() < HANAClobTypeDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsClob, options );
 					}
-					Clob clob = new MaterializedNClob( DataHelper.extractString( rsClob ) );
+					Clob clob = new MaterializedNClob( LobStreamDataHelper.extractString( rsClob ) );
 					return javaTypeDescriptor.wrap( clob, options );
 				}
 
@@ -610,7 +611,7 @@ public abstract class AbstractHANADialect extends Dialect {
 					if ( rsNClob == null || rsNClob.length() < HANANClobSqlDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsNClob, options );
 					}
-					NClob nClob = new MaterializedNClob( DataHelper.extractString( rsNClob ) );
+					NClob nClob = new MaterializedNClob( LobStreamDataHelper.extractString( rsNClob ) );
 					return javaTypeDescriptor.wrap( nClob, options );
 				}
 
@@ -620,7 +621,7 @@ public abstract class AbstractHANADialect extends Dialect {
 					if ( rsNClob == null || rsNClob.length() < HANANClobSqlDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsNClob, options );
 					}
-					NClob nClob = new MaterializedNClob( DataHelper.extractString( rsNClob ) );
+					NClob nClob = new MaterializedNClob( LobStreamDataHelper.extractString( rsNClob ) );
 					return javaTypeDescriptor.wrap( nClob, options );
 				}
 
@@ -680,7 +681,7 @@ public abstract class AbstractHANADialect extends Dialect {
 					if ( rsBlob == null || rsBlob.length() < HANABlobTypeDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsBlob, options );
 					}
-					Blob blob = new MaterializedBlob( DataHelper.extractBytes( rsBlob.getBinaryStream() ) );
+					Blob blob = new MaterializedBlob( LobStreamDataHelper.extractBytes( rsBlob.getBinaryStream() ) );
 					return javaTypeDescriptor.wrap( blob, options );
 				}
 
@@ -690,7 +691,7 @@ public abstract class AbstractHANADialect extends Dialect {
 					if ( rsBlob == null || rsBlob.length() < HANABlobTypeDescriptor.this.maxLobPrefetchSize ) {
 						return javaTypeDescriptor.wrap( rsBlob, options );
 					}
-					Blob blob = new MaterializedBlob( DataHelper.extractBytes( rsBlob.getBinaryStream() ) );
+					Blob blob = new MaterializedBlob( LobStreamDataHelper.extractBytes( rsBlob.getBinaryStream() ) );
 					return javaTypeDescriptor.wrap( blob, options );
 				}
 

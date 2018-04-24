@@ -13,9 +13,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import org.hibernate.type.descriptor.java.LocalDateJavaDescriptor;
-import org.hibernate.type.descriptor.java.LocalDateTimeJavaDescriptor;
-import org.hibernate.type.descriptor.java.LocaleTypeDescriptor;
 import org.hibernate.type.descriptor.java.NClobTypeDescriptor;
 import org.hibernate.type.descriptor.java.OffsetDateTimeJavaDescriptor;
 import org.hibernate.type.descriptor.java.OffsetTimeJavaDescriptor;
@@ -81,7 +78,7 @@ public class JavaTypeDescriptorBaseline {
 		target.addBaselineDescriptor( ClassJavaDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( CurrencyJavaDescriptor.INSTANCE );
-		target.addBaselineDescriptor( LocaleTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( LocaleJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( UrlTypeDescriptor.INSTANCE );
 		target.addBaselineDescriptor( UUIDTypeDescriptor.INSTANCE );
 

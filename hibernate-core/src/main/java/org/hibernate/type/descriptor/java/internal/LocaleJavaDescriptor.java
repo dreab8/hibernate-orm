@@ -4,13 +4,15 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.util.Comparator;
 import java.util.Locale;
 
-import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
@@ -18,8 +20,8 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class LocaleTypeDescriptor extends AbstractTypeDescriptor<Locale> {
-	public static final LocaleTypeDescriptor INSTANCE = new LocaleTypeDescriptor();
+public class LocaleJavaDescriptor extends AbstractBasicJavaDescriptor<Locale> {
+	public static final LocaleJavaDescriptor INSTANCE = new LocaleJavaDescriptor();
 
 	public static class LocaleComparator implements Comparator<Locale> {
 		public static final LocaleComparator INSTANCE = new LocaleComparator();
@@ -29,7 +31,7 @@ public class LocaleTypeDescriptor extends AbstractTypeDescriptor<Locale> {
 		}
 	}
 
-	public LocaleTypeDescriptor() {
+	public LocaleJavaDescriptor() {
 		super( Locale.class );
 	}
 

@@ -20,8 +20,9 @@ import org.hibernate.engine.jdbc.BlobProxy;
 import org.hibernate.testing.TestForIssue;
 
 import org.hibernate.type.descriptor.java.internal.BlobJavaDescriptor;
-import org.hibernate.type.descriptor.java.DataHelper;
 import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.LobStreamDataHelper;
+
 import org.junit.Test;
 
 /**
@@ -64,8 +65,8 @@ public class BlobDescriptorTest extends AbstractDescriptorTest<Blob> {
 		Blob consumed = BlobJavaDescriptor.INSTANCE.fromString( externalized );
 		try {
 			PrimitiveByteArrayTypeDescriptor.INSTANCE.areEqual(
-					DataHelper.extractBytes( original.getBinaryStream() ),
-					DataHelper.extractBytes( consumed.getBinaryStream() )
+					LobStreamDataHelper.extractBytes( original.getBinaryStream() ),
+					LobStreamDataHelper.extractBytes( consumed.getBinaryStream() )
 			);
 		}
 		catch ( SQLException e ) {
