@@ -15,6 +15,8 @@ import java.util.GregorianCalendar;
 
 import javax.persistence.TemporalType;
 
+import org.hibernate.metamodel.model.domain.spi.TimestampVersionSupport;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
@@ -154,8 +156,8 @@ public class DateJavaDescriptor
 		throw unknownWrap( value.getClass() );
 	}
 
-//	@Override
-//	public VersionSupport<Date> getVersionSupport() {
-//		return TimestampVersionSupport.INSTANCE;
-//	}
+	@Override
+	public VersionSupport<Date> getVersionSupport() {
+		return TimestampVersionSupport.INSTANCE;
+	}
 }

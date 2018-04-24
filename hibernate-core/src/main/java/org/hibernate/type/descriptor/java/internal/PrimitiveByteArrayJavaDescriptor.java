@@ -16,6 +16,8 @@ import java.util.Comparator;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.jdbc.BinaryStream;
 import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
+import org.hibernate.metamodel.model.domain.spi.BinaryVersionSupport;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
@@ -135,8 +137,8 @@ public class PrimitiveByteArrayJavaDescriptor extends AbstractBasicJavaDescripto
 		throw unknownWrap( value.getClass() );
 	}
 
-//	@Override
-//	public VersionSupport<byte[]> getVersionSupport() {
-//		return BinaryVersionSupport.INSTANCE;
-//	}
+	@Override
+	public VersionSupport<byte[]> getVersionSupport() {
+		return BinaryVersionSupport.INSTANCE;
+	}
 }

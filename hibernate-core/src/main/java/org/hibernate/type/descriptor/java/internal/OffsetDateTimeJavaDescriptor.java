@@ -18,6 +18,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import javax.persistence.TemporalType;
 
+import org.hibernate.metamodel.model.domain.spi.OffsetDateTimeVersionSupport;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
@@ -154,8 +156,8 @@ public class OffsetDateTimeJavaDescriptor
 		throw new IllegalArgumentException( "Unrecognized JPA TemporalType precision [" + precision + "]" );
 	}
 
-//	@Override
-//	public VersionSupport<OffsetDateTime> getVersionSupport() {
-//		return OffsetDateTimeVersionSupport.INSTANCE;
-//	}
+	@Override
+	public VersionSupport<OffsetDateTime> getVersionSupport() {
+		return OffsetDateTimeVersionSupport.INSTANCE;
+	}
 }

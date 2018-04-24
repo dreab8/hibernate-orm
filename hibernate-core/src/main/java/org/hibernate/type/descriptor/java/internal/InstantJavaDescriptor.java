@@ -19,6 +19,8 @@ import java.util.GregorianCalendar;
 
 import javax.persistence.TemporalType;
 
+import org.hibernate.metamodel.model.domain.spi.InstantVersionSupport;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
@@ -140,8 +142,8 @@ public class InstantJavaDescriptor
 		return (TemporalJavaDescriptor<X>) this;
 	}
 
-//	@Override
-//	public VersionSupport<Instant> getVersionSupport() {
-//		return InstantVersionSupport.INSTANCE;
-//	}
+	@Override
+	public VersionSupport<Instant> getVersionSupport() {
+		return InstantVersionSupport.INSTANCE;
+	}
 }

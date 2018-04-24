@@ -8,6 +8,8 @@ package org.hibernate.type.descriptor.java.internal;
 
 import java.sql.Types;
 
+import org.hibernate.metamodel.model.domain.spi.ByteVersionSupport;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.AbstractNumericJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.Primitive;
@@ -99,9 +101,9 @@ public class ByteJavaDescriptor extends AbstractNumericJavaDescriptor<Byte> impl
 	public Byte getDefaultValue() {
 		return ZERO;
 	}
-//
-//	@Override
-//	public VersionSupport<Byte> getVersionSupport() {
-//		return ByteVersionSupport.INSTANCE ;
-//	}
+
+	@Override
+	public VersionSupport<Byte> getVersionSupport() {
+		return ByteVersionSupport.INSTANCE ;
+	}
 }

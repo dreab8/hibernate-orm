@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Types;
 
+import org.hibernate.metamodel.model.domain.spi.LongVersionSupport;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.AbstractNumericJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.Primitive;
@@ -108,8 +110,8 @@ public class LongJavaDescriptor extends AbstractNumericJavaDescriptor<Long> impl
 		return ZERO;
 	}
 
-//	@Override
-//	public VersionSupport<Long> getVersionSupport() {
-//		return LongVersionSupport.INSTANCE;
-//	}
+	@Override
+	public VersionSupport<Long> getVersionSupport() {
+		return LongVersionSupport.INSTANCE;
+	}
 }

@@ -8,6 +8,8 @@ package org.hibernate.type.descriptor.java.internal;
 
 import java.sql.Types;
 
+import org.hibernate.metamodel.model.domain.spi.ShortVersionSupport;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.type.descriptor.java.spi.AbstractNumericJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.Primitive;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
@@ -99,8 +101,8 @@ public class ShortJavaDescriptor extends AbstractNumericJavaDescriptor<Short> im
 		return ZERO;
 	}
 
-//	@Override
-//	public VersionSupport<Short> getVersionSupport() {
-//		return ShortVersionSupport.INSTANCE;
-//	}
+	@Override
+	public VersionSupport<Short> getVersionSupport() {
+		return ShortVersionSupport.INSTANCE;
+	}
 }
