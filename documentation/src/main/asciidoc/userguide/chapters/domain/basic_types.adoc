@@ -93,7 +93,7 @@ To use these hibernate-spatial types, you must add the `hibernate-spatial` depen
 See <<spatial>> for more details about spatial types.
 ====
 
-These mappings are managed by a service inside Hibernate called the `org.hibernate.type.BasicTypeRegistry`, which essentially maintains a map of `org.hibernate.type.BasicType` (a `org.hibernate.type.Type` specialization) instances keyed by a name.
+These mappings are managed by a service inside Hibernate called the `org.hibernate.type.BasicTypeRegistry`, which essentially maintains a map of `org.hibernate.type.spi.BasicType` (a `org.hibernate.type.Type` specialization) instances keyed by a name.
 That is the purpose of the "BasicTypeRegistry key(s)" column in the previous tables.
 
 [[basic-annotation]]
@@ -181,10 +181,10 @@ The `@Column` annotation defines other mapping information as well. See its Java
 
 We said before that a Hibernate type is not a Java type, nor a SQL type, but that it understands both and performs the marshalling between them.
 But looking at the basic type mappings from the previous examples,
-how did Hibernate know to use its `org.hibernate.type.StringType` for mapping for `java.lang.String` attributes,
-or its `org.hibernate.type.IntegerType` for mapping `java.lang.Integer` attributes?
+how did Hibernate know to use its `org.hibernate.type.StringTypeImpl` for mapping for `java.lang.String` attributes,
+or its `org.hibernate.type.IntegerTypeImpl` for mapping `java.lang.Integer` attributes?
 
-The answer lies in a service inside Hibernate called the `org.hibernate.type.BasicTypeRegistry`, which essentially maintains a map of `org.hibernate.type.BasicType` (a `org.hibernate.type.Type` specialization) instances keyed by a name.
+The answer lies in a service inside Hibernate called the `org.hibernate.type.BasicTypeRegistry`, which essentially maintains a map of `org.hibernate.type.spi.BasicType` (a `org.hibernate.type.Type` specialization) instances keyed by a name.
 
 We will see later, in the <<basic-type-annotation>> section, that we can explicitly tell Hibernate which BasicType to use for a particular attribute.
 But first let's explore how implicit resolution works and how applications can adjust implicit resolution.

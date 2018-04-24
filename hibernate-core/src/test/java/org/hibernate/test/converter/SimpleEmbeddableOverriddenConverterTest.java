@@ -14,7 +14,7 @@ import javax.persistence.Id;
 
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.CompositeType;
-import org.hibernate.type.StringType;
+import org.hibernate.type.StringTypeImpl;
 import org.hibernate.type.Type;
 
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
@@ -46,7 +46,7 @@ public class SimpleEmbeddableOverriddenConverterTest extends BaseNonConfigCoreFu
 		final EntityPersister ep = sessionFactory().getEntityPersister( Person.class.getName() );
 		CompositeType homeAddressType = assertTyping( CompositeType.class, ep.getPropertyType( "homeAddress" ) );
 		Type homeAddressCityType = findCompositeAttributeType( homeAddressType, "city" );
-		assertTyping( StringType.class, homeAddressCityType );
+		assertTyping( StringTypeImpl.class, homeAddressCityType );
 	}
 
 	public Type findCompositeAttributeType(CompositeType compositeType, String attributeName) {

@@ -34,313 +34,313 @@ public final class StandardBasicTypes {
 	/**
 	 * The standard Hibernate type for mapping {@link Boolean} to JDBC {@link java.sql.Types#BIT BIT}.
 	 *
-	 * @see BooleanType
+	 * @see BooleanTypeImpl
 	 */
-	public static final BooleanType BOOLEAN = BooleanType.INSTANCE;
+	public static final BooleanTypeImpl BOOLEAN = BooleanTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Boolean} to JDBC {@link java.sql.Types#INTEGER INTEGER}.
 	 *
-	 * @see NumericBooleanType
+	 * @see NumericBooleanTypeImpl
 	 */
-	public static final NumericBooleanType NUMERIC_BOOLEAN = NumericBooleanType.INSTANCE;
+	public static final NumericBooleanTypeImpl NUMERIC_BOOLEAN = NumericBooleanTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Boolean} to JDBC {@link java.sql.Types#CHAR CHAR(1)} (using 'T'/'F').
 	 *
-	 * @see TrueFalseType
+	 * @see TrueFalseTypeImpl
 	 */
-	public static final TrueFalseType TRUE_FALSE = TrueFalseType.INSTANCE;
+	public static final TrueFalseTypeImpl TRUE_FALSE = TrueFalseTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Boolean} to JDBC {@link java.sql.Types#CHAR CHAR(1)} (using 'Y'/'N').
 	 *
-	 * @see YesNoType
+	 * @see YesNoTypeImpl
 	 */
-	public static final YesNoType YES_NO = YesNoType.INSTANCE;
+	public static final YesNoTypeImpl YES_NO = YesNoTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Byte} to JDBC {@link java.sql.Types#TINYINT TINYINT}.
 	 */
-	public static final ByteType BYTE = ByteType.INSTANCE;
+	public static final ByteTypeImpl BYTE = ByteTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Short} to JDBC {@link java.sql.Types#SMALLINT SMALLINT}.
 	 *
-	 * @see ShortType
+	 * @see ShortTypeImpl
 	 */
-	public static final ShortType SHORT = ShortType.INSTANCE;
+	public static final ShortTypeImpl SHORT = ShortTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Integer} to JDBC {@link java.sql.Types#INTEGER INTEGER}.
 	 *
-	 * @see IntegerType
+	 * @see IntegerTypeImpl
 	 */
-	public static final IntegerType INTEGER = IntegerType.INSTANCE;
+	public static final IntegerTypeImpl INTEGER = IntegerTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Long} to JDBC {@link java.sql.Types#BIGINT BIGINT}.
 	 *
-	 * @see LongType
+	 * @see LongTypeImpl
 	 */
-	public static final LongType LONG = LongType.INSTANCE;
+	public static final LongTypeImpl LONG = LongTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Float} to JDBC {@link java.sql.Types#FLOAT FLOAT}.
 	 *
-	 * @see FloatType
+	 * @see FloatTypeImpl
 	 */
-	public static final FloatType FLOAT = FloatType.INSTANCE;
+	public static final FloatTypeImpl FLOAT = FloatTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Double} to JDBC {@link java.sql.Types#DOUBLE DOUBLE}.
 	 *
-	 * @see DoubleType
+	 * @see DoubleTypeImpl
 	 */
-	public static final DoubleType DOUBLE = DoubleType.INSTANCE;
+	public static final DoubleTypeImpl DOUBLE = DoubleTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.math.BigInteger} to JDBC {@link java.sql.Types#NUMERIC NUMERIC}.
 	 *
-	 * @see BigIntegerType
+	 * @see BigIntegerTypeImpl
 	 */
-	public static final BigIntegerType BIG_INTEGER = BigIntegerType.INSTANCE;
+	public static final BigIntegerTypeImpl BIG_INTEGER = BigIntegerTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.math.BigDecimal} to JDBC {@link java.sql.Types#NUMERIC NUMERIC}.
 	 *
-	 * @see BigDecimalType
+	 * @see BigDecimalTypeImpl
 	 */
-	public static final BigDecimalType BIG_DECIMAL = BigDecimalType.INSTANCE;
+	public static final BigDecimalTypeImpl BIG_DECIMAL = BigDecimalTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Character} to JDBC {@link java.sql.Types#CHAR CHAR(1)}.
 	 *
-	 * @see CharacterType
+	 * @see CharacterTypeImpl
 	 */
-	public static final CharacterType CHARACTER = CharacterType.INSTANCE;
+	public static final CharacterTypeImpl CHARACTER = CharacterTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link String} to JDBC {@link java.sql.Types#VARCHAR VARCHAR}.
 	 *
-	 * @see StringType
+	 * @see StringTypeImpl
 	 */
-	public static final StringType STRING = StringType.INSTANCE;
+	public static final StringTypeImpl STRING = StringTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link String} to JDBC {@link java.sql.Types#NVARCHAR NVARCHAR}
 	 */
-	public static final StringNVarcharType NSTRING = StringNVarcharType.INSTANCE;
+	public static final StringNVarcharTypeImpl NSTRING = StringNVarcharTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.net.URL} to JDBC {@link java.sql.Types#VARCHAR VARCHAR}.
 	 *
-	 * @see UrlType
+	 * @see UrlTypeImpl
 	 */
-	public static final UrlType URL = UrlType.INSTANCE;
+	public static final UrlTypeImpl URL = UrlTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.util.Date} ({@link java.sql.Time}) to JDBC
 	 * {@link java.sql.Types#TIME TIME}.
 	 *
-	 * @see TimeType
+	 * @see TimeTypeImpl
 	 */
-	public static final TimeType TIME = TimeType.INSTANCE;
+	public static final TimeTypeImpl TIME = TimeTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.util.Date} ({@link java.sql.Date}) to JDBC
 	 * {@link java.sql.Types#DATE DATE}.
 	 *
-	 * @see TimeType
+	 * @see TimeTypeImpl
 	 */
-	public static final DateType DATE = DateType.INSTANCE;
+	public static final DateTypeImpl DATE = DateTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.util.Date} ({@link java.sql.Timestamp}) to JDBC
 	 * {@link java.sql.Types#TIMESTAMP TIMESTAMP}.
 	 *
-	 * @see TimeType
+	 * @see TimeTypeImpl
 	 */
-	public static final TimestampType TIMESTAMP = TimestampType.INSTANCE;
+	public static final TimestampTypeImpl TIMESTAMP = TimestampTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.util.Calendar} to JDBC
 	 * {@link java.sql.Types#TIMESTAMP TIMESTAMP}.
 	 *
-	 * @see CalendarType
+	 * @see CalendarTypeImpl
 	 */
-	public static final CalendarType CALENDAR = CalendarType.INSTANCE;
+	public static final CalendarTypeImpl CALENDAR = CalendarTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.util.Calendar} to JDBC
 	 * {@link java.sql.Types#DATE DATE}.
 	 *
-	 * @see CalendarDateType
+	 * @see CalendarDateTypeImpl
 	 */
-	public static final CalendarDateType CALENDAR_DATE = CalendarDateType.INSTANCE;
+	public static final CalendarDateTypeImpl CALENDAR_DATE = CalendarDateTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Class} to JDBC {@link java.sql.Types#VARCHAR VARCHAR}.
 	 *
-	 * @see ClassType
+	 * @see ClassTypeImpl
 	 */
-	public static final ClassType CLASS = ClassType.INSTANCE;
+	public static final ClassTypeImpl CLASS = ClassTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.util.Locale} to JDBC {@link java.sql.Types#VARCHAR VARCHAR}.
 	 *
-	 * @see LocaleType
+	 * @see LocaleTypeImpl
 	 */
-	public static final LocaleType LOCALE = LocaleType.INSTANCE;
+	public static final LocaleTypeImpl LOCALE = LocaleTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.util.Currency} to JDBC {@link java.sql.Types#VARCHAR VARCHAR}.
 	 *
-	 * @see CurrencyType
+	 * @see CurrencyTypeImpl
 	 */
-	public static final CurrencyType CURRENCY = CurrencyType.INSTANCE;
+	public static final CurrencyTypeImpl CURRENCY = CurrencyTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.util.TimeZone} to JDBC {@link java.sql.Types#VARCHAR VARCHAR}.
 	 *
-	 * @see TimeZoneType
+	 * @see TimeZoneTypeImpl
 	 */
-	public static final TimeZoneType TIMEZONE = TimeZoneType.INSTANCE;
+	public static final TimeZoneTypeImpl TIMEZONE = TimeZoneTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.util.UUID} to JDBC {@link java.sql.Types#BINARY BINARY}.
 	 *
-	 * @see UUIDBinaryType
+	 * @see UUIDBinaryTypeImpl
 	 */
-	public static final UUIDBinaryType UUID_BINARY = UUIDBinaryType.INSTANCE;
+	public static final UUIDBinaryTypeImpl UUID_BINARY = UUIDBinaryTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.util.UUID} to JDBC {@link java.sql.Types#CHAR CHAR}.
 	 *
-	 * @see UUIDCharType
+	 * @see UUIDCharTypeImpl
 	 */
-	public static final UUIDCharType UUID_CHAR = UUIDCharType.INSTANCE;
+	public static final UUIDCharTypeImpl UUID_CHAR = UUIDCharTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@code byte[]} to JDBC {@link java.sql.Types#VARBINARY VARBINARY}.
 	 *
-	 * @see BinaryType
+	 * @see BinaryTypeImpl
 	 */
-	public static final BinaryType BINARY = BinaryType.INSTANCE;
+	public static final BinaryTypeImpl BINARY = BinaryTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Byte Byte[]} to JDBC {@link java.sql.Types#VARBINARY VARBINARY}.
 	 *
-	 * @see WrapperBinaryType
+	 * @see WrapperBinaryTypeImpl
 	 */
-	public static final WrapperBinaryType WRAPPER_BINARY = WrapperBinaryType.INSTANCE;
+	public static final WrapperBinaryTypeImpl WRAPPER_BINARY = WrapperBinaryTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@code byte[]} to JDBC {@link java.sql.Types#VARBINARY VARBINARY},
 	 * specifically for entity versions/timestamps.
 	 *
-	 * @see RowVersionType
+	 * @see RowVersionTypeImpl
 	 */
-	public static final RowVersionType ROW_VERSION = RowVersionType.INSTANCE;
+	public static final RowVersionTypeImpl ROW_VERSION = RowVersionTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@code byte[]} to JDBC {@link java.sql.Types#LONGVARBINARY LONGVARBINARY}.
 	 *
-	 * @see ImageType
+	 * @see ImageTypeImpl
 	 * @see #MATERIALIZED_BLOB
 	 */
-	public static final ImageType IMAGE = ImageType.INSTANCE;
+	public static final ImageTypeImpl IMAGE = ImageTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.sql.Blob} to JDBC {@link java.sql.Types#BLOB BLOB}.
 	 *
-	 * @see BlobType
+	 * @see BlobTypeImpl
 	 * @see #MATERIALIZED_BLOB
 	 */
-	public static final BlobType BLOB = BlobType.INSTANCE;
+	public static final BlobTypeImpl BLOB = BlobTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@code byte[]} to JDBC {@link java.sql.Types#BLOB BLOB}.
 	 *
-	 * @see MaterializedBlobType
+	 * @see MaterializedBlobTypeImpl
 	 * @see #MATERIALIZED_BLOB
 	 * @see #IMAGE
 	 */
-	public static final MaterializedBlobType MATERIALIZED_BLOB = MaterializedBlobType.INSTANCE;
+	public static final MaterializedBlobTypeImpl MATERIALIZED_BLOB = MaterializedBlobTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@code char[]} to JDBC {@link java.sql.Types#VARCHAR VARCHAR}.
 	 *
-	 * @see CharArrayType
+	 * @see CharArrayTypeImpl
 	 */
-	public static final CharArrayType CHAR_ARRAY = CharArrayType.INSTANCE;
+	public static final CharArrayTypeImpl CHAR_ARRAY = CharArrayTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link Character Character[]} to JDBC
 	 * {@link java.sql.Types#VARCHAR VARCHAR}.
 	 *
-	 * @see CharacterArrayType
+	 * @see CharacterArrayTypeImpl
 	 */
-	public static final CharacterArrayType CHARACTER_ARRAY = CharacterArrayType.INSTANCE;
+	public static final CharacterArrayTypeImpl CHARACTER_ARRAY = CharacterArrayTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link String} to JDBC {@link java.sql.Types#LONGVARCHAR LONGVARCHAR}.
 	 * <p/>
 	 * Similar to a {@link #MATERIALIZED_CLOB}
 	 *
-	 * @see TextType
+	 * @see TextTypeImpl
 	 */
-	public static final TextType TEXT = TextType.INSTANCE;
+	public static final TextTypeImpl TEXT = TextTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link String} to JDBC {@link java.sql.Types#LONGNVARCHAR LONGNVARCHAR}.
 	 * <p/>
 	 * Similar to a {@link #MATERIALIZED_NCLOB}
 	 *
-	 * @see NTextType
+	 * @see NTextTypeImpl
 	 */
-	public static final NTextType NTEXT = NTextType.INSTANCE;
+	public static final NTextTypeImpl NTEXT = NTextTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.sql.Clob} to JDBC {@link java.sql.Types#CLOB CLOB}.
 	 *
-	 * @see ClobType
+	 * @see ClobTypeImpl
 	 * @see #MATERIALIZED_CLOB
 	 */
-	public static final ClobType CLOB = ClobType.INSTANCE;
+	public static final ClobTypeImpl CLOB = ClobTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.sql.NClob} to JDBC {@link java.sql.Types#NCLOB NCLOB}.
 	 *
-	 * @see NClobType
+	 * @see NClobTypeImpl
 	 * @see #MATERIALIZED_NCLOB
 	 */
-	public static final NClobType NCLOB = NClobType.INSTANCE;
+	public static final NClobTypeImpl NCLOB = NClobTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link String} to JDBC {@link java.sql.Types#CLOB CLOB}.
 	 *
-	 * @see MaterializedClobType
+	 * @see MaterializedClobTypeImpl
 	 * @see #MATERIALIZED_CLOB
 	 * @see #TEXT
 	 */
-	public static final MaterializedClobType MATERIALIZED_CLOB = MaterializedClobType.INSTANCE;
+	public static final MaterializedClobTypeImpl MATERIALIZED_CLOB = MaterializedClobTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link String} to JDBC {@link java.sql.Types#NCLOB NCLOB}.
 	 *
-	 * @see MaterializedNClobType
+	 * @see MaterializedNClobTypeImpl
 	 * @see #MATERIALIZED_CLOB
 	 * @see #NTEXT
 	 */
-	public static final MaterializedNClobType MATERIALIZED_NCLOB = MaterializedNClobType.INSTANCE;
+	public static final MaterializedNClobTypeImpl MATERIALIZED_NCLOB = MaterializedNClobTypeImpl.INSTANCE;
 
 	/**
 	 * The standard Hibernate type for mapping {@link java.io.Serializable} to JDBC {@link java.sql.Types#VARBINARY VARBINARY}.
 	 * <p/>
-	 * See especially the discussion wrt {@link ClassLoader} determination on {@link SerializableType}
+	 * See especially the discussion wrt {@link ClassLoader} determination on {@link SerializableTypeImpl}
 	 *
-	 * @see SerializableType
+	 * @see SerializableTypeImpl
 	 */
-	public static final SerializableType SERIALIZABLE = SerializableType.INSTANCE;
+	public static final SerializableTypeImpl SERIALIZABLE = SerializableTypeImpl.INSTANCE;
 }

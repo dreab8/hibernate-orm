@@ -19,7 +19,7 @@ public class H2DialectOverrideVarcharSqlCode extends H2Dialect {
 	@Override
     public SqlTypeDescriptor getSqlTypeDescriptorOverride(int sqlCode) {
 		return  sqlCode == Types.VARCHAR ?
-				StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor() :
+				StoredPrefixedStringTypeImpl.INSTANCE.getSqlTypeDescriptor() :
 				super.getSqlTypeDescriptorOverride( sqlCode );
 	}
 }

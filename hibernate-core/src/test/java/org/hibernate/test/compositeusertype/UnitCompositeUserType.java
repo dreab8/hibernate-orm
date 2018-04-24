@@ -10,9 +10,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.StringType;
+import org.hibernate.type.StringTypeImpl;
 import org.hibernate.type.Type;
 import org.hibernate.usertype.CompositeUserType;
 
@@ -28,7 +27,7 @@ public class UnitCompositeUserType implements CompositeUserType {
 
 	@Override
 	public Type[] getPropertyTypes() {
-		return new Type[] { StringType.INSTANCE, StringType.INSTANCE };
+		return new Type[] { StringTypeImpl.INSTANCE, StringTypeImpl.INSTANCE };
 	}
 
 	@Override

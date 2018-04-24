@@ -6,8 +6,8 @@
  */
 package org.hibernate.boot.model;
 
-import org.hibernate.type.BasicType;
-import org.hibernate.type.StandardBasicTypeTemplate;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.StandardBasicTypeImplTemplate;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptorRegistry;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
@@ -44,7 +44,7 @@ public interface TypeContributions {
 	 * converter" (a JPA AttributeConverter, an enum value resolver, etc).  To get as
 	 * close as possible in 5.3 use existing {@link JavaTypeDescriptor} and
 	 * {@link SqlTypeDescriptor} implementations (or write your own for custom types)
-	 * and use {@link StandardBasicTypeTemplate} to combine those with
+	 * and use {@link StandardBasicTypeImplTemplate} to combine those with
 	 * registration keys and call {@link #contributeType(BasicType)} instead
 	 */
 	@Deprecated
@@ -57,7 +57,7 @@ public interface TypeContributions {
 	 * {@link JavaTypeDescriptor}.  To get as close as possible to 6.0 in 5.3 use
 	 * existing {@link JavaTypeDescriptor} and {@link SqlTypeDescriptor}
 	 * implementations (or write your own for custom impls) and use
-	 * {@link StandardBasicTypeTemplate} to combine those with registration keys
+	 * {@link StandardBasicTypeImplTemplate} to combine those with registration keys
 	 * and call {@link #contributeType(BasicType)} instead
 	 */
 	@Deprecated

@@ -2362,7 +2362,7 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 		s.persist( image );
 		s.flush();
 
-		// Value returned by Oracle is a Types.NUMERIC, which is mapped to a BigDecimalType;
+		// Value returned by Oracle is a Types.NUMERIC, which is mapped to a BigDecimalTypeImpl;
 		// Cast returned value to Number then call Number.doubleValue() so it works on all dialects.
 		Double sizeViaSql = ( (Number)s.createSQLQuery("select size_mb from image").uniqueResult() ).doubleValue();
 		assertEquals(SIZE_IN_MB, sizeViaSql, 0.01d);

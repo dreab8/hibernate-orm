@@ -79,8 +79,8 @@ import org.hibernate.type.ComponentType;
 import org.hibernate.type.ListType;
 import org.hibernate.type.ManyToOneType;
 import org.hibernate.type.MapType;
-import org.hibernate.type.MaterializedClobType;
-import org.hibernate.type.MaterializedNClobType;
+import org.hibernate.type.MaterializedClobTypeImpl;
+import org.hibernate.type.MaterializedNClobTypeImpl;
 import org.hibernate.type.SetType;
 import org.hibernate.type.SortedMapType;
 import org.hibernate.type.SortedSetType;
@@ -1061,7 +1061,7 @@ public final class CollectionMetadataGenerator {
 		if ( propertyValue instanceof org.hibernate.mapping.Map ) {
 			final Type type = propertyValue.getKey().getType();
 			if ( !type.isComponentType() && !type.isAssociationType() ) {
-				return ( type instanceof MaterializedClobType ) || ( type instanceof MaterializedNClobType );
+				return ( type instanceof MaterializedClobTypeImpl ) || ( type instanceof MaterializedNClobTypeImpl );
 			}
 		}
 		return false;
@@ -1077,7 +1077,7 @@ public final class CollectionMetadataGenerator {
 			final Type type = propertyValue.getElement().getType();
 			// we're only interested in basic types
 			if ( !type.isComponentType() && !type.isAssociationType() ) {
-				return ( type instanceof MaterializedClobType ) || ( type instanceof MaterializedNClobType );
+				return ( type instanceof MaterializedClobTypeImpl ) || ( type instanceof MaterializedNClobTypeImpl );
 			}
 		}
 		return false;

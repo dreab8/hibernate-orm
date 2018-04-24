@@ -26,23 +26,23 @@ import org.hibernate.query.CommonQueryContract;
 import org.hibernate.query.ParameterMetadata;
 import org.hibernate.query.QueryParameter;
 import org.hibernate.transform.ResultTransformer;
-import org.hibernate.type.BigDecimalType;
-import org.hibernate.type.BigIntegerType;
-import org.hibernate.type.BinaryType;
-import org.hibernate.type.BooleanType;
-import org.hibernate.type.ByteType;
-import org.hibernate.type.CharacterType;
-import org.hibernate.type.DateType;
-import org.hibernate.type.DoubleType;
-import org.hibernate.type.FloatType;
-import org.hibernate.type.IntegerType;
-import org.hibernate.type.LocaleType;
-import org.hibernate.type.LongType;
-import org.hibernate.type.ShortType;
-import org.hibernate.type.StringType;
-import org.hibernate.type.TextType;
-import org.hibernate.type.TimeType;
-import org.hibernate.type.TimestampType;
+import org.hibernate.type.BigDecimalTypeImpl;
+import org.hibernate.type.BigIntegerTypeImpl;
+import org.hibernate.type.BinaryTypeImpl;
+import org.hibernate.type.BooleanTypeImpl;
+import org.hibernate.type.ByteTypeImpl;
+import org.hibernate.type.CharacterTypeImpl;
+import org.hibernate.type.DateTypeImpl;
+import org.hibernate.type.DoubleTypeImpl;
+import org.hibernate.type.FloatTypeImpl;
+import org.hibernate.type.IntegerTypeImpl;
+import org.hibernate.type.LocaleTypeImpl;
+import org.hibernate.type.LongTypeImpl;
+import org.hibernate.type.ShortTypeImpl;
+import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.TextTypeImpl;
+import org.hibernate.type.TimeTypeImpl;
+import org.hibernate.type.TimestampTypeImpl;
 import org.hibernate.type.Type;
 
 /**
@@ -722,7 +722,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setString(int position, String val) {
-		setParameter( position, val, StringType.INSTANCE );
+		setParameter( position, val, StringTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -740,7 +740,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCharacter(int position, char val) {
-		setParameter( position, val, CharacterType.INSTANCE );
+		setParameter( position, val, CharacterTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -758,7 +758,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBoolean(int position, boolean val) {
-		setParameter( position, val, determineProperBooleanType( position, val, BooleanType.INSTANCE ) );
+		setParameter( position, val, determineProperBooleanType( position, val, BooleanTypeImpl.INSTANCE ) );
 		return this;
 	}
 
@@ -776,7 +776,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setByte(int position, byte val) {
-		setParameter( position, val, ByteType.INSTANCE );
+		setParameter( position, val, ByteTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -794,7 +794,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setShort(int position, short val) {
-		setParameter( position, val, ShortType.INSTANCE );
+		setParameter( position, val, ShortTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -812,7 +812,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setInteger(int position, int val) {
-		setParameter( position, val, IntegerType.INSTANCE );
+		setParameter( position, val, IntegerTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -830,7 +830,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setLong(int position, long val) {
-		setParameter( position, val, LongType.INSTANCE );
+		setParameter( position, val, LongTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -848,7 +848,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setFloat(int position, float val) {
-		setParameter( position, val, FloatType.INSTANCE );
+		setParameter( position, val, FloatTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -866,7 +866,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setDouble(int position, double val) {
-		setParameter( position, val, DoubleType.INSTANCE );
+		setParameter( position, val, DoubleTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -884,7 +884,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBinary(int position, byte[] val) {
-		setParameter( position, val, BinaryType.INSTANCE );
+		setParameter( position, val, BinaryTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -902,7 +902,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setText(int position, String val) {
-		setParameter( position, val, TextType.INSTANCE );
+		setParameter( position, val, TextTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -938,7 +938,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setLocale(int position, Locale val) {
-		setParameter( position, val, LocaleType.INSTANCE );
+		setParameter( position, val, LocaleTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -956,7 +956,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBigDecimal(int position, BigDecimal val) {
-		setParameter( position, val, BigDecimalType.INSTANCE );
+		setParameter( position, val, BigDecimalTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -974,7 +974,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBigInteger(int position, BigInteger val) {
-		setParameter( position, val, BigIntegerType.INSTANCE );
+		setParameter( position, val, BigIntegerTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -992,7 +992,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setDate(int position, Date val) {
-		setParameter( position, val, DateType.INSTANCE );
+		setParameter( position, val, DateTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1010,7 +1010,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setTime(int position, Date val) {
-		setParameter( position, val, TimeType.INSTANCE );
+		setParameter( position, val, TimeTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1028,7 +1028,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setTimestamp(int position, Date val) {
-		setParameter( position, val, TimestampType.INSTANCE );
+		setParameter( position, val, TimestampTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1046,7 +1046,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCalendar(int position, Calendar val) {
-		setParameter( position, val, TimestampType.INSTANCE );
+		setParameter( position, val, TimestampTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1064,7 +1064,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCalendarDate(int position, Calendar val) {
-		setParameter( position, val, DateType.INSTANCE );
+		setParameter( position, val, DateTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1082,7 +1082,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setString(String name, String val) {
-		setParameter( name, val, StringType.INSTANCE );
+		setParameter( name, val, StringTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1100,7 +1100,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCharacter(String name, char val) {
-		setParameter( name, val, CharacterType.INSTANCE );
+		setParameter( name, val, CharacterTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1118,7 +1118,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBoolean(String name, boolean val) {
-		setParameter( name, val, determineProperBooleanType( name, val, BooleanType.INSTANCE ) );
+		setParameter( name, val, determineProperBooleanType( name, val, BooleanTypeImpl.INSTANCE ) );
 		return this;
 	}
 
@@ -1136,7 +1136,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setByte(String name, byte val) {
-		setParameter( name, val, ByteType.INSTANCE );
+		setParameter( name, val, ByteTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1154,7 +1154,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setShort(String name, short val) {
-		setParameter( name, val, ShortType.INSTANCE );
+		setParameter( name, val, ShortTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1172,7 +1172,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setInteger(String name, int val) {
-		setParameter( name, val, IntegerType.INSTANCE );
+		setParameter( name, val, IntegerTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1190,7 +1190,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setLong(String name, long val) {
-		setParameter( name, val, LongType.INSTANCE );
+		setParameter( name, val, LongTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1208,7 +1208,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setFloat(String name, float val) {
-		setParameter( name, val, FloatType.INSTANCE );
+		setParameter( name, val, FloatTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1226,7 +1226,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setDouble(String name, double val) {
-		setParameter( name, val, DoubleType.INSTANCE );
+		setParameter( name, val, DoubleTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1244,7 +1244,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBinary(String name, byte[] val) {
-		setParameter( name, val, BinaryType.INSTANCE );
+		setParameter( name, val, BinaryTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1262,7 +1262,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setText(String name, String val) {
-		setParameter( name, val, TextType.INSTANCE );
+		setParameter( name, val, TextTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1297,7 +1297,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setLocale(String name, Locale val) {
-		setParameter( name, val, TextType.INSTANCE );
+		setParameter( name, val, TextTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1314,7 +1314,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBigDecimal(String name, BigDecimal val) {
-		setParameter( name, val, BigDecimalType.INSTANCE );
+		setParameter( name, val, BigDecimalTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1331,7 +1331,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setBigInteger(String name, BigInteger val) {
-		setParameter( name, val, BigIntegerType.INSTANCE );
+		setParameter( name, val, BigIntegerTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1349,7 +1349,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setDate(String name, Date val) {
-		setParameter( name, val, DateType.INSTANCE );
+		setParameter( name, val, DateTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1367,7 +1367,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setTime(String name, Date val) {
-		setParameter( name, val, TimeType.INSTANCE );
+		setParameter( name, val, TimeTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1385,7 +1385,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setTimestamp(String name, Date value) {
-		setParameter( name, value, TimestampType.INSTANCE );
+		setParameter( name, value, TimestampTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1403,7 +1403,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCalendar(String name, Calendar value) {
-		setParameter( name, value, TimestampType.INSTANCE );
+		setParameter( name, value, TimestampTypeImpl.INSTANCE );
 		return this;
 	}
 
@@ -1421,7 +1421,7 @@ public interface Query<R> extends TypedQuery<R>, CommonQueryContract {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	default Query<R> setCalendarDate(String name, Calendar value) {
-		setParameter( name, value, DateType.INSTANCE );
+		setParameter( name, value, DateTypeImpl.INSTANCE );
 		return this;
 	}
 

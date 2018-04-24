@@ -48,7 +48,7 @@ public class EnumerationCustomTypeTest extends BaseEntityManagerFunctionalTestCa
 
 		private String name;
 
-		@Type( type = "org.hibernate.userguide.mapping.basic.GenderType" )
+		@Type( type = "org.hibernate.userguide.mapping.basic.GenderTypeImpl" )
 		public Gender gender;
 
 		//Getters and setters are omitted for brevity

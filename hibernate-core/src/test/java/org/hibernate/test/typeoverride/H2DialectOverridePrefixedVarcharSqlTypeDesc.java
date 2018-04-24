@@ -17,7 +17,7 @@ import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 public class H2DialectOverridePrefixedVarcharSqlTypeDesc extends H2Dialect {
 	@Override
     public SqlTypeDescriptor remapSqlTypeDescriptor(SqlTypeDescriptor sqlTypeDescriptor) {
-		return  sqlTypeDescriptor == StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor() ?
+		return  sqlTypeDescriptor == StoredPrefixedStringTypeImpl.INSTANCE.getSqlTypeDescriptor() ?
 				VarcharSqlDescriptor.INSTANCE :
 				super.remapSqlTypeDescriptor( sqlTypeDescriptor );
 	}

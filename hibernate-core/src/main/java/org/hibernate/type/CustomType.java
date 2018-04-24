@@ -38,7 +38,7 @@ import org.hibernate.usertype.UserVersionType;
  */
 public class CustomType
 		extends AbstractType
-		implements IdentifierType, DiscriminatorType, VersionType, BasicType, StringRepresentableType, ProcedureParameterNamedBinder, ProcedureParameterExtractionAware {
+		implements IdentifierType, DiscriminatorType, VersionType, StringRepresentableType, ProcedureParameterNamedBinder, ProcedureParameterExtractionAware {
 
 	private final UserType userType;
 	private final String name;
@@ -70,7 +70,6 @@ public class CustomType
 		return userType;
 	}
 
-	@Override
 	public String[] getRegistrationKeys() {
 		return registrationKeys;
 	}

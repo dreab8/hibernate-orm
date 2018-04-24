@@ -11,19 +11,19 @@
  */
 @TypeDef(
 		name = "wrapped_char_text",
-		typeClass = org.hibernate.test.annotations.lob.CharacterArrayTextType.class
+		typeClass = CharacterArrayTextTypeImpl.class
 		)
 @TypeDef(
 		name = "char_text",
-		typeClass = org.hibernate.test.annotations.lob.PrimitiveCharacterArrayTextType.class
+		typeClass = PrimitiveCharacterArrayTextTypeImpl.class
 )
 @TypeDef(
 		name = "wrapped_image",
-		typeClass = org.hibernate.test.annotations.lob.WrappedImageType.class
+		typeClass = WrappedImageTypeImpl.class
 )
 @TypeDef(
 		name = "serializable_image",
-		typeClass = org.hibernate.test.annotations.lob.SerializableToImageType.class
+		typeClass = SerializableToImageTypeImpl.class
 )
 package org.hibernate.test.annotations.lob;
 

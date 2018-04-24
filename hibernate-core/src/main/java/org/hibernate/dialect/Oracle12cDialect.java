@@ -15,8 +15,8 @@ import org.hibernate.dialect.pagination.SQL2008StandardLimitHandler;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.config.spi.StandardConverters;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.MaterializedBlobType;
-import org.hibernate.type.WrappedMaterializedBlobType;
+import org.hibernate.type.MaterializedBlobTypeImpl;
+import org.hibernate.type.WrappedMaterializedBlobTypeImpl;
 
 /**
  * An SQL dialect for Oracle 12c.
@@ -44,8 +44,8 @@ public class Oracle12cDialect extends Oracle10gDialect {
 		);
 
 		if ( !preferLong ) {
-			typeContributions.contributeType( MaterializedBlobType.INSTANCE, "byte[]", byte[].class.getName() );
-			typeContributions.contributeType( WrappedMaterializedBlobType.INSTANCE, "Byte[]", Byte[].class.getName() );
+			typeContributions.contributeType( MaterializedBlobTypeImpl.INSTANCE, "byte[]", byte[].class.getName() );
+			typeContributions.contributeType( WrappedMaterializedBlobTypeImpl.INSTANCE, "Byte[]", Byte[].class.getName() );
 		}
 	}
 

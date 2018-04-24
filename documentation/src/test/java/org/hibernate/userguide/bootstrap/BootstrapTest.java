@@ -31,7 +31,6 @@ import javax.persistence.spi.PersistenceUnitTransactionType;
 import javax.sql.DataSource;
 
 import org.hibernate.EmptyInterceptor;
-import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.hibernate.SessionFactoryObserver;
 import org.hibernate.boot.Metadata;
@@ -58,7 +57,7 @@ import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.service.spi.SessionFactoryServiceRegistry;
-import org.hibernate.userguide.mapping.basic.BitSetType;
+import org.hibernate.userguide.mapping.basic.BitSetTypeImpl;
 import org.hibernate.userguide.mapping.basic.BitSetUserType;
 
 import org.junit.Test;
@@ -573,7 +572,7 @@ public class BootstrapTest {
 
 			MetadataBuilder metadataBuilder = sources.getMetadataBuilder();
 
-			metadataBuilder.applyBasicType( BitSetType.INSTANCE );
+			metadataBuilder.applyBasicType( BitSetTypeImpl.INSTANCE );
 			//end::basic-custom-type-register-BasicType-example[]
 		}
 		catch (Exception ignore) {

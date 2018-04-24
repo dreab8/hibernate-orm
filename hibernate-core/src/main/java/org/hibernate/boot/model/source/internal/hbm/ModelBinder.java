@@ -6,7 +6,6 @@
  */
 package org.hibernate.boot.model.source.internal.hbm;
 
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -141,13 +140,13 @@ import org.hibernate.mapping.UniqueKey;
 import org.hibernate.mapping.Value;
 import org.hibernate.tuple.GeneratedValueGeneration;
 import org.hibernate.tuple.GenerationTiming;
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
-import org.hibernate.type.BasicType;
-import org.hibernate.type.BlobType;
-import org.hibernate.type.ClobType;
+import org.hibernate.type.BlobTypeImpl;
+import org.hibernate.type.ClobTypeImpl;
+import org.hibernate.type.internal.BasicTypeImpl;
+import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.DiscriminatorType;
 import org.hibernate.type.ForeignKeyDirection;
-import org.hibernate.type.NClobType;
+import org.hibernate.type.NClobTypeImpl;
 import org.hibernate.type.TypeResolver;
 
 /**
@@ -1963,8 +1962,8 @@ public class ModelBinder {
 		if ( !value.isLob() && value.getTypeName() != null ) {
 			final TypeResolver typeResolver = attributeSource.getBuildingContext().getMetadataCollector().getTypeResolver();
 			final BasicType basicType = typeResolver.basic( value.getTypeName() );
-			if ( basicType instanceof AbstractSingleColumnStandardBasicType ) {
-				if ( isLob( ( (AbstractSingleColumnStandardBasicType) basicType ).getSqlTypeDescriptor().getSqlType(), null ) ) {
+			if ( basicType instanceof BasicTypeImpl ) {
+				if ( isLob( ( (BasicTypeImpl) basicType ).getSqlTypeDescriptor().getSqlType(), null ) ) {
 					value.makeLob();
 				}
 			}
@@ -1985,14 +1984,14 @@ public class ModelBinder {
 
 	private static boolean isLob(Integer sqlType, String sqlTypeName) {
 		if ( sqlType != null ) {
-			return ClobType.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType ||
-					BlobType.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType ||
-					NClobType.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType;
+			return ClobTypeImpl.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType ||
+					BlobTypeImpl.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType ||
+					NClobTypeImpl.INSTANCE.getSqlTypeDescriptor().getSqlType() == sqlType;
 		}
 		else if ( sqlTypeName != null ) {
-			return ClobType.INSTANCE.getName().equalsIgnoreCase( sqlTypeName ) ||
-					BlobType.INSTANCE.getName().equalsIgnoreCase( sqlTypeName ) ||
-					NClobType.INSTANCE.getName().equalsIgnoreCase( sqlTypeName );
+			return ClobTypeImpl.INSTANCE.getName().equalsIgnoreCase( sqlTypeName ) ||
+					BlobTypeImpl.INSTANCE.getName().equalsIgnoreCase( sqlTypeName ) ||
+					NClobTypeImpl.INSTANCE.getName().equalsIgnoreCase( sqlTypeName );
 		}
 		return false;
 	}

@@ -12,6 +12,7 @@ import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.dialect.SybaseASE157Dialect;
 import org.hibernate.dialect.TeradataDialect;
+import org.hibernate.type.ClobTypeImpl;
 import org.hibernate.type.descriptor.java.internal.LobStreamDataHelper;
 
 import org.hibernate.testing.DialectChecks;
@@ -25,7 +26,7 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests lazy materialization of data mapped by
- * {@link org.hibernate.type.ClobType} as well as bounded and unbounded
+ * {@link ClobTypeImpl} as well as bounded and unbounded
  * materialization and mutation.
  *
  * @author Steve Ebersole

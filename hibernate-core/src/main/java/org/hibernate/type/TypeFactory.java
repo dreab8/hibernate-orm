@@ -186,15 +186,15 @@ public final class TypeFactory implements Serializable {
 	}
 
 	/**
-	 * Build a {@link SerializableType} from the given {@link Serializable} class.
+	 * Build a {@link SerializableTypeImpl} from the given {@link Serializable} class.
 	 *
 	 * @param serializableClass The {@link Serializable} class.
 	 * @param <T> The actual class type (extends Serializable)
 	 *
-	 * @return The built {@link SerializableType}
+	 * @return The built {@link SerializableTypeImpl}
 	 */
-	public static <T extends Serializable> SerializableType<T> serializable(Class<T> serializableClass) {
-		return new SerializableType<T>( serializableClass );
+	public static <T extends Serializable> SerializableTypeImpl<T> serializable(Class<T> serializableClass) {
+		return new SerializableTypeImpl<T>( serializableClass );
 	}
 
 

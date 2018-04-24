@@ -17,7 +17,7 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.spatial.GeolatteGeometryJavaTypeDescriptor;
 import org.hibernate.spatial.dialect.h2geodb.GeoDBDialect;
 import org.hibernate.tool.schema.Action;
-import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
+import org.hibernate.type.descriptor.converter.AttributeConverterTypeImplAdapter;
 import org.hibernate.type.spi.TypeConfiguration;
 
 import org.hibernate.testing.junit4.BaseUnitTestCase;
@@ -58,8 +58,8 @@ public class GeometryConverterTest extends BaseUnitTestCase {
 				// todo (5.3) : what to assert wrt to SqlTypeDescriptor?  Anything?
 
 				final EntityPersister entityPersister = sessionFactory.getMetamodel().entityPersister( MyEntity.class );
-				final AttributeConverterTypeAdapter geometryAttributeType = assertTyping(
-						AttributeConverterTypeAdapter.class,
+				final AttributeConverterTypeImplAdapter geometryAttributeType = assertTyping(
+						AttributeConverterTypeImplAdapter.class,
 						entityPersister.getPropertyType( "geometry" )
 				);
 

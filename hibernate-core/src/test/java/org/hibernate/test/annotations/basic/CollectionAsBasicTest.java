@@ -21,7 +21,7 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
+import org.hibernate.type.internal.BasicTypeImpl;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
@@ -41,7 +41,7 @@ public class CollectionAsBasicTest extends BaseUnitTestCase {
 		StandardServiceRegistry ssr = new StandardServiceRegistryBuilder().build();
 		try {
 			Metadata metadata = new MetadataSources(ssr).addAnnotatedClass( Post.class )
-					.getMetadataBuilder().applyBasicType( new DelimitedStringsType() )
+					.getMetadataBuilder().applyBasicType( new DelimitedStringsTypeImpl() )
 					.build();
 			PersistentClass postBinding = metadata.getEntityBinding( Post.class.getName() );
 			Property tagsAttribute = postBinding.getProperty( "tags" );
@@ -61,9 +61,9 @@ public class CollectionAsBasicTest extends BaseUnitTestCase {
 		Set<String> tags;
 	}
 
-	public static class DelimitedStringsType extends AbstractSingleColumnStandardBasicType<Set> {
+	public static class DelimitedStringsTypeImpl extends BasicTypeImpl<Set> {
 
-		public DelimitedStringsType() {
+		public DelimitedStringsTypeImpl() {
 			super(
 					VarcharSqlDescriptor.INSTANCE,
 					new DelimitedStringsJavaTypeDescriptor()

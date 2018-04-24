@@ -13,11 +13,11 @@ import org.hibernate.boot.registry.selector.spi.StrategySelector;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.spatial.GeolatteGeometryJavaTypeDescriptor;
-import org.hibernate.spatial.GeolatteGeometryType;
+import org.hibernate.spatial.GeolatteGeometryTypeImpl;
 import org.hibernate.spatial.HSMessageLogger;
 import org.hibernate.spatial.HibernateSpatialConfigurationSettings;
 import org.hibernate.spatial.JTSGeometryJavaTypeDescriptor;
-import org.hibernate.spatial.JTSGeometryType;
+import org.hibernate.spatial.JTSGeometryTypeImpl;
 import org.hibernate.spatial.SpatialDialect;
 import org.hibernate.spatial.SpatialFunction;
 import org.hibernate.spatial.SpatialRelation;
@@ -54,8 +54,8 @@ class OracleSDOSupport implements SpatialDialect, Serializable {
 
 	public void contributeTypes(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
 		final SDOGeometryTypeDescriptor sdoGeometryTypeDescriptor = mkSdoGeometryTypeDescriptor( serviceRegistry );
-		typeContributions.contributeType( new GeolatteGeometryType( sdoGeometryTypeDescriptor ) );
-		typeContributions.contributeType( new JTSGeometryType( sdoGeometryTypeDescriptor ) );
+		typeContributions.contributeType( new GeolatteGeometryTypeImpl( sdoGeometryTypeDescriptor ) );
+		typeContributions.contributeType( new JTSGeometryTypeImpl( sdoGeometryTypeDescriptor ) );
 
 		typeContributions.contributeJavaTypeDescriptor( GeolatteGeometryJavaTypeDescriptor.INSTANCE );
 		typeContributions.contributeJavaTypeDescriptor( JTSGeometryJavaTypeDescriptor.INSTANCE );

@@ -6,9 +6,11 @@
  */
 package org.hibernate.test.lob;
 
+import org.hibernate.type.TextTypeImpl;
+
 /**
  * Test eager materialization and mutation data mapped by
- * #{@link org.hibernate.type.TextType}.
+ * #{@link TextTypeImpl}.
  *
  * @author Gail Badner
  */

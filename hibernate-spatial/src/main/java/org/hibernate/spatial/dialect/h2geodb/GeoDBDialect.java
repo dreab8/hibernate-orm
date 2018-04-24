@@ -12,9 +12,9 @@ import org.hibernate.dialect.H2Dialect;
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.spatial.GeolatteGeometryJavaTypeDescriptor;
-import org.hibernate.spatial.GeolatteGeometryType;
+import org.hibernate.spatial.GeolatteGeometryTypeImpl;
 import org.hibernate.spatial.JTSGeometryJavaTypeDescriptor;
-import org.hibernate.spatial.JTSGeometryType;
+import org.hibernate.spatial.JTSGeometryTypeImpl;
 import org.hibernate.spatial.SpatialDialect;
 import org.hibernate.spatial.SpatialFunction;
 import org.hibernate.spatial.SpatialRelation;
@@ -79,8 +79,8 @@ public class GeoDBDialect extends H2Dialect implements SpatialDialect {
 	@Override
 	public void contributeTypes(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
 		super.contributeTypes( typeContributions, serviceRegistry );
-		typeContributions.contributeType( new GeolatteGeometryType( GeoDBGeometryTypeDescriptor.INSTANCE ) );
-		typeContributions.contributeType( new JTSGeometryType( GeoDBGeometryTypeDescriptor.INSTANCE ) );
+		typeContributions.contributeType( new GeolatteGeometryTypeImpl( GeoDBGeometryTypeDescriptor.INSTANCE ) );
+		typeContributions.contributeType( new JTSGeometryTypeImpl( GeoDBGeometryTypeDescriptor.INSTANCE ) );
 
 		typeContributions.contributeJavaTypeDescriptor( GeolatteGeometryJavaTypeDescriptor.INSTANCE );
 		typeContributions.contributeJavaTypeDescriptor( JTSGeometryJavaTypeDescriptor.INSTANCE );

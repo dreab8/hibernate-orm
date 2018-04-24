@@ -22,10 +22,12 @@ import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.util.collections.ArrayHelper;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * Convenience base class for {@link BasicType} implementations
@@ -34,7 +36,7 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  * @author Brett Meyer
  */
 public abstract class AbstractStandardBasicType<T>
-		implements BasicType, StringRepresentableType<T>, ProcedureParameterExtractionAware<T>, ProcedureParameterNamedBinder {
+		implements BasicType<T>, StringRepresentableType<T>, ProcedureParameterExtractionAware<T>, ProcedureParameterNamedBinder {
 
 	private static final Size DEFAULT_SIZE = new Size( 19, 2, 255, Size.LobMultiplier.NONE ); // to match legacy behavior
 	private final Size dictatedSize = new Size();
@@ -50,6 +52,12 @@ public abstract class AbstractStandardBasicType<T>
 		this.sqlTypeDescriptor = sqlTypeDescriptor;
 		this.sqlTypes = new int[] { sqlTypeDescriptor.getSqlType() };
 		this.javaTypeDescriptor = javaTypeDescriptor;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public BasicJavaDescriptor<T> getJavaTypeDescriptor() {
+		return (BasicJavaDescriptor<T>) javaTypeDescriptor;
 	}
 
 	public T fromString(String string) {
@@ -109,10 +117,6 @@ public abstract class AbstractStandardBasicType<T>
 	
 	// final implementations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	public final JavaTypeDescriptor<T> getJavaTypeDescriptor() {
-		return javaTypeDescriptor;
-	}
-	
 	public final void setJavaTypeDescriptor( JavaTypeDescriptor<T> javaTypeDescriptor ) {
 		this.javaTypeDescriptor = javaTypeDescriptor;
 	}

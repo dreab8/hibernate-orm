@@ -35,7 +35,7 @@ public class Ingres10Dialect extends Ingres9Dialect {
 	}
 
 	protected void registerBooleanSupport() {
-		// Boolean type (mapping/BooleanType) mapping maps SQL BIT to Java
+		// Boolean type (mapping/BooleanTypeImpl) mapping maps SQL BIT to Java
 		// Boolean. In order to create a boolean column, BIT needs to be mapped
 		// to boolean as well, similar to H2Dialect.
 		registerColumnType( Types.BIT, "boolean" );

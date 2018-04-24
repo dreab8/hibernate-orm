@@ -21,8 +21,8 @@ import org.hibernate.dialect.PostgreSQL82Dialect;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
 import org.hibernate.loader.custom.NonUniqueDiscoveredSqlAliasException;
 import org.hibernate.transform.Transformers;
-import org.hibernate.type.LongType;
-import org.hibernate.type.StringType;
+import org.hibernate.type.LongTypeImpl;
+import org.hibernate.type.StringTypeImpl;
 import org.hibernate.userguide.model.AddressType;
 import org.hibernate.userguide.model.Call;
 import org.hibernate.userguide.model.CreditCardPayment;
@@ -37,8 +37,6 @@ import org.hibernate.userguide.model.WireTransferPayment;
 import org.hibernate.testing.RequiresDialect;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.jboss.logging.Logger;
 
 import static org.hibernate.testing.junit4.ExtraAssertions.assertTyping;
 import static org.hibernate.testing.transaction.TransactionUtil.doInJPA;
@@ -217,8 +215,8 @@ public class SQLTest extends BaseEntityManagerFunctionalTestCase {
 			//tag::sql-hibernate-scalar-query-explicit-result-set-example[]
 			List<Object[]> persons = session.createNativeQuery(
 				"SELECT * FROM Person" )
-			.addScalar( "id", LongType.INSTANCE )
-			.addScalar( "name", StringType.INSTANCE )
+			.addScalar( "id", LongTypeImpl.INSTANCE )
+			.addScalar( "name", StringTypeImpl.INSTANCE )
 			.list();
 
 			for(Object[] person : persons) {
@@ -238,7 +236,7 @@ public class SQLTest extends BaseEntityManagerFunctionalTestCase {
 			//tag::sql-hibernate-scalar-query-partial-explicit-result-set-example[]
 			List<Object[]> persons = session.createNativeQuery(
 				"SELECT * FROM Person" )
-			.addScalar( "id", LongType.INSTANCE )
+			.addScalar( "id", LongTypeImpl.INSTANCE )
 			.addScalar( "name" )
 			.list();
 

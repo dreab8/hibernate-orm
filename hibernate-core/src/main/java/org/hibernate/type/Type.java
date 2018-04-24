@@ -18,6 +18,7 @@ import org.hibernate.engine.jdbc.Size;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.internal.util.compare.EqualsHelper;
 
 /**
  * Defines a mapping between a Java type and one or more JDBC {@linkplain java.sql.Types types}, as well
@@ -34,7 +35,34 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
  * @author Gavin King
  * @author Steve Ebersole
  */
-public interface Type extends Serializable {
+public interface Type<T> extends Serializable {
+
+	/**
+	 * Return a String representation of the given value for use in Hibernate logging.
+	 */
+	default String toLoggableString(Object value) {
+		return value == null ? "<null>" : value.toString();
+	}
+
+	/**
+	 * Compare two instances of the class mapped by this type for
+	 * persistence "equality" (equality of persistent state).
+	 * <p/>
+	 * This should always equate to some form of comparison of the value's internal state.  As an example, for
+	 * something like a date the comparison should be based on its internal "time" state based on the specific portion
+	 * it is meant to represent (timestamp, date, time).
+	 *
+	 * @param x The first value
+	 * @param y The second value
+	 *
+	 * @return True if there are considered equal (see discussion above).
+	 *
+	 * @throws HibernateException A problem occurred performing the comparison
+	 */
+	default boolean areEqual(T x, T y) throws HibernateException {
+		return EqualsHelper.areEqual( x, y );
+	}
+
 	/**
 	 * Return true if the implementation is castable to {@link AssociationType}. This does not necessarily imply that
 	 * the type actually represents an association.  Essentially a polymorphic version of

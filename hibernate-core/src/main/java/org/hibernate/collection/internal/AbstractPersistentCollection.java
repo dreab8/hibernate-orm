@@ -39,13 +39,13 @@ import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.pretty.MessageHelper;
 import org.hibernate.type.CompositeType;
-import org.hibernate.type.IntegerType;
-import org.hibernate.type.LongType;
-import org.hibernate.type.PostgresUUIDType;
-import org.hibernate.type.StringType;
+import org.hibernate.type.IntegerTypeImpl;
+import org.hibernate.type.LongTypeImpl;
+import org.hibernate.type.PostgresUUIDTypeImpl;
+import org.hibernate.type.StringTypeImpl;
 import org.hibernate.type.Type;
-import org.hibernate.type.UUIDBinaryType;
-import org.hibernate.type.UUIDCharType;
+import org.hibernate.type.UUIDBinaryTypeImpl;
+import org.hibernate.type.UUIDCharTypeImpl;
 
 /**
  * Base class implementing {@link org.hibernate.collection.spi.PersistentCollection}
@@ -1243,12 +1243,12 @@ public abstract class AbstractPersistentCollection implements Serializable, Pers
 	}
 
 	private static boolean mayUseIdDirect(Type idType) {
-		return idType == StringType.INSTANCE
-			|| idType == IntegerType.INSTANCE
-			|| idType == LongType.INSTANCE
-			|| idType == UUIDBinaryType.INSTANCE
-			|| idType == UUIDCharType.INSTANCE
-			|| idType == PostgresUUIDType.INSTANCE;
+		return idType == StringTypeImpl.INSTANCE
+			|| idType == IntegerTypeImpl.INSTANCE
+			|| idType == LongTypeImpl.INSTANCE
+			|| idType == UUIDBinaryTypeImpl.INSTANCE
+			|| idType == UUIDCharTypeImpl.INSTANCE
+			|| idType == PostgresUUIDTypeImpl.INSTANCE;
 	}
 
 	/**

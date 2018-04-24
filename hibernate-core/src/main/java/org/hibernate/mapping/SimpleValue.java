@@ -44,12 +44,12 @@ import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.metamodel.model.convert.spi.JpaAttributeConverter;
 import org.hibernate.resource.beans.spi.ManagedBeanRegistry;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.BinaryType;
-import org.hibernate.type.RowVersionType;
+import org.hibernate.type.BinaryTypeImpl;
+import org.hibernate.type.RowVersionTypeImpl;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.converter.AttributeConverterTypeImplAdapter;
 import org.hibernate.type.descriptor.sql.spi.JdbcTypeNameMapper;
 import org.hibernate.type.descriptor.converter.AttributeConverterSqlTypeDescriptorAdapter;
-import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.sql.LobTypeMappings;
 import org.hibernate.type.descriptor.sql.NationalizedTypeMappings;
@@ -195,8 +195,8 @@ public class SimpleValue implements KeyValue {
 	}
 
 	public void setTypeName(String typeName) {
-		if ( typeName != null && typeName.startsWith( AttributeConverterTypeAdapter.NAME_PREFIX ) ) {
-			final String converterClassName = typeName.substring( AttributeConverterTypeAdapter.NAME_PREFIX.length() );
+		if ( typeName != null && typeName.startsWith( AttributeConverterTypeImplAdapter.NAME_PREFIX ) ) {
+			final String converterClassName = typeName.substring( AttributeConverterTypeImplAdapter.NAME_PREFIX.length() );
 			final ClassLoaderService cls = getMetadata()
 					.getMetadataBuildingOptions()
 					.getServiceRegistry()
@@ -465,11 +465,11 @@ public class SimpleValue implements KeyValue {
 		}
 
 		Type result = getMetadata().getTypeConfiguration().getTypeResolver().heuristicType( typeName, typeParameters );
-		// if this is a byte[] version/timestamp, then we need to use RowVersionType
-		// instead of BinaryType (HHH-10413)
-		if ( isVersion && BinaryType.class.isInstance( result ) ) {
-			log.debug( "version is BinaryType; changing to RowVersionType" );
-			result = RowVersionType.INSTANCE;
+		// if this is a byte[] version/timestamp, then we need to use RowVersionTypeImpl
+		// instead of BinaryTypeImpl (HHH-10413)
+		if ( isVersion && BinaryTypeImpl.class.isInstance( result ) ) {
+			log.debug( "version is BinaryTypeImpl; changing to RowVersionTypeImpl" );
+			result = RowVersionTypeImpl.INSTANCE;
 		}
 		if ( result == null ) {
 			String msg = "Could not determine type for: " + typeName;
@@ -636,15 +636,15 @@ public class SimpleValue implements KeyValue {
 				jpaAttributeConverter.getRelationalJavaTypeDescriptor()
 		);
 
-		// todo : cache the AttributeConverterTypeAdapter in case that AttributeConverter is applied multiple times.
+		// todo : cache the AttributeConverterTypeImplAdapter in case that AttributeConverter is applied multiple times.
 
-		final String name = AttributeConverterTypeAdapter.NAME_PREFIX + jpaAttributeConverter.getConverterJavaTypeDescriptor().getJavaType().getName();
+		final String name = AttributeConverterTypeImplAdapter.NAME_PREFIX + jpaAttributeConverter.getConverterJavaTypeDescriptor().getJavaType().getName();
 		final String description = String.format(
 				"BasicType adapter for AttributeConverter<%s,%s>",
 				jpaAttributeConverter.getDomainJavaTypeDescriptor().getJavaType().getSimpleName(),
 				jpaAttributeConverter.getRelationalJavaTypeDescriptor().getJavaType().getSimpleName()
 		);
-		return new AttributeConverterTypeAdapter(
+		return new AttributeConverterTypeImplAdapter(
 				name,
 				description,
 				jpaAttributeConverter,

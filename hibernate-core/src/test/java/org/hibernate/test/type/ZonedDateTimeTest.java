@@ -17,7 +17,7 @@ import javax.persistence.Table;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.resource.transaction.spi.TransactionStatus;
-import org.hibernate.type.ZonedDateTimeType;
+import org.hibernate.type.ZonedDateTimeTypeImpl;
 
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
 import org.junit.Test;
@@ -92,7 +92,7 @@ public class ZonedDateTimeTest extends BaseNonConfigCoreFunctionalTestCase {
 		final Session s = openSession();
 		try {
 			Query query = s.createQuery( "from ZonedDateTimeEvent o where o.startDate = :date" );
-			query.setParameter( "date", startDate, ZonedDateTimeType.INSTANCE );
+			query.setParameter( "date", startDate, ZonedDateTimeTypeImpl.INSTANCE );
 			List<ZonedDateTimeEvent> list = query.list();
 			assertThat( list.size(), is( 1 ) );
 		}
@@ -117,7 +117,7 @@ public class ZonedDateTimeTest extends BaseNonConfigCoreFunctionalTestCase {
 		try {
 			final ZonedDateTimeEvent zonedDateTimeEvent = s.get( ZonedDateTimeEvent.class, 1L );
 			assertThat(
-					ZonedDateTimeType.INSTANCE.getComparator().compare( zonedDateTimeEvent.startDate, startdate ),
+					ZonedDateTimeTypeImpl.INSTANCE.getComparator().compare( zonedDateTimeEvent.startDate, startdate ),
 					is( 0 )
 			);
 		}

@@ -36,7 +36,7 @@ import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.MetadataSourceType;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
-import org.hibernate.type.BasicType;
+import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.BasicTypeRegistry;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -332,7 +332,7 @@ public class MetadataBuildingProcess {
 
 		final TypeContributions typeContributions = new TypeContributions() {
 			@Override
-			public void contributeType(org.hibernate.type.BasicType type) {
+			public void contributeType(BasicType type) {
 				getBasicTypeRegistry().register( type );
 			}
 

@@ -16,7 +16,7 @@ import org.hibernate.metamodel.model.convert.spi.JpaAttributeConverter;
 import org.hibernate.type.SingleColumnType;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
-import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
+import org.hibernate.type.descriptor.converter.AttributeConverterTypeImplAdapter;
 
 import antlr.SemanticException;
 
@@ -81,15 +81,15 @@ public class LiteralNode extends AbstractSelectExpression implements HqlSqlToken
 			return;
 		}
 
-		if ( AttributeConverterTypeAdapter.class.isInstance( expectedType ) ) {
-			final AttributeConverterTypeAdapter adapterType = (AttributeConverterTypeAdapter) expectedType;
+		if ( AttributeConverterTypeImplAdapter.class.isInstance( expectedType ) ) {
+			final AttributeConverterTypeImplAdapter adapterType = (AttributeConverterTypeImplAdapter) expectedType;
 			setText( determineConvertedValue( adapterType, getLiteralValue() ) );
 			this.expectedType = expectedType;
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	protected String determineConvertedValue(AttributeConverterTypeAdapter converterTypeAdapter, Object literalValue) {
+	protected String determineConvertedValue(AttributeConverterTypeImplAdapter converterTypeAdapter, Object literalValue) {
 		if ( getDataType().getReturnedClass().equals( converterTypeAdapter.getModelType() ) ) {
 			// apply the converter
 			final JpaAttributeConverter converter = converterTypeAdapter.getAttributeConverter();

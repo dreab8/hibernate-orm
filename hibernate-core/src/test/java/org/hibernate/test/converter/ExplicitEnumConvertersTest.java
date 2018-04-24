@@ -15,7 +15,7 @@ import javax.persistence.Id;
 import org.hibernate.Session;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
-import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
+import org.hibernate.type.descriptor.converter.AttributeConverterTypeImplAdapter;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
@@ -90,8 +90,8 @@ public class ExplicitEnumConvertersTest extends BaseNonConfigCoreFunctionalTestC
 	public void testSimpleConvertUsage() throws MalformedURLException {
 		final EntityPersister ep = sessionFactory().getEntityPersister( Entity1.class.getName() );
 		final Type theDatePropertyType = ep.getPropertyType( "mediaType" );
-		final AttributeConverterTypeAdapter type = assertTyping(
-				AttributeConverterTypeAdapter.class,
+		final AttributeConverterTypeImplAdapter type = assertTyping(
+				AttributeConverterTypeImplAdapter.class,
 				theDatePropertyType
 		);
 		assertTrue( MediaTypeConverter.class.isAssignableFrom( type.getAttributeConverter().getConverterJavaTypeDescriptor().getJavaType() ) );

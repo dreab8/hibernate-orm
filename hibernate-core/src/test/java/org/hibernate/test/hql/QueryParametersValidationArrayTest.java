@@ -22,7 +22,7 @@ import javax.persistence.Id;
 import org.hibernate.dialect.H2Dialect;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
 import org.hibernate.query.NativeQuery;
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
+import org.hibernate.type.internal.BasicTypeImpl;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
@@ -60,7 +60,7 @@ public class QueryParametersValidationArrayTest extends BaseEntityManagerFunctio
 				"from Event " +
 				"where readings = :readings" )
 			.unwrap( NativeQuery.class )
-			.setParameter( "readings", new String[]{null, "a"}, StringArrayType.INSTANCE )
+			.setParameter( "readings", new String[]{null, "a"}, StringArrayTypeImpl.INSTANCE )
 			.getResultList();
 		});
 	}
@@ -76,12 +76,12 @@ public class QueryParametersValidationArrayTest extends BaseEntityManagerFunctio
 		private String[] readings;
 	}
 
-	public static class StringArrayType
-			extends AbstractSingleColumnStandardBasicType<String[]> {
+	public static class StringArrayTypeImpl
+			extends BasicTypeImpl<String[]> {
 
-		public static final StringArrayType INSTANCE = new StringArrayType ();
+		public static final StringArrayTypeImpl INSTANCE = new StringArrayTypeImpl();
 
-		public StringArrayType() {
+		public StringArrayTypeImpl() {
 			super( StringArraySqlTypeDescriptor.INSTANCE, StringArrayTypeDescriptor.INSTANCE);
 		}
 

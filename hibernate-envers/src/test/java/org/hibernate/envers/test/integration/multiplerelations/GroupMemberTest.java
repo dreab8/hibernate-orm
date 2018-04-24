@@ -26,8 +26,7 @@ import org.hibernate.envers.AuditMappedBy;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.test.BaseEnversJPAFunctionalTestCase;
 import org.hibernate.envers.test.Priority;
-import org.hibernate.type.IntegerType;
-import org.hibernate.type.Type;
+import org.hibernate.type.IntegerTypeImpl;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.transaction.TransactionUtil;
@@ -91,7 +90,7 @@ public class GroupMemberTest extends BaseEnversJPAFunctionalTestCase {
 			final Query query = session.createSQLQuery(
 					"SELECT uniqueGroup_id FROM GroupMember_AUD ORDER BY rev DESC" ).addScalar(
 					"uniqueGroup_id",
-					IntegerType.INSTANCE
+					IntegerTypeImpl.INSTANCE
 			).setMaxResults( 1 );
 			final Object result = query.getSingleResult();
 			assertNotNull( result );

@@ -8,7 +8,7 @@ package org.hibernate;
 
 import java.util.Properties;
 
-import org.hibernate.type.BasicType;
+import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.Type;
 
 /**

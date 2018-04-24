@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.Properties;
 
 import org.hibernate.TypeHelper;
-import org.hibernate.type.BasicType;
+import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeResolver;
 import org.hibernate.usertype.CompositeUserType;

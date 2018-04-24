@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.hibernate.HibernateException;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
+import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.spi.TypeConfiguration;
 import org.hibernate.usertype.CompositeUserType;
 import org.hibernate.usertype.UserType;
@@ -36,83 +37,83 @@ public class BasicTypeRegistry implements Serializable {
 	}
 
 	public BasicTypeRegistry() {
-		register( BooleanType.INSTANCE );
-		register( NumericBooleanType.INSTANCE );
-		register( TrueFalseType.INSTANCE );
-		register( YesNoType.INSTANCE );
+		register( BooleanTypeImpl.INSTANCE );
+		register( NumericBooleanTypeImpl.INSTANCE );
+		register( TrueFalseTypeImpl.INSTANCE );
+		register( YesNoTypeImpl.INSTANCE );
 
-		register( ByteType.INSTANCE );
-		register( CharacterType.INSTANCE );
-		register( ShortType.INSTANCE );
-		register( IntegerType.INSTANCE );
-		register( LongType.INSTANCE );
-		register( FloatType.INSTANCE );
-		register( DoubleType.INSTANCE );
-		register( BigDecimalType.INSTANCE );
-		register( BigIntegerType.INSTANCE );
+		register( ByteTypeImpl.INSTANCE );
+		register( CharacterTypeImpl.INSTANCE );
+		register( ShortTypeImpl.INSTANCE );
+		register( IntegerTypeImpl.INSTANCE );
+		register( LongTypeImpl.INSTANCE );
+		register( FloatTypeImpl.INSTANCE );
+		register( DoubleTypeImpl.INSTANCE );
+		register( BigDecimalTypeImpl.INSTANCE );
+		register( BigIntegerTypeImpl.INSTANCE );
 
-		register( StringType.INSTANCE );
-		register( StringNVarcharType.INSTANCE );
-		register( CharacterNCharType.INSTANCE );
-		register( UrlType.INSTANCE );
+		register( StringTypeImpl.INSTANCE );
+		register( StringNVarcharTypeImpl.INSTANCE );
+		register( CharacterNCharTypeImpl.INSTANCE );
+		register( UrlTypeImpl.INSTANCE );
 
-		register( DurationType.INSTANCE );
-		register( InstantType.INSTANCE );
-		register( LocalDateTimeType.INSTANCE );
-		register( LocalDateType.INSTANCE );
-		register( LocalTimeType.INSTANCE );
-		register( OffsetDateTimeType.INSTANCE );
-		register( OffsetTimeType.INSTANCE );
-		register( ZonedDateTimeType.INSTANCE );
+		register( DurationTypeImpl.INSTANCE );
+		register( InstantTypeImpl.INSTANCE );
+		register( LocalDateTimeTypeImpl.INSTANCE );
+		register( LocalDateTypeImpl.INSTANCE );
+		register( LocalTimeTypeImpl.INSTANCE );
+		register( OffsetDateTimeTypeImpl.INSTANCE );
+		register( OffsetTimeTypeImpl.INSTANCE );
+		register( ZonedDateTimeTypeImpl.INSTANCE );
 
-		register( DateType.INSTANCE );
-		register( TimeType.INSTANCE );
-		register( TimestampType.INSTANCE );
-		register( DbTimestampType.INSTANCE );
-		register( CalendarType.INSTANCE );
-		register( CalendarDateType.INSTANCE );
+		register( DateTypeImpl.INSTANCE );
+		register( TimeTypeImpl.INSTANCE );
+		register( TimestampTypeImpl.INSTANCE );
+		register( DbTimestampTypeImpl.INSTANCE );
+		register( CalendarTypeImpl.INSTANCE );
+		register( CalendarDateTypeImpl.INSTANCE );
 
-		register( LocaleType.INSTANCE );
-		register( CurrencyType.INSTANCE );
-		register( TimeZoneType.INSTANCE );
-		register( ClassType.INSTANCE );
-		register( UUIDBinaryType.INSTANCE );
-		register( UUIDCharType.INSTANCE );
+		register( LocaleTypeImpl.INSTANCE );
+		register( CurrencyTypeImpl.INSTANCE );
+		register( TimeZoneTypeImpl.INSTANCE );
+		register( ClassTypeImpl.INSTANCE );
+		register( UUIDBinaryTypeImpl.INSTANCE );
+		register( UUIDCharTypeImpl.INSTANCE );
 
-		register( BinaryType.INSTANCE );
-		register( WrapperBinaryType.INSTANCE );
-		register( RowVersionType.INSTANCE );
-		register( ImageType.INSTANCE );
-		register( CharArrayType.INSTANCE );
-		register( CharacterArrayType.INSTANCE );
-		register( TextType.INSTANCE );
-		register( NTextType.INSTANCE );
-		register( BlobType.INSTANCE );
-		register( MaterializedBlobType.INSTANCE );
-		register( ClobType.INSTANCE );
-		register( NClobType.INSTANCE );
-		register( MaterializedClobType.INSTANCE );
-		register( MaterializedNClobType.INSTANCE );
-		register( SerializableType.INSTANCE );
+		register( BinaryTypeImpl.INSTANCE );
+		register( WrapperBinaryTypeImpl.INSTANCE );
+		register( RowVersionTypeImpl.INSTANCE );
+		register( ImageTypeImpl.INSTANCE );
+		register( CharArrayTypeImpl.INSTANCE );
+		register( CharacterArrayTypeImpl.INSTANCE );
+		register( TextTypeImpl.INSTANCE );
+		register( NTextTypeImpl.INSTANCE );
+		register( BlobTypeImpl.INSTANCE );
+		register( MaterializedBlobTypeImpl.INSTANCE );
+		register( ClobTypeImpl.INSTANCE );
+		register( NClobTypeImpl.INSTANCE );
+		register( MaterializedClobTypeImpl.INSTANCE );
+		register( MaterializedNClobTypeImpl.INSTANCE );
+		register( SerializableTypeImpl.INSTANCE );
 
 		register( ObjectType.INSTANCE );
 
 		//noinspection unchecked
-		register( new AdaptedImmutableType( DateType.INSTANCE ) );
+		register( new AdaptedImmutableTypeImpl( DateTypeImpl.INSTANCE ) );
 		//noinspection unchecked
-		register( new AdaptedImmutableType( TimeType.INSTANCE ) );
+		register( new AdaptedImmutableTypeImpl( TimeTypeImpl.INSTANCE ) );
 		//noinspection unchecked
-		register( new AdaptedImmutableType( TimestampType.INSTANCE ) );
+		register( new AdaptedImmutableTypeImpl( TimestampTypeImpl.INSTANCE ) );
 		//noinspection unchecked
-		register( new AdaptedImmutableType( DbTimestampType.INSTANCE ) );
+		register( new AdaptedImmutableTypeImpl( DbTimestampTypeImpl.INSTANCE ) );
 		//noinspection unchecked
-		register( new AdaptedImmutableType( CalendarType.INSTANCE ) );
+		register( new AdaptedImmutableTypeImpl( CalendarTypeImpl.INSTANCE ) );
 		//noinspection unchecked
-		register( new AdaptedImmutableType( CalendarDateType.INSTANCE ) );
+		register( new AdaptedImmutableTypeImpl( CalendarDateTypeImpl.INSTANCE ) );
 		//noinspection unchecked
-		register( new AdaptedImmutableType( BinaryType.INSTANCE ) );
+		register( new AdaptedImmutableTypeImpl( BinaryTypeImpl.INSTANCE ) );
 		//noinspection unchecked
-		register( new AdaptedImmutableType( SerializableType.INSTANCE ) );
+		register( new AdaptedImmutableTypeImpl( SerializableTypeImpl.INSTANCE ) );
 	}
 
 	/**

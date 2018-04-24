@@ -16,8 +16,8 @@ import org.hibernate.dialect.SybaseASE15Dialect;
 import org.hibernate.testing.RequiresDialect;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
-import org.hibernate.type.BinaryType;
-import org.hibernate.type.RowVersionType;
+import org.hibernate.type.BinaryTypeImpl;
+import org.hibernate.type.RowVersionTypeImpl;
 import org.hibernate.type.VersionType;
 
 import static org.junit.Assert.assertFalse;
@@ -144,7 +144,7 @@ public class SybaseTimestampVersioningTest extends BaseCoreFunctionalTestCase {
 		s.close();
 
 		assertFalse(
-				"owner version not incremented", BinaryType.INSTANCE.isEqual(
+				"owner version not incremented", BinaryTypeImpl.INSTANCE.isEqual(
 				steveTimestamp, steve.getTimestamp()
 		)
 		);
@@ -159,7 +159,7 @@ public class SybaseTimestampVersioningTest extends BaseCoreFunctionalTestCase {
 		s.close();
 
 		assertFalse(
-				"owner version not incremented", BinaryType.INSTANCE.isEqual(
+				"owner version not incremented", BinaryTypeImpl.INSTANCE.isEqual(
 				steveTimestamp, steve.getTimestamp()
 		)
 		);
@@ -196,7 +196,7 @@ public class SybaseTimestampVersioningTest extends BaseCoreFunctionalTestCase {
 		s.close();
 
 		assertTrue(
-				"owner version was incremented", BinaryType.INSTANCE.isEqual(
+				"owner version was incremented", BinaryTypeImpl.INSTANCE.isEqual(
 				steveTimestamp, steve.getTimestamp()
 		)
 		);
@@ -209,7 +209,7 @@ public class SybaseTimestampVersioningTest extends BaseCoreFunctionalTestCase {
 		s.close();
 
 		assertTrue(
-				"owner version was incremented", BinaryType.INSTANCE.isEqual(
+				"owner version was incremented", BinaryTypeImpl.INSTANCE.isEqual(
 				steveTimestamp, steve.getTimestamp()
 		)
 		);
@@ -227,7 +227,7 @@ public class SybaseTimestampVersioningTest extends BaseCoreFunctionalTestCase {
 	public void testComparableTimestamps() {
 		final VersionType versionType =
 				sessionFactory().getEntityPersister( User.class.getName() ).getVersionType();
-		assertSame( RowVersionType.INSTANCE, versionType );
+		assertSame( RowVersionTypeImpl.INSTANCE, versionType );
 
 		Session s = openSession();
 		s.getTransaction().begin();

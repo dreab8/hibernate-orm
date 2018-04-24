@@ -13,7 +13,7 @@ package org.hibernate.type;
  *
  * @author Gavin King
  */
-public interface IdentifierType<T> extends Type {
+public interface IdentifierType<T> extends Type<T> {
 
 	/**
 	 * Convert the value from the mapping file to a Java object.

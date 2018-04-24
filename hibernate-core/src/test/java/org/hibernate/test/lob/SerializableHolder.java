@@ -10,9 +10,11 @@
 package org.hibernate.test.lob;
 import java.io.Serializable;
 
+import org.hibernate.type.SerializableTypeImpl;
+
 /**
  * An entity containing serializable data which is
- * mapped via the {@link org.hibernate.type.SerializableType}.
+ * mapped via the {@link SerializableTypeImpl}.
  *
  * @author Steve Ebersole
  */

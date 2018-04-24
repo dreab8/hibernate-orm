@@ -13,14 +13,14 @@ package org.hibernate.type;
  * @author Gavin King
  * @author Steve Ebersole
  */
-public class ObjectType extends AnyType implements BasicType {
+public class ObjectType extends AnyType {
 	/**
 	 * Singleton access
 	 */
 	public static final ObjectType INSTANCE = new ObjectType();
 
 	private ObjectType() {
-		super( StringType.INSTANCE, SerializableType.INSTANCE );
+		super( StringTypeImpl.INSTANCE, SerializableTypeImpl.INSTANCE );
 	}
 
 	@Override
@@ -28,7 +28,6 @@ public class ObjectType extends AnyType implements BasicType {
 		return "object";
 	}
 
-	@Override
 	public String[] getRegistrationKeys() {
 		return new String[] { getName(), Object.class.getName() };
 	}

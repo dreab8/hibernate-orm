@@ -45,16 +45,16 @@ import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.mapping.SimpleValue;
 import org.hibernate.mapping.Table;
-import org.hibernate.type.CharacterArrayClobType;
-import org.hibernate.type.CharacterArrayNClobType;
-import org.hibernate.type.CharacterNCharType;
+import org.hibernate.type.CharacterArrayClobTypeImpl;
+import org.hibernate.type.CharacterArrayNClobTypeImpl;
+import org.hibernate.type.CharacterNCharTypeImpl;
 import org.hibernate.type.EnumType;
-import org.hibernate.type.PrimitiveCharacterArrayClobType;
-import org.hibernate.type.PrimitiveCharacterArrayNClobType;
-import org.hibernate.type.SerializableToBlobType;
+import org.hibernate.type.PrimitiveCharacterArrayClobTypeImpl;
+import org.hibernate.type.PrimitiveCharacterArrayNClobTypeImpl;
+import org.hibernate.type.SerializableToBlobTypeImpl;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.StringNVarcharType;
-import org.hibernate.type.WrappedMaterializedBlobType;
+import org.hibernate.type.StringNVarcharTypeImpl;
+import org.hibernate.type.WrappedMaterializedBlobTypeImpl;
 import org.hibernate.usertype.DynamicParameterizedType;
 
 import org.jboss.logging.Logger;
@@ -231,16 +231,16 @@ public class SimpleValueBinder {
 			}
 			else if ( buildingContext.getBootstrapContext().getReflectionManager().equals( returnedClassOrElement, Character.class ) && isArray ) {
 				type = isNationalized
-						? CharacterArrayNClobType.class.getName()
-						: CharacterArrayClobType.class.getName();
+						? CharacterArrayNClobTypeImpl.class.getName()
+						: CharacterArrayClobTypeImpl.class.getName();
 			}
 			else if ( buildingContext.getBootstrapContext().getReflectionManager().equals( returnedClassOrElement, char.class ) && isArray ) {
 				type = isNationalized
-						? PrimitiveCharacterArrayNClobType.class.getName()
-						: PrimitiveCharacterArrayClobType.class.getName();
+						? PrimitiveCharacterArrayNClobTypeImpl.class.getName()
+						: PrimitiveCharacterArrayClobTypeImpl.class.getName();
 			}
 			else if ( buildingContext.getBootstrapContext().getReflectionManager().equals( returnedClassOrElement, Byte.class ) && isArray ) {
-				type = WrappedMaterializedBlobType.class.getName();
+				type = WrappedMaterializedBlobTypeImpl.class.getName();
 			}
 			else if ( buildingContext.getBootstrapContext().getReflectionManager().equals( returnedClassOrElement, byte.class ) && isArray ) {
 				type = StandardBasicTypes.MATERIALIZED_BLOB.getName();
@@ -248,9 +248,9 @@ public class SimpleValueBinder {
 			else if ( buildingContext.getBootstrapContext().getReflectionManager()
 					.toXClass( Serializable.class )
 					.isAssignableFrom( returnedClassOrElement ) ) {
-				type = SerializableToBlobType.class.getName();
+				type = SerializableToBlobTypeImpl.class.getName();
 				typeParameters.setProperty(
-						SerializableToBlobType.CLASS_NAME,
+						SerializableToBlobTypeImpl.CLASS_NAME,
 						returnedClassOrElement.getName()
 				);
 			}
@@ -278,18 +278,18 @@ public class SimpleValueBinder {
 		else if ( isNationalized ) {
 			if ( buildingContext.getBootstrapContext().getReflectionManager().equals( returnedClassOrElement, String.class ) ) {
 				// nvarchar
-				type = StringNVarcharType.INSTANCE.getName();
+				type = StringNVarcharTypeImpl.INSTANCE.getName();
 				explicitType = type;
 			}
 			else if ( buildingContext.getBootstrapContext().getReflectionManager().equals( returnedClassOrElement, Character.class ) ||
 					buildingContext.getBootstrapContext().getReflectionManager().equals( returnedClassOrElement, char.class ) ) {
 				if ( isArray ) {
 					// nvarchar
-					type = StringNVarcharType.INSTANCE.getName();
+					type = StringNVarcharTypeImpl.INSTANCE.getName();
 				}
 				else {
 					// nchar
-					type = CharacterNCharType.INSTANCE.getName();
+					type = CharacterNCharTypeImpl.INSTANCE.getName();
 				}
 				explicitType = type;
 			}

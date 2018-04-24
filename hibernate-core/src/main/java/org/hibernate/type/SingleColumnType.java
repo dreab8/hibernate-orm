@@ -12,13 +12,14 @@ import java.sql.SQLException;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * Provide convenient methods for binding and extracting values for use with {@link BasicType}.
  *
  * @author Steve Ebersole
  */
-public interface SingleColumnType<T> extends Type {
+public interface SingleColumnType<T> extends Type<T> {
 
 	int sqlType();
 

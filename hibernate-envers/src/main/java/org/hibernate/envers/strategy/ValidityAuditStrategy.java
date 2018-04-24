@@ -17,7 +17,6 @@ import java.util.Map;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.envers.RevisionType;
 import org.hibernate.envers.configuration.internal.AuditEntitiesConfiguration;
@@ -37,8 +36,8 @@ import org.hibernate.sql.Update;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.ComponentType;
 import org.hibernate.type.MapType;
-import org.hibernate.type.MaterializedClobType;
-import org.hibernate.type.MaterializedNClobType;
+import org.hibernate.type.MaterializedClobTypeImpl;
+import org.hibernate.type.MaterializedNClobTypeImpl;
 import org.hibernate.type.Type;
 
 import static org.hibernate.envers.internal.entities.mapper.relation.query.QueryConstants.MIDDLE_ENTITY_ALIAS;
@@ -294,7 +293,7 @@ public class ValidityAuditStrategy implements AuditStrategy {
 				// required for Embeddables
 				return true;
 			}
-			else if ( collectionElementType instanceof MaterializedClobType || collectionElementType instanceof MaterializedNClobType ) {
+			else if ( collectionElementType instanceof MaterializedClobTypeImpl || collectionElementType instanceof MaterializedNClobTypeImpl ) {
 				// for Map<> using @Lob annotations
 				return collectionType instanceof MapType;
 			}

@@ -6,7 +6,7 @@
  */
 package org.hibernate.boot.spi;
 
-import org.hibernate.type.BasicType;
+import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.CompositeCustomType;
 import org.hibernate.type.CustomType;
 import org.hibernate.usertype.CompositeUserType;

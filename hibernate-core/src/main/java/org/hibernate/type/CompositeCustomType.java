@@ -34,7 +34,7 @@ import org.hibernate.usertype.LoggableUserType;
  * @author Gavin King
  * @author Steve Ebersole
  */
-public class CompositeCustomType extends AbstractType implements CompositeType, BasicType {
+public class CompositeCustomType extends AbstractType implements CompositeType {
 	private final CompositeUserType userType;
 	private final String[] registrationKeys;
 	private final String name;
@@ -66,7 +66,6 @@ public class CompositeCustomType extends AbstractType implements CompositeType, 
 		return userType.isMutable();
 	}
 
-	@Override
 	public String[] getRegistrationKeys() {
 		return registrationKeys;
 	}

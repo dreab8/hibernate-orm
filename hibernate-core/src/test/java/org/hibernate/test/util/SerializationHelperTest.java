@@ -15,13 +15,15 @@ import org.junit.Test;
 import org.hibernate.LockMode;
 import org.hibernate.bytecode.spi.ByteCodeHelper;
 import org.hibernate.internal.util.SerializationHelper;
+import org.hibernate.type.SerializableTypeImpl;
+
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 
 /**
- * This is basically a test to assert the expectations of {@link org.hibernate.type.SerializableType}
+ * This is basically a test to assert the expectations of {@link SerializableTypeImpl}
  * in regards to deserializing bytes from second level caches.
  *
  * @author Steve Ebersole
@@ -47,10 +49,10 @@ public class SerializationHelperTest extends BaseUnitTestCase {
 		Class clazz = Thread.currentThread().getContextClassLoader().loadClass( "org.hibernate.test.util.SerializableThing" );
 		Object instance = clazz.newInstance();
 
-		// SerializableType.toBytes() logic, as called from SerializableType.disassemble()
+		// SerializableTypeImpl.toBytes() logic, as called from SerializableTypeImpl.disassemble()
 		byte[] bytes = SerializationHelper.serialize( (Serializable) instance );
 
-		// SerializableType.fromBytes() logic, as called from SerializableType.assemble
+		// SerializableTypeImpl.fromBytes() logic, as called from SerializableTypeImpl.assemble
 		//		NOTE : specifically we use Serializable.class.getClassLoader for the CL in many cases
 		//			which are the problematic cases
 		Object instance2 = SerializationHelper.deserialize( bytes, Serializable.class.getClassLoader() );
@@ -67,10 +69,10 @@ public class SerializationHelperTest extends BaseUnitTestCase {
 			instance.getClass().getClassLoader() 
 		);
 
-		// SerializableType.toBytes() logic, as called from SerializableType.disassemble()
+		// SerializableTypeImpl.toBytes() logic, as called from SerializableTypeImpl.disassemble()
 		byte[] bytes = SerializationHelper.serialize( (Serializable) instance );
 
-		// SerializableType.fromBytes() logic, as called from SerializableType.assemble
+		// SerializableTypeImpl.fromBytes() logic, as called from SerializableTypeImpl.assemble
 		// NOTE : specifically we use custom so that LockType.class is not found
 		//        until the 3rd loader (because loader1 == loader2, the custom classloader)
 		Object instance2 = SerializationHelper.deserialize( bytes, custom );

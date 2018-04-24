@@ -12,8 +12,8 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.criterion.Property;
 import org.hibernate.dialect.Oracle8iDialect;
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
-import org.hibernate.type.TextType;
+import org.hibernate.type.TextTypeImpl;
+import org.hibernate.type.internal.BasicTypeImpl;
 import org.hibernate.type.descriptor.sql.spi.ClobSqlDescriptor;
 
 import org.hibernate.testing.TestForIssue;
@@ -35,13 +35,13 @@ import static org.junit.Assert.assertTrue;
  * @author Gavin King
  */
 public class OneToOneFormulaTest extends BaseCoreFunctionalTestCase {
-	private static class TextAsMaterializedClobType extends AbstractSingleColumnStandardBasicType<String> {
-		public final static TextAsMaterializedClobType INSTANCE = new TextAsMaterializedClobType();
-		public TextAsMaterializedClobType() {
-			super( ClobSqlDescriptor.DEFAULT, TextType.INSTANCE.getJavaTypeDescriptor() );
+	private static class TextAsMaterializedClobTypeImpl extends BasicTypeImpl<String> {
+		public final static TextAsMaterializedClobTypeImpl INSTANCE = new TextAsMaterializedClobTypeImpl();
+		public TextAsMaterializedClobTypeImpl() {
+			super( ClobSqlDescriptor.DEFAULT, TextTypeImpl.INSTANCE.getJavaTypeDescriptor() );
 		}
 		public String getName() {
-			return TextType.INSTANCE.getName();
+			return TextTypeImpl.INSTANCE.getName();
 		}
 	}
 
@@ -51,7 +51,7 @@ public class OneToOneFormulaTest extends BaseCoreFunctionalTestCase {
 
 	public void configure(Configuration cfg) {
 		if ( Oracle8iDialect.class.isInstance( getDialect() ) ) {
-			cfg.registerTypeOverride( TextAsMaterializedClobType.INSTANCE );
+			cfg.registerTypeOverride( TextAsMaterializedClobTypeImpl.INSTANCE );
 		}
 		cfg.setProperty(Environment.USE_SECOND_LEVEL_CACHE, "false");
 		cfg.setProperty(Environment.GENERATE_STATISTICS, "true");

@@ -13,12 +13,10 @@ import javax.persistence.Id;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.userguide.collections.type.CommaDelimitedStringsType;
+import org.hibernate.userguide.collections.type.CommaDelimitedStringsTypeImpl;
 
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 import org.junit.Test;
-
-import org.jboss.logging.Logger;
 
 import static org.hibernate.testing.transaction.TransactionUtil.doInHibernate;
 
@@ -54,7 +52,7 @@ public class BasicTypeCollectionTest extends BaseCoreFunctionalTestCase {
 	protected Configuration constructAndConfigureConfiguration() {
 		Configuration configuration = super.constructAndConfigureConfiguration();
 		configuration.registerTypeContributor( (typeContributions, serviceRegistry) -> {
-			typeContributions.contributeType( new CommaDelimitedStringsType() );
+			typeContributions.contributeType( new CommaDelimitedStringsTypeImpl() );
 		} );
 		return configuration;
 	}

@@ -13,16 +13,16 @@ import java.time.ZonedDateTime;
 import java.util.Calendar;
 import javax.persistence.TemporalType;
 
-import org.hibernate.type.BasicType;
-import org.hibernate.type.CalendarDateType;
-import org.hibernate.type.CalendarTimeType;
-import org.hibernate.type.CalendarType;
-import org.hibernate.type.InstantType;
-import org.hibernate.type.OffsetDateTimeType;
-import org.hibernate.type.OffsetTimeType;
-import org.hibernate.type.TimestampType;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.CalendarDateTypeImpl;
+import org.hibernate.type.CalendarTimeTypeImpl;
+import org.hibernate.type.CalendarTypeImpl;
+import org.hibernate.type.InstantTypeImpl;
+import org.hibernate.type.OffsetDateTimeTypeImpl;
+import org.hibernate.type.OffsetTimeTypeImpl;
+import org.hibernate.type.TimestampTypeImpl;
 import org.hibernate.type.Type;
-import org.hibernate.type.ZonedDateTimeType;
+import org.hibernate.type.ZonedDateTimeTypeImpl;
 
 /**
  * @author Steve Ebersole
@@ -90,27 +90,27 @@ public class BindingTypeHelper {
 		}
 
 		if ( Calendar.class.isAssignableFrom( javaType ) ) {
-			return CalendarType.INSTANCE;
+			return CalendarTypeImpl.INSTANCE;
 		}
 
 		if ( java.util.Date.class.isAssignableFrom( javaType ) ) {
-			return TimestampType.INSTANCE;
+			return TimestampTypeImpl.INSTANCE;
 		}
 
 		if ( Instant.class.isAssignableFrom( javaType ) ) {
-			return InstantType.INSTANCE;
+			return InstantTypeImpl.INSTANCE;
 		}
 
 		if ( OffsetDateTime.class.isAssignableFrom( javaType ) ) {
-			return OffsetDateTimeType.INSTANCE;
+			return OffsetDateTimeTypeImpl.INSTANCE;
 		}
 
 		if ( ZonedDateTime.class.isAssignableFrom( javaType ) ) {
-			return ZonedDateTimeType.INSTANCE;
+			return ZonedDateTimeTypeImpl.INSTANCE;
 		}
 
 		if ( OffsetTime.class.isAssignableFrom( javaType ) ) {
-			return OffsetTimeType.INSTANCE;
+			return OffsetTimeTypeImpl.INSTANCE;
 		}
 
 		throw new IllegalArgumentException( "Unsure how to handle given Java type [" + javaType.getName() + "] as TemporalType#TIMESTAMP" );
@@ -126,23 +126,23 @@ public class BindingTypeHelper {
 		}
 
 		if ( Calendar.class.isAssignableFrom( javaType ) ) {
-			return CalendarDateType.INSTANCE;
+			return CalendarDateTypeImpl.INSTANCE;
 		}
 
 		if ( java.util.Date.class.isAssignableFrom( javaType ) ) {
-			return TimestampType.INSTANCE;
+			return TimestampTypeImpl.INSTANCE;
 		}
 
 		if ( Instant.class.isAssignableFrom( javaType ) ) {
-			return OffsetDateTimeType.INSTANCE;
+			return OffsetDateTimeTypeImpl.INSTANCE;
 		}
 
 		if ( OffsetDateTime.class.isAssignableFrom( javaType ) ) {
-			return OffsetDateTimeType.INSTANCE;
+			return OffsetDateTimeTypeImpl.INSTANCE;
 		}
 
 		if ( ZonedDateTime.class.isAssignableFrom( javaType ) ) {
-			return ZonedDateTimeType.INSTANCE;
+			return ZonedDateTimeTypeImpl.INSTANCE;
 		}
 
 		throw new IllegalArgumentException( "Unsure how to handle given Java type [" + javaType.getName() + "] as TemporalType#DATE" );
@@ -150,11 +150,11 @@ public class BindingTypeHelper {
 
 	public BasicType resolveTimeTemporalTypeVariant(Class javaType, Type baseType) {
 		if ( Calendar.class.isAssignableFrom( javaType ) ) {
-			return CalendarTimeType.INSTANCE;
+			return CalendarTimeTypeImpl.INSTANCE;
 		}
 
 		if ( java.util.Date.class.isAssignableFrom( javaType ) ) {
-			return TimestampType.INSTANCE;
+			return TimestampTypeImpl.INSTANCE;
 		}
 
 		throw new IllegalArgumentException( "Unsure how to handle given Java type [" + javaType.getName() + "] as TemporalType#TIME" );

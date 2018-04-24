@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.AbstractSessionImpl;
-import org.hibernate.type.UUIDCharType;
+import org.hibernate.type.UUIDCharTypeImpl;
 
 /**
  * @author Steve Ebersole
@@ -33,7 +33,7 @@ public class Helper {
 		if ( ! AbstractSessionImpl.class.isInstance( session ) ) {
 			throw new HibernateException( "Only available on SessionImpl instances" );
 		}
-		UUIDCharType.INSTANCE.set( ps, session.getSessionIdentifier(), position, session );
+		UUIDCharTypeImpl.INSTANCE.set( ps, session.getSessionIdentifier(), position, session );
 	}
 
 	public void cleanUpRows(String tableName, SharedSessionContractImplementor session) {

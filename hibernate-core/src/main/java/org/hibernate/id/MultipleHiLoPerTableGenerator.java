@@ -41,8 +41,8 @@ import org.hibernate.mapping.Column;
 import org.hibernate.mapping.PrimaryKey;
 import org.hibernate.mapping.Table;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.LongType;
-import org.hibernate.type.StringType;
+import org.hibernate.type.LongTypeImpl;
+import org.hibernate.type.StringTypeImpl;
 import org.hibernate.type.Type;
 
 /**
@@ -325,7 +325,7 @@ public class MultipleHiLoPerTableGenerator implements PersistentIdentifierGenera
 					database,
 					table,
 					segmentColumnName,
-					StringType.INSTANCE,
+					StringTypeImpl.INSTANCE,
 					database.getDialect().getTypeName( Types.VARCHAR, keySize, 0, 0 )
 			);
 			pkColumn.setNullable( false );
@@ -336,7 +336,7 @@ public class MultipleHiLoPerTableGenerator implements PersistentIdentifierGenera
 					database,
 					table,
 					valueColumnName,
-					LongType.INSTANCE
+					LongTypeImpl.INSTANCE
 			);
 			table.addColumn( valueColumn );
 		}

@@ -9,11 +9,9 @@ package org.hibernate.test.type.contributor;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.query.Query;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
@@ -38,10 +36,10 @@ public class ArrayTypeContributorTest extends BaseCoreFunctionalTestCase {
 	protected Configuration constructAndConfigureConfiguration() {
 		Configuration configuration = super.constructAndConfigureConfiguration();
 		configuration.registerTypeContributor( (typeContributions, serviceRegistry) -> {
-			typeContributions.contributeType( ArrayType.INSTANCE,
-				new String[] {
+			typeContributions.contributeType( ArrayTypeImpl.INSTANCE,
+											  new String[] {
 					  MyList.class.getName(),
-					  ArrayType.INSTANCE.getName()
+					  ArrayTypeImpl.INSTANCE.getName()
 				}
 			);
 		} );
@@ -61,7 +59,7 @@ public class ArrayTypeContributorTest extends BaseCoreFunctionalTestCase {
 		doInHibernate( this::sessionFactory, session -> {
 			List<CorporateUser> users = session.createQuery(
 				"select u from CorporateUser u where u.emailAddresses = :address", CorporateUser.class )
-			.setParameter( "address", new Array(), ArrayType.INSTANCE )
+			.setParameter( "address", new Array(), ArrayTypeImpl.INSTANCE )
 			.getResultList();
 
 			assertTrue( users.isEmpty() );

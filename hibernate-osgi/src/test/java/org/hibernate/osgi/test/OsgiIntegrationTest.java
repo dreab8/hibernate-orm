@@ -31,7 +31,7 @@ import org.hibernate.osgi.test.client.SomeService;
 import org.hibernate.osgi.test.client.TestIntegrator;
 import org.hibernate.osgi.test.client.TestStrategyRegistrationProvider;
 import org.hibernate.osgi.test.client.TestTypeContributor;
-import org.hibernate.type.BasicType;
+import org.hibernate.type.spi.BasicType;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;

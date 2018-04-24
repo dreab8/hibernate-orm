@@ -12,7 +12,7 @@ import org.hibernate.annotations.TypeDef;
  * @author Vlad Mihalcea
  */
 @Entity(name = "Person")
-@TypeDef( name = "comma_delimited_string_map", typeClass = CommaDelimitedStringsMapType.class)
+@TypeDef( name = "comma_delimited_string_map", typeClass = CommaDelimitedStringsMapTypeImpl.class)
 public class PhoneBook {
 
 	@Id

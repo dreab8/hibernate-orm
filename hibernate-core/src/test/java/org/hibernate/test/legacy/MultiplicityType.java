@@ -16,12 +16,11 @@ import java.sql.SQLException;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.engine.internal.ForeignKeys;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.IntegerType;
+import org.hibernate.type.IntegerTypeImpl;
 import org.hibernate.type.ManyToOneType;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.StringType;
+import org.hibernate.type.StringTypeImpl;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeFactory;
 import org.hibernate.type.spi.TypeConfiguration;
@@ -33,11 +32,11 @@ public class MultiplicityType implements CompositeUserType {
 			"count", "glarch"
 	};
 	private static final int[] SQL_TYPES = new int[] {
-			IntegerType.INSTANCE.getSqlTypeDescriptor().getSqlType(),
-			StringType.INSTANCE.getSqlTypeDescriptor().getSqlType()
+			IntegerTypeImpl.INSTANCE.getSqlTypeDescriptor().getSqlType(),
+			StringTypeImpl.INSTANCE.getSqlTypeDescriptor().getSqlType()
 	};
 	private static final Type[] TYPES = new Type[] {
-			IntegerType.INSTANCE,
+			IntegerTypeImpl.INSTANCE,
 			new ManyToOneType(
 					new TypeFactory.TypeScope() {
 						@Override
@@ -106,7 +105,7 @@ public class MultiplicityType implements CompositeUserType {
 	public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
 			throws HibernateException, SQLException {
 
-		Integer c = IntegerType.INSTANCE.nullSafeGet( rs, names[0], session );
+		Integer c = IntegerTypeImpl.INSTANCE.nullSafeGet( rs, names[0], session );
 		GlarchProxy g = (GlarchProxy) ( (Session) session ).getTypeHelper().entity( Glarch.class ).nullSafeGet(
 				rs,
 				names[1],

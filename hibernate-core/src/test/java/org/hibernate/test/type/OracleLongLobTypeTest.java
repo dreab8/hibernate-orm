@@ -22,14 +22,13 @@ import org.hibernate.dialect.Oracle10gDialect;
 import org.hibernate.dialect.Oracle12cDialect;
 import org.hibernate.dialect.Oracle8iDialect;
 import org.hibernate.dialect.Oracle9iDialect;
-import org.hibernate.internal.util.config.ConfigurationHelper;
 import org.hibernate.mapping.PersistentClass;
-import org.hibernate.type.BinaryType;
-import org.hibernate.type.BlobType;
-import org.hibernate.type.CharArrayType;
-import org.hibernate.type.ClobType;
-import org.hibernate.type.MaterializedBlobType;
-import org.hibernate.type.PrimitiveCharacterArrayClobType;
+import org.hibernate.type.BinaryTypeImpl;
+import org.hibernate.type.BlobTypeImpl;
+import org.hibernate.type.CharArrayTypeImpl;
+import org.hibernate.type.ClobTypeImpl;
+import org.hibernate.type.MaterializedBlobTypeImpl;
+import org.hibernate.type.PrimitiveCharacterArrayClobTypeImpl;
 import org.hibernate.type.Type;
 
 import org.hibernate.testing.TestForIssue;
@@ -48,39 +47,39 @@ import static org.junit.Assert.assertThat;
 public class OracleLongLobTypeTest extends BaseUnitTestCase {
 	@Test
 	public void testOracle8() {
-		check( Oracle8iDialect.class, Primitives.class, BinaryType.class, CharArrayType.class );
-		check( Oracle8iDialect.class, LobPrimitives.class, MaterializedBlobType.class, PrimitiveCharacterArrayClobType.class );
-		check( Oracle8iDialect.class, LobLocators.class, BlobType.class, ClobType.class );
+		check( Oracle8iDialect.class, Primitives.class, BinaryTypeImpl.class, CharArrayTypeImpl.class );
+		check( Oracle8iDialect.class, LobPrimitives.class, MaterializedBlobTypeImpl.class, PrimitiveCharacterArrayClobTypeImpl.class );
+		check( Oracle8iDialect.class, LobLocators.class, BlobTypeImpl.class, ClobTypeImpl.class );
 	}
 
 	@Test
 	public void testOracle9() {
-		check( Oracle9iDialect.class, Primitives.class, BinaryType.class, CharArrayType.class );
-		check( Oracle9iDialect.class, LobPrimitives.class, MaterializedBlobType.class, PrimitiveCharacterArrayClobType.class );
-		check( Oracle9iDialect.class, LobLocators.class, BlobType.class, ClobType.class );
+		check( Oracle9iDialect.class, Primitives.class, BinaryTypeImpl.class, CharArrayTypeImpl.class );
+		check( Oracle9iDialect.class, LobPrimitives.class, MaterializedBlobTypeImpl.class, PrimitiveCharacterArrayClobTypeImpl.class );
+		check( Oracle9iDialect.class, LobLocators.class, BlobTypeImpl.class, ClobTypeImpl.class );
 	}
 
 	@Test
 	public void testOracle10() {
-		check( Oracle10gDialect.class, Primitives.class, BinaryType.class, CharArrayType.class );
-		check( Oracle10gDialect.class, LobPrimitives.class, MaterializedBlobType.class, PrimitiveCharacterArrayClobType.class );
-		check( Oracle10gDialect.class, LobLocators.class, BlobType.class, ClobType.class );
+		check( Oracle10gDialect.class, Primitives.class, BinaryTypeImpl.class, CharArrayTypeImpl.class );
+		check( Oracle10gDialect.class, LobPrimitives.class, MaterializedBlobTypeImpl.class, PrimitiveCharacterArrayClobTypeImpl.class );
+		check( Oracle10gDialect.class, LobLocators.class, BlobTypeImpl.class, ClobTypeImpl.class );
 	}
 
 	@Test
 	@TestForIssue( jiraKey = "HHH-10345" )
 	public void testOracle12() {
-		check( Oracle12cDialect.class, Primitives.class, MaterializedBlobType.class, CharArrayType.class );
-		check( Oracle12cDialect.class, LobPrimitives.class, MaterializedBlobType.class, PrimitiveCharacterArrayClobType.class );
-		check( Oracle12cDialect.class, LobLocators.class, BlobType.class, ClobType.class );
+		check( Oracle12cDialect.class, Primitives.class, MaterializedBlobTypeImpl.class, CharArrayTypeImpl.class );
+		check( Oracle12cDialect.class, LobPrimitives.class, MaterializedBlobTypeImpl.class, PrimitiveCharacterArrayClobTypeImpl.class );
+		check( Oracle12cDialect.class, LobLocators.class, BlobTypeImpl.class, ClobTypeImpl.class );
 	}
 
 	@Test
 	@TestForIssue( jiraKey = "HHH-10345" )
 	public void testOracle12PreferLongRaw() {
-		check( Oracle12cDialect.class, Primitives.class, BinaryType.class, CharArrayType.class, true );
-		check( Oracle12cDialect.class, LobPrimitives.class, MaterializedBlobType.class, PrimitiveCharacterArrayClobType.class, true );
-		check( Oracle12cDialect.class, LobLocators.class, BlobType.class, ClobType.class, true );
+		check( Oracle12cDialect.class, Primitives.class, BinaryTypeImpl.class, CharArrayTypeImpl.class, true );
+		check( Oracle12cDialect.class, LobPrimitives.class, MaterializedBlobTypeImpl.class, PrimitiveCharacterArrayClobTypeImpl.class, true );
+		check( Oracle12cDialect.class, LobLocators.class, BlobTypeImpl.class, ClobTypeImpl.class, true );
 	}
 
 	private void check(

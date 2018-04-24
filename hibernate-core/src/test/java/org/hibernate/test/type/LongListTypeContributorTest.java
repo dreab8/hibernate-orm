@@ -19,7 +19,7 @@ import org.hibernate.boot.model.TypeContributor;
 import org.hibernate.jpa.boot.spi.TypeContributorList;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
+import org.hibernate.type.internal.BasicTypeImpl;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
@@ -145,18 +145,18 @@ public class LongListTypeContributorTest extends BaseEntityManagerFunctionalTest
 		@Override
 		public void contribute(TypeContributions typeContributions, ServiceRegistry serviceRegistry) {
 //			JavaTypeDescriptorRegistry.INSTANCE.addDescriptor( StringifiedCollectionJavaTypeDescriptor.INSTANCE );
-			typeContributions.contributeType( StringifiedCollectionType.INSTANCE );
+			typeContributions.contributeType( StringifiedCollectionTypeImpl.INSTANCE );
 		}
 
-		private static class StringifiedCollectionType
-				extends AbstractSingleColumnStandardBasicType<LongList> {
+		private static class StringifiedCollectionTypeImpl
+				extends BasicTypeImpl<LongList> {
 
 			private final String[] regKeys;
 			private final String name;
 
-			public static final StringifiedCollectionType INSTANCE = new StringifiedCollectionType();
+			public static final StringifiedCollectionTypeImpl INSTANCE = new StringifiedCollectionTypeImpl();
 
-			public StringifiedCollectionType() {
+			public StringifiedCollectionTypeImpl() {
 				super( LongVarcharSqlDescriptor.INSTANCE,
 					   StringifiedCollectionJavaTypeDescriptor.INSTANCE );
 				regKeys = new String[]{ LongList.class.getName() };

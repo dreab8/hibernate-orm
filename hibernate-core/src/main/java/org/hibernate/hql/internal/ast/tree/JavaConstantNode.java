@@ -16,7 +16,7 @@ import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.type.LiteralType;
 import org.hibernate.type.Type;
-import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
+import org.hibernate.type.descriptor.converter.AttributeConverterTypeImplAdapter;
 
 /**
  * A node representing a static Java constant.
@@ -73,8 +73,8 @@ public class JavaConstantNode extends Node implements ExpectedTypeAwareNode, Ses
 				final Dialect dialect = factory.getDialect();
 				return literalType.objectToSQLString( constantValue, dialect );
 			}
-			else if ( AttributeConverterTypeAdapter.class.isInstance( type ) ) {
-				final AttributeConverterTypeAdapter converterType = (AttributeConverterTypeAdapter) type;
+			else if ( AttributeConverterTypeImplAdapter.class.isInstance( type ) ) {
+				final AttributeConverterTypeImplAdapter converterType = (AttributeConverterTypeImplAdapter) type;
 				if ( !converterType.getModelType().isInstance( constantValue ) ) {
 					throw new QueryException(
 							String.format(

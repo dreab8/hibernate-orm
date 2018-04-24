@@ -8,7 +8,7 @@ package org.hibernate.test.annotations.lob;
 
 import org.hibernate.Session;
 import org.hibernate.mapping.PersistentClass;
-import org.hibernate.type.SerializableToBlobType;
+import org.hibernate.type.SerializableToBlobTypeImpl;
 import org.hibernate.type.Type;
 
 import org.hibernate.testing.DialectChecks;
@@ -19,7 +19,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test type definition for SerializableToBlobType
+ * Test type definition for SerializableToBlobTypeImpl
  * 
  * @author Janario Oliveira
  */
@@ -29,25 +29,25 @@ public class SerializableToBlobTypeTest extends BaseNonConfigCoreFunctionalTestC
 	public void testTypeDefinition() {
 		PersistentClass pc = metadata().getEntityBinding( EntitySerialize.class.getName() );
 
-		// explicitLob of SerializableToBlobType
+		// explicitLob of SerializableToBlobTypeImpl
 		Type explicitLobType = pc.getProperty( "explicitLob" ).getType();
 		assertEquals( ExplicitSerializable.class, explicitLobType.getReturnedClass() );
-		assertEquals( SerializableToBlobType.class.getName(), explicitLobType.getName() );
+		assertEquals( SerializableToBlobTypeImpl.class.getName(), explicitLobType.getName() );
 
-		// explicit of ExplicitSerializableType
+		// explicit of ExplicitSerializableTypeImpl
 		Type explicitType = pc.getProperty( "explicit" ).getType();
 		assertEquals( ExplicitSerializable.class, explicitType.getReturnedClass() );
-		assertEquals( ExplicitSerializableType.class.getName(), explicitType.getName() );
+		assertEquals( ExplicitSerializableTypeImpl.class.getName(), explicitType.getName() );
 
-		// implicit of ImplicitSerializableType
+		// implicit of ImplicitSerializableTypeImpl
 		Type implicitType = pc.getProperty( "implicit" ).getType();
 		assertEquals( ImplicitSerializable.class, implicitType.getReturnedClass() );
-		assertEquals( ImplicitSerializableType.class.getName(), implicitType.getName() );
+		assertEquals( ImplicitSerializableTypeImpl.class.getName(), implicitType.getName() );
 
-		// explicitOverridingImplicit ExplicitSerializableType overrides ImplicitSerializableType
+		// explicitOverridingImplicit ExplicitSerializableTypeImpl overrides ImplicitSerializableTypeImpl
 		Type overrideType = pc.getProperty( "explicitOverridingImplicit" ).getType();
 		assertEquals( ImplicitSerializable.class, overrideType.getReturnedClass() );
-		assertEquals( ExplicitSerializableType.class.getName(), overrideType.getName() );
+		assertEquals( ExplicitSerializableTypeImpl.class.getName(), overrideType.getName() );
 	}
 
 	@Test

@@ -36,7 +36,7 @@ public class BitSetTypeTest extends BaseCoreFunctionalTestCase {
 		Configuration configuration = super.constructAndConfigureConfiguration();
 		//tag::basic-custom-type-register-BasicType-example[]
 		configuration.registerTypeContributor( (typeContributions, serviceRegistry) -> {
-			typeContributions.contributeType( BitSetType.INSTANCE );
+			typeContributions.contributeType( BitSetTypeImpl.INSTANCE );
 		} );
 		//end::basic-custom-type-register-BasicType-example[]
 		return configuration;
@@ -45,7 +45,7 @@ public class BitSetTypeTest extends BaseCoreFunctionalTestCase {
 	@Test
 	public void test() {
 
-		//tag::basic-custom-type-BitSetType-persistence-example[]
+		//tag::basic-custom-type-BitSetTypeImpl-persistence-example[]
 		BitSet bitSet = BitSet.valueOf( new long[] {1, 2, 3} );
 
 		doInHibernate( this::sessionFactory, session -> {
@@ -59,10 +59,10 @@ public class BitSetTypeTest extends BaseCoreFunctionalTestCase {
 			Product product = session.get( Product.class, 1 );
 			assertEquals(bitSet, product.getBitSet());
 		} );
-		//end::basic-custom-type-BitSetType-persistence-example[]
+		//end::basic-custom-type-BitSetTypeImpl-persistence-example[]
 	}
 
-	//tag::basic-custom-type-BitSetType-mapping-example[]
+	//tag::basic-custom-type-BitSetTypeImpl-mapping-example[]
 	@Entity(name = "Product")
 	public static class Product {
 
@@ -88,5 +88,5 @@ public class BitSetTypeTest extends BaseCoreFunctionalTestCase {
 			this.bitSet = bitSet;
 		}
 	}
-	//end::basic-custom-type-BitSetType-mapping-example[]
+	//end::basic-custom-type-BitSetTypeImpl-mapping-example[]
 }

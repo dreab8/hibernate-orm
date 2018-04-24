@@ -45,7 +45,7 @@ import org.hibernate.type.CollectionType;
 import org.hibernate.type.ComponentType;
 import org.hibernate.type.ManyToOneType;
 import org.hibernate.type.OneToOneType;
-import org.hibernate.type.TimestampType;
+import org.hibernate.type.TimestampTypeImpl;
 import org.hibernate.type.Type;
 
 import org.dom4j.Element;
@@ -189,7 +189,7 @@ public final class AuditMetadataGenerator {
 
 			if ( verEntCfg.isRevisionEndTimestampEnabled() ) {
 				// add a column for the timestamp of the end revision
-				final String revisionInfoTimestampSqlType = TimestampType.INSTANCE.getName();
+				final String revisionInfoTimestampSqlType = TimestampTypeImpl.INSTANCE.getName();
 				final Element timestampProperty = MetadataTools.addProperty(
 						anyMapping,
 						verEntCfg.getRevisionEndTimestampFieldName(),

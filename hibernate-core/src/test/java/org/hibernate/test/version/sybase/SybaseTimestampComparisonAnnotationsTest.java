@@ -17,14 +17,11 @@ import org.junit.Test;
 import org.hibernate.Session;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
-import org.hibernate.annotations.Source;
-import org.hibernate.annotations.SourceType;
-import org.hibernate.annotations.Type;
 import org.hibernate.dialect.SybaseASE15Dialect;
 import org.hibernate.testing.RequiresDialect;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
-import org.hibernate.type.RowVersionType;
+import org.hibernate.type.RowVersionTypeImpl;
 import org.hibernate.type.VersionType;
 
 import static org.junit.Assert.assertSame;
@@ -41,7 +38,7 @@ public class SybaseTimestampComparisonAnnotationsTest extends BaseCoreFunctional
 	public void testComparableTimestamps() {
 		final VersionType versionType =
 				sessionFactory().getEntityPersister( Thing.class.getName() ).getVersionType();
-		assertSame( RowVersionType.INSTANCE, versionType );
+		assertSame( RowVersionTypeImpl.INSTANCE, versionType );
 
 		Session s = openSession();
 		s.getTransaction().begin();

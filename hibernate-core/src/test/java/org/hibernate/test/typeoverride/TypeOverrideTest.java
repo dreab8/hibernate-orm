@@ -38,7 +38,7 @@ public class TypeOverrideTest extends BaseCoreFunctionalTestCase {
 
 	@Override
 	public void configure(Configuration cfg) {
-		cfg.registerTypeOverride( StoredPrefixedStringType.INSTANCE );
+		cfg.registerTypeOverride( StoredPrefixedStringTypeImpl.INSTANCE );
 	}
 
 	@Test
@@ -86,9 +86,9 @@ public class TypeOverrideTest extends BaseCoreFunctionalTestCase {
 
 	@Test
 	public void testDialectWithNonStandardSqlTypeDescriptor() {
-		assertNotSame( VarcharSqlDescriptor.INSTANCE, StoredPrefixedStringType.INSTANCE.getSqlTypeDescriptor() );
+		assertNotSame( VarcharSqlDescriptor.INSTANCE, StoredPrefixedStringTypeImpl.INSTANCE.getSqlTypeDescriptor() );
 		final Dialect dialect = new H2DialectOverridePrefixedVarcharSqlTypeDesc();
-		final SqlTypeDescriptor remapped = remapSqlTypeDescriptor( dialect, StoredPrefixedStringType.PREFIXED_VARCHAR_TYPE_DESCRIPTOR );
+		final SqlTypeDescriptor remapped = remapSqlTypeDescriptor( dialect, StoredPrefixedStringTypeImpl.PREFIXED_VARCHAR_TYPE_DESCRIPTOR );
 		assertSame( VarcharSqlDescriptor.INSTANCE, remapped );
 	}
 
@@ -112,7 +112,7 @@ public class TypeOverrideTest extends BaseCoreFunctionalTestCase {
 		s = openSession();
 		s.getTransaction().begin();
 		e = ( Entity ) s.get( Entity.class, e.getId() );
-		assertFalse( e.getName().startsWith( StoredPrefixedStringType.PREFIX ) );
+		assertFalse( e.getName().startsWith( StoredPrefixedStringTypeImpl.PREFIX ) );
 		assertEquals( "name", e.getName() );
 		s.delete( e );
 		s.getTransaction().commit();
@@ -132,7 +132,7 @@ public class TypeOverrideTest extends BaseCoreFunctionalTestCase {
 		s = openSession();
 		s.getTransaction().begin();
 		e = ( Entity ) s.get( Entity.class, e.getId() );
-		assertFalse( e.getName().startsWith( StoredPrefixedStringType.PREFIX ) );
+		assertFalse( e.getName().startsWith( StoredPrefixedStringTypeImpl.PREFIX ) );
 		assertEquals( "name ", e.getName() );
 		s.getTransaction().commit();
 		s.close();

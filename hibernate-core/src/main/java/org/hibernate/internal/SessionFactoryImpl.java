@@ -122,7 +122,7 @@ import org.hibernate.service.spi.SessionFactoryServiceRegistryFactory;
 import org.hibernate.stat.spi.StatisticsImplementor;
 import org.hibernate.tool.schema.spi.DelayedDropAction;
 import org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator;
-import org.hibernate.type.SerializableType;
+import org.hibernate.type.SerializableTypeImpl;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeResolver;
 
@@ -1081,7 +1081,7 @@ public final class SessionFactoryImpl implements SessionFactoryImplementor {
 	public Type resolveParameterBindType(Class clazz){
 		String typename = clazz.getName();
 		Type type = getTypeResolver().heuristicType( typename );
-		boolean serializable = type != null && type instanceof SerializableType;
+		boolean serializable = type != null && type instanceof SerializableTypeImpl;
 		if ( type == null || serializable ) {
 			try {
 				getMetamodel().entityPersister( clazz.getName() );

@@ -10,9 +10,7 @@ import java.util.BitSet;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.hibernate.cfg.Configuration;
 
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 import org.junit.Test;
@@ -57,7 +55,7 @@ public class BitSetTypeDefTest extends BaseCoreFunctionalTestCase {
 	@TypeDef(
 		name = "bitset",
 		defaultForType = BitSet.class,
-		typeClass = BitSetType.class
+		typeClass = BitSetTypeImpl.class
 	)
 	public static class Product {
 

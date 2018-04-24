@@ -44,7 +44,7 @@ public class CastFunctionTest extends BaseCoreFunctionalTestCase {
 			// using the java class name
 			s.createQuery( "select cast(char(e.theLostNumber) as java.lang.String) from MyEntity e" ).list();
 			// using the fqn Hibernate Type name
-			s.createQuery( "select cast(char(e.theLostNumber) as org.hibernate.type.StringType) from MyEntity e" )
+			s.createQuery( "select cast(char(e.theLostNumber) as org.hibernate.type.StringTypeImpl) from MyEntity e" )
 					.list();
 		}
 		else {
@@ -53,7 +53,7 @@ public class CastFunctionTest extends BaseCoreFunctionalTestCase {
 			// using the java class name
 			s.createQuery( "select cast(e.theLostNumber as java.lang.String) from MyEntity e" ).list();
 			// using the fqn Hibernate Type name
-			s.createQuery( "select cast(e.theLostNumber as org.hibernate.type.StringType) from MyEntity e" )
+			s.createQuery( "select cast(e.theLostNumber as org.hibernate.type.StringTypeImpl) from MyEntity e" )
 					.list();
 		}
 
@@ -73,7 +73,7 @@ public class CastFunctionTest extends BaseCoreFunctionalTestCase {
 		// using the java class name
 		s.createQuery( "select cast(e.theLostNumber as java.lang.Integer) from MyEntity e" ).list();
 		// using the fqn Hibernate Type name
-		s.createQuery( "select cast(e.theLostNumber as org.hibernate.type.IntegerType) from MyEntity e" ).list();
+		s.createQuery( "select cast(e.theLostNumber as org.hibernate.type.IntegerTypeImpl) from MyEntity e" ).list();
 
 		s.getTransaction().commit();
 		s.close();
@@ -89,7 +89,7 @@ public class CastFunctionTest extends BaseCoreFunctionalTestCase {
 		// using the java class name
 		s.createQuery( "select cast(e.theLostNumber as java.lang.Long) from MyEntity e" ).list();
 		// using the fqn Hibernate Type name
-		s.createQuery( "select cast(e.theLostNumber as org.hibernate.type.LongType) from MyEntity e" ).list();
+		s.createQuery( "select cast(e.theLostNumber as org.hibernate.type.LongTypeImpl) from MyEntity e" ).list();
 
 		s.getTransaction().commit();
 		s.close();
@@ -105,7 +105,7 @@ public class CastFunctionTest extends BaseCoreFunctionalTestCase {
 		// using the java class name
 		s.createQuery( "select cast(e.theLostNumber as java.lang.Float) from MyEntity e" ).list();
 		// using the fqn Hibernate Type name
-		s.createQuery( "select cast(e.theLostNumber as org.hibernate.type.FloatType) from MyEntity e" ).list();
+		s.createQuery( "select cast(e.theLostNumber as org.hibernate.type.FloatTypeImpl) from MyEntity e" ).list();
 
 		s.getTransaction().commit();
 		s.close();

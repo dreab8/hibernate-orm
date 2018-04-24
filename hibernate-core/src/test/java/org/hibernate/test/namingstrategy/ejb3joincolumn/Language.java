@@ -38,7 +38,7 @@ public class Language {
 
 //	@Column(unique = true)
 //	@Lob
-//	@Type(type = "org.hibernate.type.TextType")
+//	@Type(type = "org.hibernate.type.TextTypeImpl")
 	private String name;
 
 	@ManyToOne(optional = true)

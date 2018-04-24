@@ -11,38 +11,40 @@ import org.hibernate.internal.SessionImpl;
 import org.hibernate.internal.util.SerializationHelper;
 import org.hibernate.internal.util.collections.ArrayHelper;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
-import org.hibernate.type.BigDecimalType;
-import org.hibernate.type.BigIntegerType;
-import org.hibernate.type.BinaryType;
-import org.hibernate.type.BooleanType;
-import org.hibernate.type.ByteType;
-import org.hibernate.type.CalendarDateType;
-import org.hibernate.type.CalendarType;
-import org.hibernate.type.CharArrayType;
-import org.hibernate.type.CharacterArrayType;
-import org.hibernate.type.CharacterType;
-import org.hibernate.type.ClassType;
-import org.hibernate.type.CurrencyType;
-import org.hibernate.type.DateType;
-import org.hibernate.type.DoubleType;
-import org.hibernate.type.FloatType;
-import org.hibernate.type.ImageType;
-import org.hibernate.type.IntegerType;
-import org.hibernate.type.LocaleType;
-import org.hibernate.type.LongType;
-import org.hibernate.type.MaterializedBlobType;
-import org.hibernate.type.MaterializedClobType;
-import org.hibernate.type.NumericBooleanType;
-import org.hibernate.type.SerializableType;
-import org.hibernate.type.ShortType;
-import org.hibernate.type.StringType;
-import org.hibernate.type.TextType;
-import org.hibernate.type.TimeType;
-import org.hibernate.type.TimeZoneType;
-import org.hibernate.type.TimestampType;
-import org.hibernate.type.TrueFalseType;
-import org.hibernate.type.YesNoType;
+
+import org.hibernate.type.BigDecimalTypeImpl;
+import org.hibernate.type.BigIntegerTypeImpl;
+import org.hibernate.type.BooleanTypeImpl;
+import org.hibernate.type.CalendarDateTypeImpl;
+import org.hibernate.type.CalendarTypeImpl;
+import org.hibernate.type.ClassTypeImpl;
+import org.hibernate.type.DateTypeImpl;
+import org.hibernate.type.FloatTypeImpl;
+import org.hibernate.type.MaterializedBlobTypeImpl;
+import org.hibernate.type.SerializableTypeImpl;
+import org.hibernate.type.StringTypeImpl;
+import org.hibernate.type.TextTypeImpl;
+import org.hibernate.type.TimeTypeImpl;
+import org.hibernate.type.TimestampTypeImpl;
+import org.hibernate.type.TrueFalseTypeImpl;
+import org.hibernate.type.YesNoTypeImpl;
+import org.hibernate.type.internal.BasicTypeImpl;
+import org.hibernate.type.BinaryTypeImpl;
+import org.hibernate.type.ByteTypeImpl;
+import org.hibernate.type.CharArrayTypeImpl;
+import org.hibernate.type.CharacterArrayTypeImpl;
+import org.hibernate.type.CharacterTypeImpl;
+import org.hibernate.type.CurrencyTypeImpl;
+import org.hibernate.type.DoubleTypeImpl;
+import org.hibernate.type.ImageTypeImpl;
+import org.hibernate.type.IntegerTypeImpl;
+import org.hibernate.type.LocaleTypeImpl;
+import org.hibernate.type.LongTypeImpl;
+import org.hibernate.type.MaterializedClobTypeImpl;
+import org.hibernate.type.NumericBooleanTypeImpl;
+import org.hibernate.type.ShortTypeImpl;
+import org.hibernate.type.TimeZoneTypeImpl;
+
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -73,7 +75,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final BigDecimal copy = BigDecimal.valueOf( 100 );
 		final BigDecimal different = BigDecimal.valueOf( 999 );
 
-		runBasicTests( BigDecimalType.INSTANCE, original, copy, different );
+		runBasicTests( BigDecimalTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -82,7 +84,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final BigInteger copy = BigInteger.valueOf( 100 );
 		final BigInteger different = BigInteger.valueOf( 999 );
 
-		runBasicTests( BigIntegerType.INSTANCE, original, copy, different );
+		runBasicTests( BigIntegerTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -91,9 +93,9 @@ public class TypeTest extends BaseUnitTestCase {
 		final byte[] copy = new byte[] { 1, 2, 3, 4 };
 		final byte[] different = new byte[] { 4, 3, 2, 1 };
 
-		runBasicTests( BinaryType.INSTANCE, original, copy, different );
-		runBasicTests( ImageType.INSTANCE, original, copy, different );
-		runBasicTests( MaterializedBlobType.INSTANCE, original, copy, different );
+		runBasicTests( BinaryTypeImpl.INSTANCE, original, copy, different );
+		runBasicTests( ImageTypeImpl.INSTANCE, original, copy, different );
+		runBasicTests( MaterializedBlobTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -103,10 +105,10 @@ public class TypeTest extends BaseUnitTestCase {
 		final Boolean copy = new Boolean( true );
 		final Boolean different = Boolean.FALSE;
 
-		runBasicTests( BooleanType.INSTANCE, original, copy, different );
-		runBasicTests( NumericBooleanType.INSTANCE, original, copy, different );
-		runBasicTests( YesNoType.INSTANCE, original, copy, different );
-		runBasicTests( TrueFalseType.INSTANCE, original, copy, different );
+		runBasicTests( BooleanTypeImpl.INSTANCE, original, copy, different );
+		runBasicTests( NumericBooleanTypeImpl.INSTANCE, original, copy, different );
+		runBasicTests( YesNoTypeImpl.INSTANCE, original, copy, different );
+		runBasicTests( TrueFalseTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -115,7 +117,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Byte copy = new Byte( (byte) 0 );
 		final Byte different = 9;
 
-		runBasicTests( ByteType.INSTANCE, original, copy, different );
+		runBasicTests( ByteTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -127,7 +129,7 @@ public class TypeTest extends BaseUnitTestCase {
 		different.set( Calendar.DAY_OF_MONTH, 9 );
 		different.set( Calendar.YEAR, 2999 );
 
-		runBasicTests( CalendarDateType.INSTANCE, original, copy, different );
+		runBasicTests( CalendarDateTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -142,7 +144,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Calendar different = new GregorianCalendar();
 		different.setTimeInMillis( now + 9999 );
 
-		runBasicTests( CalendarType.INSTANCE, original, copy, different );
+		runBasicTests( CalendarTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -151,7 +153,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Character[] copy = new Character[] { 'a', 'b' };
 		final Character[] different = new Character[] { 'a', 'b', 'c' };
 
-		runBasicTests( CharacterArrayType.INSTANCE, original, copy, different );
+		runBasicTests( CharacterArrayTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -160,7 +162,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Character copy = new Character( 'a' );
 		final Character different = 'b';
 
-		runBasicTests( CharacterType.INSTANCE, original, copy, different );
+		runBasicTests( CharacterTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -169,8 +171,8 @@ public class TypeTest extends BaseUnitTestCase {
 		final char[] copy = new char[] { 'a', 'b' };
 		final char[] different = new char[] { 'a', 'b', 'c' };
 
-		runBasicTests( CharArrayType.INSTANCE, original, copy, different );
-		runBasicTests( CharArrayType.INSTANCE, original, copy, different );
+		runBasicTests( CharArrayTypeImpl.INSTANCE, original, copy, different );
+		runBasicTests( CharArrayTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -179,7 +181,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Class copy = (Class) SerializationHelper.clone( original );
 		final Class different = String.class;
 
-		runBasicTests( ClassType.INSTANCE, original, copy, different );
+		runBasicTests( ClassTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -188,7 +190,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Currency copy = Currency.getInstance( Locale.US );
 		final Currency different = Currency.getInstance( Locale.UK );
 
-		runBasicTests( CurrencyType.INSTANCE, original, copy, different );
+		runBasicTests( CurrencyTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -202,7 +204,7 @@ public class TypeTest extends BaseUnitTestCase {
 		cal.add( Calendar.YEAR, 1 );
 		final java.sql.Date different = new java.sql.Date( cal.getTime().getTime() );
 
-		runBasicTests( DateType.INSTANCE, original, copy, different );
+		runBasicTests( DateTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -211,7 +213,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Double copy = Double.valueOf( 100 );
 		final Double different = Double.valueOf( 999 );
 
-		runBasicTests( DoubleType.INSTANCE, original, copy, different );
+		runBasicTests( DoubleTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -220,7 +222,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Float copy = Float.valueOf( 100 );
 		final Float different = Float.valueOf( 999 );
 
-		runBasicTests( FloatType.INSTANCE, original, copy, different );
+		runBasicTests( FloatTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -229,7 +231,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Integer copy = new Integer( 100 );
 		final Integer different = 999;
 
-		runBasicTests( IntegerType.INSTANCE, original, copy, different );
+		runBasicTests( IntegerTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -238,7 +240,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Locale copy = new Locale( "ab" );
 		final Locale different = new Locale( "yz" );
 
-		runBasicTests( LocaleType.INSTANCE, original, copy, different );
+		runBasicTests( LocaleTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -247,7 +249,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Long copy = new Long( 100L );
 		final Long different = 999L;
 
-		runBasicTests( LongType.INSTANCE, original, copy, different );
+		runBasicTests( LongTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	private static class SerializableImpl implements Serializable {
@@ -267,8 +269,8 @@ public class TypeTest extends BaseUnitTestCase {
 		final SerializableImpl copy = new SerializableImpl(1);
 		final SerializableImpl different = new SerializableImpl(2);
 
-		runBasicTests( SerializableType.INSTANCE, original, copy, different );
-		runBasicTests( new SerializableType<SerializableImpl>( SerializableImpl.class ), original, copy, different );
+		runBasicTests( SerializableTypeImpl.INSTANCE, original, copy, different );
+		runBasicTests( new SerializableTypeImpl<SerializableImpl>( SerializableImpl.class ), original, copy, different );
 	}
 
 	@Test
@@ -277,7 +279,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Short copy = new Short( (short) 100 );
 		final Short different = 999;
 
-		runBasicTests( ShortType.INSTANCE, original, copy, different );
+		runBasicTests( ShortTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -286,9 +288,9 @@ public class TypeTest extends BaseUnitTestCase {
 		final String copy = new String( original.toCharArray() );
 		final String different = "xyz";
 
-		runBasicTests( StringType.INSTANCE, original, copy, different );
-		runBasicTests( TextType.INSTANCE, original, copy, different );
-		runBasicTests( MaterializedClobType.INSTANCE, original, copy, different );
+		runBasicTests( StringTypeImpl.INSTANCE, original, copy, different );
+		runBasicTests( TextTypeImpl.INSTANCE, original, copy, different );
+		runBasicTests( MaterializedClobTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -298,7 +300,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Timestamp copy = new Timestamp( now );
 		final Timestamp different = new Timestamp( now + 9999 );
 
-		runBasicTests( TimestampType.INSTANCE, original, copy, different );
+		runBasicTests( TimestampTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -308,7 +310,7 @@ public class TypeTest extends BaseUnitTestCase {
 		final Time copy = new Time( now );
 		final Time different = new Time( now + 9999 );
 
-		runBasicTests( TimeType.INSTANCE, original, copy, different );
+		runBasicTests( TimeTypeImpl.INSTANCE, original, copy, different );
 	}
 
 	@Test
@@ -319,9 +321,9 @@ public class TypeTest extends BaseUnitTestCase {
 		final java.util.Date different = new java.util.Date( now + 9999 );
 		final java.util.Date different2 = new java.util.Date( now + ( 1000L * 60L * 60L * 24L * 365L ) );
 
-		runBasicTests( TimeType.INSTANCE, original, copy, different );
-		runBasicTests( TimestampType.INSTANCE, original, copy, different );
-		runBasicTests( DateType.INSTANCE, original, copy, different2 );
+		runBasicTests( TimeTypeImpl.INSTANCE, original, copy, different );
+		runBasicTests( TimestampTypeImpl.INSTANCE, original, copy, different );
+		runBasicTests( DateTypeImpl.INSTANCE, original, copy, different2 );
 	}
 
 	@Test
@@ -330,10 +332,10 @@ public class TypeTest extends BaseUnitTestCase {
 		final TimeZone copy = new SimpleTimeZone( -1, "abc" );
 		final TimeZone different = new SimpleTimeZone( -2, "xyz" );
 
-		runBasicTests( TimeZoneType.INSTANCE, original, copy, different );
+		runBasicTests( TimeZoneTypeImpl.INSTANCE, original, copy, different );
 	}
 
-	protected <T> void runBasicTests(AbstractSingleColumnStandardBasicType<T> type, T original, T copy, T different) {
+	protected <T> void runBasicTests(BasicTypeImpl<T> type, T original, T copy, T different) {
 		final SessionImpl session = null; //Not really used
 		final boolean nonCopyable = Class.class.isInstance( original ) || Currency.class.isInstance( original );
 		if ( ! nonCopyable ) {
