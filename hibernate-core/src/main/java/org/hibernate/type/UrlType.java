@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.net.URL;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.UrlTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.UrlJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
@@ -21,7 +21,7 @@ public class UrlType extends AbstractSingleColumnStandardBasicType<URL> implemen
 	public static final UrlType INSTANCE = new UrlType();
 
 	public UrlType() {
-		super( VarcharSqlDescriptor.INSTANCE, UrlTypeDescriptor.INSTANCE );
+		super( VarcharSqlDescriptor.INSTANCE, UrlJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {
@@ -35,7 +35,7 @@ public class UrlType extends AbstractSingleColumnStandardBasicType<URL> implemen
 
 	@Override
 	public String toString(URL value) {
-		return UrlTypeDescriptor.INSTANCE.toString( value );
+		return UrlJavaDescriptor.INSTANCE.toString( value );
 	}
 
 	public String objectToSQLString(URL value, Dialect dialect) throws Exception {
@@ -43,6 +43,6 @@ public class UrlType extends AbstractSingleColumnStandardBasicType<URL> implemen
 	}
 
 	public URL stringToObject(String xml) throws Exception {
-		return UrlTypeDescriptor.INSTANCE.fromString( xml );
+		return UrlJavaDescriptor.INSTANCE.fromString( xml );
 	}
 }

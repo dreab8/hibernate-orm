@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.util.UUID;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.UUIDTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.UUIDJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
@@ -21,7 +21,7 @@ public class UUIDCharType extends AbstractSingleColumnStandardBasicType<UUID> im
 	public static final UUIDCharType INSTANCE = new UUIDCharType();
 
 	public UUIDCharType() {
-		super( VarcharSqlDescriptor.INSTANCE, UUIDTypeDescriptor.INSTANCE );
+		super( VarcharSqlDescriptor.INSTANCE, UUIDJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

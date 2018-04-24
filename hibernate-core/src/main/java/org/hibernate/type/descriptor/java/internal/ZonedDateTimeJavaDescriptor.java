@@ -4,29 +4,33 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import javax.persistence.TemporalType;
 
-import org.hibernate.type.ZonedDateTimeType;
-import org.hibernate.type.descriptor.java.internal.ImmutableMutabilityPlan;
-import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
-import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * Java type descriptor for the LocalDateTime type.
  *
  * @author Steve Ebersole
  */
-public class ZonedDateTimeJavaDescriptor extends AbstractTypeDescriptor<ZonedDateTime> {
+public class ZonedDateTimeJavaDescriptor
+		extends AbstractBasicJavaDescriptor<ZonedDateTime>
+		implements TemporalJavaDescriptor<ZonedDateTime> {
 	/**
 	 * Singleton access
 	 */
@@ -39,17 +43,17 @@ public class ZonedDateTimeJavaDescriptor extends AbstractTypeDescriptor<ZonedDat
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return StringJavaDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
+		return null;
 	}
 
 	@Override
 	public String toString(ZonedDateTime value) {
-		return ZonedDateTimeType.FORMATTER.format( value );
+		return DateTimeFormatter.ISO_ZONED_DATE_TIME.format( value );
 	}
 
 	@Override
 	public ZonedDateTime fromString(String string) {
-		return ZonedDateTime.from( ZonedDateTimeType.FORMATTER.parse( string ) );
+		return ZonedDateTime.parse( string, DateTimeFormatter.ISO_ZONED_DATE_TIME );
 	}
 
 	@Override
@@ -100,13 +104,13 @@ public class ZonedDateTimeJavaDescriptor extends AbstractTypeDescriptor<ZonedDat
 			return (ZonedDateTime) value;
 		}
 
-		if ( java.sql.Timestamp.class.isInstance( value ) ) {
+		if ( Timestamp.class.isInstance( value ) ) {
 			final Timestamp ts = (Timestamp) value;
 			return ZonedDateTime.ofInstant( ts.toInstant(), ZoneId.systemDefault() );
 		}
 
-		if ( java.util.Date.class.isInstance( value ) ) {
-			final java.util.Date date = (java.util.Date) value;
+		if ( Date.class.isInstance( value ) ) {
+			final Date date = (Date) value;
 			return ZonedDateTime.ofInstant( date.toInstant(), ZoneId.systemDefault() );
 		}
 
@@ -120,5 +124,16 @@ public class ZonedDateTimeJavaDescriptor extends AbstractTypeDescriptor<ZonedDat
 		}
 
 		throw unknownWrap( value.getClass() );
+	}
+
+	@Override
+	public TemporalType getPrecision() {
+		return TemporalType.TIMESTAMP;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <X> TemporalJavaDescriptor<X> resolveTypeForPrecision(TemporalType precision, TypeConfiguration scope) {
+		return (TemporalJavaDescriptor<X>) this;
 	}
 }

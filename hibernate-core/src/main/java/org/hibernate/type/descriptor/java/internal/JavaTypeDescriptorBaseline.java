@@ -13,10 +13,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import org.hibernate.type.descriptor.java.TimeZoneTypeDescriptor;
-import org.hibernate.type.descriptor.java.UUIDTypeDescriptor;
-import org.hibernate.type.descriptor.java.UrlTypeDescriptor;
-import org.hibernate.type.descriptor.java.ZonedDateTimeJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.Primitive;
 
@@ -67,14 +63,14 @@ public class JavaTypeDescriptorBaseline {
 		target.addBaselineDescriptor( java.sql.Date.class, JdbcDateJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( java.sql.Time.class, JdbcTimeJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( java.sql.Timestamp.class, JdbcTimestampJavaDescriptor.INSTANCE );
-		target.addBaselineDescriptor( TimeZoneTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( TimeZoneJavaDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( ClassJavaDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( CurrencyJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( LocaleJavaDescriptor.INSTANCE );
-		target.addBaselineDescriptor( UrlTypeDescriptor.INSTANCE );
-		target.addBaselineDescriptor( UUIDTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( UrlJavaDescriptor.INSTANCE );
+		target.addBaselineDescriptor( UUIDJavaDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( new CollectionJavaDescriptor( Collection.class ) );
 		target.addBaselineDescriptor( new CollectionJavaDescriptor( List.class ) );

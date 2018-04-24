@@ -4,15 +4,17 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.io.Serializable;
+import java.util.Comparator;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import org.hibernate.internal.util.BytesHelper;
-import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
-import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
@@ -20,11 +22,27 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class UUIDTypeDescriptor extends AbstractTypeDescriptor<UUID> {
-	public static final UUIDTypeDescriptor INSTANCE = new UUIDTypeDescriptor();
+public class UUIDJavaDescriptor extends AbstractBasicJavaDescriptor<UUID> {
+	public static final UUIDJavaDescriptor INSTANCE = new UUIDJavaDescriptor();
 
-	public UUIDTypeDescriptor() {
+	public static class UUIDComparator implements Comparator<UUID> {
+		public static final UUIDComparator INSTANCE = new UUIDComparator();
+
+		public int compare(UUID o1, UUID o2) {
+			return o1.compareTo( o2 );
+		}
+	}
+
+	public UUIDJavaDescriptor() {
 		super( UUID.class );
+	}
+
+	public String toString(UUID value) {
+		return value.toString();
+	}
+
+	public UUID fromString(String string) {
+		return UUID.fromString( string );
 	}
 
 	@Override
@@ -33,13 +51,8 @@ public class UUIDTypeDescriptor extends AbstractTypeDescriptor<UUID> {
 	}
 
 	@Override
-	public String toString(UUID value) {
-		return ToStringTransformer.INSTANCE.transform( value );
-	}
-
-	@Override
-	public UUID fromString(String string) {
-		return ToStringTransformer.INSTANCE.parse( string );
+	public Comparator<UUID> getComparator() {
+		return UUIDComparator.INSTANCE;
 	}
 
 	@SuppressWarnings({ "unchecked" })
@@ -77,9 +90,9 @@ public class UUIDTypeDescriptor extends AbstractTypeDescriptor<UUID> {
 		throw unknownWrap( value.getClass() );
 	}
 
-	public static interface ValueTransformer {
-		public Serializable transform(UUID uuid);
-		public UUID parse(Object value);
+	public interface ValueTransformer {
+		Serializable transform(UUID uuid);
+		UUID parse(Object value);
 	}
 
 	public static class PassThroughTransformer implements ValueTransformer {

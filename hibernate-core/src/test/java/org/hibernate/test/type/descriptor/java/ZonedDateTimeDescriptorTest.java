@@ -9,7 +9,7 @@ package org.hibernate.test.type.descriptor.java;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import org.hibernate.type.descriptor.java.ZonedDateTimeJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.ZonedDateTimeJavaDescriptor;
 
 /**
  * @author Jordan Gigov

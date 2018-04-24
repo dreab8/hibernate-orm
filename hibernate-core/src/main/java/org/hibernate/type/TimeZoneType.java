@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.util.TimeZone;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.TimeZoneTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.TimeZoneJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
@@ -25,7 +25,7 @@ public class TimeZoneType
 	public static final TimeZoneType INSTANCE = new TimeZoneType();
 
 	public TimeZoneType() {
-		super( VarcharSqlDescriptor.INSTANCE, TimeZoneTypeDescriptor.INSTANCE );
+		super( VarcharSqlDescriptor.INSTANCE, TimeZoneJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

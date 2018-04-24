@@ -18,7 +18,7 @@ import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.java.UUIDTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.UUIDJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.BasicBinder;
 import org.hibernate.type.descriptor.sql.spi.BasicExtractor;
 import org.hibernate.type.descriptor.sql.spi.JdbcLiteralFormatter;
@@ -36,7 +36,7 @@ public class PostgresUUIDType extends AbstractSingleColumnStandardBasicType<UUID
 	public static final PostgresUUIDType INSTANCE = new PostgresUUIDType();
 
 	public PostgresUUIDType() {
-		super( PostgresUUIDSqlTypeDescriptor.INSTANCE, UUIDTypeDescriptor.INSTANCE );
+		super( PostgresUUIDSqlTypeDescriptor.INSTANCE, UUIDJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

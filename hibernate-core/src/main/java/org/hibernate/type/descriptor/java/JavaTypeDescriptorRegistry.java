@@ -26,6 +26,10 @@ import org.hibernate.type.descriptor.java.internal.PrimitiveByteArrayJavaDescrip
 import org.hibernate.type.descriptor.java.internal.PrimitiveCharacterArrayJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.SerializableJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.TimeZoneJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.UUIDJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.UrlJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.ZonedDateTimeJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.internal.BigDecimalJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.BigIntegerJavaDescriptor;
@@ -111,14 +115,14 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 		descriptorsByClass.put( java.sql.Date.class, JdbcDateJavaDescriptor.INSTANCE );
 		descriptorsByClass.put( java.sql.Time.class, JdbcTimeJavaDescriptor.INSTANCE );
 		descriptorsByClass.put( java.sql.Timestamp.class, JdbcTimestampJavaDescriptor.INSTANCE );
-		addDescriptorInternal( TimeZoneTypeDescriptor.INSTANCE );
+		addDescriptorInternal( TimeZoneJavaDescriptor.INSTANCE );
 
 		addDescriptorInternal( ClassJavaDescriptor.INSTANCE );
 
 		addDescriptorInternal( CurrencyJavaDescriptor.INSTANCE );
 		addDescriptorInternal( LocaleJavaDescriptor.INSTANCE );
-		addDescriptorInternal( UrlTypeDescriptor.INSTANCE );
-		addDescriptorInternal( UUIDTypeDescriptor.INSTANCE );
+		addDescriptorInternal( UrlJavaDescriptor.INSTANCE );
+		addDescriptorInternal( UUIDJavaDescriptor.INSTANCE );
 	}
 
 	private JavaTypeDescriptor addDescriptorInternal(JavaTypeDescriptor descriptor) {

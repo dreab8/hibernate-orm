@@ -4,14 +4,14 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.util.Comparator;
 import java.util.TimeZone;
 
-import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
-import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
@@ -19,8 +19,8 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class TimeZoneTypeDescriptor extends AbstractTypeDescriptor<TimeZone> {
-	public static final TimeZoneTypeDescriptor INSTANCE = new TimeZoneTypeDescriptor();
+public class TimeZoneJavaDescriptor extends AbstractBasicJavaDescriptor<TimeZone> {
+	public static final TimeZoneJavaDescriptor INSTANCE = new TimeZoneJavaDescriptor();
 
 	public static class TimeZoneComparator implements Comparator<TimeZone> {
 		public static final TimeZoneComparator INSTANCE = new TimeZoneComparator();
@@ -31,16 +31,10 @@ public class TimeZoneTypeDescriptor extends AbstractTypeDescriptor<TimeZone> {
 		}
 	}
 
-	public TimeZoneTypeDescriptor() {
+	public TimeZoneJavaDescriptor() {
 		super( TimeZone.class );
 	}
 
-	@Override
-	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return StringJavaDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
-	}
-
-	@Override
 	public String toString(TimeZone value) {
 		return value.getID();
 	}
@@ -48,6 +42,11 @@ public class TimeZoneTypeDescriptor extends AbstractTypeDescriptor<TimeZone> {
 	@Override
 	public TimeZone fromString(String string) {
 		return TimeZone.getTimeZone( string );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return StringJavaDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	@Override
