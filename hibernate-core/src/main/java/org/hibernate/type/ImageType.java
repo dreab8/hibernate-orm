@@ -5,7 +5,7 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.type;
-import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.PrimitiveByteArrayJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.LongVarbinarySqlDescriptor;
 
 /**
@@ -20,7 +20,7 @@ public class ImageType extends AbstractSingleColumnStandardBasicType<byte[]> {
 	public static final ImageType INSTANCE = new ImageType();
 
 	public ImageType() {
-		super( LongVarbinarySqlDescriptor.INSTANCE, PrimitiveByteArrayTypeDescriptor.INSTANCE );
+		super( LongVarbinarySqlDescriptor.INSTANCE, PrimitiveByteArrayJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

@@ -10,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.hibernate.HibernateException;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -28,7 +29,7 @@ public class UrlTypeDescriptor extends AbstractTypeDescriptor<URL> {
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return StringTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
+		return StringJavaDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	@Override

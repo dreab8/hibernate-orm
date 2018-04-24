@@ -6,7 +6,7 @@
  */
 package org.hibernate.type;
 
-import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.NClobSqlDescriptor;
 
 /**
@@ -20,7 +20,7 @@ public class MaterializedNClobType extends AbstractSingleColumnStandardBasicType
 	public static final MaterializedNClobType INSTANCE = new MaterializedNClobType();
 
 	public MaterializedNClobType() {
-		super( NClobSqlDescriptor.DEFAULT, StringTypeDescriptor.INSTANCE );
+		super( NClobSqlDescriptor.DEFAULT, StringJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

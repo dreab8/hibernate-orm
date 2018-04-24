@@ -6,7 +6,7 @@
  */
 package org.hibernate.type;
 
-import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.LongNVarcharSqlDescriptor;
 
 /**
@@ -20,7 +20,7 @@ public class NTextType extends AbstractSingleColumnStandardBasicType<String> {
 	public static final NTextType INSTANCE = new NTextType();
 
 	public NTextType() {
-		super( LongNVarcharSqlDescriptor.INSTANCE, StringTypeDescriptor.INSTANCE );
+		super( LongNVarcharSqlDescriptor.INSTANCE, StringJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() { 

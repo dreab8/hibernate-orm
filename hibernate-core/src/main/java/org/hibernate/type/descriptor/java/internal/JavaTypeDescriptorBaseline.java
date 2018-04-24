@@ -13,10 +13,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import org.hibernate.type.descriptor.java.OffsetTimeJavaDescriptor;
-import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
-import org.hibernate.type.descriptor.java.PrimitiveCharacterArrayTypeDescriptor;
-import org.hibernate.type.descriptor.java.StringTypeDescriptor;
 import org.hibernate.type.descriptor.java.TimeZoneTypeDescriptor;
 import org.hibernate.type.descriptor.java.UUIDTypeDescriptor;
 import org.hibernate.type.descriptor.java.UrlTypeDescriptor;
@@ -47,7 +43,7 @@ public class JavaTypeDescriptorBaseline {
 		target.addBaselineDescriptor( BigDecimalJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( BigIntegerJavaDescriptor.INSTANCE );
 
-		target.addBaselineDescriptor( StringTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( StringJavaDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( BlobJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( ClobJavaDescriptor.INSTANCE );
@@ -55,8 +51,8 @@ public class JavaTypeDescriptorBaseline {
 
 		target.addBaselineDescriptor( ByteArrayJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( CharacterArrayJavaDescriptor.INSTANCE );
-		target.addBaselineDescriptor( PrimitiveByteArrayTypeDescriptor.INSTANCE );
-		target.addBaselineDescriptor( PrimitiveCharacterArrayTypeDescriptor.INSTANCE );
+		target.addBaselineDescriptor( PrimitiveByteArrayJavaDescriptor.INSTANCE );
+		target.addBaselineDescriptor( PrimitiveCharacterArrayJavaDescriptor.INSTANCE );
 
 		target.addBaselineDescriptor( DurationJavaDescriptor.INSTANCE );
 		target.addBaselineDescriptor( InstantJavaDescriptor.INSTANCE );

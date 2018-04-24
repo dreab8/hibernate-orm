@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -14,10 +14,9 @@ import java.util.Comparator;
 
 import org.hibernate.engine.jdbc.CharacterStream;
 import org.hibernate.engine.jdbc.internal.CharacterStreamImpl;
-import org.hibernate.type.descriptor.java.internal.IncomparableComparator;
-import org.hibernate.type.descriptor.spi.WrapperOptions;
-import org.hibernate.type.descriptor.java.internal.CharacterArrayJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
@@ -25,11 +24,11 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class PrimitiveCharacterArrayTypeDescriptor extends AbstractTypeDescriptor<char[]> {
-	public static final PrimitiveCharacterArrayTypeDescriptor INSTANCE = new PrimitiveCharacterArrayTypeDescriptor();
+public class PrimitiveCharacterArrayJavaDescriptor extends AbstractBasicJavaDescriptor<char[]> {
+	public static final PrimitiveCharacterArrayJavaDescriptor INSTANCE = new PrimitiveCharacterArrayJavaDescriptor();
 
 	@SuppressWarnings({ "unchecked" })
-	protected PrimitiveCharacterArrayTypeDescriptor() {
+	protected PrimitiveCharacterArrayJavaDescriptor() {
 		super( char[].class, ArrayMutabilityPlan.INSTANCE );
 	}
 
@@ -101,10 +100,10 @@ public class PrimitiveCharacterArrayTypeDescriptor extends AbstractTypeDescripto
 			return ( (String) value ).toCharArray();
 		}
 		if ( Clob.class.isInstance( value ) ) {
-			return DataHelper.extractString( ( (Clob) value ) ).toCharArray();
+			return LobStreamDataHelper.extractString( ( (Clob) value ) ).toCharArray();
 		}
 		if ( Reader.class.isInstance( value ) ) {
-			return DataHelper.extractString( ( (Reader) value ) ).toCharArray();
+			return LobStreamDataHelper.extractString( ( (Reader) value ) ).toCharArray();
 		}
 		throw unknownWrap( value.getClass() );
 	}

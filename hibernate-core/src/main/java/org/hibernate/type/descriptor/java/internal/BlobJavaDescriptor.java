@@ -23,7 +23,6 @@ import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.DataHelper;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
-import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -87,12 +86,12 @@ public class BlobJavaDescriptor extends AbstractBasicJavaDescriptor<Blob> {
 		catch ( SQLException e ) {
 			throw new HibernateException( "Unable to access blob stream", e );
 		}
-		return PrimitiveByteArrayTypeDescriptor.INSTANCE.toString( bytes );
+		return PrimitiveByteArrayJavaDescriptor.INSTANCE.toString( bytes );
 	}
 
 	@Override
 	public Blob fromString(String string) {
-		return BlobProxy.generateProxy( PrimitiveByteArrayTypeDescriptor.INSTANCE.fromString( string ) );
+		return BlobProxy.generateProxy( PrimitiveByteArrayJavaDescriptor.INSTANCE.fromString( string ) );
 	}
 
 	@Override

@@ -21,6 +21,11 @@ import org.hibernate.type.descriptor.java.internal.LocalDateTimeJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.LocaleJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.NClobJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.OffsetDateTimeJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.OffsetTimeJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.PrimitiveByteArrayJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.PrimitiveCharacterArrayJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.SerializableJavaDescriptor;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.internal.BigDecimalJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.BigIntegerJavaDescriptor;
@@ -82,7 +87,7 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 		addDescriptorInternal( BigDecimalJavaDescriptor.INSTANCE );
 		addDescriptorInternal( BigIntegerJavaDescriptor.INSTANCE );
 
-		addDescriptorInternal( StringTypeDescriptor.INSTANCE );
+		addDescriptorInternal( StringJavaDescriptor.INSTANCE );
 
 		addDescriptorInternal( BlobJavaDescriptor.INSTANCE );
 		addDescriptorInternal( ClobJavaDescriptor.INSTANCE );
@@ -90,8 +95,8 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 
 		addDescriptorInternal( ByteArrayJavaDescriptor.INSTANCE );
 		addDescriptorInternal( CharacterArrayJavaDescriptor.INSTANCE );
-		addDescriptorInternal( PrimitiveByteArrayTypeDescriptor.INSTANCE );
-		addDescriptorInternal( PrimitiveCharacterArrayTypeDescriptor.INSTANCE );
+		addDescriptorInternal( PrimitiveByteArrayJavaDescriptor.INSTANCE );
+		addDescriptorInternal( PrimitiveCharacterArrayJavaDescriptor.INSTANCE );
 
 		addDescriptorInternal( DurationJavaDescriptor.INSTANCE );
 		addDescriptorInternal( InstantJavaDescriptor.INSTANCE );
@@ -151,7 +156,7 @@ public class JavaTypeDescriptorRegistry implements Serializable {
 				cls,
 				() -> {
 					if ( Serializable.class.isAssignableFrom( cls ) ) {
-						return new SerializableTypeDescriptor( cls );
+						return new SerializableJavaDescriptor( cls );
 					}
 
 					log.debugf(

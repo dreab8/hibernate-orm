@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -13,6 +13,7 @@ import java.sql.Types;
 
 import org.hibernate.engine.jdbc.CharacterStream;
 import org.hibernate.engine.jdbc.internal.CharacterStreamImpl;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -22,10 +23,10 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class StringTypeDescriptor extends AbstractTypeDescriptor<String> {
-	public static final StringTypeDescriptor INSTANCE = new StringTypeDescriptor();
+public class StringJavaDescriptor extends AbstractBasicJavaDescriptor<String> {
+	public static final StringJavaDescriptor INSTANCE = new StringJavaDescriptor();
 
-	public StringTypeDescriptor() {
+	public StringJavaDescriptor() {
 		super( String.class );
 	}
 
@@ -73,7 +74,7 @@ public class StringTypeDescriptor extends AbstractTypeDescriptor<String> {
 		// Since NClob extends Clob, we need to check if type is an NClob
 		// before checking if type is a Clob. That will ensure that
 		// the correct type is returned.
-		if ( DataHelper.isNClob( type ) ) {
+		if ( LobStreamDataHelper.isNClob( type ) ) {
 			return (X) options.getLobCreator().createNClob( value );
 		}
 		if ( Clob.class.isAssignableFrom( type ) ) {
@@ -91,10 +92,10 @@ public class StringTypeDescriptor extends AbstractTypeDescriptor<String> {
 			return (String) value;
 		}
 		if ( Reader.class.isInstance( value ) ) {
-			return DataHelper.extractString( (Reader) value );
+			return LobStreamDataHelper.extractString( (Reader) value );
 		}
 		if ( Clob.class.isInstance( value ) ) {
-			return DataHelper.extractString( (Clob) value );
+			return LobStreamDataHelper.extractString( (Clob) value );
 		}
 
 		throw unknownWrap( value.getClass() );

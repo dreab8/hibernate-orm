@@ -5,7 +5,7 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.type;
-import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.PrimitiveByteArrayJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.BlobSqlDescriptor;
 
 /**
@@ -20,7 +20,7 @@ public class MaterializedBlobType extends AbstractSingleColumnStandardBasicType<
 	public static final MaterializedBlobType INSTANCE = new MaterializedBlobType();
 
 	public MaterializedBlobType() {
-		super( BlobSqlDescriptor.DEFAULT, PrimitiveByteArrayTypeDescriptor.INSTANCE );
+		super( BlobSqlDescriptor.DEFAULT, PrimitiveByteArrayJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

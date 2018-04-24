@@ -9,7 +9,7 @@ package org.hibernate.type;
 import java.util.Comparator;
 
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.PrimitiveByteArrayJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarbinarySqlDescriptor;
 
 /**
@@ -32,7 +32,7 @@ public class BinaryType
 	}
 
 	public BinaryType() {
-		super( VarbinarySqlDescriptor.INSTANCE, PrimitiveByteArrayTypeDescriptor.INSTANCE );
+		super( VarbinarySqlDescriptor.INSTANCE, PrimitiveByteArrayJavaDescriptor.INSTANCE );
 	}
 
 	@Override
@@ -80,6 +80,6 @@ public class BinaryType
 	@Override
 	@Deprecated
 	public Comparator<byte[]> getComparator() {
-		return PrimitiveByteArrayTypeDescriptor.INSTANCE.getComparator();
+		return PrimitiveByteArrayJavaDescriptor.INSTANCE.getComparator();
 	}
 }

@@ -22,7 +22,7 @@ import org.hibernate.type.CustomType;
 import org.hibernate.type.Type;
 import org.hibernate.type.UUIDBinaryType;
 import org.hibernate.type.UUIDCharType;
-import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 import org.hibernate.usertype.CompositeUserType;
 import org.hibernate.usertype.UserType;
@@ -102,7 +102,7 @@ public class BasicTypeRegistryTest extends BaseUnitTestCase {
 		public static final SomeNoopType INSTANCE = new SomeNoopType();
 
 		public SomeNoopType() {
-			super( VarcharSqlDescriptor.INSTANCE, StringTypeDescriptor.INSTANCE );
+			super( VarcharSqlDescriptor.INSTANCE, StringJavaDescriptor.INSTANCE );
 		}
 
 		public String getName() {

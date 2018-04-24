@@ -8,7 +8,7 @@ package org.hibernate.type;
 
 import java.io.Serializable;
 
-import org.hibernate.type.descriptor.java.SerializableTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.SerializableJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarbinarySqlDescriptor;
 
 /**
@@ -31,7 +31,7 @@ public class SerializableType<T extends Serializable> extends AbstractSingleColu
 	private final Class<T> serializableClass;
 
 	public SerializableType(Class<T> serializableClass) {
-		super( VarbinarySqlDescriptor.INSTANCE, new SerializableTypeDescriptor<T>( serializableClass )  );
+		super( VarbinarySqlDescriptor.INSTANCE, new SerializableJavaDescriptor<T>( serializableClass )  );
 		this.serializableClass = serializableClass;
 	}
 

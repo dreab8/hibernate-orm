@@ -11,7 +11,7 @@ import java.util.Comparator;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
-import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 import org.hibernate.type.spi.TypeConfiguration;
@@ -32,7 +32,7 @@ public class JavaTypeDescriptorRegistryTest {
 		JavaTypeDescriptor<String> descriptor = typeConfiguration.getJavaTypeDescriptorRegistry()
 				.getDescriptor( String.class );
 
-		assertThat(descriptor, instanceOf(StringTypeDescriptor.class));
+		assertThat(descriptor, instanceOf(StringJavaDescriptor.class));
 	}
 
 	@Test

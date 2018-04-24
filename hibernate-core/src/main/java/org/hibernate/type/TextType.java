@@ -5,7 +5,7 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.type;
-import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.LongVarcharSqlDescriptor;
 
 /**
@@ -19,7 +19,7 @@ public class TextType extends AbstractSingleColumnStandardBasicType<String> {
 	public static final TextType INSTANCE = new TextType();
 
 	public TextType() {
-		super( LongVarcharSqlDescriptor.INSTANCE, StringTypeDescriptor.INSTANCE );
+		super( LongVarcharSqlDescriptor.INSTANCE, StringJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() { 

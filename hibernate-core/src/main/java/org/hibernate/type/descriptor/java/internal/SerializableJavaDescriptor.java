@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -18,10 +18,11 @@ import org.hibernate.annotations.Immutable;
 import org.hibernate.engine.jdbc.BinaryStream;
 import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
 import org.hibernate.internal.util.SerializationHelper;
-import org.hibernate.type.descriptor.java.internal.ImmutableMutabilityPlan;
-import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.MutabilityPlan;
 import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
@@ -30,13 +31,17 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  * @author Steve Ebersole
  * @author Brett meyer
  */
-public class SerializableTypeDescriptor<T extends Serializable> extends AbstractTypeDescriptor<T> {
+public class SerializableJavaDescriptor<T extends Serializable> extends AbstractBasicJavaDescriptor<T> {
+	public static final SerializableJavaDescriptor<Serializable> INSTANCE = new SerializableJavaDescriptor<>( Serializable.class );
 
 	// unfortunately the param types cannot be the same so use something other than 'T' here to make that obvious
 	public static class SerializableMutabilityPlan<S extends Serializable> extends MutableMutabilityPlan<S> {
-		public static final SerializableMutabilityPlan<Serializable> INSTANCE = new SerializableMutabilityPlan<>();
+		private final Class<S> type;
 
-		private SerializableMutabilityPlan() {
+		public static final SerializableMutabilityPlan<Serializable> INSTANCE = new SerializableMutabilityPlan<>( Serializable.class );
+
+		public SerializableMutabilityPlan(Class<S> type) {
+			this.type = type;
 		}
 
 		@Override
@@ -47,29 +52,22 @@ public class SerializableTypeDescriptor<T extends Serializable> extends Abstract
 
 	}
 
-	public SerializableTypeDescriptor(Class<T> type) {
-		super( type, createMutabilityPlan( type ) );
-	}
-
-	@Override
-	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.VARBINARY );
-	}
-
 	@SuppressWarnings({ "unchecked" })
-	private static <T> MutabilityPlan<T> createMutabilityPlan(Class<T> type) {
-		if ( type.isAnnotationPresent( Immutable.class ) ) {
-			return ImmutableMutabilityPlan.INSTANCE;
-		}
-		return (MutabilityPlan<T>) SerializableMutabilityPlan.INSTANCE;
+	public SerializableJavaDescriptor(Class<T> type) {
+		super(
+				type,
+				Serializable.class.equals( type )
+						? (MutabilityPlan<T>) SerializableMutabilityPlan.INSTANCE
+						: new SerializableMutabilityPlan<T>( type )
+		);
 	}
 
 	public String toString(T value) {
-		return PrimitiveByteArrayTypeDescriptor.INSTANCE.toString( toBytes( value ) );
+		return PrimitiveByteArrayJavaDescriptor.INSTANCE.toString( toBytes( value ) );
 	}
 
 	public T fromString(String string) {
-		return fromBytes( PrimitiveByteArrayTypeDescriptor.INSTANCE.fromString( string ) );
+		return fromBytes( PrimitiveByteArrayJavaDescriptor.INSTANCE.fromString( string ) );
 	}
 
 	@Override
@@ -81,12 +79,17 @@ public class SerializableTypeDescriptor<T extends Serializable> extends Abstract
 			return false;
 		}
 		return one.equals( another )
-				|| PrimitiveByteArrayTypeDescriptor.INSTANCE.areEqual( toBytes( one ), toBytes( another ) );
+				|| PrimitiveByteArrayJavaDescriptor.INSTANCE.areEqual( toBytes( one ), toBytes( another ) );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.VARBINARY );
 	}
 
 	@Override
 	public int extractHashCode(T value) {
-		return PrimitiveByteArrayTypeDescriptor.INSTANCE.extractHashCode( toBytes( value ) );
+		return PrimitiveByteArrayJavaDescriptor.INSTANCE.extractHashCode( toBytes( value ) );
 	}
 
 	@SuppressWarnings({ "unchecked" })
@@ -122,17 +125,17 @@ public class SerializableTypeDescriptor<T extends Serializable> extends Abstract
 			return fromBytes( (byte[]) value );
 		}
 		else if ( InputStream.class.isInstance( value ) ) {
-			return fromBytes( DataHelper.extractBytes( (InputStream) value ) );
+			return fromBytes( LobStreamDataHelper.extractBytes( (InputStream) value ) );
 		}
 		else if ( Blob.class.isInstance( value ) ) {
 			try {
-				return fromBytes( DataHelper.extractBytes( ((Blob) value).getBinaryStream() ) );
+				return fromBytes( LobStreamDataHelper.extractBytes( ( (Blob) value ).getBinaryStream() ) );
 			}
 			catch ( SQLException e ) {
 				throw new HibernateException( e );
 			}
 		}
-		else if ( getJavaType().isInstance( value ) ) {
+		else if ( getJavaType() == null && getJavaType().isInstance( value ) ) {
 			return (T) value;
 		}
 		throw unknownWrap( value.getClass() );
@@ -144,6 +147,10 @@ public class SerializableTypeDescriptor<T extends Serializable> extends Abstract
 
 	@SuppressWarnings({ "unchecked" })
 	protected T fromBytes(byte[] bytes) {
+		if ( getJavaType() == null ) {
+			throw new IllegalStateException( "Cannot read bytes for Serializable type" );
+		}
+
 		return (T) SerializationHelper.deserialize( bytes, getJavaType().getClassLoader() );
 	}
 }

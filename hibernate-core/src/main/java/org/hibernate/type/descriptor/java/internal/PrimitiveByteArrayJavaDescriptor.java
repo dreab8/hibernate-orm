@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.type.descriptor.java;
+package org.hibernate.type.descriptor.java.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -16,10 +16,9 @@ import java.util.Comparator;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.jdbc.BinaryStream;
 import org.hibernate.engine.jdbc.internal.BinaryStreamImpl;
-import org.hibernate.type.descriptor.java.internal.IncomparableComparator;
-import org.hibernate.type.descriptor.spi.WrapperOptions;
-import org.hibernate.type.descriptor.java.internal.ByteArrayJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
@@ -27,23 +26,23 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public class PrimitiveByteArrayTypeDescriptor extends AbstractTypeDescriptor<byte[]> {
-	public static final PrimitiveByteArrayTypeDescriptor INSTANCE = new PrimitiveByteArrayTypeDescriptor();
+public class PrimitiveByteArrayJavaDescriptor extends AbstractBasicJavaDescriptor<byte[]> {
+	public static final PrimitiveByteArrayJavaDescriptor INSTANCE = new PrimitiveByteArrayJavaDescriptor();
 
 	@SuppressWarnings({ "unchecked" })
-	public PrimitiveByteArrayTypeDescriptor() {
+	public PrimitiveByteArrayJavaDescriptor() {
 		super( byte[].class, ArrayMutabilityPlan.INSTANCE );
-	}
-
-	@Override
-	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return ByteArrayJavaDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	@Override
 	public boolean areEqual(byte[] one, byte[] another) {
 		return one == another 
 				|| ( one != null && another != null && Arrays.equals( one, another ) );
+	}
+
+	@Override
+	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+		return ByteArrayJavaDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	@Override
@@ -122,11 +121,11 @@ public class PrimitiveByteArrayTypeDescriptor extends AbstractTypeDescriptor<byt
 			return (byte[]) value;
 		}
 		if ( InputStream.class.isInstance( value ) ) {
-			return DataHelper.extractBytes( (InputStream) value );
+			return LobStreamDataHelper.extractBytes( (InputStream) value );
 		}
-		if ( Blob.class.isInstance( value ) || DataHelper.isNClob( value.getClass() ) ) {
+		if ( Blob.class.isInstance( value ) || LobStreamDataHelper.isNClob( value.getClass() ) ) {
 			try {
-				return DataHelper.extractBytes( ( (Blob) value ).getBinaryStream() );
+				return LobStreamDataHelper.extractBytes( ( (Blob) value ).getBinaryStream() );
 			}
 			catch ( SQLException e ) {
 				throw new HibernateException( "Unable to access lob stream", e );
@@ -135,4 +134,9 @@ public class PrimitiveByteArrayTypeDescriptor extends AbstractTypeDescriptor<byt
 
 		throw unknownWrap( value.getClass() );
 	}
+
+//	@Override
+//	public VersionSupport<byte[]> getVersionSupport() {
+//		return BinaryVersionSupport.INSTANCE;
+//	}
 }

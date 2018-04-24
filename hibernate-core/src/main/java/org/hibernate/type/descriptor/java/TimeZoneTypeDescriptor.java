@@ -9,6 +9,7 @@ package org.hibernate.type.descriptor.java;
 import java.util.Comparator;
 import java.util.TimeZone;
 
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
@@ -36,7 +37,7 @@ public class TimeZoneTypeDescriptor extends AbstractTypeDescriptor<TimeZone> {
 
 	@Override
 	public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
-		return StringTypeDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
+		return StringJavaDescriptor.INSTANCE.getJdbcRecommendedSqlType( context );
 	}
 
 	@Override

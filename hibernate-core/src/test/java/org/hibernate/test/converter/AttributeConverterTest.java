@@ -40,7 +40,7 @@ import org.hibernate.type.BasicType;
 import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
 import org.hibernate.type.descriptor.java.internal.EnumJavaDescriptor;
-import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.boot.MetadataBuildingContextTestingImpl;
@@ -109,7 +109,7 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 			fail( "AttributeConverter not applied" );
 		}
 		AbstractStandardBasicType basicType = assertTyping( AbstractStandardBasicType.class, type );
-		assertSame( StringTypeDescriptor.INSTANCE, basicType.getJavaTypeDescriptor() );
+		assertSame( StringJavaDescriptor.INSTANCE, basicType.getJavaTypeDescriptor() );
 		assertEquals( Types.CLOB, basicType.getSqlTypeDescriptor().getSqlType() );
 	}
 
@@ -160,7 +160,7 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 				fail( "AttributeConverter not applied" );
 			}
 			AbstractStandardBasicType basicType = assertTyping( AbstractStandardBasicType.class, type );
-			assertSame( StringTypeDescriptor.INSTANCE, basicType.getJavaTypeDescriptor() );
+			assertSame( StringJavaDescriptor.INSTANCE, basicType.getJavaTypeDescriptor() );
 			assertEquals( Types.CLOB, basicType.getSqlTypeDescriptor().getSqlType() );
 		}
 		finally {
@@ -189,7 +189,7 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 				fail( "AttributeConverter not applied" );
 			}
 			AttributeConverterTypeAdapter basicType = assertTyping( AttributeConverterTypeAdapter.class, type );
-			assertSame( StringTypeDescriptor.INSTANCE, basicType.getJavaTypeDescriptor() );
+			assertSame( StringJavaDescriptor.INSTANCE, basicType.getJavaTypeDescriptor() );
 			assertEquals( Types.CLOB, basicType.getSqlTypeDescriptor().getSqlType() );
 		}
 		finally {
@@ -217,7 +217,7 @@ public class AttributeConverterTest extends BaseUnitTestCase {
 				fail( "AttributeConverter applied (should not have been)" );
 			}
 			AbstractStandardBasicType basicType = assertTyping( AbstractStandardBasicType.class, type );
-			assertSame( StringTypeDescriptor.INSTANCE, basicType.getJavaTypeDescriptor() );
+			assertSame( StringJavaDescriptor.INSTANCE, basicType.getJavaTypeDescriptor() );
 			assertEquals( Types.VARCHAR, basicType.getSqlTypeDescriptor().getSqlType() );
 		}
 		finally {

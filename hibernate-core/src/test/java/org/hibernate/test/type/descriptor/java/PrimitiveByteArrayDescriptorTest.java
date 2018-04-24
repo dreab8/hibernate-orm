@@ -6,7 +6,7 @@
  */
 package org.hibernate.test.type.descriptor.java;
 
-import org.hibernate.type.descriptor.java.PrimitiveByteArrayTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.PrimitiveByteArrayJavaDescriptor;
 
 import org.junit.Test;
 
@@ -24,7 +24,7 @@ public class PrimitiveByteArrayDescriptorTest extends AbstractDescriptorTest<byt
 	private final byte[] different = new byte[] {3, 2, 1};
 
 	public PrimitiveByteArrayDescriptorTest() {
-		super( PrimitiveByteArrayTypeDescriptor.INSTANCE );
+		super( PrimitiveByteArrayJavaDescriptor.INSTANCE );
 	}
 
 	@Override
@@ -39,8 +39,8 @@ public class PrimitiveByteArrayDescriptorTest extends AbstractDescriptorTest<byt
 
 	@Test
 	public void testExtractLoggableRepresentation() {
-		assertEquals("null", PrimitiveByteArrayTypeDescriptor.INSTANCE.extractLoggableRepresentation(null));
-		assertEquals("[]", PrimitiveByteArrayTypeDescriptor.INSTANCE.extractLoggableRepresentation(new byte[] {} ));
-		assertEquals("[1, 2, 3]", PrimitiveByteArrayTypeDescriptor.INSTANCE.extractLoggableRepresentation(original));
+		assertEquals( "null", PrimitiveByteArrayJavaDescriptor.INSTANCE.extractLoggableRepresentation( null));
+		assertEquals( "[]", PrimitiveByteArrayJavaDescriptor.INSTANCE.extractLoggableRepresentation( new byte[] {} ));
+		assertEquals( "[1, 2, 3]", PrimitiveByteArrayJavaDescriptor.INSTANCE.extractLoggableRepresentation( original));
 	}
 }

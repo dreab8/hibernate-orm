@@ -6,7 +6,7 @@
  */
 package org.hibernate.type;
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
@@ -22,7 +22,7 @@ public class StringType
 	public static final StringType INSTANCE = new StringType();
 
 	public StringType() {
-		super( VarcharSqlDescriptor.INSTANCE, StringTypeDescriptor.INSTANCE );
+		super( VarcharSqlDescriptor.INSTANCE, StringJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

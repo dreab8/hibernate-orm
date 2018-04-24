@@ -5,7 +5,7 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.type;
-import org.hibernate.type.descriptor.java.PrimitiveCharacterArrayTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.PrimitiveCharacterArrayJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
 
 /**
@@ -18,7 +18,7 @@ public class CharArrayType extends AbstractSingleColumnStandardBasicType<char[]>
 	public static final CharArrayType INSTANCE = new CharArrayType();
 
 	public CharArrayType() {
-		super( VarcharSqlDescriptor.INSTANCE, PrimitiveCharacterArrayTypeDescriptor.INSTANCE );
+		super( VarcharSqlDescriptor.INSTANCE, PrimitiveCharacterArrayJavaDescriptor.INSTANCE );
 	}
 
 	public String getName() {

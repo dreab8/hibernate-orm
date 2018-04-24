@@ -9,24 +9,37 @@ package org.hibernate.type.descriptor.java.internal;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Locale;
+import javax.persistence.TemporalType;
 
-import org.hibernate.type.LocalDateTimeType;
-import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
-import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
+
+import org.jboss.logging.Logger;
 
 /**
  * Java type descriptor for the LocalDateTime type.
  *
  * @author Steve Ebersole
  */
-public class LocalDateTimeJavaDescriptor extends AbstractTypeDescriptor<LocalDateTime> {
+public class LocalDateTimeJavaDescriptor
+		extends AbstractBasicJavaDescriptor<LocalDateTime>
+		implements TemporalJavaDescriptor<LocalDateTime > {
+	private static final Logger log = Logger.getLogger( LocalDateTimeJavaDescriptor.class );
+
+	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern( "yyyy-MM-dd HH:mm:ss.S", Locale.ENGLISH );
+
 	/**
 	 * Singleton access
 	 */
@@ -44,12 +57,12 @@ public class LocalDateTimeJavaDescriptor extends AbstractTypeDescriptor<LocalDat
 
 	@Override
 	public String toString(LocalDateTime value) {
-		return LocalDateTimeType.FORMATTER.format( value );
+		return FORMATTER.format( value );
 	}
 
 	@Override
 	public LocalDateTime fromString(String string) {
-		return LocalDateTime.from( LocalDateTimeType.FORMATTER.parse( string ) );
+		return LocalDateTime.from( FORMATTER.parse( string ) );
 	}
 
 	@Override
@@ -63,9 +76,9 @@ public class LocalDateTimeJavaDescriptor extends AbstractTypeDescriptor<LocalDat
 			return (X) value;
 		}
 
-		if ( java.sql.Timestamp.class.isAssignableFrom( type ) ) {
+		if ( Timestamp.class.isAssignableFrom( type ) ) {
 			Instant instant = value.atZone( ZoneId.systemDefault() ).toInstant();
-			return (X) java.sql.Timestamp.from( instant );
+			return (X) Timestamp.from( instant );
 		}
 
 		if ( java.sql.Date.class.isAssignableFrom( type ) ) {
@@ -78,9 +91,9 @@ public class LocalDateTimeJavaDescriptor extends AbstractTypeDescriptor<LocalDat
 			return (X) java.sql.Time.from( instant );
 		}
 
-		if ( java.util.Date.class.isAssignableFrom( type ) ) {
+		if ( Date.class.isAssignableFrom( type ) ) {
 			Instant instant = value.atZone( ZoneId.systemDefault() ).toInstant();
-			return (X) java.util.Date.from( instant );
+			return (X) Date.from( instant );
 		}
 
 		if ( Calendar.class.isAssignableFrom( type ) ) {
@@ -128,4 +141,31 @@ public class LocalDateTimeJavaDescriptor extends AbstractTypeDescriptor<LocalDat
 
 		throw unknownWrap( value.getClass() );
 	}
+
+	@Override
+	public TemporalType getPrecision() {
+		return TemporalType.TIMESTAMP;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <X> TemporalJavaDescriptor<X> resolveTypeForPrecision(TemporalType precision, TypeConfiguration scope) {
+		if ( precision == TemporalType.TIMESTAMP ) {
+			return (TemporalJavaDescriptor<X>) this;
+		}
+		if ( precision == TemporalType.DATE ) {
+			return (TemporalJavaDescriptor<X>)scope.getJavaTypeDescriptorRegistry().getDescriptor( LocalDate.class );
+		}
+		if ( precision == TemporalType.TIME ) {
+			log.debugf( "No JPA TemporalType#TIME Java representation for LocalDateTime, using LocalDateTime" );
+			return (TemporalJavaDescriptor<X>) this;
+		}
+
+		throw new IllegalArgumentException( "Unrecognized JPA TemporalType precision [" + precision + "]" );
+	}
+
+//	@Override
+//	public VersionSupport<LocalDateTime> getVersionSupport() {
+//		return LocalDateTimeVersionSupport.INSTANCE;
+//	}
 }
