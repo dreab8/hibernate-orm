@@ -20,21 +20,16 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.dialect.PostgreSQL81Dialect;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
-import org.hibernate.type.CharacterArrayType;
-import org.hibernate.type.CharacterNCharType;
-import org.hibernate.type.CharacterType;
-import org.hibernate.type.MaterializedClobType;
-import org.hibernate.type.MaterializedNClobType;
-import org.hibernate.type.NClobType;
-import org.hibernate.type.NTextType;
-import org.hibernate.type.StringNVarcharType;
-import org.hibernate.type.StringType;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Steve Ebersole
@@ -83,43 +78,51 @@ public class SimpleNationalizedTest extends BaseUnitTestCase {
 			Property prop = pc.getProperty( "nvarcharAtt" );
 			if(metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ){
 				// See issue HHH-10693
-				assertSame( StringType.INSTANCE, prop.getType() );
+				assertSameBasicType( StandardSpiBasicTypes.STRING, prop.getType() );
 			}else{
-				assertSame( StringNVarcharType.INSTANCE, prop.getType() );
+				assertSameBasicType( StandardSpiBasicTypes.NSTRING, prop.getType() );
 			}
 
 			prop = pc.getProperty( "materializedNclobAtt" );
 			if(metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ){
 				// See issue HHH-10693
-				assertSame( MaterializedClobType.INSTANCE, prop.getType() );
+				assertSameBasicType( StandardSpiBasicTypes.MATERIALIZED_CLOB, prop.getType() );
 			}else {
-				assertSame( MaterializedNClobType.INSTANCE, prop.getType() );
+				assertSameBasicType( StandardSpiBasicTypes.MATERIALIZED_NCLOB, prop.getType() );
 			}
 			prop = pc.getProperty( "nclobAtt" );
-			assertSame( NClobType.INSTANCE, prop.getType() );
+			assertSameBasicType( StandardSpiBasicTypes.NCLOB, prop.getType() );
 
 			prop = pc.getProperty( "nlongvarcharcharAtt" );
-			assertSame( NTextType.INSTANCE, prop.getType() );
+			assertSameBasicType( StandardSpiBasicTypes.NTEXT, prop.getType() );
 
 			prop = pc.getProperty( "ncharArrAtt" );
-			if(metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ){
+			if ( metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ) {
 				// See issue HHH-10693
-				assertSame( CharacterArrayType.INSTANCE, prop.getType() );
-			}else {
-				assertSame( StringNVarcharType.INSTANCE, prop.getType() );
+				assertSameBasicType( StandardSpiBasicTypes.CHARACTER_ARRAY, prop.getType() );
+			}
+			else {
+				assertSameBasicType( StandardSpiBasicTypes.NSTRING, prop.getType() );
 			}
 
 			prop = pc.getProperty( "ncharacterAtt" );
 			if ( metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ) {
 				// See issue HHH-10693
-				assertSame( CharacterType.INSTANCE, prop.getType() );
+				assertSameBasicType( StandardSpiBasicTypes.CHARACTER, prop.getType() );
 			}
 			else {
-				assertSame( CharacterNCharType.INSTANCE, prop.getType() );
+				assertSameBasicType( StandardSpiBasicTypes.CHARACTER_NCHAR, prop.getType() );
 			}
 		}
 		finally {
 			StandardServiceRegistryBuilder.destroy( ssr );
 		}
+	}
+
+	private void assertSameBasicType(BasicType expected, org.hibernate.type.Type actual){
+		assertThat( actual, instanceOf(BasicType.class) );
+		BasicType actualBasicType = (BasicType) actual;
+		assertSame( expected.getJavaTypeDescriptor(), actualBasicType.getJavaTypeDescriptor() );
+		assertSame( expected.getSqlTypeDescriptor(), actualBasicType.getSqlTypeDescriptor() );
 	}
 }

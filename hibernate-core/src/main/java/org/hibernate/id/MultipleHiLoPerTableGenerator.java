@@ -41,9 +41,8 @@ import org.hibernate.mapping.Column;
 import org.hibernate.mapping.PrimaryKey;
 import org.hibernate.mapping.Table;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.LongType;
-import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 /**
  * A hilo <tt>IdentifierGenerator</tt> that returns a <tt>Long</tt>, constructed using
@@ -325,7 +324,7 @@ public class MultipleHiLoPerTableGenerator implements PersistentIdentifierGenera
 					database,
 					table,
 					segmentColumnName,
-					StringType.INSTANCE,
+					StandardSpiBasicTypes.STRING,
 					database.getDialect().getTypeName( Types.VARCHAR, keySize, 0, 0 )
 			);
 			pkColumn.setNullable( false );
@@ -336,7 +335,7 @@ public class MultipleHiLoPerTableGenerator implements PersistentIdentifierGenera
 					database,
 					table,
 					valueColumnName,
-					LongType.INSTANCE
+					StandardSpiBasicTypes.LONG
 			);
 			table.addColumn( valueColumn );
 		}

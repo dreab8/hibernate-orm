@@ -54,8 +54,10 @@ import org.hibernate.testing.SkipForDialect;
 import org.hibernate.transform.Transformers;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
+
 import org.junit.Test;
 
 public class FumTest extends LegacyTestCase {
@@ -468,9 +470,9 @@ public class FumTest extends LegacyTestCase {
 		for ( int k=0; k<types.length; k++) {
 			assertTrue( types[k]!=null );
 		}
-		assertTrue(types[0] instanceof StringType );
-		assertTrue(types[1] instanceof EntityType);
-		assertTrue(types[2] instanceof StringType );
+		assertAreEquals( types[0], StandardSpiBasicTypes.STRING );
+		assertTrue( types[1] instanceof EntityType );
+		assertAreEquals( types[2], StandardSpiBasicTypes.STRING );
 		Iterator iter = qu.iterate();
 		int j = 0;
 		while ( iter.hasNext() ) {
@@ -908,11 +910,13 @@ public class FumTest extends LegacyTestCase {
 		}
 	}
 
+	private void assertAreEquals(Type actualType, BasicType expectedType){
+		assertEquals(
+				"incorrect return JavaTypeDescriptor",
+				expectedType.getJavaTypeDescriptor(),
+				( (BasicType) actualType ).getJavaTypeDescriptor()
+		);
+		assertEquals( "incorrect return SqlTypeDescriptor",expectedType.getSqlTypeDescriptor(), ( (BasicType) actualType ).getSqlTypeDescriptor() );
+	}
+
 }
-
-
-
-
-
-
-

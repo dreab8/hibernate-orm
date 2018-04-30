@@ -12,16 +12,20 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
+import org.hibernate.metamodel.model.domain.spi.TimestampVersionSupport;
+import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.type.DbTimestampType;
-import org.hibernate.type.TimestampType;
+import org.hibernate.type.spi.BasicType;
 
 import org.hibernate.testing.AfterClassOnce;
 import org.hibernate.testing.BeforeClassOnce;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test for the @Timestamp annotation.
@@ -50,20 +54,23 @@ public class TimestampTest extends BaseUnitTestCase {
 	}
 
 	@Test
-	public void testTimestampSourceIsVM() throws Exception {
-		assertTimestampSource( VMTimestamped.class, TimestampType.class );
+	public void testTimestampSourceIsVM() {
+		assertTimestampSource( VMTimestamped.class, TimestampVersionSupport.class );
 	}
 
 	@Test
-	public void testTimestampSourceIsDB() throws Exception {
+	public void testTimestampSourceIsDB() {
 		assertTimestampSource( DBTimestamped.class, DbTimestampType.class );
 	}
 
-	private void assertTimestampSource(Class<?> clazz, Class<?> expectedTypeClass) throws Exception {
+	private void assertTimestampSource(Class<?> clazz, Class<?> expectedVersionSupport) {
 		PersistentClass persistentClass = metadata.getEntityBinding( clazz.getName() );
 		assertNotNull( persistentClass );
 		Property versionProperty = persistentClass.getVersion();
 		assertNotNull( versionProperty );
-		assertEquals( "Wrong timestamp type", expectedTypeClass, versionProperty.getType().getClass() );
+		assertThat( versionProperty.getType(), instanceOf( BasicType.class ) );
+		VersionSupport versionSupport = ( (BasicType) versionProperty.getType() ).getJavaTypeDescriptor()
+				.getVersionSupport();
+		assertEquals( "Wrong timestamp type", versionSupport, expectedVersionSupport );
 	}
 }

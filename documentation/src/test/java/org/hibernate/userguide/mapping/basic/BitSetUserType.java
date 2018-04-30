@@ -10,7 +10,7 @@ import java.util.Objects;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.StringType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 import org.hibernate.usertype.UserType;
 
 import org.jboss.logging.Logger;
@@ -27,7 +27,7 @@ public class BitSetUserType implements UserType {
 
     @Override
     public int[] sqlTypes() {
-        return new int[] {StringType.INSTANCE.sqlType()};
+        return new int[] { StandardSpiBasicTypes.STRING.getSqlTypeDescriptor().getJdbcTypeCode() };
     }
 
     @Override

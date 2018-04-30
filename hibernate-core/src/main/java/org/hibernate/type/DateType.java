@@ -12,6 +12,7 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.type.descriptor.java.internal.JdbcDateJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.DateSqlDescriptor;
 import org.hibernate.type.internal.BasicTypeImpl;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 /**
  * A type that maps between {@link java.sql.Types#DATE DATE} and {@link java.sql.Date}
@@ -51,7 +52,7 @@ public class DateType
 				? ( java.sql.Date ) value
 				: new java.sql.Date( value.getTime() );
 		// TODO : use JDBC date literal escape syntax? -> {d 'date-string'} in yyyy-mm-dd format
-		return StringType.INSTANCE.objectToSQLString( jdbcDate.toString(), dialect );
+		return StandardSpiBasicTypes.STRING.getJavaTypeDescriptor().toString( jdbcDate.toString() );
 	}
 
 	public Date stringToObject(String xml) {

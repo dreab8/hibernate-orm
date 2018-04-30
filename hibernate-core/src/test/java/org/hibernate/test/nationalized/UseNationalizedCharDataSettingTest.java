@@ -19,16 +19,16 @@ import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.PostgreSQL81Dialect;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
-import org.hibernate.type.CharacterNCharType;
-import org.hibernate.type.CharacterType;
-import org.hibernate.type.StringNVarcharType;
-import org.hibernate.type.StringType;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test the use of {@link org.hibernate.cfg.AvailableSettings#USE_NATIONALIZED_CHARACTER_DATA}
@@ -53,9 +53,9 @@ public class UseNationalizedCharDataSettingTest extends BaseUnitTestCase {
 			final Property nameAttribute = pc.getProperty( "name" );
 			if(metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ){
 				// See issue HHH-10693
-				assertSame( StringType.INSTANCE, nameAttribute.getType() );
+				assertSameBasicType( StandardSpiBasicTypes.STRING, nameAttribute.getType() );
 			}else {
-				assertSame( StringNVarcharType.INSTANCE, nameAttribute.getType() );
+				assertSameBasicType( StandardSpiBasicTypes.NSTRING, nameAttribute.getType() );
 			}
 
 		}
@@ -79,9 +79,9 @@ public class UseNationalizedCharDataSettingTest extends BaseUnitTestCase {
 			final PersistentClass pc = metadata.getEntityBinding( NationalizedBySettingEntity.class.getName() );
 			final Property nameAttribute = pc.getProperty( "flag" );
 			if(metadata.getDatabase().getDialect() instanceof PostgreSQL81Dialect ){
-				assertSame( CharacterType.INSTANCE, nameAttribute.getType() );
+				assertSameBasicType( StandardSpiBasicTypes.CHARACTER, nameAttribute.getType() );
 			}else {
-				assertSame( CharacterNCharType.INSTANCE, nameAttribute.getType() );
+				assertSameBasicType( StandardSpiBasicTypes.CHARACTER_NCHAR, nameAttribute.getType() );
 			}
 
 		}
@@ -100,4 +100,12 @@ public class UseNationalizedCharDataSettingTest extends BaseUnitTestCase {
 		String name;
 		char flag;
 	}
+
+	private void assertSameBasicType(BasicType expected, org.hibernate.type.Type actual){
+		assertThat( actual, instanceOf(BasicType.class) );
+		BasicType actualBasicType = (BasicType) actual;
+		assertSame( expected.getJavaTypeDescriptor(), actualBasicType.getJavaTypeDescriptor() );
+		assertSame( expected.getSqlTypeDescriptor(), actualBasicType.getSqlTypeDescriptor() );
+	}
+
 }

@@ -30,18 +30,13 @@ import org.jboss.logging.Logger;
  *
  * @author Steve Ebersole
  */
-public class DbTimestampType extends TimestampType {
+public class DbTimestampType {
 	public static final DbTimestampType INSTANCE = new DbTimestampType();
 
 	private static final CoreMessageLogger LOG = Logger.getMessageLogger(
 			CoreMessageLogger.class,
 			DbTimestampType.class.getName()
 	);
-
-	@Override
-	public String getName() {
-		return "dbtimestamp";
-	}
 
 //	@Override
 //	public String[] getRegistrationKeys() {

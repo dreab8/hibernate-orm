@@ -31,7 +31,7 @@ import java.util.Properties;
 
 import org.hibernate.annotations.common.reflection.XProperty;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.StringType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 import org.hibernate.usertype.DynamicParameterizedType;
 import org.hibernate.usertype.UserType;
 
@@ -107,7 +107,7 @@ public class MyStringType implements UserType, DynamicParameterizedType {
 
 	@Override
 	public int[] sqlTypes() {
-		return new int[] { StringType.INSTANCE.sqlType() };
+		return new int[] { StandardSpiBasicTypes.STRING.getSqlTypeDescriptor().getJdbcTypeCode() };
 	}
 
 	@Override

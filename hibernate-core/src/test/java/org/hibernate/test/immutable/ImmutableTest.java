@@ -5,6 +5,7 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.test.immutable;
+
 import javax.persistence.PersistenceException;
 import java.util.Iterator;
 
@@ -20,9 +21,9 @@ import org.hibernate.dialect.Oracle8iDialect;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 
-import org.hibernate.type.TextType;
 import org.hibernate.type.internal.BasicTypeImpl;
 import org.hibernate.type.descriptor.sql.spi.ClobSqlDescriptor;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -39,10 +40,10 @@ public class ImmutableTest extends BaseCoreFunctionalTestCase {
 	private static class TextAsMaterializedClobType extends BasicTypeImpl<String> {
 		public final static TextAsMaterializedClobType INSTANCE = new TextAsMaterializedClobType();
 		public TextAsMaterializedClobType() {
-			super( ClobSqlDescriptor.DEFAULT, TextType.INSTANCE.getJavaTypeDescriptor() );
+			super( ClobSqlDescriptor.DEFAULT, StandardSpiBasicTypes.TEXT.getJavaTypeDescriptor() );
 		}
 		public String getName() {
-			return TextType.INSTANCE.getName();
+			return StandardSpiBasicTypes.TEXT.getJavaTypeDescriptor().getTypeName();
 		}
 	}
 

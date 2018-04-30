@@ -23,13 +23,9 @@ import org.hibernate.dialect.Oracle12cDialect;
 import org.hibernate.dialect.Oracle8iDialect;
 import org.hibernate.dialect.Oracle9iDialect;
 import org.hibernate.mapping.PersistentClass;
-import org.hibernate.type.BinaryType;
-import org.hibernate.type.BlobType;
-import org.hibernate.type.CharArrayType;
-import org.hibernate.type.ClobType;
-import org.hibernate.type.MaterializedBlobType;
-import org.hibernate.type.PrimitiveCharacterArrayClobType;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
@@ -37,6 +33,7 @@ import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -47,54 +44,112 @@ import static org.junit.Assert.assertThat;
 public class OracleLongLobTypeTest extends BaseUnitTestCase {
 	@Test
 	public void testOracle8() {
-		check( Oracle8iDialect.class, Primitives.class, BinaryType.class, CharArrayType.class );
-		check( Oracle8iDialect.class, LobPrimitives.class, MaterializedBlobType.class, PrimitiveCharacterArrayClobType.class );
-		check( Oracle8iDialect.class, LobLocators.class, BlobType.class, ClobType.class );
+		check(
+				Oracle8iDialect.class,
+				Primitives.class,
+				StandardSpiBasicTypes.BINARY,
+				StandardSpiBasicTypes.CHARACTER_ARRAY
+		);
+		check(
+				Oracle8iDialect.class,
+				LobPrimitives.class,
+				StandardSpiBasicTypes.MATERIALIZED_BLOB,
+				StandardSpiBasicTypes.MATERIALIZED_CLOB_CHAR_ARRAY
+		);
+		check( Oracle8iDialect.class, LobLocators.class, StandardSpiBasicTypes.BLOB, StandardSpiBasicTypes.CLOB );
 	}
 
 	@Test
 	public void testOracle9() {
-		check( Oracle9iDialect.class, Primitives.class, BinaryType.class, CharArrayType.class );
-		check( Oracle9iDialect.class, LobPrimitives.class, MaterializedBlobType.class, PrimitiveCharacterArrayClobType.class );
-		check( Oracle9iDialect.class, LobLocators.class, BlobType.class, ClobType.class );
+		check(
+				Oracle9iDialect.class,
+				Primitives.class,
+				StandardSpiBasicTypes.BINARY,
+				StandardSpiBasicTypes.CHAR_ARRAY
+		);
+		check(
+				Oracle9iDialect.class,
+				LobPrimitives.class,
+				StandardSpiBasicTypes.MATERIALIZED_BLOB,
+				StandardSpiBasicTypes.MATERIALIZED_CLOB_CHAR_ARRAY
+		);
+		check( Oracle9iDialect.class, LobLocators.class, StandardSpiBasicTypes.BLOB, StandardSpiBasicTypes.CLOB );
 	}
 
 	@Test
 	public void testOracle10() {
-		check( Oracle10gDialect.class, Primitives.class, BinaryType.class, CharArrayType.class );
-		check( Oracle10gDialect.class, LobPrimitives.class, MaterializedBlobType.class, PrimitiveCharacterArrayClobType.class );
-		check( Oracle10gDialect.class, LobLocators.class, BlobType.class, ClobType.class );
+		check(
+				Oracle10gDialect.class,
+				Primitives.class,
+				StandardSpiBasicTypes.BINARY,
+				StandardSpiBasicTypes.CHAR_ARRAY
+		);
+		check(
+				Oracle10gDialect.class,
+				LobPrimitives.class,
+				StandardSpiBasicTypes.MATERIALIZED_BLOB,
+				StandardSpiBasicTypes.MATERIALIZED_CLOB_CHAR_ARRAY
+		);
+		check( Oracle10gDialect.class, LobLocators.class, StandardSpiBasicTypes.BLOB, StandardSpiBasicTypes.CLOB );
 	}
 
 	@Test
 	@TestForIssue( jiraKey = "HHH-10345" )
 	public void testOracle12() {
-		check( Oracle12cDialect.class, Primitives.class, MaterializedBlobType.class, CharArrayType.class );
-		check( Oracle12cDialect.class, LobPrimitives.class, MaterializedBlobType.class, PrimitiveCharacterArrayClobType.class );
-		check( Oracle12cDialect.class, LobLocators.class, BlobType.class, ClobType.class );
+		check(
+				Oracle12cDialect.class,
+				Primitives.class,
+				StandardSpiBasicTypes.MATERIALIZED_BLOB,
+				StandardSpiBasicTypes.CHAR_ARRAY
+		);
+		check(
+				Oracle12cDialect.class,
+				LobPrimitives.class,
+				StandardSpiBasicTypes.MATERIALIZED_BLOB,
+				StandardSpiBasicTypes.MATERIALIZED_CLOB_CHAR_ARRAY
+		);
+		check( Oracle12cDialect.class, LobLocators.class, StandardSpiBasicTypes.BLOB, StandardSpiBasicTypes.CLOB );
 	}
 
 	@Test
 	@TestForIssue( jiraKey = "HHH-10345" )
 	public void testOracle12PreferLongRaw() {
-		check( Oracle12cDialect.class, Primitives.class, BinaryType.class, CharArrayType.class, true );
-		check( Oracle12cDialect.class, LobPrimitives.class, MaterializedBlobType.class, PrimitiveCharacterArrayClobType.class, true );
-		check( Oracle12cDialect.class, LobLocators.class, BlobType.class, ClobType.class, true );
+		check(
+				Oracle12cDialect.class,
+				Primitives.class,
+				StandardSpiBasicTypes.BINARY,
+				StandardSpiBasicTypes.CHAR_ARRAY,
+				true
+		);
+		check(
+				Oracle12cDialect.class,
+				LobPrimitives.class,
+				StandardSpiBasicTypes.MATERIALIZED_BLOB,
+				StandardSpiBasicTypes.MATERIALIZED_CLOB_CHAR_ARRAY,
+				true
+		);
+		check(
+				Oracle12cDialect.class,
+				LobLocators.class,
+				StandardSpiBasicTypes.BLOB,
+				StandardSpiBasicTypes.CLOB,
+				true
+		);
 	}
 
 	private void check(
 			Class<? extends Dialect> dialectClass,
 			Class entityClass,
-			Class<? extends Type> binaryTypeClass,
-			Class<? extends Type> charTypeClass) {
+			BasicType binaryTypeClass,
+			BasicType charTypeClass) {
 		check( dialectClass, entityClass, binaryTypeClass, charTypeClass, false );
 	}
 
 	private void check(
 			Class<? extends Dialect> dialectClass,
 			Class entityClass,
-			Class<? extends Type> binaryTypeClass,
-			Class<? extends Type> charTypeClass,
+			BasicType binaryTypeClass,
+			BasicType charTypeClass,
 			boolean preferLongRaw) {
 		StandardServiceRegistry ssr = new StandardServiceRegistryBuilder()
 				.applySetting( AvailableSettings.DIALECT, dialectClass.getName() )
@@ -110,12 +165,21 @@ public class OracleLongLobTypeTest extends BaseUnitTestCase {
 
 			final PersistentClass entityBinding = mappings.getEntityBinding( entityClass.getName() );
 
-			assertThat( entityBinding.getProperty( "binaryData" ).getType(), instanceOf( binaryTypeClass ) );
-			assertThat( entityBinding.getProperty( "characterData" ).getType(), instanceOf( charTypeClass ) );
+			assertAreEquals( entityBinding.getProperty( "binaryData" ).getType(), binaryTypeClass );
+			assertAreEquals( entityBinding.getProperty( "characterData" ).getType(), charTypeClass );
 		}
 		finally {
 			StandardServiceRegistryBuilder.destroy( ssr );
 		}
+	}
+
+	private void assertAreEquals(Type actualType, BasicType expectedType){
+		assertEquals(
+				"incorrect return JavaTypeDescriptor",
+				expectedType.getJavaTypeDescriptor(),
+				( (BasicType) actualType ).getJavaTypeDescriptor()
+		);
+		assertEquals( "incorrect return SqlTypeDescriptor",expectedType.getSqlTypeDescriptor(), ( (BasicType) actualType ).getSqlTypeDescriptor() );
 	}
 
 	@Entity

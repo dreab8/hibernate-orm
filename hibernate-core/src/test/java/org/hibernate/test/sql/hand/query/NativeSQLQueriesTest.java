@@ -33,10 +33,7 @@ import org.hibernate.engine.spi.NamedSQLQueryDefinitionBuilder;
 import org.hibernate.transform.BasicTransformerAdapter;
 import org.hibernate.transform.DistinctRootEntityResultTransformer;
 import org.hibernate.transform.Transformers;
-import org.hibernate.type.FloatType;
-import org.hibernate.type.LongType;
-import org.hibernate.type.StringType;
-import org.hibernate.type.TimestampType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.testing.FailureExpected;
 import org.hibernate.testing.RequiresDialect;
@@ -215,7 +212,7 @@ public class NativeSQLQueriesTest extends BaseCoreFunctionalTestCase {
 		List l = s.createSQLQuery( getOrgEmpRegionSQL() )
 				.addEntity("org", Organization.class)
 				.addJoin("emp", "org.employments")
-				.addScalar( "regionCode", StringType.INSTANCE)
+				.addScalar( "regionCode", StandardSpiBasicTypes.STRING )
 				.list();
 		assertEquals( 2, l.size() );
 
@@ -716,16 +713,16 @@ public class NativeSQLQueriesTest extends BaseCoreFunctionalTestCase {
 		sqlQuery.list();
 
 		// lets try a totally different approach now and pull back scalars, first with explicit types
-		sqlQuery.addScalar( "orgid", LongType.INSTANCE )
-				.addScalar( "name", StringType.INSTANCE )
-				.addScalar( "empid", LongType.INSTANCE )
-				.addScalar( "employee", LongType.INSTANCE )
-				.addScalar( "startDate", TimestampType.INSTANCE )
-				.addScalar( "endDate", TimestampType.INSTANCE )
-				.addScalar( "regionCode", StringType.INSTANCE )
-				.addScalar( "empId", LongType.INSTANCE )
-				.addScalar( "AMOUNT", FloatType.INSTANCE )
-				.addScalar( "CURRENCY", StringType.INSTANCE );
+		sqlQuery.addScalar( "orgid", StandardSpiBasicTypes.LONG )
+				.addScalar( "name", StandardSpiBasicTypes.SHORT )
+				.addScalar( "empid", StandardSpiBasicTypes.LONG )
+				.addScalar( "employee", StandardSpiBasicTypes.LONG )
+				.addScalar( "startDate", StandardSpiBasicTypes.TIMESTAMP )
+				.addScalar( "endDate", StandardSpiBasicTypes.TIMESTAMP )
+				.addScalar( "regionCode", StandardSpiBasicTypes.STRING )
+				.addScalar( "empId", StandardSpiBasicTypes.LONG )
+				.addScalar( "AMOUNT", StandardSpiBasicTypes.FLOAT )
+				.addScalar( "CURRENCY", StandardSpiBasicTypes.STRING );
 
 
 		s.getTransaction().commit();

@@ -9,8 +9,6 @@ package org.hibernate.annotations;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 
-import org.hibernate.type.StringType;
-
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.PACKAGE;
@@ -37,7 +35,7 @@ public @interface AnyMetaDef {
 
 	/**
 	 * Names the discriminator Hibernate Type for this Any/ManyToAny mapping.  The default is to use
-	 * {@link StringType}
+	 * {@link org.hibernate.type.spi.StandardSpiBasicTypes#STRING}
 	 */
 	String metaType();
 

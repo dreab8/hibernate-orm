@@ -45,8 +45,9 @@ import org.hibernate.type.CollectionType;
 import org.hibernate.type.ComponentType;
 import org.hibernate.type.ManyToOneType;
 import org.hibernate.type.OneToOneType;
-import org.hibernate.type.TimestampType;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.dom4j.Element;
 
@@ -189,11 +190,10 @@ public final class AuditMetadataGenerator {
 
 			if ( verEntCfg.isRevisionEndTimestampEnabled() ) {
 				// add a column for the timestamp of the end revision
-				final String revisionInfoTimestampSqlType = TimestampType.INSTANCE.getName();
 				final Element timestampProperty = MetadataTools.addProperty(
 						anyMapping,
 						verEntCfg.getRevisionEndTimestampFieldName(),
-						revisionInfoTimestampSqlType,
+						getRevisionInfoTimestampSqlType(),
 						true,
 						true,
 						false
@@ -841,5 +841,14 @@ public final class AuditMetadataGenerator {
 	 */
 	public Map<String, EntityConfiguration> getNotAuditedEntitiesConfigurations() {
 		return notAuditedEntitiesConfigurations;
+	}
+
+	private String getRevisionInfoTimestampSqlType() {
+		return getBasicTypeSqlType( StandardSpiBasicTypes.TIMESTAMP );
+	}
+
+	private String getBasicTypeSqlType(BasicType basicType) {
+		final int sqlType = basicType.getSqlTypeDescriptor().getJdbcTypeCode();
+		return metadata.getDatabase().getDialect().getTypeName( sqlType );
 	}
 }

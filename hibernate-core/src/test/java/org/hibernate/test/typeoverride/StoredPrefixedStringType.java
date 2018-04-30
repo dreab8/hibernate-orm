@@ -12,8 +12,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hibernate.AssertionFailure;
-import org.hibernate.dialect.Dialect;
-import org.hibernate.type.StringType;
 import org.hibernate.type.internal.BasicTypeImpl;
 import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
@@ -23,6 +21,7 @@ import org.hibernate.type.descriptor.sql.spi.BasicBinder;
 import org.hibernate.type.descriptor.sql.spi.BasicExtractor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 /**
  *
@@ -98,11 +97,11 @@ public class StoredPrefixedStringType
 	public static final StoredPrefixedStringType INSTANCE = new StoredPrefixedStringType();
 
 	public StoredPrefixedStringType() {
-		super( PREFIXED_VARCHAR_TYPE_DESCRIPTOR, StringType.INSTANCE.getJavaTypeDescriptor() );
+		super( PREFIXED_VARCHAR_TYPE_DESCRIPTOR, StandardSpiBasicTypes.STRING.getJavaTypeDescriptor() );
 	}
 
 	public String getName() {
-		return StringType.INSTANCE.getName();
+		return StandardSpiBasicTypes.STRING.getName();
 	}
 
 	@Override
@@ -110,15 +109,7 @@ public class StoredPrefixedStringType
 		return true;
 	}
 
-	public String objectToSQLString(String value, Dialect dialect) throws Exception {
-		return StringType.INSTANCE.objectToSQLString( value, dialect );
-	}
-
-	public String stringToObject(String xml) throws Exception {
-		return StringType.INSTANCE.stringToObject( xml );
-	}
-
 	public String toString(String value) {
-		return StringType.INSTANCE.toString( value );
+		return StandardSpiBasicTypes.STRING.getJavaTypeDescriptor().toString( value );
 	}
 }

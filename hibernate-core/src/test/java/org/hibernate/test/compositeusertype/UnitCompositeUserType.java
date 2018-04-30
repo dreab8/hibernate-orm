@@ -11,8 +11,8 @@ import java.sql.Types;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 import org.hibernate.usertype.CompositeUserType;
 
 /**
@@ -27,7 +27,7 @@ public class UnitCompositeUserType implements CompositeUserType {
 
 	@Override
 	public Type[] getPropertyTypes() {
-		return new Type[] { StringType.INSTANCE, StringType.INSTANCE };
+		return new Type[] { StandardSpiBasicTypes.STRING, StandardSpiBasicTypes.STRING };
 	}
 
 	@Override

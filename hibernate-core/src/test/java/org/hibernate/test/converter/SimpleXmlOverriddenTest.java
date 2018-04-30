@@ -15,9 +15,10 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.mapping.PersistentClass;
-import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.After;
@@ -25,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.hibernate.testing.junit4.ExtraAssertions.assertTyping;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -75,7 +77,7 @@ public class SimpleXmlOverriddenTest extends BaseUnitTestCase {
 
 		PersistentClass pc = metadata.getEntityBinding( TheEntity.class.getName() );
 		Type type = pc.getProperty( "it" ).getType();
-		assertTyping( StringType.class, type );
+		assertAreEquals( type, StandardSpiBasicTypes.STRING );
 	}
 
 	/**
@@ -91,7 +93,7 @@ public class SimpleXmlOverriddenTest extends BaseUnitTestCase {
 
 		PersistentClass pc = metadata.getEntityBinding( TheEntity2.class.getName() );
 		Type type = pc.getProperty( "it" ).getType();
-		assertTyping( StringType.class, type );
+		assertAreEquals( type, StandardSpiBasicTypes.STRING );
 	}
 
 	@Entity(name="TheEntity")
@@ -108,5 +110,14 @@ public class SimpleXmlOverriddenTest extends BaseUnitTestCase {
 		@Id
 		public Integer id;
 		public String it;
+	}
+
+	private void assertAreEquals(Type actualType, BasicType expectedType){
+		assertEquals(
+				"incorrect return JavaTypeDescriptor",
+				expectedType.getJavaTypeDescriptor(),
+				( (BasicType) actualType ).getJavaTypeDescriptor()
+		);
+		assertEquals( "incorrect return SqlTypeDescriptor",expectedType.getSqlTypeDescriptor(), ( (BasicType) actualType ).getSqlTypeDescriptor() );
 	}
 }

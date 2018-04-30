@@ -50,9 +50,9 @@ import org.hibernate.hql.internal.ast.tree.SelectClause;
 import org.hibernate.hql.internal.ast.util.ASTUtil;
 import org.hibernate.hql.spi.QueryTranslator;
 import org.hibernate.hql.spi.QueryTranslatorFactory;
-import org.hibernate.type.CalendarDateType;
-import org.hibernate.type.DoubleType;
-import org.hibernate.type.StringType;
+import org.hibernate.type.Type;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.testing.DialectChecks;
 import org.hibernate.testing.FailureExpected;
@@ -282,21 +282,27 @@ public class HQLTest extends QueryTranslatorTestCase {
 	public void testDateTimeArithmeticReturnTypesAndParameterGuessing() {
 		QueryTranslatorImpl translator = createNewQueryTranslator( "select o.orderDate - o.orderDate from Order o" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", DoubleType.INSTANCE, translator.getReturnTypes()[0] );
+		assertAreEquals( translator.getReturnTypes()[0], StandardSpiBasicTypes.DOUBLE );
 		translator = createNewQueryTranslator( "select o.orderDate + 2 from Order o" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", CalendarDateType.INSTANCE, translator.getReturnTypes()[0] );
+		assertAreEquals( translator.getReturnTypes()[0], StandardSpiBasicTypes.CALENDAR_DATE );
 		translator = createNewQueryTranslator( "select o.orderDate -2 from Order o" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", CalendarDateType.INSTANCE, translator.getReturnTypes()[0] );
+		assertAreEquals( translator.getReturnTypes()[0], StandardSpiBasicTypes.CALENDAR_DATE );
 
 		translator = createNewQueryTranslator( "from Order o where o.orderDate > ?1" );
-		assertEquals( "incorrect expected param type", CalendarDateType.INSTANCE, translator.getParameterTranslations().getPositionalParameterInformation( 1 ).getExpectedType() );
+		assertAreEquals(
+				translator.getParameterTranslations().getPositionalParameterInformation( 1 ).getExpectedType(),
+				StandardSpiBasicTypes.CALENDAR_DATE
+		);
 
 		translator = createNewQueryTranslator( "select o.orderDate + ?1 from Order o" );
 		assertEquals( "incorrect return type count", 1, translator.getReturnTypes().length );
-		assertEquals( "incorrect return type", CalendarDateType.INSTANCE, translator.getReturnTypes()[0] );
-		assertEquals( "incorrect expected param type", DoubleType.INSTANCE, translator.getParameterTranslations().getPositionalParameterInformation( 1 ).getExpectedType() );
+		assertAreEquals( translator.getReturnTypes()[0], StandardSpiBasicTypes.CALENDAR_DATE );
+		assertAreEquals(
+				translator.getParameterTranslations().getPositionalParameterInformation( 1 ).getExpectedType(),
+				StandardSpiBasicTypes.DOUBLE
+		);
 
 	}
 
@@ -828,7 +834,7 @@ public class HQLTest extends QueryTranslatorTestCase {
 		list.add("'skinny'");
 		assertTranslation(
 				"from Animal an where an.description = " +
-						concat.render( StringType.INSTANCE, list, sessionFactory() )
+						concat.render( StandardSpiBasicTypes.STRING, list, sessionFactory() )
 		);
 	}
 
@@ -1577,6 +1583,19 @@ public class HQLTest extends QueryTranslatorTestCase {
 	public void testComponentNoAlias() throws Exception {
 		// The classic translator doesn't do this right, so don't bother asserting.
 		compileWithAstQueryTranslator( "from Human where name.first = 'Gavin'", false);
+	}
+
+	void assertAreEquals(Type actualType, BasicType expectedType){
+		assertEquals(
+				"incorrect return JavaTypeDescriptor",
+				expectedType.getJavaTypeDescriptor(),
+				( (BasicType) actualType ).getJavaTypeDescriptor()
+		);
+		assertEquals(
+				"incorrect return SqlTypeDescriptor",
+				expectedType.getSqlTypeDescriptor(),
+				( (BasicType) actualType ).getSqlTypeDescriptor()
+		);
 	}
 
 }

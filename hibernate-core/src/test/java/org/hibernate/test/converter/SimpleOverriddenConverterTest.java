@@ -12,13 +12,14 @@ import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
 import org.junit.Test;
 
-import static org.hibernate.testing.junit4.ExtraAssertions.assertTyping;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests MappedSuperclass/Entity overriding of Convert definitions
@@ -44,7 +45,7 @@ public class SimpleOverriddenConverterTest extends BaseNonConfigCoreFunctionalTe
 		final EntityPersister ep = sessionFactory().getEntityPersister( Sub.class.getName() );
 
 		Type type = ep.getPropertyType( "it" );
-		assertTyping( StringType.class, type );
+		assertEquals( type, StandardSpiBasicTypes.STRING );
 	}
 
 	@MappedSuperclass
@@ -59,6 +60,15 @@ public class SimpleOverriddenConverterTest extends BaseNonConfigCoreFunctionalTe
 	@Convert( attributeName = "it", disableConversion = true )
 	public static class Sub extends Super {
 
+	}
+
+	private void assertAreEquals(Type actualType, BasicType expectedType){
+		assertEquals(
+				"incorrect return JavaTypeDescriptor",
+				expectedType.getJavaTypeDescriptor(),
+				( (BasicType) actualType ).getJavaTypeDescriptor()
+		);
+		assertEquals( "incorrect return SqlTypeDescriptor",expectedType.getSqlTypeDescriptor(), ( (BasicType) actualType ).getSqlTypeDescriptor() );
 	}
 
 }
