@@ -107,9 +107,6 @@ public class RelationalObjectBinder {
 			ColumnNamingDelegate columnNamingDelegate) {
 		Table table = simpleValue.getTable();
 
-		final Column column = new Column();
-		column.setValue( simpleValue );
-
 		// resolve column name
 		final Identifier logicalName;
 		if ( StringHelper.isNotEmpty( columnSource.getName() ) ) {
@@ -119,20 +116,13 @@ public class RelationalObjectBinder {
 			logicalName = columnNamingDelegate.determineImplicitName( sourceDocument );
 		}
 
+		final Column column = new Column();
+
 		final Identifier physicalName = physicalNamingStrategy.toPhysicalColumnName(
 				logicalName,
 				database.getJdbcEnvironment()
 		);
 		column.setName( physicalName.render( database.getDialect() ) );
-
-		if ( table != null ) {
-			table.addColumn( column );
-			sourceDocument.getMetadataCollector().addColumnNameBinding(
-					table,
-					logicalName,
-					column
-			);
-		}
 
 		if ( columnSource.getSizeSource() != null ) {
 			// UGH!
@@ -174,6 +164,16 @@ public class RelationalObjectBinder {
 
 		column.setCustomRead( columnSource.getReadFragment() );
 		column.setCustomWrite( columnSource.getWriteFragment() );
+
+		if ( table != null ) {
+			column.setTableName( table.getNameIdentifier() );
+			table.addColumn( column );
+			sourceDocument.getMetadataCollector().addColumnNameBinding(
+					table,
+					logicalName,
+					column
+			);
+		}
 
 		simpleValue.addColumn( column );
 

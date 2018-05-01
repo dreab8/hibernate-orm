@@ -101,7 +101,7 @@ public class ComponentType extends AbstractType implements CompositeType, Proced
 	public int getColumnSpan(Mapping mapping) throws MappingException {
 		int span = 0;
 		for ( int i = 0; i < propertySpan; i++ ) {
-			span += propertyTypes[i].getColumnSpan( mapping );
+			span += propertyTypes[i].getColumnSpan(mapping);
 		}
 		return span;
 	}

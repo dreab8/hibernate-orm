@@ -280,7 +280,7 @@ public final class CollectionMetadataGenerator {
 			}
 			else if ( indexed ) {
 				final Value indexValue = ( (IndexedCollection) propertyValue ).getIndex();
-				positionMappedBy = indexValue.getColumnIterator().next().getText();
+				positionMappedBy = ((Selectable)indexValue.getColumnIterator().next()).getText();
 			}
 			else {
 				positionMappedBy = null;

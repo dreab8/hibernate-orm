@@ -16,7 +16,6 @@ import org.hibernate.MappingException;
 import org.hibernate.PropertyNotFoundException;
 import org.hibernate.engine.spi.CascadeStyle;
 import org.hibernate.engine.spi.CascadeStyles;
-import org.hibernate.engine.spi.Mapping;
 import org.hibernate.internal.util.collections.ArrayHelper;
 import org.hibernate.property.access.spi.Getter;
 import org.hibernate.property.access.spi.PropertyAccessStrategy;
@@ -222,8 +221,8 @@ public class Property implements Serializable, MetaAttributable {
 		this.metaAttributes = metas;
 	}
 
-	public boolean isValid(Mapping mapping) throws MappingException {
-		return getValue().isValid(mapping);
+	public boolean isValid() throws MappingException {
+		return getValue().isValid();
 	}
 
 	public String toString() {

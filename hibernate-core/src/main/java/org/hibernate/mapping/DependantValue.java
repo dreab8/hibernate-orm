@@ -7,9 +7,12 @@
 package org.hibernate.mapping;
 
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.domain.JavaTypeMapping;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * A value which is "typed" by reference to some other
@@ -22,6 +25,7 @@ public class DependantValue extends SimpleValue {
 	private KeyValue wrappedValue;
 	private boolean nullable;
 	private boolean updateable;
+	private boolean isNationalized;
 
 	/**
 	 * @deprecated Use {@link DependantValue#DependantValue(MetadataBuildingContext, Table, KeyValue)} instead.
@@ -41,6 +45,34 @@ public class DependantValue extends SimpleValue {
 		return wrappedValue.getType();
 	}
 
+	@Override
+	protected void setTypeDescriptorResolver(Column column) {
+		column.setTypeDescriptorResolver( new DependantValueTypeDescriptorResolver( columns.size() - 1 ) );
+	}
+
+	@Override
+	public JavaTypeMapping getJavaTypeMapping() {
+		return wrappedValue.getJavaTypeMapping();
+	}
+
+	public class DependantValueTypeDescriptorResolver implements TypeDescriptorResolver {
+		private int index;
+
+		public DependantValueTypeDescriptorResolver(int index) {
+			this.index = index;
+		}
+
+		@Override
+		public SqlTypeDescriptor resolveSqlTypeDescriptor() {
+			return ( (Column) wrappedValue.getColumns().get( index ) ).getSqlTypeDescriptor();
+		}
+
+		@Override
+		public JavaTypeDescriptor resolveJavaTypeDescriptor() {
+			return wrappedValue.getJavaTypeMapping().resolveJavaTypeDescriptor();
+		}
+	}
+
 	public void setTypeUsingReflection(String className, String propertyName) {}
 	
 	public Object accept(ValueVisitor visitor) {
@@ -49,7 +81,6 @@ public class DependantValue extends SimpleValue {
 
 	public boolean isNullable() {
 		return nullable;
-	
 	}
 	
 	public void setNullable(boolean nullable) {
@@ -62,6 +93,14 @@ public class DependantValue extends SimpleValue {
 	
 	public void setUpdateable(boolean updateable) {
 		this.updateable = updateable;
+	}
+
+	public void makeNationalized() {
+		this.isNationalized = true;
+	}
+
+	public boolean isNationalized() {
+		return isNationalized;
 	}
 
 	@Override

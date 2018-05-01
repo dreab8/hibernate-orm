@@ -8,14 +8,18 @@ package org.hibernate.mapping;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.domain.JavaTypeMapping;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.ForeignKeyDirection;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * A one-to-one association mapping
@@ -95,6 +99,49 @@ public class OneToOne extends ToOne {
 		}
 	}
 
+	@Override
+	protected void setTypeDescriptorResolver(Column column) {
+		column.setTypeDescriptorResolver( new OneToOneTypeDescriptorResolverImpl( columns.size() - 1 ) );
+	}
+
+	public class OneToOneTypeDescriptorResolverImpl implements TypeDescriptorResolver {
+
+		private int index;
+
+		public OneToOneTypeDescriptorResolverImpl(int index) {
+			this.index = index;
+		}
+
+		@Override
+		public SqlTypeDescriptor resolveSqlTypeDescriptor() {
+			final List<Selectable> mappedColumns = getColumns();
+			if ( mappedColumns.size() == 0 ) {
+				throw new IllegalStateException( "No SqlType code to resolve for " + entityName );
+
+			}
+			final PersistentClass referencedPersistentClass = getMetadataBuildingContext()
+					.getMetadataCollector()
+					.getEntityBinding( getReferencedEntityName() );
+
+			if ( referenceToPrimaryKey || referencedPropertyName == null ) {
+				return ( (Column) referencedPersistentClass.getIdentifier()
+						.getColumns()
+						.get( index ) ).getSqlTypeDescriptor();
+			}
+			else {
+				final Property referencedProperty = referencedPersistentClass.getReferencedProperty(
+						getReferencedPropertyName() );
+				return ( (Column) referencedProperty.getValue()
+						.getColumns().get( index ) ).getSqlTypeDescriptor();
+			}
+		}
+
+		@Override
+		public JavaTypeDescriptor resolveJavaTypeDescriptor() {
+			return getJavaTypeMapping().resolveJavaTypeDescriptor();
+		}
+	}
+
 	public java.util.List getConstraintColumns() {
 		ArrayList list = new ArrayList();
 		Iterator iter = identifier.getColumnIterator();
@@ -171,6 +218,22 @@ public class OneToOne extends ToOne {
 				&& Objects.equals( propertyName, other.propertyName )
 				&& Objects.equals( entityName, other.entityName )
 				&& constrained == other.constrained;
+	}
+
+	@Override
+	public JavaTypeMapping getJavaTypeMapping() {
+		final PersistentClass referencedPersistentClass = getMetadataBuildingContext()
+				.getMetadataCollector()
+				.getEntityBinding( getReferencedEntityName() );
+
+		if ( referenceToPrimaryKey || referencedPropertyName == null ) {
+			return referencedPersistentClass.getIdentifier().getJavaTypeMapping();
+		}
+		else {
+			return referencedPersistentClass.getReferencedProperty( getReferencedPropertyName() )
+					.getValue()
+					.getJavaTypeMapping();
+		}
 	}
 	
 }

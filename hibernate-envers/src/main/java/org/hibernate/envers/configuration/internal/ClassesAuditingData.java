@@ -25,6 +25,7 @@ import org.hibernate.mapping.List;
 import org.hibernate.mapping.PersistentClass;
 
 import org.hibernate.mapping.Property;
+import org.hibernate.mapping.Selectable;
 import org.hibernate.mapping.Value;
 import org.jboss.logging.Logger;
 
@@ -148,7 +149,7 @@ public class ClassesAuditingData {
 	private void addSyntheticIndexProperty(List value, String propertyAccessorName, ClassAuditingData classAuditingData) {
 		final Value indexValue = value.getIndex();
 		if ( indexValue != null && indexValue.getColumnIterator().hasNext() ) {
-			final String indexColumnName = indexValue.getColumnIterator().next().getText();
+			final String indexColumnName = ((Selectable)indexValue.getColumnIterator().next()).getText();
 			if ( indexColumnName != null ) {
 				final PropertyAuditingData auditingData = new PropertyAuditingData(
 						indexColumnName,

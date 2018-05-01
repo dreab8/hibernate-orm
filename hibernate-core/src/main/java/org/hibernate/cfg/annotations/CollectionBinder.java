@@ -335,7 +335,7 @@ public abstract class CollectionBinder {
 		if ( typeAnnotation != null ) {
 			final String typeName = typeAnnotation.type();
 			// see if it names a type-def
-			final TypeDefinition typeDef = buildingContext.getMetadataCollector().getTypeDefinition( typeName );
+			final TypeDefinition typeDef = buildingContext.resolveTypeDefinition( typeName );
 			if ( typeDef != null ) {
 				result.explicitType = typeDef.getTypeImplementorClass().getName();
 				result.explicitTypeParameters.putAll( typeDef.getParameters() );
@@ -402,7 +402,7 @@ public abstract class CollectionBinder {
 
 		// set explicit type information
 		if ( explicitType != null ) {
-			final TypeDefinition typeDef = buildingContext.getMetadataCollector().getTypeDefinition( explicitType );
+			final TypeDefinition typeDef = buildingContext.resolveTypeDefinition( explicitType );
 			if ( typeDef == null ) {
 				collection.setTypeName( explicitType );
 				collection.setTypeParameters( explicitTypeParameters );
@@ -846,6 +846,7 @@ public abstract class CollectionBinder {
 		collection.setElement( oneToMany );
 		oneToMany.setReferencedEntityName( collectionType.getName() );
 		oneToMany.setIgnoreNotFound( ignoreNotFound );
+		oneToMany.setJavaTypeMapping( collection.getJavaTypeMapping() );
 
 		String assocClass = oneToMany.getReferencedEntityName();
 		PersistentClass associatedClass = (PersistentClass) persistentClasses.get( assocClass );
@@ -968,9 +969,9 @@ public abstract class CollectionBinder {
 			String clause = whereOnCollection.clause();
 			if ( StringHelper.isNotEmpty( clause ) ) {
 				if ( whereBuffer.length() > 0 ) {
-					whereBuffer.append( ' ' );
+					whereBuffer.append( StringHelper.WHITESPACE );
 					whereBuffer.append( Junction.Nature.AND.getOperator() );
-					whereBuffer.append( ' ' );
+					whereBuffer.append( StringHelper.WHITESPACE );
 				}
 				whereBuffer.append( clause );
 			}

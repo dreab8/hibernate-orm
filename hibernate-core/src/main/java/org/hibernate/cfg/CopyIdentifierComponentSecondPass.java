@@ -201,7 +201,9 @@ public class CopyIdentifierComponentSecondPass implements SecondPass {
 					applyComponentColumnSizeValueToJoinColumn( column, joinColumn );
 					joinColumn.linkWithValue( value );
 				}
-				column.setValue( value );
+				if ( value.getTable() != null ) {
+					column.setTableName( value.getTable().getNameIdentifier() );
+				}
 			}
 		}
 		return property;

@@ -11,6 +11,7 @@ import javax.persistence.AttributeConverter;
 import org.hibernate.MappingException;
 import org.hibernate.boot.model.convert.internal.ClassBasedConverterDescriptor;
 import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
+import org.hibernate.boot.model.domain.JavaTypeMapping;
 import org.hibernate.boot.model.type.spi.BasicTypeResolver;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.spi.MetadataBuildingContext;
@@ -37,10 +38,32 @@ public class BasicValue extends SimpleValue {
 	private boolean isLob;
 	private ConverterDescriptor attributeConverterDescriptor;
 	private BasicTypeResolver basicTypeResolver;
+	private JavaTypeMapping javaTypeMapping;
 	private BasicType basicType;
 
 	public BasicValue(MetadataBuildingContext buildingContext, Table table) {
 		super( buildingContext,table );
+	}
+
+	@Override
+	public JavaTypeMapping getJavaTypeMapping() {
+		// todo (6.0) - this seems hackish as a replacement for {@link #getJavaTypeDescriptor()}.
+		if ( javaTypeMapping == null ) {
+			final BasicType basicType = resolveType();
+			javaTypeMapping = new JavaTypeMapping() {
+				@Override
+				public String getTypeName() {
+					return basicType.getJavaType().getTypeName();
+				}
+
+				@Override
+				public JavaTypeDescriptor resolveJavaTypeDescriptor() {
+					return basicType.getJavaTypeDescriptor();
+				}
+			};
+		}
+
+		return javaTypeMapping;
 	}
 
 	public ConverterDescriptor getAttributeConverterDescriptor() {
@@ -77,6 +100,11 @@ public class BasicValue extends SimpleValue {
 			throw new MappingException( "Attempt to add additional MappedColumn to BasicValueMapping " + column.getName() );
 		}
 		super.addColumn( column );
+	}
+
+	@Override
+	protected void setTypeDescriptorResolver(Column column) {
+		column.setTypeDescriptorResolver( new BasicValueTypeDescriptorResolver( ) );
 	}
 
 	@Override
@@ -143,7 +171,7 @@ public class BasicValue extends SimpleValue {
 
 	@Override
 	public void setTypeUsingReflection(String className, String propertyName) throws MappingException {
-		// todo (6.0) - this check seems sillyo
+		// todo (6.0) - this check seems silly
 		//		Several places call this method and its possible there are situations where the className
 		//		is null because we're dealing with non-pojo cases.  In those cases, we cannot use reflection
 		//		to determine type, so we don't overwrite the BasicTypeResolver that is already set.

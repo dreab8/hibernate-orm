@@ -5,11 +5,11 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.mapping;
+
 import java.util.Iterator;
 
 import org.hibernate.MappingException;
 import org.hibernate.boot.spi.MetadataBuildingContext;
-import org.hibernate.engine.spi.Mapping;
 
 /**
  * A subclass in a table-per-subclass mapping
@@ -23,15 +23,18 @@ public class JoinedSubclass extends Subclass implements TableOwner {
 		super( superclass, metadataBuildingContext );
 	}
 
+	@Override
 	public Table getTable() {
 		return table;
 	}
 
+	@Override
 	public void setTable(Table table) {
 		this.table=table;
 		getSuperclass().addSubclassTable(table);
 	}
 
+	@Override
 	public KeyValue getKey() {
 		return key;
 	}
@@ -40,9 +43,10 @@ public class JoinedSubclass extends Subclass implements TableOwner {
 		this.key = key;
 	}
 
-	public void validate(Mapping mapping) throws MappingException {
-		super.validate(mapping);
-		if ( key!=null && !key.isValid(mapping) ) {
+	@Override
+	public void validate() throws MappingException {
+		super.validate();
+		if ( key!=null && !key.isValid() ) {
 			throw new MappingException(
 					"subclass key mapping has wrong number of columns: " +
 					getEntityName() +
@@ -52,10 +56,12 @@ public class JoinedSubclass extends Subclass implements TableOwner {
 		}
 	}
 
+	@Override
 	public Iterator getReferenceablePropertyIterator() {
 		return getPropertyIterator();
 	}
 
+	@Override
 	public Object accept(PersistentClassVisitor mv) {
 		return mv.accept(this);
 	}

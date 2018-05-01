@@ -9,6 +9,7 @@ package org.hibernate.mapping;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.jdbc.env.spi.QualifiedObjectNameFormatter;
 import org.hibernate.engine.spi.Mapping;
+import org.hibernate.sql.Select;
 import org.hibernate.tool.hbm2ddl.ColumnMetadata;
 import org.hibernate.tool.hbm2ddl.TableMetadata;
 import org.hibernate.tool.schema.extract.spi.ColumnInformation;
@@ -282,6 +284,10 @@ public class Table implements RelationalModel, Serializable, Exportable {
 
 	public Iterator getColumnIterator() {
 		return columns.values().iterator();
+	}
+
+	public java.util.Set<Selectable> getColumns() {
+		return Collections.unmodifiableSet( new HashSet<>( columns.values() ) );
 	}
 
 	public Iterator<Index> getIndexIterator() {

@@ -11,10 +11,13 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.domain.JavaTypeMapping;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 /**
  * A many-to-one association mapping
@@ -36,6 +39,44 @@ public class ManyToOne extends ToOne {
 		super( buildingContext, table );
 	}
 
+	@Override
+	protected void setTypeDescriptorResolver(Column column) {
+		column.setTypeDescriptorResolver( new ManyToOneTypeDescriptorResolver( columns.size() - 1 ) );
+	}
+
+	public class ManyToOneTypeDescriptorResolver implements TypeDescriptorResolver {
+		private int index;
+
+		public ManyToOneTypeDescriptorResolver(int index) {
+			this.index = index;
+		}
+
+		@Override
+		public SqlTypeDescriptor resolveSqlTypeDescriptor() {
+			final PersistentClass referencedPersistentClass = getMetadataBuildingContext()
+					.getMetadataCollector()
+					.getEntityBinding( getReferencedEntityName() );
+			if ( referenceToPrimaryKey || referencedPropertyName == null ) {
+				return ( (Column) referencedPersistentClass.getIdentifier()
+						.getColumns()
+						.get( index ) ).getSqlTypeDescriptor();
+			}
+			else {
+				final Property referencedProperty = referencedPersistentClass.getReferencedProperty(
+						getReferencedPropertyName() );
+				return ( (Column) referencedProperty.getValue()
+						.getColumns()
+						.get( index ) ).getSqlTypeDescriptor();
+			}
+		}
+
+		@Override
+		public JavaTypeDescriptor resolveJavaTypeDescriptor() {
+			return getJavaTypeMapping().resolveJavaTypeDescriptor();
+		}
+	}
+
+	@Override
 	public Type getType() throws MappingException {
 		return getMetadata().getTypeResolver().getTypeFactory().manyToOne(
 				getReferencedEntityName(),
@@ -49,6 +90,7 @@ public class ManyToOne extends ToOne {
 		);
 	}
 
+	@Override
 	public void createForeignKey() throws MappingException {
 		// the case of a foreign key to something other than the pk is handled in createPropertyRefConstraints
 		if (referencedPropertyName==null && !hasFormula() ) {
@@ -92,7 +134,8 @@ public class ManyToOne extends ToOne {
 			}
 		}
 	}
-	
+
+	@Override
 	public Object accept(ValueVisitor visitor) {
 		return visitor.accept(this);
 	}
@@ -111,5 +154,21 @@ public class ManyToOne extends ToOne {
 
 	public boolean isLogicalOneToOne() {
 		return isLogicalOneToOne;
+	}
+
+
+	@Override
+	public JavaTypeMapping getJavaTypeMapping() {
+		final PersistentClass referencedPersistentClass = getMetadataBuildingContext()
+				.getMetadataCollector()
+				.getEntityBinding( getReferencedEntityName() );
+		if ( referenceToPrimaryKey || referencedPropertyName == null ) {
+			return referencedPersistentClass.getIdentifier().getJavaTypeMapping();
+		}
+		else {
+			return referencedPersistentClass.getReferencedProperty( getReferencedPropertyName() )
+					.getValue()
+					.getJavaTypeMapping();
+		}
 	}
 }

@@ -146,7 +146,7 @@ public class JoinedSubclassEntityPersister extends AbstractEntityPersister {
 			if ( discriminatorMapping != null ) {
 				log.debug( "Encountered explicit discriminator mapping for joined inheritance" );
 
-				final Selectable selectable = discriminatorMapping.getColumnIterator().next();
+				final Selectable selectable = (Selectable) discriminatorMapping.getColumnIterator().next();
 				if ( Formula.class.isInstance( selectable ) ) {
 					throw new MappingException( "Discriminator formulas on joined inheritance hierarchies not supported at this time" );
 				}

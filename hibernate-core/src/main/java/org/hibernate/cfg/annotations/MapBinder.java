@@ -118,7 +118,7 @@ public class MapBinder extends CollectionBinder {
 			if ( indexValue.getColumnSpan() != 1 ) {
 				throw new AssertionFailure( "Map key mapped by @MapKeyColumn does not have 1 column" );
 			}
-			final Selectable selectable = indexValue.getColumnIterator().next();
+			final Selectable selectable = (Selectable) indexValue.getColumnIterator().next();
 			if ( selectable.isFormula() ) {
 				throw new AssertionFailure( "Map key mapped by @MapKeyColumn is a Formula" );
 			}
@@ -144,7 +144,7 @@ public class MapBinder extends CollectionBinder {
 				final Selectable selectable = selectableIterator.next();
 				if ( column.equals( selectable ) ) {
 					final Column iteratedColumn = (Column) selectable;
-					if ( column.getValue().getTable().equals( iteratedColumn.getValue().getTable() ) ) {
+					if ( column.getTableName().equals( iteratedColumn.getTableName() ) ) {
 						return true;
 					}
 				}

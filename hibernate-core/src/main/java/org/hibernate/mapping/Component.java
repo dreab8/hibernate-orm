@@ -15,6 +15,9 @@ import java.util.Map;
 
 import org.hibernate.EntityMode;
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.domain.EmbeddableJavaTypeMapping;
+import org.hibernate.boot.model.domain.JavaTypeMapping;
+import org.hibernate.boot.model.domain.internal.EmbeddableJavaTypeMappingImpl;
 import org.hibernate.boot.model.relational.Database;
 import org.hibernate.boot.model.relational.ExportableProducer;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
@@ -46,9 +49,10 @@ public class Component extends SimpleValue implements MetaAttributable {
 	private String parentProperty;
 	private PersistentClass owner;
 	private boolean dynamic;
-	private Map metaAttributes;
+	private Map<String, MetaAttribute> metaAttributes;
 	private boolean isKey;
 	private String roleName;
+	private EmbeddableJavaTypeMapping javaTypeMapping;
 
 	private java.util.Map<EntityMode,String> tuplizerImpls;
 
@@ -114,6 +118,14 @@ public class Component extends SimpleValue implements MetaAttributable {
 		this.owner = owner;
 	}
 
+	@Override
+	public JavaTypeMapping getJavaTypeMapping() {
+		if ( javaTypeMapping == null ) {
+			javaTypeMapping = new EmbeddableJavaTypeMappingImpl<>( getMetadataBuildingContext(), roleName, componentClassName, null );
+		}
+		return javaTypeMapping;
+	}
+
 	public int getPropertySpan() {
 		return properties.size();
 	}
@@ -129,6 +141,11 @@ public class Component extends SimpleValue implements MetaAttributable {
 	@Override
 	public void addColumn(Column column) {
 		throw new UnsupportedOperationException("Cant add a column to a component");
+	}
+
+	@Override
+	protected void setTypeDescriptorResolver(Column column) {
+		throw new UnsupportedOperationException( "Cant add a column to a component" );
 	}
 
 	@Override

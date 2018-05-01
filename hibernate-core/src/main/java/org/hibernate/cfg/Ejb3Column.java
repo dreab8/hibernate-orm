@@ -365,15 +365,18 @@ public class Ejb3Column {
 			value.addFormula( formula );
 		}
 		else {
-			getMappingColumn().setValue( value );
-			value.addColumn( getMappingColumn(), insertable, updatable );
-			value.getTable().addColumn( getMappingColumn() );
-			addColumnBinding( value );
 			table = value.getTable();
+			final Column column = getMappingColumn();
+			if(table != null){
+				column.setTableName( table.getNameIdentifier() );
+				table.addColumn( column );
+			}
+			value.addColumn( getMappingColumn(), insertable, updatable );
+			addColumnBinding( table );
 		}
 	}
 
-	protected void addColumnBinding(SimpleValue value) {
+	protected void addColumnBinding(Table table) {
 		final String logicalColumnName;
 		if ( StringHelper.isNotEmpty( this.logicalColumnName ) ) {
 			logicalColumnName = this.logicalColumnName;
@@ -406,7 +409,7 @@ public class Ejb3Column {
 			);
 			logicalColumnName = implicitName.render( database.getDialect() );
 		}
-		context.getMetadataCollector().addColumnNameBinding( value.getTable(), logicalColumnName, getMappingColumn() );
+		context.getMetadataCollector().addColumnNameBinding( table, logicalColumnName, getMappingColumn() );
 	}
 
 	/**

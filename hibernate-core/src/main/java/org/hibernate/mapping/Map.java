@@ -28,11 +28,13 @@ public class Map extends IndexedCollection {
 	public Map(MetadataBuildingContext buildingContext, PersistentClass owner) {
 		super( buildingContext, owner );
 	}
-	
+
+	@Override
 	public boolean isMap() {
 		return true;
 	}
 
+	@Override
 	public CollectionType getDefaultCollectionType() {
 		if ( isSorted() ) {
 			return getMetadata().getTypeResolver()
@@ -51,7 +53,7 @@ public class Map extends IndexedCollection {
 		}
 	}
 
-
+	@Override
 	public void createAllKeys() throws MappingException {
 		super.createAllKeys();
 		if ( !isInverse() ) {
@@ -59,6 +61,7 @@ public class Map extends IndexedCollection {
 		}
 	}
 
+	@Override
 	public Object accept(ValueVisitor visitor) {
 		return visitor.accept(this);
 	}

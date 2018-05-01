@@ -285,6 +285,4 @@ public interface BasicType<T> extends Type<T> {
 			throws HibernateException, SQLException{
 		return session.remapSqlTypeDescriptor( getSqlTypeDescriptor() ).getExtractor( getJavaTypeDescriptor() ).extract( rs, names[0], session );
 	}
-
-
 }

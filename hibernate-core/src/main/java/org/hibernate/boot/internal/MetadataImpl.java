@@ -80,7 +80,6 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 	private final Map<String, ResultSetMappingDefinition> sqlResultSetMappingMap;
 	private final Map<String, NamedEntityGraphDefinition> namedEntityGraphMap;
 	private final Map<String, SQLFunction> sqlFunctionMap;
-	private final java.util.Collection<DomainDataRegionConfigImpl.Builder> cacheRegionConfigBuilders;
 	private final Database database;
 
 	MetadataImpl(
@@ -121,7 +120,6 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 		this.sqlResultSetMappingMap = sqlResultSetMappingMap;
 		this.namedEntityGraphMap = namedEntityGraphMap;
 		this.sqlFunctionMap = sqlFunctionMap;
-		this.cacheRegionConfigBuilders = cacheRegionConfigBuilders;
 		this.database = database;
 		this.bootstrapContext = bootstrapContext;
 	}
@@ -344,11 +342,11 @@ public class MetadataImpl implements MetadataImplementor, Serializable {
 	@Override
 	public void validate() throws MappingException {
 		for ( PersistentClass entityBinding : this.getEntityBindings() ) {
-			entityBinding.validate( this );
+			entityBinding.validate();
 		}
 
 		for ( Collection collectionBinding : this.getCollectionBindings() ) {
-			collectionBinding.validate( this );
+			collectionBinding.validate( );
 		}
 	}
 

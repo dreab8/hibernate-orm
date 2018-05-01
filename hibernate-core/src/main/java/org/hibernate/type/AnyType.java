@@ -234,7 +234,7 @@ public class AnyType extends AbstractType implements CompositeType, AssociationT
 	}
 
 	@Override
-	public int getColumnSpan(Mapping session) {
+	public int getColumnSpan(Mapping mapping) {
 		return 2;
 	}
 

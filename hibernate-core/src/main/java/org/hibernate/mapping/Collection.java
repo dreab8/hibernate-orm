@@ -11,16 +11,17 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Objects;
 
 import org.hibernate.FetchMode;
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.domain.JavaTypeMapping;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.engine.spi.ExecuteUpdateResultCheckStyle;
-import org.hibernate.engine.spi.Mapping;
 import org.hibernate.internal.FilterConfiguration;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.internal.util.collections.ArrayHelper;
@@ -109,7 +110,9 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 
 	@Override
 	public ServiceRegistry getServiceRegistry() {
-		return getMetadata().getMetadataBuildingOptions().getServiceRegistry();
+		return getMetadataBuildingContext()
+				.getBuildingOptions()
+				.getServiceRegistry();
 	}
 
 	public boolean isSet() {
@@ -132,6 +135,11 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		return collectionTable;
 	}
 
+	@Override
+	public List<Selectable> getColumns(){
+		return Collections.emptyList();
+	}
+
 	public void setCollectionTable(Table table) {
 		this.collectionTable = table;
 	}
@@ -143,7 +151,8 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 	public Comparator getComparator() {
 		if ( comparator == null && comparatorClassName != null ) {
 			try {
-				final ClassLoaderService classLoaderService = getMetadata().getMetadataBuildingOptions()
+				final ClassLoaderService classLoaderService = getMetadataBuildingContext()
+						.getBuildingOptions()
 						.getServiceRegistry()
 						.getService( ClassLoaderService.class );
 				setComparator( (Comparator) classLoaderService.classForName( comparatorClassName ).newInstance() );
@@ -158,10 +167,12 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		return comparator;
 	}
 
+	@Override
 	public boolean isLazy() {
 		return lazy;
 	}
 
+	@Override
 	public void setLazy(boolean lazy) {
 		this.lazy = lazy;
 	}
@@ -180,6 +191,7 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		return false;
 	}
 
+	@Override
 	public boolean hasFormula() {
 		return false;
 	}
@@ -286,10 +298,17 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		batchSize = i;
 	}
 
+	@Override
 	public FetchMode getFetchMode() {
 		return fetchMode;
 	}
 
+	@Override
+	public MetadataBuildingContext getMetadataBuildingContext() {
+		return buildingContext;
+	}
+
+	@Override
 	public void setFetchMode(FetchMode fetchMode) {
 		this.fetchMode = fetchMode;
 	}
@@ -302,11 +321,11 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		return collectionPersisterClass;
 	}
 
-	public void validate(Mapping mapping) throws MappingException {
+	public void validate() throws MappingException {
 		assert getKey() != null : "Collection key not bound : " + getRole();
 		assert getElement() != null : "Collection element not bound : " + getRole();
 
-		if ( !getKey().isValid( mapping ) ) {
+		if ( !getKey().isValid() ) {
 			throw new MappingException(
 					"collection foreign key mapping has wrong number of columns: "
 							+ getRole()
@@ -314,7 +333,7 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 							+ getKey().getType().getName()
 			);
 		}
-		if ( !getElement().isValid( mapping ) ) {
+		if ( !getElement().isValid() ) {
 			throw new MappingException(
 					"collection element mapping has wrong number of columns: "
 							+ getRole()
@@ -371,14 +390,17 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		}
 	}
 
+	@Override
 	public Iterator<Selectable> getColumnIterator() {
 		return Collections.<Selectable>emptyList().iterator();
 	}
 
+	@Override
 	public int getColumnSpan() {
 		return 0;
 	}
 
+	@Override
 	public Type getType() throws MappingException {
 		return getCollectionType();
 	}
@@ -394,26 +416,32 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		}
 	}
 
+	@Override
 	public boolean isNullable() {
 		return true;
 	}
 
+	@Override
 	public boolean isAlternateUniqueKey() {
 		return false;
 	}
 
+	@Override
 	public Table getTable() {
 		return owner.getTable();
 	}
 
+	@Override
 	public void createForeignKey() {
 	}
 
+	@Override
 	public boolean isSimpleValue() {
 		return false;
 	}
 
-	public boolean isValid(Mapping mapping) throws MappingException {
+	@Override
+	public boolean isValid() throws MappingException {
 		return true;
 	}
 
@@ -464,6 +492,7 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		this.cacheConcurrencyStrategy = cacheConcurrencyStrategy;
 	}
 
+	@Override
 	public void setTypeUsingReflection(String className, String propertyName) {
 	}
 
@@ -551,6 +580,7 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		return deleteAllCheckStyle;
 	}
 
+	@Override
 	public void addFilter(
 			String name,
 			String condition,
@@ -569,6 +599,7 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		);
 	}
 
+	@Override
 	public java.util.List getFilters() {
 		return filters;
 	}
@@ -658,10 +689,12 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 		}
 	}
 
+	@Override
 	public boolean[] getColumnInsertability() {
 		return ArrayHelper.EMPTY_BOOLEAN_ARRAY;
 	}
 
+	@Override
 	public boolean[] getColumnUpdateability() {
 		return ArrayHelper.EMPTY_BOOLEAN_ARRAY;
 	}
@@ -708,5 +741,10 @@ public abstract class Collection implements Fetchable, Value, Filterable {
 
 	public void setMappedByProperty(String mappedByProperty) {
 		this.mappedByProperty = mappedByProperty;
+	}
+
+	@Override
+	public JavaTypeMapping getJavaTypeMapping() {
+		return null;
 	}
 }

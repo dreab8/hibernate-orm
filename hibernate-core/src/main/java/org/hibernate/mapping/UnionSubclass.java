@@ -9,7 +9,6 @@ import java.util.Iterator;
 
 import org.hibernate.MappingException;
 import org.hibernate.boot.spi.MetadataBuildingContext;
-import org.hibernate.engine.spi.Mapping;
 
 /**
  * A subclass in a table-per-concrete-class mapping
@@ -23,26 +22,31 @@ public class UnionSubclass extends Subclass implements TableOwner {
 		super( superclass, metadataBuildingContext );
 	}
 
+	@Override
 	public Table getTable() {
 		return table;
 	}
 
+	@Override
 	public void setTable(Table table) {
 		this.table = table;
 		getSuperclass().addSubclassTable(table);
 	}
 
+	@Override
 	public java.util.Set getSynchronizedTables() {
 		return synchronizedTables;
 	}
-	
+
+	@Override
 	protected Iterator getNonDuplicatedPropertyIterator() {
 		return getPropertyClosureIterator();
 	}
 
-	public void validate(Mapping mapping) throws MappingException {
-		super.validate(mapping);
-		if ( key!=null && !key.isValid(mapping) ) {
+	@Override
+	public void validate() throws MappingException {
+		super.validate();
+		if ( key!=null && !key.isValid() ) {
 			throw new MappingException(
 				"subclass key mapping has wrong number of columns: " +
 				getEntityName() +
@@ -51,11 +55,13 @@ public class UnionSubclass extends Subclass implements TableOwner {
 			);
 		}
 	}
-	
+
+	@Override
 	public Table getIdentityTable() {
 		return getTable();
 	}
-	
+
+	@Override
 	public Object accept(PersistentClassVisitor mv) {
 		return mv.accept(this);
 	}

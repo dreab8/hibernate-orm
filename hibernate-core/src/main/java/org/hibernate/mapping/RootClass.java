@@ -13,7 +13,6 @@ import java.util.Set;
 
 import org.hibernate.MappingException;
 import org.hibernate.boot.spi.MetadataBuildingContext;
-import org.hibernate.engine.spi.Mapping;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
@@ -263,9 +262,9 @@ public class RootClass extends PersistentClass implements TableOwner {
 	}
 
 	@Override
-	public void validate(Mapping mapping) throws MappingException {
-		super.validate( mapping );
-		if ( !getIdentifier().isValid( mapping ) ) {
+	public void validate() throws MappingException {
+		super.validate();
+		if ( !getIdentifier().isValid() ) {
 			throw new MappingException(
 					"identifier mapping has wrong number of columns: " +
 							getEntityName() +

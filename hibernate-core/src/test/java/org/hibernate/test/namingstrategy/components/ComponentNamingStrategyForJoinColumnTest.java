@@ -24,6 +24,7 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyComponentPathImpl;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.mapping.Selectable;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
@@ -88,7 +89,7 @@ public class ComponentNamingStrategyForJoinColumnTest extends BaseUnitTestCase {
 		assertEquals( 1, collection.getOwner().getKey().getColumnSpan() );
 		assertEquals(
 			ownerForeignKeyNameExpected,
-			collection.getKey().getColumnIterator().next().getText()
+			((Selectable)collection.getKey().getColumnIterator().next()).getText()
 		);
 
 		int columnNumber = table.getColumnSpan();

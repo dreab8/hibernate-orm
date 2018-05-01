@@ -6,14 +6,17 @@
  */
 package org.hibernate.mapping;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 import org.hibernate.FetchMode;
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.domain.JavaTypeMapping;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.boot.spi.MetadataImplementor;
-import org.hibernate.engine.spi.Mapping;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
@@ -24,23 +27,17 @@ import org.hibernate.type.Type;
  * @author Gavin King
  */
 public class OneToMany implements Value {
+	private final MetadataBuildingContext buildingContext;
 	private final MetadataImplementor metadata;
 	private final Table referencingTable;
 
 	private String referencedEntityName;
 	private PersistentClass associatedClass;
 	private boolean ignoreNotFound;
-
-	/**
-	 * @deprecated Use {@link OneToMany#OneToMany(MetadataBuildingContext, PersistentClass)} instead.
-	 */
-	@Deprecated
-	public OneToMany(MetadataImplementor metadata, PersistentClass owner) throws MappingException {
-		this.metadata = metadata;
-		this.referencingTable = ( owner == null ) ? null : owner.getTable();
-	}
+	private JavaTypeMapping javaTypeMapping;
 
 	public OneToMany(MetadataBuildingContext buildingContext, PersistentClass owner) throws MappingException {
+		this.buildingContext = buildingContext;
 		this.metadata = buildingContext.getMetadataCollector();
 		this.referencingTable = ( owner == null ) ? null : owner.getTable();
 	}
@@ -73,10 +70,12 @@ public class OneToMany implements Value {
 		this.associatedClass = associatedClass;
 	}
 
+	@Override
 	public void createForeignKey() {
 		// no foreign key element of for a one-to-many
 	}
 
+	@Override
 	public Iterator<Selectable> getColumnIterator() {
 		return associatedClass.getKey().getColumnIterator();
 	}
@@ -85,25 +84,39 @@ public class OneToMany implements Value {
 		return associatedClass.getKey().getColumnSpan();
 	}
 
+	@Override
 	public FetchMode getFetchMode() {
 		return FetchMode.JOIN;
+	}
+
+	@Override
+	public MetadataBuildingContext getMetadataBuildingContext() {
+		return  buildingContext;
 	}
 
 	/**
 	 * Table of the owner entity (the "one" side)
 	 */
+	@Override
 	public Table getTable() {
 		return referencingTable;
 	}
 
+	public List<Selectable> getColumns(){
+		return Collections.unmodifiableList( new ArrayList<>( referencingTable.getColumns() ) );
+	}
+
+	@Override
 	public Type getType() {
 		return getEntityType();
 	}
 
+	@Override
 	public boolean isNullable() {
 		return false;
 	}
 
+	@Override
 	public boolean isSimpleValue() {
 		return false;
 	}
@@ -112,11 +125,12 @@ public class OneToMany implements Value {
 		return false;
 	}
 
+	@Override
 	public boolean hasFormula() {
 		return false;
 	}
 
-	public boolean isValid(Mapping mapping) throws MappingException {
+	public boolean isValid() throws MappingException {
 		if ( referencedEntityName == null ) {
 			throw new MappingException( "one to many association must specify the referenced entity" );
 		}
@@ -134,9 +148,11 @@ public class OneToMany implements Value {
 		this.referencedEntityName = referencedEntityName == null ? null : referencedEntityName.intern();
 	}
 
+	@Override
 	public void setTypeUsingReflection(String className, String propertyName) {
 	}
 
+	@Override
 	public Object accept(ValueVisitor visitor) {
 		return visitor.accept( this );
 	}
@@ -152,11 +168,13 @@ public class OneToMany implements Value {
 				&& Objects.equals( associatedClass, other.associatedClass );
 	}
 
+	@Override
 	public boolean[] getColumnInsertability() {
 		//TODO: we could just return all false...
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
 	public boolean[] getColumnUpdateability() {
 		//TODO: we could just return all false...
 		throw new UnsupportedOperationException();
@@ -170,4 +188,12 @@ public class OneToMany implements Value {
 		this.ignoreNotFound = ignoreNotFound;
 	}
 
+	@Override
+	public JavaTypeMapping getJavaTypeMapping() {
+		return javaTypeMapping;
+	}
+
+	public void setJavaTypeMapping(JavaTypeMapping javaTypeMapping) {
+		this.javaTypeMapping = javaTypeMapping;
+	}
 }

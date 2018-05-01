@@ -51,8 +51,8 @@ public class PrimaryKey extends Constraint {
 				return "<unknown>";
 			}
 		}
-		else if ( column.getValue() != null && column.getValue().getTable() != null ) {
-			return column.getValue().getTable().getNameIdentifier().getCanonicalName();
+		else if ( column.getTableName() != null ) {
+			return column.getTableName().getCanonicalName();
 		}
 		return "<unknown>";
 	}

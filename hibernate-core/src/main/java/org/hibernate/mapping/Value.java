@@ -5,14 +5,12 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.mapping;
+
 import java.io.Serializable;
 import java.util.Iterator;
 
-import org.hibernate.FetchMode;
 import org.hibernate.MappingException;
-import org.hibernate.boot.spi.MetadataBuildingContext;
-import org.hibernate.engine.spi.Mapping;
-import org.hibernate.service.ServiceRegistry;
+import org.hibernate.boot.model.domain.ValueMapping;
 import org.hibernate.type.Type;
 
 /**
@@ -24,12 +22,10 @@ import org.hibernate.type.Type;
  *
  * @author Gavin King
  */
-public interface Value extends Serializable {
+public interface Value<J> extends ValueMapping<J>, Serializable {
 	int getColumnSpan();
 	Iterator<Selectable> getColumnIterator();
 	Type getType() throws MappingException;
-	FetchMode getFetchMode();
-	Table getTable();
 	boolean hasFormula();
 	boolean isAlternateUniqueKey();
 	boolean isNullable();
@@ -37,10 +33,8 @@ public interface Value extends Serializable {
 	boolean[] getColumnInsertability();
 	void createForeignKey() throws MappingException;
 	boolean isSimpleValue();
-	boolean isValid(Mapping mapping) throws MappingException;
+	boolean isValid() throws MappingException;
 	void setTypeUsingReflection(String className, String propertyName) throws MappingException;
 	Object accept(ValueVisitor visitor);
 	boolean isSame(Value other);
-
-	ServiceRegistry getServiceRegistry();
 }

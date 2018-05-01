@@ -20,7 +20,6 @@ import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.engine.OptimisticLockStyle;
 import org.hibernate.engine.spi.ExecuteUpdateResultCheckStyle;
-import org.hibernate.engine.spi.Mapping;
 import org.hibernate.internal.FilterConfiguration;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.internal.util.collections.EmptyIterator;
@@ -140,7 +139,8 @@ public abstract class PersistentClass implements AttributeContainer, Serializabl
 		}
 		try {
 			if ( proxyInterface == null ) {
-				proxyInterface = metadataBuildingContext.getBootstrapContext().getClassLoaderAccess().classForName( proxyInterfaceName );
+				proxyInterface = metadataBuildingContext.getBootstrapContext().getClassLoaderAccess().classForName(
+						proxyInterfaceName );
 			}
 			return proxyInterface;
 		}
@@ -617,11 +617,11 @@ public abstract class PersistentClass implements AttributeContainer, Serializabl
 		this.optimisticLockStyle = optimisticLockStyle;
 	}
 
-	public void validate(Mapping mapping) throws MappingException {
+	public void validate() throws MappingException {
 		Iterator iter = getPropertyIterator();
 		while ( iter.hasNext() ) {
 			Property prop = (Property) iter.next();
-			if ( !prop.isValid( mapping ) ) {
+			if ( !prop.isValid() ) {
 				throw new MappingException(
 						"property mapping has wrong number of columns: " +
 								StringHelper.qualify( getEntityName(), prop.getName() ) +

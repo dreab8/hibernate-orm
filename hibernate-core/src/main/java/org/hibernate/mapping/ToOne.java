@@ -26,7 +26,6 @@ public abstract class ToOne extends SimpleValue implements Fetchable {
 	protected String referencedPropertyName;
 	private String referencedEntityName;
 	private String propertyName;
-	private boolean embedded;
 	private boolean lazy = true;
 	protected boolean unwrapProxy;
 	protected boolean referenceToPrimaryKey = true;
@@ -43,15 +42,20 @@ public abstract class ToOne extends SimpleValue implements Fetchable {
 		super( buildingContext, table );
 	}
 
+	@Override
 	public FetchMode getFetchMode() {
 		return fetchMode;
 	}
 
+	@Override
 	public void setFetchMode(FetchMode fetchMode) {
 		this.fetchMode=fetchMode;
 	}
 
+	@Override
 	public abstract void createForeignKey() throws MappingException;
+
+	@Override
 	public abstract Type getType() throws MappingException;
 
 	public String getReferencedPropertyName() {
@@ -71,6 +75,15 @@ public abstract class ToOne extends SimpleValue implements Fetchable {
 				null : referencedEntityName.intern();
 	}
 
+	public void setTypeUsingReflection(String className, String propertyName) throws MappingException {
+		if (referencedEntityName == null) {
+			final ClassLoaderService cls  = getMetadataBuildingContext().getBootstrapContext()
+					.getServiceRegistry()
+					.getService( ClassLoaderService.class );
+			referencedEntityName = ReflectHelper.reflectedPropertyClass( className, propertyName, cls ).getName();
+		}
+	}
+
 	public String getPropertyName() {
 		return propertyName;
 	}
@@ -81,19 +94,11 @@ public abstract class ToOne extends SimpleValue implements Fetchable {
 	}
 
 	@Override
-	public void setTypeUsingReflection(String className, String propertyName) throws MappingException {
-		if (referencedEntityName == null) {
-			final ClassLoaderService cls = getMetadata().getMetadataBuildingOptions()
-					.getServiceRegistry()
-					.getService( ClassLoaderService.class );
-			referencedEntityName = ReflectHelper.reflectedPropertyClass( className, propertyName, cls ).getName();
-		}
-	}
-
 	public boolean isTypeSpecified() {
 		return referencedEntityName!=null;
 	}
-	
+
+	@Override
 	public Object accept(ValueVisitor visitor) {
 		return visitor.accept(this);
 	}
@@ -106,21 +111,23 @@ public abstract class ToOne extends SimpleValue implements Fetchable {
 	public boolean isSame(ToOne other) {
 		return super.isSame( other )
 				&& Objects.equals( referencedPropertyName, other.referencedPropertyName )
-				&& Objects.equals( referencedEntityName, other.referencedEntityName )
-				&& embedded == other.embedded;
+				&& Objects.equals( referencedEntityName, other.referencedEntityName );
 	}
 
-	public boolean isValid(Mapping mapping) throws MappingException {
+	@Override
+	public boolean isValid() throws MappingException {
 		if (referencedEntityName==null) {
 			throw new MappingException("association must specify the referenced entity");
 		}
-		return super.isValid( mapping );
+		return super.isValid( );
 	}
 
+	@Override
 	public boolean isLazy() {
 		return lazy;
 	}
-	
+
+	@Override
 	public void setLazy(boolean lazy) {
 		this.lazy = lazy;
 	}
@@ -140,5 +147,4 @@ public abstract class ToOne extends SimpleValue implements Fetchable {
 	public void setReferenceToPrimaryKey(boolean referenceToPrimaryKey) {
 		this.referenceToPrimaryKey = referenceToPrimaryKey;
 	}
-	
 }

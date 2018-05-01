@@ -11,11 +11,16 @@ import java.util.Locale;
 
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.function.SQLFunctionRegistry;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.sql.Template;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+
+import static org.hibernate.mapping.SimpleValue.TypeDescriptorResolver;
 
 /**
  * A column of a relational database table
@@ -31,10 +36,15 @@ public class Column implements Selectable, Serializable, Cloneable {
 	private int length = DEFAULT_LENGTH;
 	private int precision = DEFAULT_PRECISION;
 	private int scale = DEFAULT_SCALE;
-	private Value value;
+
+	private SqlTypeDescriptor sqlTypeDescriptor;
+	private TypeDescriptorResolver typeDescriptorResolver;
+
 	private int typeIndex;
 	private String name;
+	private Identifier tableName;
 	private boolean nullable = true;
+
 	private boolean unique;
 	private String sqlType;
 	private Integer sqlTypeCode;
@@ -53,20 +63,23 @@ public class Column implements Selectable, Serializable, Cloneable {
 		setName( columnName );
 	}
 
+	public Column(Identifier tableName, String columnName, boolean isUnique) {
+		this( columnName, isUnique );
+		this.tableName = tableName;
+	}
+
+
+	public Column(String columnName, boolean isUnique) {
+		setName( columnName );
+		setUnique( isUnique );
+	}
+
 	public int getLength() {
 		return length;
 	}
 
 	public void setLength(int length) {
 		this.length = length;
-	}
-
-	public Value getValue() {
-		return value;
-	}
-
-	public void setValue(Value value) {
-		this.value = value;
 	}
 
 	public String getName() {
@@ -160,6 +173,14 @@ public class Column implements Selectable, Serializable, Cloneable {
 		return unique;
 	}
 
+	public void setTableName(Identifier tableName){
+		this.tableName = tableName;
+	}
+
+	public Identifier getTableName(){
+		return this.tableName;
+	}
+
 	@Override
 	public int hashCode() {
 		//used also for generation of FK names!
@@ -188,25 +209,7 @@ public class Column implements Selectable, Serializable, Cloneable {
 	}
 
 	public int getSqlTypeCode(Mapping mapping) throws MappingException {
-		org.hibernate.type.Type type = getValue().getType();
-		try {
-			int sqlTypeCode = type.sqlTypes( mapping )[getTypeIndex()];
-			if ( getSqlTypeCode() != null && getSqlTypeCode() != sqlTypeCode ) {
-				throw new MappingException( "SQLType code's does not match. mapped as " + sqlTypeCode + " but is " + getSqlTypeCode() );
-			}
-			return sqlTypeCode;
-		}
-		catch (Exception e) {
-			throw new MappingException(
-					"Could not determine type for column " +
-							name +
-							" of type " +
-							type.getClass().getName() +
-							": " +
-							e.getClass().getName(),
-					e
-			);
-		}
+		return sqlTypeDescriptor.getJdbcTypeCode();
 	}
 
 	/**
@@ -296,6 +299,21 @@ public class Column implements Selectable, Serializable, Cloneable {
 		return getQuotedName( d );
 	}
 
+	public SqlTypeDescriptor getSqlTypeDescriptor() {
+		if ( sqlTypeDescriptor == null ) {
+			sqlTypeDescriptor = typeDescriptorResolver.resolveSqlTypeDescriptor();
+		}
+		return sqlTypeDescriptor;
+	}
+
+	protected JavaTypeDescriptor getJavaTypeDescriptor() {
+		return typeDescriptorResolver.resolveJavaTypeDescriptor();
+	}
+
+	public void setTypeDescriptorResolver(SimpleValue.TypeDescriptorResolver typeDescriptorResolver) {
+		this.typeDescriptorResolver = typeDescriptorResolver;
+	}
+
 	@Override
 	public String getText() {
 		return getName();
@@ -361,7 +379,6 @@ public class Column implements Selectable, Serializable, Cloneable {
 		Column copy = new Column();
 		copy.setLength( length );
 		copy.setScale( scale );
-		copy.setValue( value );
 		copy.setTypeIndex( typeIndex );
 		copy.setName( getQuotedName() );
 		copy.setNullable( nullable );
@@ -375,6 +392,7 @@ public class Column implements Selectable, Serializable, Cloneable {
 		copy.setDefaultValue( defaultValue );
 		copy.setCustomRead( customRead );
 		copy.setCustomWrite( customWrite );
+		copy.setTypeDescriptorResolver( typeDescriptorResolver );
 		return copy;
 	}
 

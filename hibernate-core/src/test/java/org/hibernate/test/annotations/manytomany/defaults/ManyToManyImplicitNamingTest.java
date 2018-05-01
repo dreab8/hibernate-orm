@@ -12,6 +12,7 @@ import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl;
 import org.hibernate.mapping.ForeignKey;
 import org.hibernate.mapping.PersistentClass;
+import org.hibernate.mapping.Selectable;
 import org.hibernate.type.EntityType;
 
 import org.hibernate.testing.TestForIssue;
@@ -185,7 +186,7 @@ public class ManyToManyImplicitNamingTest extends BaseNonConfigCoreFunctionalTes
 		);
 		// The default owner and inverse join columns can only be computed if they have PK with 1 column.
 		assertEquals ( 1, ownerCollection.getOwner().getKey().getColumnSpan() );
-		assertEquals( ownerForeignKeyNameExpected, ownerCollection.getKey().getColumnIterator().next().getText() );
+		assertEquals( ownerForeignKeyNameExpected, ((Selectable)ownerCollection.getKey().getColumnIterator().next()).getText() );
 
 		final EntityType associatedEntityType =  (EntityType) ownerCollection.getElement().getType();
 		final PersistentClass associatedPersistentClass =
@@ -197,7 +198,7 @@ public class ManyToManyImplicitNamingTest extends BaseNonConfigCoreFunctionalTes
 			);
 			assertEquals(
 					inverseForeignKeyNameExpected,
-					inverseCollection.getKey().getColumnIterator().next().getText()
+					((Selectable)inverseCollection.getKey().getColumnIterator().next()).getText()
 			);
 		}
 		boolean hasOwnerFK = false;
