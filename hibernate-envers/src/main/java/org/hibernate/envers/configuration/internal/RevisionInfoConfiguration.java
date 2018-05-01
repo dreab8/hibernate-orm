@@ -37,8 +37,8 @@ import org.hibernate.envers.internal.revisioninfo.RevisionInfoNumberReader;
 import org.hibernate.envers.internal.revisioninfo.RevisionInfoQueryCreator;
 import org.hibernate.envers.internal.tools.MutableBoolean;
 import org.hibernate.mapping.PersistentClass;
-import org.hibernate.type.LongType;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -69,7 +69,7 @@ public class RevisionInfoConfiguration {
 		revisionInfoIdData = new PropertyData( "id", "id", "field", null );
 		revisionInfoTimestampData = new PropertyData( "timestamp", "timestamp", "field", null );
 		modifiedEntityNamesData = new PropertyData( "modifiedEntityNames", "modifiedEntityNames", "field", null );
-		revisionInfoTimestampType = new LongType();
+		revisionInfoTimestampType = StandardSpiBasicTypes.LONG;
 
 		revisionPropType = "integer";
 	}

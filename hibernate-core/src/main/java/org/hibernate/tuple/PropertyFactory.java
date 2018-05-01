@@ -56,13 +56,13 @@ public final class PropertyFactory {
 			PersistentClass mappedEntity,
 			IdentifierGenerator generator) {
 		String mappedUnsavedValue = mappedEntity.getIdentifier().getNullValue();
-		Type type = mappedEntity.getIdentifier().getType();
+		BasicType type = (BasicType) mappedEntity.getIdentifier().getType();
 		Property property = mappedEntity.getIdentifierProperty();
 
 		IdentifierValue unsavedValue = UnsavedValueFactory.getUnsavedIdentifierValue(
 				mappedUnsavedValue,
 				getGetter( property ),
-				type,
+				type.getJavaTypeDescriptor(),
 				getConstructor( mappedEntity )
 		);
 

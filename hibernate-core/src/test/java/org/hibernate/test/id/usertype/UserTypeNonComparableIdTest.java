@@ -26,7 +26,8 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 
-import org.hibernate.type.LongType;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 import org.hibernate.usertype.UserType;
 
 public class UserTypeNonComparableIdTest extends BaseCoreFunctionalTestCase {
@@ -120,11 +121,11 @@ public class UserTypeNonComparableIdTest extends BaseCoreFunctionalTestCase {
 
 	public static class CustomIdType implements UserType {
 
-		public static final LongType SQL_TYPE = LongType.INSTANCE;
+		public static final SqlTypeDescriptor SQL_TYPE = StandardSpiBasicTypes.LONG.getSqlTypeDescriptor();
 
 		@Override
 		public int[] sqlTypes() {
-			return new int[] { SQL_TYPE.sqlType() };
+			return new int[] { SQL_TYPE.getJdbcTypeCode() };
 		}
 
 		@Override
@@ -147,7 +148,7 @@ public class UserTypeNonComparableIdTest extends BaseCoreFunctionalTestCase {
 			CustomId customId = (CustomId) value;
 
 			if ( customId == null ) {
-				preparedStatement.setNull( index, SQL_TYPE.sqlType() );
+				preparedStatement.setNull( index, SQL_TYPE.getJdbcTypeCode() );
 			}
 			else {
 				preparedStatement.setLong( index, customId.getValue() );
