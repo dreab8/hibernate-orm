@@ -13,7 +13,7 @@ import java.sql.SQLException;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.IntegerType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 import org.hibernate.usertype.UserType;
 
 public class AgeType implements UserType {
@@ -21,7 +21,7 @@ public class AgeType implements UserType {
 	@Override
 	public int[] sqlTypes() {
 		return new int[] {
-				IntegerType.INSTANCE.sqlType()
+				StandardSpiBasicTypes.INTEGER.getSqlTypeDescriptor().getJdbcTypeCode()
 		};
 	}
 

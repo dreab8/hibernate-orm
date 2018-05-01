@@ -17,36 +17,36 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 /**
  * @author Janario Oliveira
  */
-public class LastNumberType extends org.hibernate.type.EnumType {
+public class LastNumberType  {
 
-	@Override
-	public int[] sqlTypes() {
-		return new int[] { Types.VARCHAR };
-	}
-
-	@Override
-	public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
-			throws HibernateException, SQLException {
-		String persistValue = (String) rs.getObject( names[0] );
-		if ( rs.wasNull() ) {
-			return null;
-		}
-		return Enum.valueOf( returnedClass(), "NUMBER_" + persistValue );
-	}
-
-	@Override
-	public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session)
-			throws HibernateException, SQLException {
-		if ( value == null ) {
-			st.setNull( index, sqlTypes()[0] );
-		}
-		else {
-
-			String enumString = ( (Enum<?>) value ).name();
-			// Using setString here, rather than setObject.  A few JDBC drivers
-			// (Oracle, DB2, and SQLServer) were having trouble converting
-			// the char to VARCHAR.
-			st.setString( index, enumString.substring( enumString.length() - 1 ) );
-		}
-	}
+//	@Override
+//	public int[] sqlTypes() {
+//		return new int[] { Types.VARCHAR };
+//	}
+//
+//	@Override
+//	public Object nullSafeGet(ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner)
+//			throws HibernateException, SQLException {
+//		String persistValue = (String) rs.getObject( names[0] );
+//		if ( rs.wasNull() ) {
+//			return null;
+//		}
+//		return Enum.valueOf( returnedClass(), "NUMBER_" + persistValue );
+//	}
+//
+//	@Override
+//	public void nullSafeSet(PreparedStatement st, Object value, int index, SharedSessionContractImplementor session)
+//			throws HibernateException, SQLException {
+//		if ( value == null ) {
+//			st.setNull( index, sqlTypes()[0] );
+//		}
+//		else {
+//
+//			String enumString = ( (Enum<?>) value ).name();
+//			// Using setString here, rather than setObject.  A few JDBC drivers
+//			// (Oracle, DB2, and SQLServer) were having trouble converting
+//			// the char to VARCHAR.
+//			st.setString( index, enumString.substring( enumString.length() - 1 ) );
+//		}
+//	}
 }

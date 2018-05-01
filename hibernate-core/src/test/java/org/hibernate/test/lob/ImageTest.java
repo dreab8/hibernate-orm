@@ -6,11 +6,9 @@
  */
 package org.hibernate.test.lob;
 
-import org.hibernate.type.ImageType;
-
 /**
  * Tests eager materialization and mutation of data mapped by
- * {@link ImageType}.
+ * {@link org.hibernate.type.spi.StandardSpiBasicTypes#IMAGE}.
  *
  * @author Gail Badner
  */

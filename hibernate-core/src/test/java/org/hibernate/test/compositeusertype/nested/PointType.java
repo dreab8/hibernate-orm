@@ -16,15 +16,15 @@ import java.util.Objects;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.CompositeCustomType;
-import org.hibernate.type.IntegerType;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 import org.hibernate.usertype.CompositeUserType;
 
 public class PointType implements CompositeUserType {
 	public static final CompositeCustomType TYPE = new CompositeCustomType( new PointType() );
 
 	private static final String[] PROPERTY_NAMES = { "x", "y" };
-	private static final Type[] PROPERTY_TYPES = { IntegerType.INSTANCE, IntegerType.INSTANCE };
+	private static final Type[] PROPERTY_TYPES = { StandardSpiBasicTypes.INTEGER, StandardSpiBasicTypes.INTEGER };
 
 	@Override
 	public String[] getPropertyNames() {

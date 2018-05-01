@@ -13,7 +13,6 @@ import org.hibernate.dialect.SQLServerDialect;
 import org.hibernate.dialect.Sybase11Dialect;
 import org.hibernate.dialect.SybaseASE15Dialect;
 import org.hibernate.dialect.SybaseDialect;
-import org.hibernate.type.ImageType;
 
 import org.hibernate.testing.RequiresDialect;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
@@ -23,7 +22,7 @@ import junit.framework.AssertionFailedError;
 
 /**
  * Tests eager materialization and mutation of data mapped by
- * {@link ImageType}.
+ * {@link org.hibernate.type.spi.StandardSpiBasicTypes#IMAGE}.
  *
  * @author Gail Badner
  */
