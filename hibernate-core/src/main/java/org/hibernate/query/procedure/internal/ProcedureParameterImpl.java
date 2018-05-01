@@ -23,12 +23,10 @@ import org.hibernate.procedure.internal.ProcedureCallImpl;
 import org.hibernate.procedure.spi.ParameterStrategy;
 import org.hibernate.query.internal.QueryParameterImpl;
 import org.hibernate.query.procedure.spi.ProcedureParameterImplementor;
-import org.hibernate.type.CalendarDateType;
-import org.hibernate.type.CalendarTimeType;
-import org.hibernate.type.CalendarType;
 import org.hibernate.type.ProcedureParameterExtractionAware;
 import org.hibernate.type.ProcedureParameterNamedBinder;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.jboss.logging.Logger;
 
@@ -176,17 +174,17 @@ public class ProcedureParameterImpl<T>
 			if ( Calendar.class.isInstance( bind.getValue() ) ) {
 				switch ( bind.getExplicitTemporalType() ) {
 					case TIMESTAMP: {
-						typeToUse = CalendarType.INSTANCE;
+						typeToUse = StandardSpiBasicTypes.CALENDAR;
 						sqlTypesToUse = typeToUse.sqlTypes( procedureCall.getSession().getFactory() );
 						break;
 					}
 					case DATE: {
-						typeToUse = CalendarDateType.INSTANCE;
+						typeToUse = StandardSpiBasicTypes.CALENDAR_DATE;
 						sqlTypesToUse = typeToUse.sqlTypes( procedureCall.getSession().getFactory() );
 						break;
 					}
 					case TIME: {
-						typeToUse = CalendarTimeType.INSTANCE;
+						typeToUse = StandardSpiBasicTypes.CALENDAR_TIME;
 						sqlTypesToUse = typeToUse.sqlTypes( procedureCall.getSession().getFactory() );
 						break;
 					}
