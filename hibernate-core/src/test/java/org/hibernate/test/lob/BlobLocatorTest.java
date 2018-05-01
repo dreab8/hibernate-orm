@@ -13,7 +13,6 @@ import org.hibernate.Hibernate;
 import org.hibernate.LockOptions;
 import org.hibernate.Session;
 import org.hibernate.dialect.TeradataDialect;
-import org.hibernate.type.BlobType;
 
 import org.hibernate.testing.DialectChecks;
 import org.hibernate.testing.RequiresDialectFeature;
@@ -27,7 +26,7 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests lazy materialization of data mapped by
- * {@link BlobType}, as well as bounded and unbounded
+ * {@link org.hibernate.type.spi.StandardSpiBasicTypes#BLOB}, as well as bounded and unbounded
  * materialization and mutation.
  *
  * @author Steve Ebersole
@@ -71,7 +70,7 @@ public class BlobLocatorTest extends BaseCoreFunctionalTestCase {
 		if ( getDialect().supportsLobValueChangePropogation() ) {
 			s = openSession();
 			s.beginTransaction();
-			entity = ( LobHolder ) s.byId( LobHolder.class ).with( LockOptions.UPGRADE ).load( entity.getId() );
+			entity = s.byId( LobHolder.class ).with( LockOptions.UPGRADE ).load( entity.getId() );
 			entity.getBlobLocator().truncate( 1 );
 			entity.getBlobLocator().setBytes( 1, changed );
 			s.getTransaction().commit();
@@ -79,7 +78,7 @@ public class BlobLocatorTest extends BaseCoreFunctionalTestCase {
 
 			s = openSession();
 			s.beginTransaction();
-			entity = ( LobHolder ) s.byId( LobHolder.class ).with( LockOptions.UPGRADE ).load( entity.getId() );
+			entity = s.byId( LobHolder.class ).with( LockOptions.UPGRADE ).load( entity.getId() );
 			assertNotNull( entity.getBlobLocator() );
 			Assert.assertEquals( BLOB_SIZE, entity.getBlobLocator().length() );
 			assertEquals( changed, extractData( entity.getBlobLocator() ) );

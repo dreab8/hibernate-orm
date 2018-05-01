@@ -42,10 +42,9 @@ import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.metamodel.model.convert.spi.JpaAttributeConverter;
 import org.hibernate.resource.beans.spi.ManagedBeanRegistry;
 import org.hibernate.service.ServiceRegistry;
-import org.hibernate.type.BinaryType;
-import org.hibernate.type.RowVersionType;
 import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
+import org.hibernate.type.descriptor.java.internal.PrimitiveByteArrayJavaDescriptor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.sql.spi.JdbcTypeNameMapper;
 import org.hibernate.type.descriptor.converter.AttributeConverterSqlTypeDescriptorAdapter;
@@ -53,6 +52,8 @@ import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.sql.LobTypeMappings;
 import org.hibernate.type.descriptor.sql.NationalizedTypeMappings;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 import org.hibernate.usertype.DynamicParameterizedType;
 
 /**
@@ -452,9 +453,9 @@ public abstract class SimpleValue implements KeyValue {
 		Type result = getMetadata().getTypeConfiguration().getBasicTypeRegistry().getBasicType( typeName );
 		// if this is a byte[] version/timestamp, then we need to use RowVersionType
 		// instead of BinaryType (HHH-10413)
-		if ( isVersion && BinaryType.class.isInstance( result ) ) {
+		if ( isVersion && PrimitiveByteArrayJavaDescriptor.class.isInstance( ( (BasicType) result ).getJavaTypeDescriptor() ) ) {
 			log.debug( "version is BinaryType; changing to RowVersionType" );
-			result = RowVersionType.INSTANCE;
+			result = StandardSpiBasicTypes.ROW_VERSION;
 		}
 		if ( result == null ) {
 			String msg = "Could not determine type for: " + typeName;

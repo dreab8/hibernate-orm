@@ -6,10 +6,7 @@
  */
 package org.hibernate.testing.junit4;
 
-import java.sql.Blob;
-import java.sql.Clob;
 import java.sql.Connection;
-import java.sql.NClob;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,9 +43,10 @@ import org.hibernate.mapping.Property;
 import org.hibernate.mapping.RootClass;
 import org.hibernate.mapping.SimpleValue;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator;
-import org.hibernate.type.BlobType;
-import org.hibernate.type.ClobType;
-import org.hibernate.type.NClobType;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import org.hibernate.testing.AfterClassOnce;
 import org.hibernate.testing.BeforeClassOnce;
@@ -336,7 +334,7 @@ public class BaseNonConfigCoreFunctionalTestCase extends BaseUnitTestCase {
 			while ( props.hasNext() ) {
 				final Property prop = (Property) props.next();
 				if ( prop.getValue().isSimpleValue() ) {
-					if ( isLob( ( (SimpleValue) prop.getValue() ).getTypeName() ) ) {
+					if ( isLob( (SimpleValue) prop.getValue() ) ) {
 						hasLob = true;
 						break;
 					}
@@ -353,7 +351,7 @@ public class BaseNonConfigCoreFunctionalTestCase extends BaseUnitTestCase {
 			boolean isLob = false;
 
 			if ( collectionBinding.getElement().isSimpleValue() ) {
-				isLob = isLob( ( (SimpleValue) collectionBinding.getElement() ).getTypeName() );
+				isLob = isLob( (SimpleValue) collectionBinding.getElement() );
 			}
 
 			if ( !isLob ) {
@@ -362,16 +360,16 @@ public class BaseNonConfigCoreFunctionalTestCase extends BaseUnitTestCase {
 		}
 	}
 
-	private boolean isLob(String typeName) {
-		return "blob".equals( typeName )
-				|| "clob".equals( typeName )
-				|| "nclob".equals( typeName )
-				|| Blob.class.getName().equals( typeName )
-				|| Clob.class.getName().equals( typeName )
-				|| NClob.class.getName().equals( typeName )
-				|| BlobType.class.getName().equals( typeName )
-				|| ClobType.class.getName().equals( typeName )
-				|| NClobType.class.getName().equals( typeName );
+	private boolean isLob(SimpleValue simpleValue) {
+		BasicType type = ( (BasicType) simpleValue.getType() );
+		BasicJavaDescriptor javaTypeDescriptor = type.getJavaTypeDescriptor();
+		SqlTypeDescriptor sqlTypeDescriptor = type.getSqlTypeDescriptor();
+		return ( javaTypeDescriptor == StandardSpiBasicTypes.BLOB.getJavaTypeDescriptor() &&
+				sqlTypeDescriptor == StandardSpiBasicTypes.BLOB.getSqlTypeDescriptor() )
+				|| ( javaTypeDescriptor == StandardSpiBasicTypes.CLOB.getJavaTypeDescriptor()
+				&& sqlTypeDescriptor == StandardSpiBasicTypes.CLOB.getSqlTypeDescriptor() )
+				|| ( javaTypeDescriptor == StandardSpiBasicTypes.NCLOB.getJavaTypeDescriptor() &&
+				sqlTypeDescriptor == StandardSpiBasicTypes.NCLOB.getSqlTypeDescriptor() );
 	}
 
 	protected void afterMetadataBuilt(Metadata metadata) {

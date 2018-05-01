@@ -17,9 +17,9 @@ import org.hibernate.testing.RequiresDialect;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 
-import org.hibernate.type.BinaryType;
 import org.hibernate.type.RowVersionType;
 import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.spi.StandardSpiBasicTypes;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
@@ -145,9 +145,8 @@ public class SybaseTimestampVersioningTest extends BaseCoreFunctionalTestCase {
 		s.close();
 
 		assertFalse(
-				"owner version not incremented", BinaryType.INSTANCE.isEqual(
-				steveTimestamp, steve.getTimestamp()
-		)
+				"owner version not incremented", StandardSpiBasicTypes.BINARY.getJavaTypeDescriptor()
+						.areEqual( steveTimestamp, steve.getTimestamp() )
 		);
 
 		steveTimestamp = steve.getTimestamp();
@@ -160,9 +159,8 @@ public class SybaseTimestampVersioningTest extends BaseCoreFunctionalTestCase {
 		s.close();
 
 		assertFalse(
-				"owner version not incremented", BinaryType.INSTANCE.isEqual(
-				steveTimestamp, steve.getTimestamp()
-		)
+				"owner version not incremented", StandardSpiBasicTypes.BINARY.getJavaTypeDescriptor()
+						.areEqual( steveTimestamp, steve.getTimestamp() )
 		);
 
 		s = openSession();
@@ -197,9 +195,8 @@ public class SybaseTimestampVersioningTest extends BaseCoreFunctionalTestCase {
 		s.close();
 
 		assertTrue(
-				"owner version was incremented", BinaryType.INSTANCE.isEqual(
-				steveTimestamp, steve.getTimestamp()
-		)
+				"owner version was incremented", StandardSpiBasicTypes.BINARY.getJavaTypeDescriptor()
+						.areEqual( steveTimestamp, steve.getTimestamp() )
 		);
 
 		s = openSession();
@@ -210,9 +207,8 @@ public class SybaseTimestampVersioningTest extends BaseCoreFunctionalTestCase {
 		s.close();
 
 		assertTrue(
-				"owner version was incremented", BinaryType.INSTANCE.isEqual(
-				steveTimestamp, steve.getTimestamp()
-		)
+				"owner version was incremented", StandardSpiBasicTypes.BINARY.getJavaTypeDescriptor()
+						.areEqual( steveTimestamp, steve.getTimestamp() )
 		);
 
 		s = openSession();

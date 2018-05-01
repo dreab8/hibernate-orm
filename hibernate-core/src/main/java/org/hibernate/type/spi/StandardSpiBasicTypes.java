@@ -29,6 +29,7 @@ import java.util.TimeZone;
 import java.util.UUID;
 
 import org.hibernate.internal.util.StringHelper;
+import org.hibernate.type.descriptor.java.RowVersionTypeDescriptor;
 import org.hibernate.type.descriptor.java.internal.BigDecimalJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.BigIntegerJavaDescriptor;
 import org.hibernate.type.descriptor.java.internal.BlobJavaDescriptor;
@@ -628,6 +629,11 @@ public final class StandardSpiBasicTypes {
 			VarcharSqlDescriptor.INSTANCE
 	);
 
+	public static final BasicType<byte[]> ROW_VERSION = new BasicTypeImpl<byte[]>(
+			RowVersionTypeDescriptor.INSTANCE,
+			VarbinarySqlDescriptor.INSTANCE
+	);
+
 
 	public static void prime(TypeConfiguration typeConfiguration) {
 
@@ -1052,6 +1058,13 @@ public final class StandardSpiBasicTypes {
 				"org.hibernate.type.UrlType",
 				typeConfiguration,
 				"url", java.net.URL.class.getName()
+		);
+
+		handle(
+				ROW_VERSION,
+				"org.hibernate.type.RowVersionType",
+				typeConfiguration,
+				"row_version"
 		);
 
 
