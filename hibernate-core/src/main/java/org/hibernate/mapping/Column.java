@@ -209,7 +209,7 @@ public class Column implements Selectable, Serializable, Cloneable {
 	}
 
 	public int getSqlTypeCode(Mapping mapping) throws MappingException {
-		return sqlTypeDescriptor.getJdbcTypeCode();
+		return getSqlTypeDescriptor().getJdbcTypeCode();
 	}
 
 	/**
