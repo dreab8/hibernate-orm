@@ -76,11 +76,6 @@ public class AttributeConverterTypeAdapter<T> extends BasicTypeImpl<T> {
 	}
 
 	@Override
-	protected MutabilityPlan<T> getMutabilityPlan() {
-		return mutabilityPlan;
-	}
-
-	@Override
 	public String toString() {
 		return description;
 	}

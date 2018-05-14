@@ -22,10 +22,7 @@ import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.util.collections.ArrayHelper;
-import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
-import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
-import org.hibernate.type.descriptor.java.MutabilityPlan;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 import org.hibernate.type.spi.BasicType;
 
@@ -43,35 +40,14 @@ public abstract class AbstractStandardBasicType<T>
 
 	// Don't use final here.  Need to initialize after-the-fact
 	// by DynamicParameterizedTypes.
-	private SqlTypeDescriptor sqlTypeDescriptor;
-	private BasicJavaDescriptor<T> javaTypeDescriptor;
+
 	// sqlTypes need always to be in sync with sqlTypeDescriptor
 	private int[] sqlTypes;
 
-	public AbstractStandardBasicType(SqlTypeDescriptor sqlTypeDescriptor, JavaTypeDescriptor<T> javaTypeDescriptor) {
-		this.sqlTypeDescriptor = sqlTypeDescriptor;
-		this.sqlTypes = new int[] { sqlTypeDescriptor.getSqlType() };
-		this.javaTypeDescriptor = (BasicJavaDescriptor)javaTypeDescriptor;
+	public AbstractStandardBasicType() {
+		this.sqlTypes = new int[] { getSqlTypeDescriptor().getJdbcTypeCode() };
 	}
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public BasicJavaDescriptor<T> getJavaTypeDescriptor() {
-		return javaTypeDescriptor;
-	}
-
-	@Override
-	public SqlTypeDescriptor getSqlTypeDescriptor() {
-		return sqlTypeDescriptor;
-	}
-
-	public T fromString(String string) {
-		return javaTypeDescriptor.fromString( string );
-	}
-
-	protected MutabilityPlan<T> getMutabilityPlan() {
-		return javaTypeDescriptor.getMutabilityPlan();
-	}
 
 	protected T getReplacement(T original, T target, SharedSessionContractImplementor session) {
 		if ( original == LazyPropertyInitializer.UNFETCHED_PROPERTY ) {
@@ -105,14 +81,14 @@ public abstract class AbstractStandardBasicType<T>
 	
 	// final implementations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	public final void setSqlTypeDescriptor( SqlTypeDescriptor sqlTypeDescriptor ) {
-		this.sqlTypeDescriptor = sqlTypeDescriptor;
-		this.sqlTypes = new int[] { sqlTypeDescriptor.getSqlType() };
-	}
+//	public final void setSqlTypeDescriptor( SqlTypeDescriptor sqlTypeDescriptor ) {
+//		this.sqlTypeDescriptor = sqlTypeDescriptor;
+//		this.sqlTypes = new int[] { sqlTypeDescriptor.getSqlType() };
+//	}
 
 	@Override
 	public final Class getReturnedClass() {
-		return javaTypeDescriptor.getJavaType();
+		return getJavaTypeDescriptor().getJavaType();
 	}
 
 	@Override
@@ -179,13 +155,13 @@ public abstract class AbstractStandardBasicType<T>
 	@Override
 	@SuppressWarnings({ "unchecked" })
 	public final boolean isEqual(Object one, Object another) {
-		return javaTypeDescriptor.areEqual( (T) one, (T) another );
+		return getJavaTypeDescriptor().areEqual( (T) one, (T) another );
 	}
 
 	@Override
 	@SuppressWarnings({ "unchecked" })
 	public final int getHashCode(Object x) {
-		return javaTypeDescriptor.extractHashCode( (T) x );
+		return getJavaTypeDescriptor().extractHashCode( (T) x );
 	}
 
 	@Override
@@ -196,7 +172,7 @@ public abstract class AbstractStandardBasicType<T>
 	@Override
 	@SuppressWarnings({ "unchecked" })
 	public final int compare(Object x, Object y) {
-		return javaTypeDescriptor.getComparator().compare( (T) x, (T) y );
+		return getJavaTypeDescriptor().getComparator().compare( (T) x, (T) y );
 	}
 
 	@Override
@@ -242,11 +218,7 @@ public abstract class AbstractStandardBasicType<T>
 	}
 
 	protected final T nullSafeGet(ResultSet rs, String name, WrapperOptions options) throws SQLException {
-		return remapSqlTypeDescriptor( options ).getExtractor( javaTypeDescriptor ).extract( rs, name, options );
-	}
-
-	public final void setJavaTypeDescriptor( BasicJavaDescriptor<T> javaTypeDescriptor ) {
-		this.javaTypeDescriptor = javaTypeDescriptor;
+		return remapSqlTypeDescriptor( options ).getExtractor( getJavaTypeDescriptor() ).extract( rs, name, options );
 	}
 
 	public Object get(ResultSet rs, String name, SharedSessionContractImplementor session) throws HibernateException, SQLException {
@@ -265,11 +237,11 @@ public abstract class AbstractStandardBasicType<T>
 
 	@SuppressWarnings({ "unchecked" })
 	protected final void nullSafeSet(PreparedStatement st, Object value, int index, WrapperOptions options) throws SQLException {
-		remapSqlTypeDescriptor( options ).getBinder( javaTypeDescriptor ).bind( st, ( T ) value, index, options );
+		remapSqlTypeDescriptor( options ).getBinder( getJavaTypeDescriptor() ).bind( st, ( T ) value, index, options );
 	}
 
 	protected SqlTypeDescriptor remapSqlTypeDescriptor(WrapperOptions options) {
-		return options.remapSqlTypeDescriptor( sqlTypeDescriptor );
+		return options.remapSqlTypeDescriptor( getSqlTypeDescriptor() );
 	}
 
 	public void set(PreparedStatement st, T value, int index, SharedSessionContractImplementor session) throws HibernateException, SQLException {
@@ -282,12 +254,12 @@ public abstract class AbstractStandardBasicType<T>
 		if ( value == LazyPropertyInitializer.UNFETCHED_PROPERTY || !Hibernate.isInitialized( value ) ) {
 			return  "<uninitialized>";
 		}
-		return javaTypeDescriptor.extractLoggableRepresentation( (T) value );
+		return getJavaTypeDescriptor().extractLoggableRepresentation( (T) value );
 	}
 
 	@Override
 	public final boolean isMutable() {
-		return getMutabilityPlan().isMutable();
+		return getJavaTypeDescriptor().getMutabilityPlan().isMutable();
 	}
 
 	@Override
@@ -297,18 +269,18 @@ public abstract class AbstractStandardBasicType<T>
 	}
 
 	protected final T deepCopy(T value) {
-		return getMutabilityPlan().deepCopy( value );
+		return getJavaTypeDescriptor().getMutabilityPlan().deepCopy( value );
 	}
 
 	@Override
 	@SuppressWarnings({ "unchecked" })
 	public final Serializable disassemble(Object value, SharedSessionContractImplementor session, Object owner) throws HibernateException {
-		return getMutabilityPlan().disassemble( (T) value );
+		return getJavaTypeDescriptor().getMutabilityPlan().disassemble( (T) value );
 	}
 
 	@Override
 	public final Object assemble(Serializable cached, SharedSessionContractImplementor session, Object owner) throws HibernateException {
-		return getMutabilityPlan().assemble( cached );
+		return getJavaTypeDescriptor().getMutabilityPlan().assemble( cached );
 	}
 
 	@Override
@@ -349,7 +321,7 @@ public abstract class AbstractStandardBasicType<T>
 
 	@Override
 	public T extract(CallableStatement statement, int startIndex, final SharedSessionContractImplementor session) throws SQLException {
-		return remapSqlTypeDescriptor( session ).getExtractor( javaTypeDescriptor ).extract(
+		return remapSqlTypeDescriptor( session ).getExtractor( getJavaTypeDescriptor() ).extract(
 				statement,
 				startIndex,
 				session
@@ -358,7 +330,7 @@ public abstract class AbstractStandardBasicType<T>
 
 	@Override
 	public T extract(CallableStatement statement, String[] paramNames, final SharedSessionContractImplementor session) throws SQLException {
-		return remapSqlTypeDescriptor( session ).getExtractor( javaTypeDescriptor ).extract(
+		return remapSqlTypeDescriptor( session ).getExtractor( getJavaTypeDescriptor() ).extract(
 				statement,
 				paramNames,
 				session
@@ -372,7 +344,7 @@ public abstract class AbstractStandardBasicType<T>
 
 	@SuppressWarnings("unchecked")
 	protected final void nullSafeSet(CallableStatement st, Object value, String name, WrapperOptions options) throws SQLException {
-		remapSqlTypeDescriptor( options ).getBinder( javaTypeDescriptor ).bind( st, (T) value, name, options );
+		remapSqlTypeDescriptor( options ).getBinder( getJavaTypeDescriptor() ).bind( st, (T) value, name, options );
 	}
 
 	@Override

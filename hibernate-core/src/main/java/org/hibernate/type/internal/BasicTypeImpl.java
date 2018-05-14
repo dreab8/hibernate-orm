@@ -15,7 +15,6 @@ import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.type.AbstractStandardBasicType;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
-import org.hibernate.type.spi.BasicType;
 
 /**
  * TODO : javadoc
@@ -23,16 +22,19 @@ import org.hibernate.type.spi.BasicType;
  * @author Steve Ebersole
  */
 public class BasicTypeImpl<T> extends AbstractStandardBasicType<T> {
-
-	private VersionSupport<T> versionSupport;
+	private final SqlTypeDescriptor sqlTypeDescriptor;
+	private BasicJavaDescriptor<T> javaTypeDescriptor;
+	private final VersionSupport<T> versionSupport;
 
 	public BasicTypeImpl(SqlTypeDescriptor sqlTypeDescriptor, BasicJavaDescriptor javaTypeDescriptor) {
-		super( sqlTypeDescriptor, javaTypeDescriptor );
+		this.javaTypeDescriptor = javaTypeDescriptor;
+		this.sqlTypeDescriptor = sqlTypeDescriptor;
 		this.versionSupport = javaTypeDescriptor.getVersionSupport();
 	}
 
 	public BasicTypeImpl(BasicJavaDescriptor javaTypeDescriptor, SqlTypeDescriptor sqlTypeDescriptor) {
-		super( sqlTypeDescriptor, javaTypeDescriptor );
+		this.javaTypeDescriptor = javaTypeDescriptor;
+		this.sqlTypeDescriptor = sqlTypeDescriptor;
 		this.versionSupport = javaTypeDescriptor.getVersionSupport();
 	}
 
@@ -43,7 +45,12 @@ public class BasicTypeImpl<T> extends AbstractStandardBasicType<T> {
 	@Override
 	@SuppressWarnings("unchecked")
 	public BasicJavaDescriptor<T> getJavaTypeDescriptor() {
-		return getJavaTypeDescriptor();
+		return javaTypeDescriptor;
+	}
+
+	@Override
+	public SqlTypeDescriptor getSqlTypeDescriptor() {
+		return sqlTypeDescriptor;
 	}
 
 	@Override
@@ -62,5 +69,9 @@ public class BasicTypeImpl<T> extends AbstractStandardBasicType<T> {
 	@Override
 	public String getName() {
 		return getJavaTypeDescriptor().getTypeName();
+	}
+
+	public void setJavaTypeDescriptor(BasicJavaDescriptor javaTypeDescriptor){
+		this.javaTypeDescriptor = javaTypeDescriptor;
 	}
 }
