@@ -32,6 +32,7 @@ import org.hibernate.tuple.entity.VersionProperty;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.spi.BasicType;
 
 /**
@@ -56,13 +57,13 @@ public final class PropertyFactory {
 			PersistentClass mappedEntity,
 			IdentifierGenerator generator) {
 		String mappedUnsavedValue = mappedEntity.getIdentifier().getNullValue();
-		BasicType type = (BasicType) mappedEntity.getIdentifier().getType();
+		Type type = mappedEntity.getIdentifier().getType();
 		Property property = mappedEntity.getIdentifierProperty();
 
 		IdentifierValue unsavedValue = UnsavedValueFactory.getUnsavedIdentifierValue(
 				mappedUnsavedValue,
 				getGetter( property ),
-				type.getJavaTypeDescriptor(),
+				(JavaTypeDescriptor) type.getJavaTypeDescriptor(),
 				getConstructor( mappedEntity )
 		);
 

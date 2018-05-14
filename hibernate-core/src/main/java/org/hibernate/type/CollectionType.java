@@ -46,6 +46,7 @@ import org.hibernate.persister.entity.Joinable;
 import org.hibernate.pretty.MessageHelper;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.LazyInitializer;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.spi.TypeConfiguration;
 
 import org.jboss.logging.Logger;
@@ -65,6 +66,12 @@ public abstract class CollectionType extends AbstractType implements Association
 	private final TypeFactory.TypeScope typeScope;
 	private final String role;
 	private final String foreignKeyPropertyName;
+	private JavaTypeDescriptor javaTypeDescriptor;
+
+	@Override
+	public org.hibernate.type.descriptor.java.JavaTypeDescriptor getJavaTypeDescriptor() {
+		return javaTypeDescriptor;
+	}
 
 	public CollectionType(TypeFactory.TypeScope typeScope, String role, String foreignKeyPropertyName) {
 		this.typeScope = typeScope;

@@ -9,18 +9,29 @@ package org.hibernate.type;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.hibernate.HibernateException;
 import org.hibernate.collection.internal.PersistentBag;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.type.descriptor.java.internal.CollectionJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 public class BagType extends CollectionType {
+
+	private JavaTypeDescriptor javaTypeDescriptor;
 
 	@SuppressWarnings("WeakerAccess")
 	public BagType(TypeFactory.TypeScope typeScope, String role, String propertyRef) {
 		super( typeScope, role, propertyRef );
+		javaTypeDescriptor = new CollectionJavaDescriptor( List.class );
+	}
+
+	@Override
+	public org.hibernate.type.descriptor.java.JavaTypeDescriptor getJavaTypeDescriptor() {
+		return javaTypeDescriptor;
 	}
 
 	@Override

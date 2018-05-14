@@ -40,6 +40,7 @@ import org.hibernate.boot.model.naming.ObjectNameNormalizer;
 import org.hibernate.boot.model.relational.Database;
 import org.hibernate.boot.model.relational.Namespace;
 import org.hibernate.boot.model.source.internal.ImplicitColumnNamingSecondPass;
+import org.hibernate.boot.model.source.spi.AnyDiscriminatorSource;
 import org.hibernate.boot.model.source.spi.AnyMappingSource;
 import org.hibernate.boot.model.source.spi.AttributePath;
 import org.hibernate.boot.model.source.spi.AttributeRole;
@@ -87,6 +88,7 @@ import org.hibernate.boot.model.source.spi.TableSource;
 import org.hibernate.boot.model.source.spi.TableSpecificationSource;
 import org.hibernate.boot.model.source.spi.VersionAttributeSource;
 import org.hibernate.boot.model.type.internal.BasicTypeResolverExplicitNamedImpl;
+import org.hibernate.boot.model.type.spi.BasicTypeResolver;
 import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
 import org.hibernate.boot.spi.InFlightMetadataCollector;
 import org.hibernate.boot.spi.InFlightMetadataCollector.EntityTableXref;
@@ -2294,56 +2296,33 @@ public class ModelBinder {
 			Any anyBinding,
 			final AttributeRole attributeRole,
 			AttributePath attributePath) {
-		final TypeResolution keyTypeResolution = resolveType(
-				sourceDocument,
-				anyMapping.getKeySource().getTypeSource()
-		);
-		if ( keyTypeResolution != null ) {
-			anyBinding.setIdentifierType( keyTypeResolution.typeName );
-		}
 
-		final TypeResolution discriminatorTypeResolution = resolveType(
-				sourceDocument,
-				anyMapping.getDiscriminatorSource().getTypeSource()
-		);
+		final AnyDiscriminatorSource discriminatorSource = anyMapping.getDiscriminatorSource();
 
-		if ( discriminatorTypeResolution != null ) {
-			anyBinding.setMetaType( discriminatorTypeResolution.typeName );
+		final BasicTypeResolver identifierTypeResolver = new HbmBasicTypeResolverImpl( sourceDocument, anyMapping.getKeySource().getTypeSource() );
+		final BasicTypeResolver discriminatorTypeResolver = new BasicTypeResolverExplicitNamedImpl(
+				sourceDocument,
+				discriminatorSource.getTypeSource().getName()
+		);
+		anyBinding.setDiscriminatorTypeResolver( discriminatorTypeResolver );
+		anyBinding.setIdentifierTypeResolver( identifierTypeResolver );
+
+		final BasicType discriminatorType = discriminatorTypeResolver.resolveBasicType();
+
+		for ( Map.Entry<String,String> discriminatorValueMappings : discriminatorSource.getValueMappings().entrySet() ) {
 			try {
-				final BasicType metaType = sourceDocument.getMetadataCollector()
-						.getTypeConfiguration().getBasicTypeRegistry().getBasicType( discriminatorTypeResolution.typeName );
-				final HashMap anyValueBindingMap = new HashMap();
-				for ( Map.Entry<String,String> discriminatorValueMappings : anyMapping.getDiscriminatorSource().getValueMappings().entrySet() ) {
-					try {
-						final Object discriminatorValue = metaType.getJavaTypeDescriptor().fromString( discriminatorValueMappings.getKey() );
-						final String mappedEntityName = sourceDocument.qualifyClassName( discriminatorValueMappings.getValue() );
+				final Object discriminatorValue = discriminatorType.getJavaTypeDescriptor().fromString( discriminatorValueMappings.getKey() );
+				final String mappedEntityName = sourceDocument.qualifyClassName( discriminatorValueMappings.getValue() );
 
-						//noinspection unchecked
-						anyValueBindingMap.put( discriminatorValue, mappedEntityName );
-					}
-					catch (Exception e) {
-						throw new MappingException(
-								String.format(
-										Locale.ENGLISH,
-										"Unable to interpret <meta-value value=\"%s\" class=\"%s\"/> defined as part of <any/> attribute [%s]",
-										discriminatorValueMappings.getKey(),
-										discriminatorValueMappings.getValue(),
-										attributeRole.getFullPath()
-								),
-								e,
-								sourceDocument.getOrigin()
-						);
-					}
-
-				}
-				anyBinding.setMetaValues( anyValueBindingMap );
+				anyBinding.addDiscriminatorMapping( discriminatorValue, mappedEntityName );
 			}
-			catch (ClassCastException e) {
+			catch (Exception e) {
 				throw new MappingException(
 						String.format(
 								Locale.ENGLISH,
-								"Specified meta-type [%s] for <any/> attribute [%s] did not implement DiscriminatorType",
-								discriminatorTypeResolution.typeName,
+								"Unable to interpret <meta-value value=\"%s\" class=\"%s\"/> defined as part of <any/> attribute [%s]",
+								discriminatorValueMappings.getKey(),
+								discriminatorValueMappings.getValue(),
 								attributeRole.getFullPath()
 						),
 						e,
@@ -2354,7 +2333,7 @@ public class ModelBinder {
 
 		relationalObjectBinder.bindColumnOrFormula(
 				sourceDocument,
-				anyMapping.getDiscriminatorSource().getRelationalValueSource(),
+				discriminatorSource.getRelationalValueSource(),
 				anyBinding,
 				true,
 				new RelationalObjectBinder.ColumnNamingDelegate() {
@@ -2652,17 +2631,6 @@ public class ModelBinder {
 				);
 			}
 		}
-	}
-
-	private void prepareComponentType(
-			MappingDocument sourceDocument,
-			String fullRole,
-			Component componentBinding,
-			String explicitComponentClassName,
-			String containingClassName,
-			String propertyName,
-			boolean isVirtual,
-			boolean isDynamic) {
 	}
 
 	private void bindAllCompositeAttributes(

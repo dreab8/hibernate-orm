@@ -2563,7 +2563,13 @@ public final class AnnotationBinder {
 			Ejb3JoinColumn[] columns) {
 		Component comp;
 		if ( referencedEntityName != null ) {
-			comp = createComponent( propertyHolder, inferredData, isComponentEmbedded, isIdentifierMapper, buildingContext );
+			comp = createComponent(
+					propertyHolder,
+					inferredData,
+					isComponentEmbedded,
+					isIdentifierMapper,
+					buildingContext
+			);
 			SecondPass sp = new CopyIdentifierComponentSecondPass(
 					comp,
 					referencedEntityName,
@@ -2657,7 +2663,13 @@ public final class AnnotationBinder {
 		 * Because it's a value type, there is no bidirectional association, hence second pass
 		 * ordering does not matter
 		 */
-		Component comp = createComponent( propertyHolder, inferredData, isComponentEmbedded, isIdentifierMapper, buildingContext );
+		Component comp = createComponent(
+				propertyHolder,
+				inferredData,
+				isComponentEmbedded,
+				isIdentifierMapper,
+				buildingContext
+		);
 		String subpath = BinderHelper.getPath( propertyHolder, inferredData );
 		LOG.tracev( "Binding component with path: {0}", subpath );
 		PropertyHolder subHolder = PropertyHolderBuilder.buildPropertyHolder(
@@ -2698,7 +2710,11 @@ public final class AnnotationBinder {
 
 		//embeddable elements can have type defs
 		bindTypeDefs( returnedClassOrElement, buildingContext );
-		PropertyContainer propContainer = new PropertyContainer( returnedClassOrElement, xClassProcessed, propertyAccessor );
+		PropertyContainer propContainer = new PropertyContainer(
+				returnedClassOrElement,
+				xClassProcessed,
+				propertyAccessor
+		);
 		addElementsOfClass( classElements, propContainer, buildingContext );
 
 		//add elements of the embeddable superclass

@@ -61,7 +61,7 @@ import org.hibernate.mapping.SyntheticProperty;
 import org.hibernate.mapping.Table;
 import org.hibernate.mapping.ToOne;
 import org.hibernate.mapping.Value;
-import org.hibernate.type.spi.BasicType;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 import org.jboss.logging.Logger;
 
@@ -963,19 +963,20 @@ public class BinderHelper {
 			value.setMetaType( metaAnnDef.metaType() );
 
 			HashMap values = new HashMap();
-			BasicType metaType = context.getMetadataCollector()
+			JavaTypeDescriptor javaTypeDescriptor = context.getMetadataCollector()
 					.getTypeConfiguration()
 					.getBasicTypeRegistry()
-					.getBasicType( value.getMetaType() );
+					.getBasicType( value.getMetaType() )
+					.getJavaTypeDescriptor();
 			for (MetaValue metaValue : metaAnnDef.metaValues()) {
 				try {
-					Object discrim = metaType.getJavaTypeDescriptor().fromString( metaValue.value() );
+					Object discrim = javaTypeDescriptor.fromString( metaValue.value() );
 					String entityName = metaValue.targetEntity().getName();
 					values.put( discrim, entityName );
 				}
 				catch (ClassCastException cce) {
 					throw new MappingException( "metaType was not a DiscriminatorType: "
-							+ metaType.getName() );
+							+ javaTypeDescriptor.getTypeName() );
 				}
 				catch (Exception e) {
 					throw new MappingException( "could not interpret metaValue", e );

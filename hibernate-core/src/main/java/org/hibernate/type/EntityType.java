@@ -16,6 +16,8 @@ import java.util.Set;
 import org.hibernate.AssertionFailure;
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.source.internal.SourceHelper;
+import org.hibernate.boot.spi.BootstrapContext;
 import org.hibernate.engine.internal.ForeignKeys;
 import org.hibernate.engine.spi.EntityUniqueKey;
 import org.hibernate.engine.spi.Mapping;
@@ -27,6 +29,10 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
 import org.hibernate.persister.entity.UniqueKeyLoadable;
 import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.EntityJavaDescriptorImpl;
+
+import org.apache.tools.ant.taskdefs.Java;
 
 /**
  * Base for types which map associations to persistent entities.
@@ -41,6 +47,7 @@ public abstract class EntityType extends AbstractType implements AssociationType
 	private final boolean eager;
 	private final boolean unwrapProxy;
 	private final boolean referenceToPrimaryKey;
+	private JavaTypeDescriptor javaTypeDescriptor;
 
 	/**
 	 * Cached because of performance
@@ -758,5 +765,14 @@ public abstract class EntityType extends AbstractType implements AssociationType
 			);
 		}
 		return fkTargetType;
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return javaTypeDescriptor;
+	}
+
+	public void setJavaTypeDescriptor(JavaTypeDescriptor javaTypeDescriptor){
+		this.javaTypeDescriptor = javaTypeDescriptor;
 	}
 }

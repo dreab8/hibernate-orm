@@ -25,6 +25,7 @@ import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.util.collections.ArrayHelper;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 import org.hibernate.usertype.CompositeUserType;
 import org.hibernate.usertype.LoggableUserType;
 
@@ -140,6 +141,11 @@ public class CompositeCustomType extends AbstractType implements CompositeType {
 	@Override
 	public FetchMode getFetchMode(int i) {
 		return FetchMode.DEFAULT;
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return null;
 	}
 
 	@Override

@@ -37,6 +37,8 @@ import org.hibernate.persister.entity.Joinable;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.HibernateProxyHelper;
 import org.hibernate.proxy.LazyInitializer;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.AnyTypeJavaDescriptor;
 
 /**
  * Handles "any" mappings
@@ -47,6 +49,7 @@ public class AnyType extends AbstractType implements CompositeType, AssociationT
 	private final TypeFactory.TypeScope scope;
 	private final Type identifierType;
 	private final Type discriminatorType;
+	private final JavaTypeDescriptor javaTypeDescriptor;
 
 	/**
 	 * Intended for use only from legacy {@link ObjectType} type definition
@@ -59,6 +62,7 @@ public class AnyType extends AbstractType implements CompositeType, AssociationT
 		this.scope = scope;
 		this.discriminatorType = discriminatorType;
 		this.identifierType = identifierType;
+		javaTypeDescriptor = new AnyTypeJavaDescriptor();
 	}
 
 	public Type getIdentifierType() {
@@ -105,6 +109,11 @@ public class AnyType extends AbstractType implements CompositeType, AssociationT
 	@Override
 	public boolean isAnyType() {
 		return true;
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return javaTypeDescriptor;
 	}
 
 	@Override

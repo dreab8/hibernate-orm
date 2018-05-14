@@ -32,6 +32,7 @@ import org.hibernate.tuple.StandardProperty;
 import org.hibernate.tuple.ValueGeneration;
 import org.hibernate.tuple.component.ComponentMetamodel;
 import org.hibernate.tuple.component.ComponentTuplizer;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 /**
  * Handles "component" mappings
@@ -146,6 +147,11 @@ public class ComponentType extends AbstractType implements CompositeType, Proced
 		return sizes;
 	}
 
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return null;
+	}
 
 	@Override
 	public final boolean isComponentType() {

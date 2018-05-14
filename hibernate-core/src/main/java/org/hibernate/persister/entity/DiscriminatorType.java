@@ -22,6 +22,7 @@ import org.hibernate.internal.util.collections.ArrayHelper;
 import org.hibernate.internal.util.compare.EqualsHelper;
 import org.hibernate.type.AbstractType;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 /**
  * TODO : javadoc
@@ -130,6 +131,11 @@ public class DiscriminatorType extends AbstractType {
 	@Override
 	public Size[] defaultSizes(Mapping mapping) throws MappingException {
 		return underlyingType.defaultSizes( mapping );
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return null;
 	}
 
 	@Override

@@ -22,6 +22,8 @@ import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.CollectionJavaDescriptor;
 
 /**
  * A type for persistent arrays.
@@ -31,11 +33,18 @@ public class ArrayType extends CollectionType {
 
 	private final Class elementClass;
 	private final Class arrayClass;
+	private final JavaTypeDescriptor javaTypeDescriptor;
 
 	public ArrayType(TypeFactory.TypeScope typeScope, String role, String propertyRef, Class elementClass) {
 		super( typeScope, role, propertyRef );
 		this.elementClass = elementClass;
-		arrayClass = Array.newInstance(elementClass, 0).getClass();
+		arrayClass = Array.newInstance( elementClass, 0 ).getClass();
+		javaTypeDescriptor = new CollectionJavaDescriptor( arrayClass );
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return javaTypeDescriptor;
 	}
 
 	@Override

@@ -8,8 +8,10 @@ package org.hibernate.mapping;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Map;
 
@@ -34,6 +36,8 @@ import org.hibernate.property.access.spi.Setter;
 import org.hibernate.tuple.component.ComponentMetamodel;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeFactory;
+
+import com.sun.javafx.UnmodifiableArrayList;
 
 /**
  * The mapping for a component, composite element,
@@ -272,6 +276,20 @@ public class Component extends SimpleValue implements MetaAttributable {
 				&& embedded == other.embedded
 				&& Objects.equals( parentProperty, other.parentProperty )
 				&& Objects.equals( metaAttributes, other.metaAttributes );
+	}
+
+	@Override
+	public List<Selectable> getColumns() {
+		List<Selectable> columns = new ArrayList<>();
+		Iterator iter = getPropertyIterator();
+		while ( iter.hasNext() ) {
+			Property prop = (Property) iter.next();
+			Iterator columnIterator = prop.getColumnIterator();
+			while ( columnIterator.hasNext() ) {
+				columns.add( (Selectable) columnIterator.next() );
+			}
+		}
+		return Collections.unmodifiableList( columns );
 	}
 
 	@Override

@@ -51,7 +51,7 @@ public class UnsavedValueFactory {
 	 *
 	 * @param unsavedValue The mapping defined unsaved value
 	 * @param identifierGetter The getter for the entity identifier attribute
-	 * @param identifierJavaTypeDescriptor The mapping type for the identifier
+	 * @param identifierJavaTypeDescriptor The JavaTypeDescriptor for the identifier
 	 * @param constructor The constructor for the entity
 	 *
 	 * @return The appropriate IdentifierValue

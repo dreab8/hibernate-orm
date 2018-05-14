@@ -18,6 +18,7 @@ import org.hibernate.engine.jdbc.Size;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 /**
  * @author Gavin King
@@ -58,6 +59,11 @@ public class MetaType extends AbstractType {
 	@Override
 	public Size[] defaultSizes(Mapping mapping) throws MappingException {
 		return baseType.defaultSizes( mapping );
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return null;
 	}
 
 	@Override

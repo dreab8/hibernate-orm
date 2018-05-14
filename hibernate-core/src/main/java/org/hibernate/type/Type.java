@@ -38,15 +38,15 @@ import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
  */
 public interface Type<T> extends Serializable {
 
-//	JavaTypeDescriptor<T> getJavaTypeDescriptor();
-//
-//	/**
-//	 * Get the Java type handled by this Hibernate mapping Type.  May return {@code null}
-//	 * in the case of non-basic types in dynamic domain models.
-//	 */
-//	default Class<T> getJavaType() {
-//		return getJavaTypeDescriptor().getJavaType();
-//	}
+	JavaTypeDescriptor<T> getJavaTypeDescriptor();
+
+	/**
+	 * Get the Java type handled by this Hibernate mapping Type.  May return {@code null}
+	 * in the case of non-basic types in dynamic domain models.
+	 */
+	default Class<T> getJavaType() {
+		return getJavaTypeDescriptor().getJavaType();
+	}
 
 	/**
 	 * Return a String representation of the given value for use in Hibernate logging.
