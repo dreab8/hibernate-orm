@@ -9,12 +9,10 @@ package org.hibernate.loader.criteria;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,9 +27,7 @@ import org.hibernate.QueryException;
 import org.hibernate.criterion.CriteriaQuery;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.EnhancedProjection;
-import org.hibernate.criterion.ParameterInfoCollector;
 import org.hibernate.criterion.Projection;
-import org.hibernate.engine.query.spi.OrdinalParameterDescriptor;
 import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.RowSelection;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
@@ -47,8 +43,8 @@ import org.hibernate.persister.entity.Queryable;
 import org.hibernate.sql.JoinType;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.CollectionType;
-import org.hibernate.type.StringRepresentableType;
 import org.hibernate.type.Type;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * @author Gavin King
@@ -622,9 +618,9 @@ public class CriteriaQueryTranslator implements CriteriaQuery {
 				}
 
 				// Convert the string value into the proper type.
-				if ( type instanceof StringRepresentableType ) {
-					final StringRepresentableType nullableType = (StringRepresentableType) type;
-					value = nullableType.fromStringValue( stringValue );
+				if ( type instanceof BasicType ) {
+					final BasicType nullableType = (BasicType) type;
+					value = nullableType.getJavaTypeDescriptor().fromString( stringValue );
 				}
 				else {
 					throw new QueryException( "Unsupported discriminator type " + type );

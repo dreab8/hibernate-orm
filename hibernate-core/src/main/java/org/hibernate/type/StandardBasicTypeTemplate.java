@@ -6,7 +6,7 @@
  */
 package org.hibernate.type;
 
-import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 import org.hibernate.type.internal.BasicTypeImpl;
 
@@ -24,7 +24,7 @@ public class StandardBasicTypeTemplate<J> extends BasicTypeImpl<J> {
 
 	public StandardBasicTypeTemplate(
 			SqlTypeDescriptor sqlTypeDescriptor,
-			JavaTypeDescriptor<J> javaTypeDescriptor,
+			BasicJavaDescriptor<J> javaTypeDescriptor,
 			String... registrationKeys) {
 		super( sqlTypeDescriptor, javaTypeDescriptor );
 		this.registrationKeys = registrationKeys;

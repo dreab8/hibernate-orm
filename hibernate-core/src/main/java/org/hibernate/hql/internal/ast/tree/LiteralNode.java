@@ -13,10 +13,10 @@ import org.hibernate.QueryException;
 import org.hibernate.hql.internal.antlr.HqlSqlTokenTypes;
 import org.hibernate.hql.internal.ast.util.ColumnHelper;
 import org.hibernate.metamodel.model.convert.spi.JpaAttributeConverter;
-import org.hibernate.type.SingleColumnType;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
+import org.hibernate.type.spi.BasicType;
 
 import antlr.SemanticException;
 
@@ -72,7 +72,7 @@ public class LiteralNode extends AbstractSelectExpression implements HqlSqlToken
 			return text;
 		}
 
-		return ( (SingleColumnType) inherentType ).fromStringValue( text );
+		return ( (BasicType) inherentType ).getJavaTypeDescriptor().fromString( text );
 	}
 
 	@Override

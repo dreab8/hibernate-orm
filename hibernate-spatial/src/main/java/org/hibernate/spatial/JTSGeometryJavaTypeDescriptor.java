@@ -10,6 +10,7 @@ package org.hibernate.spatial;
 import java.sql.Types;
 
 import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
@@ -31,7 +32,7 @@ public class JTSGeometryJavaTypeDescriptor extends AbstractBasicJavaDescriptor<G
 	/**
 	 * An instance of this descriptor
 	 */
-	public static final JavaTypeDescriptor<Geometry> INSTANCE = new JTSGeometryJavaTypeDescriptor();
+	public static final BasicJavaDescriptor<Geometry> INSTANCE = new JTSGeometryJavaTypeDescriptor();
 
 	/**
 	 * Initialize a type descriptor for the geolatte-geom {@code Geometry} type.

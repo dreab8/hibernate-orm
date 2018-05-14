@@ -12,23 +12,21 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Map;
 
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
-import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.jdbc.Size;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.util.collections.ArrayHelper;
 import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.spi.BasicType;
 import org.hibernate.usertype.EnhancedUserType;
 import org.hibernate.usertype.LoggableUserType;
 import org.hibernate.usertype.Sized;
 import org.hibernate.usertype.UserType;
-import org.hibernate.usertype.UserVersionType;
 
 /**
  * Adapts {@link UserType} to the generic {@link Type} interface, in order
@@ -39,7 +37,7 @@ import org.hibernate.usertype.UserVersionType;
  */
 public class CustomType
 		extends AbstractType
-		implements IdentifierType, StringRepresentableType, ProcedureParameterNamedBinder, ProcedureParameterExtractionAware {
+		implements IdentifierType, ProcedureParameterNamedBinder, ProcedureParameterExtractionAware {
 
 	private final UserType userType;
 	private final String name;
@@ -234,11 +232,11 @@ public class CustomType
 		return checkable[0] && isDirty(old, current, session);
 	}
 
-	@Override
 	@SuppressWarnings("unchecked")
 	public String toString(Object value) throws HibernateException {
-		if ( StringRepresentableType.class.isInstance( getUserType() ) ) {
-			return ( (StringRepresentableType) getUserType() ).toString( value );
+		if ( BasicType.class.isInstance( getUserType() ) ) {
+			BasicType basicType = (BasicType) getUserType();
+			return basicType.getJavaTypeDescriptor().toString( value );
 		}
 		if ( value == null ) {
 			return null;
@@ -250,10 +248,9 @@ public class CustomType
 		return value.toString();
 	}
 
-	@Override
 	public Object fromStringValue(String string) throws HibernateException {
-		if ( StringRepresentableType.class.isInstance( getUserType() ) ) {
-			return ( (StringRepresentableType) getUserType() ).fromStringValue( string );
+		if ( BasicType.class.isInstance( getUserType() ) ) {
+			return ( (BasicType) getUserType() ).getJavaTypeDescriptor().fromString( string );
 		}
 		if ( EnhancedUserType.class.isInstance( getUserType() ) ) {
 			//noinspection deprecation
@@ -263,7 +260,7 @@ public class CustomType
 				String.format(
 						"Could not process #fromStringValue, UserType class [%s] did not implement %s or %s",
 						name,
-						StringRepresentableType.class.getName(),
+						BasicType.class.getName(),
 						EnhancedUserType.class.getName()
 				)
 		);

@@ -8,7 +8,6 @@ package org.hibernate.userguide.collections.type;
 
 import java.util.Date;
 
-import org.hibernate.HibernateException;
 import org.hibernate.type.descriptor.java.internal.JdbcTimestampJavaDescriptor;
 import org.hibernate.type.descriptor.sql.spi.BigIntSqlDescriptor;
 import org.hibernate.type.internal.BasicTypeImpl;
@@ -36,10 +35,5 @@ public class TimestampEpochType
         return "epoch";
     }
 
-    @Override
-    public Date fromStringValue(
-        String xml) throws HibernateException {
-        return fromString( xml );
-    }
 }
 //end::collections-map-custom-key-type-mapping-example[]

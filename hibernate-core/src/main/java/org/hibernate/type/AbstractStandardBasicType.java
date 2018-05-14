@@ -36,7 +36,7 @@ import org.hibernate.type.spi.BasicType;
  * @author Brett Meyer
  */
 public abstract class AbstractStandardBasicType<T>
-		implements BasicType<T>, StringRepresentableType<T>, ProcedureParameterExtractionAware<T>, ProcedureParameterNamedBinder {
+		implements BasicType<T>, ProcedureParameterExtractionAware<T>, ProcedureParameterNamedBinder {
 
 	private static final Size DEFAULT_SIZE = new Size( 19, 2, 255, Size.LobMultiplier.NONE ); // to match legacy behavior
 	private final Size dictatedSize = new Size();
@@ -67,16 +67,6 @@ public abstract class AbstractStandardBasicType<T>
 
 	public T fromString(String string) {
 		return javaTypeDescriptor.fromString( string );
-	}
-
-	@Override
-	public String toString(T value) {
-		return javaTypeDescriptor.toString( value );
-	}
-
-	@Override
-	public T fromStringValue(String xml) throws HibernateException {
-		return fromString( xml );
 	}
 
 	protected MutabilityPlan<T> getMutabilityPlan() {

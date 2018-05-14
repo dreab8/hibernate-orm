@@ -7,6 +7,7 @@
 package org.hibernate.type.descriptor.converter;
 
 import org.hibernate.metamodel.model.convert.spi.JpaAttributeConverter;
+import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
 import org.hibernate.type.internal.BasicTypeImpl;
 import org.hibernate.type.descriptor.java.internal.ImmutableMutabilityPlan;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
@@ -43,7 +44,7 @@ public class AttributeConverterTypeAdapter<T> extends BasicTypeImpl<T> {
 			Class modelType,
 			Class jdbcType,
 			JavaTypeDescriptor<T> entityAttributeJavaTypeDescriptor) {
-		super( sqlTypeDescriptorAdapter, entityAttributeJavaTypeDescriptor );
+		super( sqlTypeDescriptorAdapter, (BasicJavaDescriptor) entityAttributeJavaTypeDescriptor );
 		this.name = name;
 		this.description = description;
 		this.modelType = modelType;
