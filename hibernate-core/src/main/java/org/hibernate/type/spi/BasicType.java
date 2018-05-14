@@ -58,31 +58,6 @@ public interface BasicType<T> extends Type<T> {
 	}
 
 	@Override
-	default boolean isAssociationType() {
-		return false;
-	}
-
-	@Override
-	default boolean isCollectionType() {
-		return false;
-	}
-
-	@Override
-	default boolean isComponentType() {
-		return false;
-	}
-
-	@Override
-	default boolean isEntityType() {
-		return false;
-	}
-
-	@Override
-	default boolean isAnyType() {
-		return false;
-	}
-
-	@Override
 	@SuppressWarnings({ "unchecked" })
 	default boolean isSame(Object x, Object y) {
 		return isEqual( x, y );
@@ -98,24 +73,6 @@ public interface BasicType<T> extends Type<T> {
 	@SuppressWarnings({ "unchecked" })
 	default boolean isEqual(Object one, Object another) {
 		return getJavaTypeDescriptor().areEqual( (T) one, (T) another );
-	}
-
-	@Override
-	@SuppressWarnings({ "unchecked" })
-	default Object replace(Object original, Object target, SharedSessionContractImplementor session, Object owner, Map copyCache) {
-		return null;
-	}
-
-	@Override
-	@SuppressWarnings({ "unchecked" })
-	default Object replace(
-			Object original,
-			Object target,
-			SharedSessionContractImplementor session,
-			Object owner,
-			Map copyCache,
-			ForeignKeyDirection foreignKeyDirection) {
-		return null;
 	}
 
 	@Override
@@ -151,11 +108,6 @@ public interface BasicType<T> extends Type<T> {
 	@Override
 	default Type getSemiResolvedType(SessionFactoryImplementor factory) {
 		return this;
-	}
-
-	@Override
-	default Size[] defaultSizes(Mapping mapping) throws MappingException {
-		return new Size[] { DEFAULT_SIZE };
 	}
 
 	@Override

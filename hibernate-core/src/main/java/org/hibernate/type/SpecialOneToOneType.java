@@ -77,11 +77,6 @@ public class SpecialOneToOneType extends OneToOneType {
 		return super.getIdentifierOrUniqueKeyType( mapping ).sqlTypes( mapping );
 	}
 
-	@Override
-	public Size[] defaultSizes(Mapping mapping) throws MappingException {
-		return super.getIdentifierOrUniqueKeyType( mapping ).defaultSizes( mapping );
-	}
-
 	public boolean useLHSPrimaryKey() {
 		return false;
 	}

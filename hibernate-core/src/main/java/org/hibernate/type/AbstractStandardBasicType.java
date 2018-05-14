@@ -66,14 +66,6 @@ public abstract class AbstractStandardBasicType<T>
 		return value == null ? ArrayHelper.FALSE : ArrayHelper.TRUE;
 	}
 
-	protected static Size getDefaultSize() {
-		return DEFAULT_SIZE;
-	}
-
-	protected Size getDictatedSize() {
-		return dictatedSize;
-	}
-	
 	// final implementations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	@Override
@@ -89,11 +81,6 @@ public abstract class AbstractStandardBasicType<T>
 	@Override
 	public final int[] sqlTypes(Mapping mapping) throws MappingException {
 		return sqlTypes;
-	}
-
-	@Override
-	public Size[] defaultSizes(Mapping mapping) throws MappingException {
-		return new Size[] { getDefaultSize() };
 	}
 
 	@Override
@@ -118,10 +105,6 @@ public abstract class AbstractStandardBasicType<T>
 
 	@Override
 	public final boolean isAnyType() {
-		return false;
-	}
-
-	public final boolean isXMLElement() {
 		return false;
 	}
 

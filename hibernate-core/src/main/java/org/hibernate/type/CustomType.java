@@ -79,11 +79,6 @@ public class CustomType
 	}
 
 	@Override
-	public Size[] defaultSizes(Mapping mapping) throws MappingException {
-		return defaultSizes;
-	}
-
-	@Override
 	public JavaTypeDescriptor getJavaTypeDescriptor() {
 		return null;
 	}
