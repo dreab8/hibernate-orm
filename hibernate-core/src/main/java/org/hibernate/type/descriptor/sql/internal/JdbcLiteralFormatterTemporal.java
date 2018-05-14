@@ -10,9 +10,9 @@ import java.time.temporal.TemporalAccessor;
 import javax.persistence.TemporalType;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.descriptor.internal.DateTimeUtils;
 import org.hibernate.type.descriptor.java.spi.TemporalJavaDescriptor;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 
 /**
  * @author Steve Ebersole
@@ -33,7 +33,7 @@ public class JdbcLiteralFormatterTemporal extends BasicJdbcLiteralFormatter {
 	}
 
 	@Override
-	public String toJdbcLiteral(Object value, Dialect dialect, SharedSessionContractImplementor session) {
+	public String toJdbcLiteral(Object value, Dialect dialect, WrapperOptions options) {
 		// for performance reasons, avoid conversions if we can
 		if ( value instanceof java.util.Date ) {
 			return DateTimeUtils.formatJdbcLiteralUsingPrecision(
@@ -57,19 +57,19 @@ public class JdbcLiteralFormatterTemporal extends BasicJdbcLiteralFormatter {
 		switch ( getJavaTypeDescriptor().getPrecision() ) {
 			case DATE: {
 				return DateTimeUtils.formatJdbcLiteralUsingPrecision(
-						unwrap( value, java.sql.Date.class, session ),
+						unwrap( value, java.sql.Date.class, options ),
 						precision
 				);
 			}
 			case TIME: {
 				return DateTimeUtils.formatJdbcLiteralUsingPrecision(
-						unwrap( value, java.sql.Time.class, session ),
+						unwrap( value, java.sql.Time.class, options ),
 						precision
 				);
 			}
 			default: {
 				return DateTimeUtils.formatJdbcLiteralUsingPrecision(
-						unwrap( value, java.util.Date.class, session ),
+						unwrap( value, java.util.Date.class, options ),
 						precision
 				);
 			}

@@ -9,14 +9,14 @@ package org.hibernate.hql.internal.ast.tree;
 import java.util.Locale;
 
 import org.hibernate.QueryException;
-import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.hql.spi.QueryTranslator;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.internal.util.StringHelper;
-import org.hibernate.type.LiteralType;
 import org.hibernate.type.Type;
 import org.hibernate.type.descriptor.converter.AttributeConverterTypeAdapter;
+import org.hibernate.type.descriptor.java.internal.NoWrapperOptions;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * A node representing a static Java constant.
@@ -68,10 +68,15 @@ public class JavaConstantNode extends Node implements ExpectedTypeAwareNode, Ses
 				? heuristicType
 				: expectedType;
 		try {
-			if ( LiteralType.class.isInstance( type ) ) {
-				final LiteralType literalType = (LiteralType) type;
-				final Dialect dialect = factory.getDialect();
-				return literalType.objectToSQLString( constantValue, dialect );
+			if ( BasicType.class.isInstance( type ) ) {
+				final BasicType basicType = (BasicType) type;
+				return basicType.getSqlTypeDescriptor()
+						.getJdbcLiteralFormatter( basicType.getJavaTypeDescriptor() )
+						.toJdbcLiteral(
+								constantValue,
+								factory.getDialect(),
+								NoWrapperOptions.INSTANCE
+						);
 			}
 			else if ( AttributeConverterTypeAdapter.class.isInstance( type ) ) {
 				final AttributeConverterTypeAdapter converterType = (AttributeConverterTypeAdapter) type;

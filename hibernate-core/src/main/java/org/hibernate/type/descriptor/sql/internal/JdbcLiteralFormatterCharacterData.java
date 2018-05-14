@@ -9,8 +9,8 @@ package org.hibernate.type.descriptor.sql.internal;
 import java.util.Locale;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 
 /**
  * @author Steve Ebersole
@@ -29,8 +29,8 @@ public class JdbcLiteralFormatterCharacterData extends BasicJdbcLiteralFormatter
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public String toJdbcLiteral(Object value, Dialect dialect, SharedSessionContractImplementor session) {
-		final String literalValue = unwrap( value, String.class, session );
+	public String toJdbcLiteral(Object value, Dialect dialect, WrapperOptions options) {
+		final String literalValue = unwrap( value, String.class, options );
 
 		if ( isNationalized ) {
 			// is there a standardized form for n-string literals?  This is the SQL Server syntax for sure

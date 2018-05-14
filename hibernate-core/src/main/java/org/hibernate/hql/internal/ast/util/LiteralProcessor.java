@@ -26,8 +26,9 @@ import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.persister.entity.Queryable;
 import org.hibernate.sql.InFragment;
-import org.hibernate.type.LiteralType;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.java.internal.NoWrapperOptions;
+import org.hibernate.type.spi.BasicType;
 
 import org.jboss.logging.Logger;
 
@@ -169,10 +170,16 @@ public class LiteralProcessor implements HqlSqlTokenTypes {
 			throw new QueryException( QueryTranslator.ERROR_CANNOT_DETERMINE_TYPE + node.getText() );
 		}
 		try {
-			LiteralType literalType = (LiteralType) type;
+			BasicType basicType = (BasicType) type;
 			Dialect dialect = walker.getSessionFactoryHelper().getFactory().getDialect();
 			//noinspection unchecked
-			node.setText( literalType.objectToSQLString( value, dialect ) );
+			node.setText(
+					basicType.getSqlTypeDescriptor()
+							.getJdbcLiteralFormatter( basicType.getJavaTypeDescriptor() )
+							.toJdbcLiteral( value,
+											dialect,
+											NoWrapperOptions.INSTANCE
+							) );
 		}
 		catch (Exception e) {
 			throw new QueryException( QueryTranslator.ERROR_CANNOT_FORMAT_LITERAL + node.getText(), e );

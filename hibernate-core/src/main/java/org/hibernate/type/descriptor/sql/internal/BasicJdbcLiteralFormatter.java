@@ -7,8 +7,8 @@
 package org.hibernate.type.descriptor.sql.internal;
 
 
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 
 /**
  * @author Steve Ebersole
@@ -19,7 +19,7 @@ public abstract class BasicJdbcLiteralFormatter extends AbstractJdbcLiteralForma
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <X> X unwrap(Object value, Class<X> unwrapType, SharedSessionContractImplementor session) {
+	protected <X> X unwrap(Object value, Class<X> unwrapType, WrapperOptions options) {
 		assert value != null;
 
 		// for performance reasons, avoid conversions if we can
@@ -27,6 +27,6 @@ public abstract class BasicJdbcLiteralFormatter extends AbstractJdbcLiteralForma
 			return (X) value;
 		}
 
-		return (X) getJavaTypeDescriptor().unwrap( value, unwrapType, session );
+		return (X) getJavaTypeDescriptor().unwrap( value, unwrapType, options );
 	}
 }

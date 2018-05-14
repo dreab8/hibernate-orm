@@ -11,9 +11,10 @@ import java.util.List;
 
 import org.hibernate.dialect.Dialect;
 import org.hibernate.type.CompositeType;
-import org.hibernate.type.LiteralType;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeResolver;
+import org.hibernate.type.descriptor.java.internal.NoWrapperOptions;
+import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.spi.TypeConfiguration;
 
 /**
@@ -113,10 +114,17 @@ public abstract class IdsClauseBuilder {
 		Type resolvedType = ( !type.getReturnedClass().equals( value.getClass() ) ) ?
 			typeResolver.heuristicType( value.getClass().getName() ) : type;
 
-		if ( resolvedType instanceof LiteralType ) {
-			LiteralType literalType = (LiteralType) resolvedType;
+		if ( resolvedType instanceof BasicType ) {
+			BasicType basicType = (BasicType) resolvedType;
 			try {
-				return literalType.objectToSQLString( value, dialect );
+				return basicType
+						.getSqlTypeDescriptor()
+						.getJdbcLiteralFormatter( basicType.getJavaTypeDescriptor() )
+						.toJdbcLiteral(
+								value,
+								dialect,
+								NoWrapperOptions.INSTANCE
+						);
 			}
 			catch ( Exception e ) {
 				throw new IllegalArgumentException( e );

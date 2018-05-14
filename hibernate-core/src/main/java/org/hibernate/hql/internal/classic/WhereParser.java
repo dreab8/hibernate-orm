@@ -24,8 +24,9 @@ import org.hibernate.persister.collection.CollectionPropertyNames;
 import org.hibernate.persister.entity.Queryable;
 import org.hibernate.sql.InFragment;
 import org.hibernate.type.EntityType;
-import org.hibernate.type.LiteralType;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.java.internal.NoWrapperOptions;
+import org.hibernate.type.spi.BasicType;
 
 import static org.hibernate.hql.spi.QueryTranslator.ERROR_LEGACY_ORDINAL_PARAMS_NO_LONGER_SUPPORTED;
 
@@ -454,7 +455,16 @@ public class WhereParser implements Parser {
 					}
 					try {
 						//noinspection unchecked
-						appendToken( q, ( ( LiteralType ) type ).objectToSQLString( constant, q.getFactory().getDialect() ) );
+						BasicType basicType = (BasicType) type;
+						appendToken(
+								q,
+								basicType.getSqlTypeDescriptor()
+										.getJdbcLiteralFormatter( basicType.getJavaTypeDescriptor() )
+										.toJdbcLiteral( constant,
+														q.getFactory().getDialect(),
+														NoWrapperOptions.INSTANCE
+										)
+						);
 					}
 					catch ( Exception e ) {
 						throw new QueryException( QueryTranslator.ERROR_CANNOT_FORMAT_LITERAL + token, e );

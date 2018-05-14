@@ -38,6 +38,7 @@ import org.hibernate.annotations.common.reflection.XPackage;
 import org.hibernate.annotations.common.reflection.XProperty;
 import org.hibernate.boot.model.IdGeneratorStrategyInterpreter;
 import org.hibernate.boot.model.IdentifierGeneratorDefinition;
+import org.hibernate.boot.model.type.internal.BasicTypeResolverExplicitNamedImpl;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.cfg.annotations.EntityBinder;
 import org.hibernate.cfg.annotations.Nullability;
@@ -61,7 +62,6 @@ import org.hibernate.mapping.SyntheticProperty;
 import org.hibernate.mapping.Table;
 import org.hibernate.mapping.ToOne;
 import org.hibernate.mapping.Value;
-import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
 import org.jboss.logging.Logger;
 
@@ -960,23 +960,21 @@ public class BinderHelper {
 		}
 		if ( metaAnnDef != null ) {
 			value.setIdentifierType( metaAnnDef.idType() );
+			value.setIdentifierTypeResolver( new BasicTypeResolverExplicitNamedImpl(context, metaAnnDef.idType()) );
 			value.setMetaType( metaAnnDef.metaType() );
 
 			HashMap values = new HashMap();
-			JavaTypeDescriptor javaTypeDescriptor = context.getMetadataCollector()
-					.getTypeConfiguration()
-					.getBasicTypeRegistry()
-					.getBasicType( value.getMetaType() )
-					.getJavaTypeDescriptor();
+			final BasicTypeResolverExplicitNamedImpl discriminatorTypeResolver = new BasicTypeResolverExplicitNamedImpl(
+					context,
+					value.getMetaType()
+			);
+			value.setDiscriminatorTypeResolver( discriminatorTypeResolver );
 			for (MetaValue metaValue : metaAnnDef.metaValues()) {
 				try {
-					Object discrim = javaTypeDescriptor.fromString( metaValue.value() );
-					String entityName = metaValue.targetEntity().getName();
-					values.put( discrim, entityName );
+					values.put( discriminatorTypeResolver, metaValue.targetEntity().getName() );
 				}
 				catch (ClassCastException cce) {
-					throw new MappingException( "metaType was not a DiscriminatorType: "
-							+ javaTypeDescriptor.getTypeName() );
+					throw new MappingException( "metaType was not a DiscriminatorType: " + value.getMetaType() );
 				}
 				catch (Exception e) {
 					throw new MappingException( "could not interpret metaValue", e );

@@ -13,7 +13,7 @@ import java.io.Serializable;
  * @author Gavin King
  * @author Steve Ebersole
  */
-public interface PrimitiveType<T> extends LiteralType<T> {
+public interface PrimitiveType<T> {
 	/**
 	 * Retrieve the primitive counterpart to the wrapper type identified by
 	 * {@link org.hibernate.type.Type#getReturnedClass()}.

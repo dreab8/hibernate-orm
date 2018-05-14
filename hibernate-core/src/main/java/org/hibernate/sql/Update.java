@@ -10,7 +10,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.type.LiteralType;
+import org.hibernate.internal.AbstractSharedSessionContract;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * An SQL <tt>UPDATE</tt> statement
@@ -131,8 +132,11 @@ public class Update {
 		return this;
 	}
 
-	public Update addColumn(String columnName, Object value, LiteralType type) throws Exception {
-		return addColumn( columnName, type.objectToSQLString(value, dialect) );
+	public Update addColumn(String columnName, Object value, BasicType type, AbstractSharedSessionContract session)
+			throws Exception {
+		return addColumn( columnName, type.getSqlTypeDescriptor()
+				.getJdbcLiteralFormatter( type.getJavaTypeDescriptor() )
+				.toJdbcLiteral( value, dialect, session ) );
 	}
 
 	public Update addWhereColumns(String[] columnNames) {

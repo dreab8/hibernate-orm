@@ -7,8 +7,8 @@
 package org.hibernate.type.descriptor.sql.internal;
 
 import org.hibernate.dialect.Dialect;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
 
 /**
  * @author Steve Ebersole
@@ -24,7 +24,7 @@ public class JdbcLiteralFormatterNumericData extends BasicJdbcLiteralFormatter {
 	}
 
 	@Override
-	public String toJdbcLiteral(Object value, Dialect dialect, SharedSessionContractImplementor session) {
-		return unwrap( value, unwrapJavaType, session ).toString();
+	public String toJdbcLiteral(Object value, Dialect dialect, WrapperOptions options) {
+		return unwrap( value, unwrapJavaType, options ).toString();
 	}
 }
