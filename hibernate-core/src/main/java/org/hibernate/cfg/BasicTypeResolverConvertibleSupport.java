@@ -31,6 +31,5 @@ public abstract class BasicTypeResolverConvertibleSupport
 	@Override
 	public ConverterDescriptor getAttributeConverterDefinition() {
 		return converterDescriptor;
-
 	}
 }

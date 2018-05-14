@@ -152,38 +152,38 @@ public class BasicTypeRegistry {
 		BasicJavaDescriptor<T> javaTypeDescriptor = parameters.getJavaTypeDescriptor();
 		SqlTypeDescriptor sqlTypeDescriptor = parameters.getSqlTypeDescriptor();
 
-//		if ( parameters.getAttributeConverterDefinition() != null ) {
-//			// we have an attribute converter, use that to either:
-//			//		1) validate the BasicJavaDescriptor/SqlTypeDescriptor defined on parameters
-//			//		2) use the converter param types as hints to the missing BasicJavaDescriptor/SqlTypeDescriptor
-//
-//			if ( javaTypeDescriptor == null ) {
-//				javaTypeDescriptor = parameters.getAttributeConverterDefinition().getDomainType();
-//			}
-//			else {
-//				if ( !javaTypeDescriptor.equals( parameters.getAttributeConverterDefinition().getDomainType() ) ) {
-//					throw new HibernateException(
-//							"JavaTypeDescriptors did not match between BasicTypeParameters#getJavaTypeDescriptor and " +
-//									"BasicTypeParameters#getAttributeConverterDefinition#getDomainType"
-//					);
-//				}
-//			}
-//
-//			final SqlTypeDescriptor resolvedConverterHintedSqlTypeDescriptor = parameters.getAttributeConverterDefinition()
-//					.getJdbcType()
-//					.getJdbcRecommendedSqlType( jdbcTypeResolutionContext );
-//			if ( sqlTypeDescriptor == null ) {
-//				sqlTypeDescriptor = resolvedConverterHintedSqlTypeDescriptor;
-//			}
-//			else {
-//				if ( !sqlTypeDescriptor.equals( resolvedConverterHintedSqlTypeDescriptor ) ) {
-//					throw new HibernateException(
-//							"SqlTypeDescriptors did not match between BasicTypeParameters#getSqlTypeDescriptor and " +
-//									"BasicTypeParameters#getAttributeConverterDefinition#getJdbcType"
-//					);
-//				}
-//			}
-//		}
+		if ( parameters.getAttributeConverterDefinition() != null ) {
+			// we have an attribute converter, use that to either:
+			//		1) validate the BasicJavaDescriptor/SqlTypeDescriptor defined on parameters
+			//		2) use the converter param types as hints to the missing BasicJavaDescriptor/SqlTypeDescriptor
+
+			if ( javaTypeDescriptor == null ) {
+				javaTypeDescriptor = parameters.getAttributeConverterDefinition().getDomainType();
+			}
+			else {
+				if ( !javaTypeDescriptor.equals( parameters.getAttributeConverterDefinition().getDomainType() ) ) {
+					throw new HibernateException(
+							"JavaTypeDescriptors did not match between BasicTypeParameters#getJavaTypeDescriptor and " +
+									"BasicTypeParameters#getAttributeConverterDefinition#getDomainType"
+					);
+				}
+			}
+
+			final SqlTypeDescriptor resolvedConverterHintedSqlTypeDescriptor = parameters.getAttributeConverterDefinition()
+					.getJdbcType()
+					.getJdbcRecommendedSqlType( jdbcTypeResolutionContext );
+			if ( sqlTypeDescriptor == null ) {
+				sqlTypeDescriptor = resolvedConverterHintedSqlTypeDescriptor;
+			}
+			else {
+				if ( !sqlTypeDescriptor.equals( resolvedConverterHintedSqlTypeDescriptor ) ) {
+					throw new HibernateException(
+							"SqlTypeDescriptors did not match between BasicTypeParameters#getSqlTypeDescriptor and " +
+									"BasicTypeParameters#getAttributeConverterDefinition#getJdbcType"
+					);
+				}
+			}
+		}
 
 		if ( parameters.getTemporalPrecision() != null ) {
 			// we have a specified temporal precision, which is another hint as to types...
