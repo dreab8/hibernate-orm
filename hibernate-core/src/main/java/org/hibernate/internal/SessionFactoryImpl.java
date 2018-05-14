@@ -1082,13 +1082,13 @@ public final class SessionFactoryImpl implements SessionFactoryImplementor {
 	}
 
 	@Override
-	public Type resolveParameterBindType(Class clazz){
-		String typename = clazz.getName();
+	public Type resolveParameterBindType(Class clazz) {
 		Type type = typeConfiguration.getBasicTypeRegistry().getBasicType( clazz );
-		boolean serializable = type != null && type.getJavaTypeDescriptor() instanceof SerializableJavaDescriptor;
-		if ( type == null || serializable ) {
+		boolean serializable = type.getJavaTypeDescriptor() instanceof SerializableJavaDescriptor;
+		if ( serializable ) {
+			String typename = clazz.getName();
 			try {
-				getMetamodel().entityPersister( clazz.getName() );
+				getMetamodel().entityPersister( typename );
 			}
 			catch (MappingException me) {
 				if ( serializable ) {
