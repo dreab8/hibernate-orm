@@ -124,11 +124,6 @@ public class DiscriminatorType extends AbstractType {
 	}
 
 	@Override
-	public Size[] dictatedSizes(Mapping mapping) throws MappingException {
-		return underlyingType.dictatedSizes( mapping );
-	}
-
-	@Override
 	public Size[] defaultSizes(Mapping mapping) throws MappingException {
 		return underlyingType.defaultSizes( mapping );
 	}

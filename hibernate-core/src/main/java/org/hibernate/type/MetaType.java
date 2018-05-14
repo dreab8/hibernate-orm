@@ -52,11 +52,6 @@ public class MetaType extends AbstractType {
 	}
 
 	@Override
-	public Size[] dictatedSizes(Mapping mapping) throws MappingException {
-		return baseType.dictatedSizes( mapping );
-	}
-
-	@Override
 	public Size[] defaultSizes(Mapping mapping) throws MappingException {
 		return baseType.defaultSizes( mapping );
 	}

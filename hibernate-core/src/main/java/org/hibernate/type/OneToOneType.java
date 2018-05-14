@@ -101,11 +101,6 @@ public class OneToOneType extends EntityType {
 	private static final Size[] SIZES = new Size[0];
 
 	@Override
-	public Size[] dictatedSizes(Mapping mapping) throws MappingException {
-		return SIZES;
-	}
-
-	@Override
 	public Size[] defaultSizes(Mapping mapping) throws MappingException {
 		return SIZES;
 	}

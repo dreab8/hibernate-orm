@@ -92,11 +92,6 @@ public abstract class AbstractStandardBasicType<T>
 	}
 
 	@Override
-	public Size[] dictatedSizes(Mapping mapping) throws MappingException {
-		return new Size[] { getDictatedSize() };
-	}
-
-	@Override
 	public Size[] defaultSizes(Mapping mapping) throws MappingException {
 		return new Size[] { getDefaultSize() };
 	}

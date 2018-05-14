@@ -168,11 +168,6 @@ public abstract class CollectionType extends AbstractType implements Association
 	}
 
 	@Override
-	public Size[] dictatedSizes(Mapping mapping) throws MappingException {
-		return new Size[] { LEGACY_DICTATED_SIZE };
-	}
-
-	@Override
 	public Size[] defaultSizes(Mapping mapping) throws MappingException {
 		return new Size[] { LEGACY_DEFAULT_SIZE };
 	}

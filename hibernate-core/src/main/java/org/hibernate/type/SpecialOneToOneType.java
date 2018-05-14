@@ -78,11 +78,6 @@ public class SpecialOneToOneType extends OneToOneType {
 	}
 
 	@Override
-	public Size[] dictatedSizes(Mapping mapping) throws MappingException {
-		return super.getIdentifierOrUniqueKeyType( mapping ).dictatedSizes( mapping );
-	}
-
-	@Override
 	public Size[] defaultSizes(Mapping mapping) throws MappingException {
 		return super.getIdentifierOrUniqueKeyType( mapping ).defaultSizes( mapping );
 	}

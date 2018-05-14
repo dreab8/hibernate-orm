@@ -188,11 +188,6 @@ public interface BasicType<T> extends Type<T> {
 	}
 
 	@Override
-	default Size[] dictatedSizes(Mapping mapping) throws MappingException{
-		return new Size[] { new Size()};
-	}
-
-	@Override
 	default Class getReturnedClass(){
 		return getJavaTypeDescriptor().getJavaType();
 	}
