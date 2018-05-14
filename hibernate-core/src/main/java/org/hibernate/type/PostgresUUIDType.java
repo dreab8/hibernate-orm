@@ -44,12 +44,6 @@ public class PostgresUUIDType extends BasicTypeImpl<UUID> {
 		return "pg-uuid";
 	}
 
-	@Override
-	protected boolean registerUnderJavaType() {
-		// register this type under UUID when it is added to the basic type registry
-		return true;
-	}
-
 	public static class PostgresUUIDSqlTypeDescriptor implements SqlTypeDescriptor {
 		public static final PostgresUUIDSqlTypeDescriptor INSTANCE = new PostgresUUIDSqlTypeDescriptor();
 

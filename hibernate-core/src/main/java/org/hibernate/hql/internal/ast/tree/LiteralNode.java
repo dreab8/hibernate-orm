@@ -94,7 +94,7 @@ public class LiteralNode extends AbstractSelectExpression implements HqlSqlToken
 			// apply the converter
 			final JpaAttributeConverter converter = converterTypeAdapter.getAttributeConverter();
 			final Object converted = converter.toRelationalValue( getLiteralValue() );
-			if ( isCharacterData( converterTypeAdapter.sqlType() ) ) {
+			if ( isCharacterData( converterTypeAdapter.getSqlTypeDescriptor().getJdbcTypeCode() ) ) {
 				return "'" + converted.toString() + "'";
 			}
 			else {
@@ -102,7 +102,7 @@ public class LiteralNode extends AbstractSelectExpression implements HqlSqlToken
 			}
 		}
 		else if ( getDataType().getReturnedClass().equals( converterTypeAdapter.getJdbcType() ) ) {
-			if ( isCharacterData( converterTypeAdapter.sqlType() ) ) {
+			if ( isCharacterData( converterTypeAdapter.getSqlTypeDescriptor().getJdbcTypeCode() ) ) {
 				return "'" + literalValue.toString() + "'";
 			}
 			else {

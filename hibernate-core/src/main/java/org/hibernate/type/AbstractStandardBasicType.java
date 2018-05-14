@@ -44,10 +44,9 @@ public abstract class AbstractStandardBasicType<T>
 	// sqlTypes need always to be in sync with sqlTypeDescriptor
 	private int[] sqlTypes;
 
-	public AbstractStandardBasicType() {
-		this.sqlTypes = new int[] { getSqlTypeDescriptor().getJdbcTypeCode() };
+	public AbstractStandardBasicType(int jdbcCode) {
+		this.sqlTypes = new int[] { jdbcCode };
 	}
-
 
 	protected T getReplacement(T original, T target, SharedSessionContractImplementor session) {
 		if ( original == LazyPropertyInitializer.UNFETCHED_PROPERTY ) {
@@ -67,10 +66,6 @@ public abstract class AbstractStandardBasicType<T>
 		return value == null ? ArrayHelper.FALSE : ArrayHelper.TRUE;
 	}
 
-	protected boolean registerUnderJavaType() {
-		return false;
-	}
-
 	protected static Size getDefaultSize() {
 		return DEFAULT_SIZE;
 	}
@@ -80,11 +75,6 @@ public abstract class AbstractStandardBasicType<T>
 	}
 	
 	// final implementations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-//	public final void setSqlTypeDescriptor( SqlTypeDescriptor sqlTypeDescriptor ) {
-//		this.sqlTypeDescriptor = sqlTypeDescriptor;
-//		this.sqlTypes = new int[] { sqlTypeDescriptor.getSqlType() };
-//	}
 
 	@Override
 	public final Class getReturnedClass() {

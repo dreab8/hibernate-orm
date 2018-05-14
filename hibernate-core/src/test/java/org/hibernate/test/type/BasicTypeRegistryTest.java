@@ -104,11 +104,6 @@ public class BasicTypeRegistryTest extends BaseUnitTestCase {
 		public String getName() {
 			return "noop";
 		}
-
-		@Override
-		protected boolean registerUnderJavaType() {
-			return false;
-		}
 	}
 
 	public static class TotallyIrrelevantUserType implements UserType {

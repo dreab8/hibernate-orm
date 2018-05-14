@@ -88,11 +88,6 @@ public class QueryParametersValidationArrayTest extends BaseEntityManagerFunctio
 		public String getName() {
 			return "string-array";
 		}
-
-		@Override
-		protected boolean registerUnderJavaType() {
-			return true;
-		}
 	}
 
 	public static class StringArraySqlTypeDescriptor implements SqlTypeDescriptor {

@@ -104,11 +104,6 @@ public class StoredPrefixedStringType
 		return StandardSpiBasicTypes.STRING.getName();
 	}
 
-	@Override
-	protected boolean registerUnderJavaType() {
-		return true;
-	}
-
 	public String toString(String value) {
 		return StandardSpiBasicTypes.STRING.getJavaTypeDescriptor().toString( value );
 	}

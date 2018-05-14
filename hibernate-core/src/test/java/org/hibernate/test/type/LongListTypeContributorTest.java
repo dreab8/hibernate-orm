@@ -167,16 +167,6 @@ public class LongListTypeContributorTest extends BaseEntityManagerFunctionalTest
 			public String getName() {
 				return name;
 			}
-
-//			@Override
-//			public String[] getRegistrationKeys() {
-//				return regKeys.clone();
-//			}
-
-			@Override
-			protected boolean registerUnderJavaType() {
-				return true;
-			}
 		}
 
 		private static class StringifiedCollectionJavaTypeDescriptor extends AbstractBasicJavaDescriptor<LongList> {

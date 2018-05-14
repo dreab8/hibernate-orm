@@ -21,10 +21,5 @@ public class GenderType extends BasicTypeImpl<Gender> {
     public String getName() {
         return "gender";
     }
-
-    @Override
-    protected boolean registerUnderJavaType() {
-        return true;
-    }
 }
 //end::basic-enums-custom-type-example[]

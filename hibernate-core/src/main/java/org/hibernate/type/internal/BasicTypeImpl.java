@@ -14,7 +14,10 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.metamodel.model.domain.spi.VersionSupport;
 import org.hibernate.type.AbstractStandardBasicType;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
+import org.hibernate.type.descriptor.spi.ValueBinder;
+import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
+import org.hibernate.type.spi.BasicType;
 
 /**
  * TODO : javadoc
@@ -24,22 +27,40 @@ import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 public class BasicTypeImpl<T> extends AbstractStandardBasicType<T> {
 	private final SqlTypeDescriptor sqlTypeDescriptor;
 	private BasicJavaDescriptor<T> javaTypeDescriptor;
-	private final VersionSupport<T> versionSupport;
+	private VersionSupport<T> versionSupport;
 
 	public BasicTypeImpl(SqlTypeDescriptor sqlTypeDescriptor, BasicJavaDescriptor javaTypeDescriptor) {
+		super(sqlTypeDescriptor.getJdbcTypeCode());
 		this.javaTypeDescriptor = javaTypeDescriptor;
 		this.sqlTypeDescriptor = sqlTypeDescriptor;
 		this.versionSupport = javaTypeDescriptor.getVersionSupport();
 	}
 
 	public BasicTypeImpl(BasicJavaDescriptor javaTypeDescriptor, SqlTypeDescriptor sqlTypeDescriptor) {
+		super(sqlTypeDescriptor.getJdbcTypeCode());
 		this.javaTypeDescriptor = javaTypeDescriptor;
 		this.sqlTypeDescriptor = sqlTypeDescriptor;
 		this.versionSupport = javaTypeDescriptor.getVersionSupport();
 	}
 
-	public final int sqlType() {
-		return getSqlTypeDescriptor().getSqlType();
+	public BasicTypeImpl setVersionSupport(VersionSupport<T> versionSupport){
+		// todo (6.0) : not sure this is the best place to define this...
+		// 		the purpose of this is to account for cases where the proper
+		//		VersionSupport to use is not the same as the JTD's
+		//		VersionSupport.  This only(?) happens when we have a
+		//		`byte[]` mapped to T-SQL ROWVERSION/TIMESTAMP data-type -
+		//		which is represented as a `byte[]`, but with a very
+		//		specific comparison algorithm.
+		//
+		//		the alternative is to handle this distinction when building
+		//		the VersionDescriptor - if the JTD is a `byte[]`, we'd use
+		//		a specialized VersionSupport
+		this.versionSupport = versionSupport;
+		return this;
+	}
+
+	public BasicType<T> getBasicType() {
+		return this;
 	}
 
 	@Override
@@ -66,12 +87,15 @@ public class BasicTypeImpl<T> extends AbstractStandardBasicType<T> {
 		}
 	}
 
-	@Override
-	public String getName() {
-		return getJavaTypeDescriptor().getTypeName();
-	}
-
 	public void setJavaTypeDescriptor(BasicJavaDescriptor javaTypeDescriptor){
 		this.javaTypeDescriptor = javaTypeDescriptor;
+	}
+
+	public ValueBinder getValueBinder() {
+		return getSqlTypeDescriptor().getBinder( getJavaTypeDescriptor() );
+	}
+
+	public ValueExtractor<T> getValueExtractor() {
+		return getSqlTypeDescriptor().getExtractor( getJavaTypeDescriptor() );
 	}
 }
