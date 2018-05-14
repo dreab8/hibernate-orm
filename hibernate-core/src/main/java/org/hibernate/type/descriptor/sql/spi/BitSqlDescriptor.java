@@ -17,6 +17,7 @@ import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.spi.ValueBinder;
 import org.hibernate.type.descriptor.spi.ValueExtractor;
 import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.sql.internal.JdbcLiteralFormatterBit;
 import org.hibernate.type.spi.TypeConfiguration;
 
 /**
@@ -56,7 +57,7 @@ public class BitSqlDescriptor implements SqlTypeDescriptor {
 	@SuppressWarnings("unchecked")
 	public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
 		// todo : how to handle this
-		return null;
+		return new JdbcLiteralFormatterBit( javaTypeDescriptor );
 	}
 
 	@Override

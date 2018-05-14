@@ -124,6 +124,7 @@ import org.hibernate.tool.schema.spi.DelayedDropAction;
 import org.hibernate.tool.schema.spi.SchemaManagementToolCoordinator;
 import org.hibernate.type.Type;
 import org.hibernate.type.TypeResolver;
+import org.hibernate.type.descriptor.java.internal.SerializableJavaDescriptor;
 import org.hibernate.type.spi.BasicType;
 import org.hibernate.type.spi.StandardSpiBasicTypes;
 import org.hibernate.type.spi.TypeConfiguration;
@@ -1082,7 +1083,26 @@ public final class SessionFactoryImpl implements SessionFactoryImplementor {
 
 	@Override
 	public Type resolveParameterBindType(Class clazz){
-		return typeConfiguration.getBasicTypeRegistry().getBasicType( clazz );
+		String typename = clazz.getName();
+		Type type = typeConfiguration.getBasicTypeRegistry().getBasicType( clazz );
+		boolean serializable = type != null && type.getJavaTypeDescriptor() instanceof SerializableJavaDescriptor;
+		if ( type == null || serializable ) {
+			try {
+				getMetamodel().entityPersister( clazz.getName() );
+			}
+			catch (MappingException me) {
+				if ( serializable ) {
+					return type;
+				}
+				else {
+					throw new HibernateException( "Could not determine a type for class: " + typename );
+				}
+			}
+			return getTypeHelper().entity( clazz );
+		}
+		else {
+			return type;
+		}
 	}
 
 	public static Interceptor configuredInterceptor(Interceptor interceptor, SessionFactoryOptions options) {
