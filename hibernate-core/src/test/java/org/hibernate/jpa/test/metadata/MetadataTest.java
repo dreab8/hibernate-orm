@@ -23,13 +23,13 @@ import javax.persistence.metamodel.SetAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.Type;
 
+import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.spi.MetadataImplementor;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.jpa.AvailableSettings;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
-import org.hibernate.metamodel.internal.JpaMetaModelPopulationSetting;
-import org.hibernate.metamodel.internal.MetamodelImpl;
 
 import org.junit.Test;
 
@@ -90,13 +90,18 @@ public class MetadataTest extends BaseEntityManagerFunctionalTestCase {
 	@Test
 	@SuppressWarnings({ "unchecked" })
 	public void testBuildingMetamodelWithParameterizedCollection() {
-		Metadata metadata = new MetadataSources()
-				.addAnnotatedClass( WithGenericCollection.class )
-				.buildMetadata();
-		SessionFactoryImplementor sfi = (SessionFactoryImplementor) metadata.buildSessionFactory();
-		MetamodelImpl metamodel = new MetamodelImpl( sfi, ( (MetadataImplementor) metadata ).getTypeConfiguration() );
-		metamodel.initialize( (MetadataImplementor) metadata, JpaMetaModelPopulationSetting.IGNORE_UNSUPPORTED );
-		sfi.close();
+		StandardServiceRegistry ssr = new StandardServiceRegistryBuilder()
+				.applySetting( AvailableSettings.JPA_METAMODEL_POPULATION, "ignoreUnsupported" )
+				.build();
+		try {
+			Metadata metadata = new MetadataSources( ssr )
+					.addAnnotatedClass( WithGenericCollection.class )
+					.buildMetadata();
+			 metadata.buildSessionFactory();
+		}
+		finally {
+			StandardServiceRegistryBuilder.destroy( ssr );
+		}
 	}
 
 	@Test

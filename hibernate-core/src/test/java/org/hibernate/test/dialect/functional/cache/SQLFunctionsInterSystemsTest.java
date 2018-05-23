@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hibernate.LockOptions;
+import org.hibernate.Query;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -35,6 +36,8 @@ import org.hibernate.test.legacy.Fixed;
 import org.hibernate.test.legacy.Simple;
 import org.hibernate.test.legacy.Single;
 import org.junit.Test;
+
+import org.jboss.logging.Logger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

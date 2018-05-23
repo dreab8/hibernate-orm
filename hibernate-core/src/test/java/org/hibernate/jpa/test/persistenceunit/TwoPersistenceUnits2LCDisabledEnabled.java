@@ -19,7 +19,7 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.jpa.boot.spi.Bootstrap;
 import org.hibernate.jpa.boot.spi.EntityManagerFactoryBuilder;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
-import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.metamodel.model.domain.spi.EntityDescriptor;
 
 import org.hibernate.testing.TestForIssue;
 import org.junit.Test;
@@ -53,14 +53,14 @@ public class TwoPersistenceUnits2LCDisabledEnabled {
 				config
 		);
 		SessionFactoryImplementor sf = entityManagerFactoryBuilder.build().unwrap( SessionFactoryImplementor.class );
-		final EntityPersister persister = sf.getMetamodel().entityPersister( AnEntity.class.getName() );
+		final EntityDescriptor persister = sf.getMetamodel().findEntityDescriptor( AnEntity.class.getName() );
 
 		try {
 			if ( config.get( AvailableSettings.USE_SECOND_LEVEL_CACHE ).equals( "true" ) ) {
-				assertNotNull( persister.getCacheAccessStrategy() );
+				assertNotNull( persister.getHierarchy().getEntityCacheAccess() );
 			}
 			else {
-				assertNull( persister.getCacheAccessStrategy() );
+				assertNull( persister.getHierarchy().getEntityCacheAccess() );
 			}
 		}
 		finally {

@@ -12,6 +12,8 @@ import org.hibernate.engine.spi.RowSelection;
 import org.junit.Test;
 
 import org.hibernate.mapping.Column;
+import org.hibernate.metamodel.model.relational.spi.Size;
+
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 
@@ -42,7 +44,7 @@ public class DB2DialectTestCase extends BaseUnitTestCase {
 	@TestForIssue(jiraKey = "HHH-6866")
 	public void testGetExplicitBinaryTypeName() {
 		// lower bound
-		String actual = dialect.getTypeName( Types.BINARY, 1, Column.DEFAULT_PRECISION, Column.DEFAULT_SCALE );
+		String actual = dialect.getTypeName( Types.BINARY, 1, Size.Builder.DEFAULT_PRECISION, Size.Builder.DEFAULT_SCALE );
 		assertEquals(
 				"Wrong binary type",
 				"char(1) for bit data",
@@ -50,7 +52,7 @@ public class DB2DialectTestCase extends BaseUnitTestCase {
 		);
 
 		// upper bound
-		actual = dialect.getTypeName( Types.BINARY, 254, Column.DEFAULT_PRECISION, Column.DEFAULT_SCALE );
+		actual = dialect.getTypeName( Types.BINARY, 254, Size.Builder.DEFAULT_PRECISION, Size.Builder.DEFAULT_SCALE );
 		assertEquals(
 				"Wrong binary type. 254 is the max length in DB2",
 				"char(254) for bit data",
@@ -58,7 +60,7 @@ public class DB2DialectTestCase extends BaseUnitTestCase {
 		);
 
 		// exceeding upper bound
-		actual = dialect.getTypeName( Types.BINARY, 255, Column.DEFAULT_PRECISION, Column.DEFAULT_SCALE );
+		actual = dialect.getTypeName( Types.BINARY, 255, Size.Builder.DEFAULT_PRECISION, Size.Builder.DEFAULT_SCALE );
 		assertEquals(
 				"Wrong binary type. Should be varchar for length > 254",
 				"varchar(255) for bit data",

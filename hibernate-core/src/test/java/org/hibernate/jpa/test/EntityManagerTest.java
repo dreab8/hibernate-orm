@@ -27,9 +27,9 @@ import javax.persistence.Query;
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Environment;
 import org.hibernate.jpa.AvailableSettings;
-import org.hibernate.jpa.HibernateEntityManagerFactory;
 import org.hibernate.stat.Statistics;
 import org.hibernate.testing.TestForIssue;
 import org.junit.Test;
@@ -63,14 +63,14 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 
 	@Override
 	public Map<Class, String> getCachedClasses() {
-		Map<Class, String> result = new HashMap<Class, String>();
+		Map<Class, String> result = new HashMap<>();
 		result.put( Item.class, "read-write" );
 		return result;
 	}
 
 	@Override
 	public Map<String, String> getCachedCollections() {
-		Map<String, String> result = new HashMap<String, String>();
+		Map<String, String> result = new HashMap<>();
 		result.put( Item.class.getName() + ".distributors", "read-write,"+Item.class.getName() + ".distributors" );
 		return result;
 	}
@@ -122,13 +122,13 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
 	@Test
-	public void testConfiguration() throws Exception {
+	public void testConfiguration() {
 		Item item = new Item( "Mouse", "Micro$oft mouse" );
 		Distributor res = new Distributor();
 		res.setName( "Bruce" );
-		item.setDistributors( new HashSet<Distributor>() );
+		item.setDistributors( new HashSet<>() );
 		item.getDistributors().add( res );
-		Statistics stats = ( ( HibernateEntityManagerFactory ) entityManagerFactory() ).getSessionFactory().getStatistics();
+		Statistics stats = entityManagerFactory().unwrap( SessionFactory.class ).getStatistics();
 		stats.clear();
 		stats.setStatisticsEnabled( true );
 
@@ -168,7 +168,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
 	@Test
-	public void testContains() throws Exception {
+	public void testContains() {
 		EntityManager em = getOrCreateEntityManager();
 		em.getTransaction().begin();
 		Integer nonManagedObject = Integer.valueOf( 4 );
@@ -201,7 +201,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
 	@Test
-	public void testClear() throws Exception {
+	public void testClear() {
 		EntityManager em = getOrCreateEntityManager();
 		em.getTransaction().begin();
 		Wallet w = new Wallet();
@@ -217,7 +217,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
 	@Test
-	public void testFlushMode() throws Exception {
+	public void testFlushMode() {
 		EntityManager em = getOrCreateEntityManager();
 		em.setFlushMode( FlushModeType.COMMIT );
 		assertEquals( FlushModeType.COMMIT, em.getFlushMode() );
@@ -227,7 +227,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
 	@Test
-	public void testPersistNoneGenerator() throws Exception {
+	public void testPersistNoneGenerator() {
 		EntityManager em = getOrCreateEntityManager();
 		em.getTransaction().begin();
 		Wallet w = new Wallet();
@@ -288,7 +288,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
 	@Test
-	public void testIsOpen() throws Exception {
+	public void testIsOpen() {
 		EntityManager em = getOrCreateEntityManager();
 		assertTrue( em.isOpen() );
 		em.getTransaction().begin();
@@ -300,7 +300,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 
 	@Test
 	@TestForIssue( jiraKey = "EJB-9" )
-	public void testGet() throws Exception {
+	public void testGet() {
 		EntityManager em = getOrCreateEntityManager();
 		em.getTransaction().begin();
 		Item item = em.getReference( Item.class, "nonexistentone" );
@@ -321,7 +321,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
 	@Test
-	public void testGetProperties() throws Exception {
+	public void testGetProperties() {
 		EntityManager em = getOrCreateEntityManager();
 		Map<String, Object> properties = em.getProperties();
 		assertNotNull( properties );
@@ -337,7 +337,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
 	@Test
-	public void testSetProperty() throws Exception {
+	public void testSetProperty() {
 		EntityManager em = getOrCreateEntityManager();
 		em.getTransaction().begin();
 		Wallet wallet = new Wallet();
@@ -378,7 +378,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
 	@Test
-	public void testSetAndGetUnserializableProperty() throws Exception {
+	public void testSetAndGetUnserializableProperty() {
 		EntityManager em = getOrCreateEntityManager();
 		try {
 			MyObject object = new MyObject();
@@ -392,7 +392,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
 	@Test
-	public void testSetAndGetSerializedProperty() throws Exception {
+	public void testSetAndGetSerializedProperty() {
 		EntityManager em = getOrCreateEntityManager();
 		try {
 			em.setProperty( "MyObject", "Test123" );
@@ -405,7 +405,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
     @Test
-    public void testPersistExisting() throws Exception {
+    public void testPersistExisting() {
         EntityManager em = getOrCreateEntityManager();
         em.getTransaction().begin();
         Wallet w = new Wallet();
@@ -440,7 +440,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
     }
 
 	@Test
-	public void testFactoryClosed() throws Exception {
+	public void testFactoryClosed() {
 		EntityManager em = createIsolatedEntityManager();
 		assertTrue( em.isOpen() );
 		assertTrue( em.getEntityManagerFactory().isOpen());
@@ -458,7 +458,7 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 	}
 
 	@Test
-	public void testEntityNotFoundException() throws Exception {
+	public void testEntityNotFoundException() {
 		EntityManager em = getOrCreateEntityManager();
 		em.getTransaction().begin();
 		Wallet w = new Wallet();
@@ -481,9 +481,11 @@ public class EntityManagerTest extends BaseEntityManagerFunctionalTestCase {
 
 		try {
 			em.getTransaction().commit();
-			fail("Should have raised an EntityNotFoundException");
-		} catch (PersistenceException pe) {
-		} finally {
+			fail( "Should have raised an EntityNotFoundException" );
+		}
+		catch (PersistenceException pe) {
+		}
+		finally {
 			em.close();
 		}
 	}

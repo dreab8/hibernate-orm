@@ -9,7 +9,7 @@ package org.hibernate.jpa.test.enhancement;
 import org.hibernate.Hibernate;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
-import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.metamodel.model.domain.spi.EntityDescriptor;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.bytecode.enhancement.BytecodeEnhancerRunner;
 import org.hibernate.testing.transaction.TransactionUtil.JPATransactionVoidFunction;
@@ -50,8 +50,8 @@ public class TestLazyPropertyOnPreUpdate extends BaseEntityManagerFunctionalTest
 
     @Before
     public void prepare() throws Exception {
-        EntityPersister ep = entityManagerFactory().getMetamodel().entityPersister( EntityWithLazyProperty.class.getName() );
-        assertTrue( ep.getInstrumentationMetadata().isEnhancedForLazyLoading() );
+        EntityDescriptor ep = entityManagerFactory().getMetamodel().findEntityDescriptor( EntityWithLazyProperty.class.getName() );
+        assertTrue( ep.getBytecodeEnhancementMetadata().isEnhancedForLazyLoading() );
 
         byte[] testArray = new byte[]{0x2A};
 

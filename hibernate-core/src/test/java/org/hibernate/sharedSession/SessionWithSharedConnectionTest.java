@@ -14,6 +14,7 @@ import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.event.spi.PostInsertEventListener;
+import org.hibernate.metamodel.model.domain.spi.EntityDescriptor;
 import org.hibernate.persister.entity.EntityPersister;
 
 import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
@@ -189,13 +190,13 @@ public class SessionWithSharedConnectionTest extends BaseCoreFunctionalTestCase 
 				EventType.POST_COMMIT_INSERT,
 				new PostInsertEventListener() {
 					@Override
-					public void onPostInsert(PostInsertEvent event) {
-						((IrrelevantEntity) event.getEntity()).setName( postCommitMessage );
+					public boolean requiresPostCommitHandling(EntityDescriptor persister) {
+						return true;
 					}
 
 					@Override
-					public boolean requiresPostCommitHanding(EntityPersister persister) {
-						return true;
+					public void onPostInsert(PostInsertEvent event) {
+						((IrrelevantEntity) event.getEntity()).setName( postCommitMessage );
 					}
 				}
 		);

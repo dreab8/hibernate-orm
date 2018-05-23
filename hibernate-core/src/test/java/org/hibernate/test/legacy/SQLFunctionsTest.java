@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.Query;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -35,6 +36,8 @@ import org.hibernate.dialect.TimesTenDialect;
 import org.hibernate.dialect.function.SQLFunction;
 
 import org.junit.Test;
+
+import org.jboss.logging.Logger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
