@@ -16,7 +16,8 @@ import org.hibernate.id.enhanced.PooledOptimizer;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.id.enhanced.TableGenerator;
 import org.hibernate.internal.util.StringHelper;
-import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.metamodel.model.domain.spi.EntityDescriptor;
+
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 
@@ -62,8 +63,8 @@ public class NewGeneratorMappingsTest extends BaseCoreFunctionalTestCase {
 
 	@Test
 	public void testMinimalSequenceEntity() {
-		final EntityPersister persister = sessionFactory().getEntityPersister( MinimalSequenceEntity.class.getName() );
-		IdentifierGenerator generator = persister.getIdentifierGenerator();
+		final EntityDescriptor entityDescriptor = sessionFactory().getEntityPersister( MinimalSequenceEntity.class.getName() );
+		IdentifierGenerator generator = entityDescriptor.getIdentifierDescriptor().getIdentifierValueGenerator();
 		assertTrue( SequenceStyleGenerator.class.isInstance( generator ) );
 		SequenceStyleGenerator seqGenerator = (SequenceStyleGenerator) generator;
 		assertEquals( MinimalSequenceEntity.SEQ_NAME, seqGenerator.getDatabaseStructure().getName() );
@@ -76,8 +77,8 @@ public class NewGeneratorMappingsTest extends BaseCoreFunctionalTestCase {
 
 	@Test
 	public void testCompleteSequenceEntity() {
-		final EntityPersister persister = sessionFactory().getEntityPersister( CompleteSequenceEntity.class.getName() );
-		IdentifierGenerator generator = persister.getIdentifierGenerator();
+		final EntityDescriptor entityDescriptor = sessionFactory().getEntityPersister( CompleteSequenceEntity.class.getName() );
+		IdentifierGenerator generator = entityDescriptor.getIdentifierDescriptor().getIdentifierValueGenerator();
 		assertTrue( SequenceStyleGenerator.class.isInstance( generator ) );
 		SequenceStyleGenerator seqGenerator = (SequenceStyleGenerator) generator;
 		assertEquals( 1000, seqGenerator.getDatabaseStructure().getInitialValue() );
@@ -87,8 +88,8 @@ public class NewGeneratorMappingsTest extends BaseCoreFunctionalTestCase {
 
 	@Test
 	public void testAutoEntity() {
-		final EntityPersister persister = sessionFactory().getEntityPersister( AutoEntity.class.getName() );
-		IdentifierGenerator generator = persister.getIdentifierGenerator();
+		final EntityDescriptor entityPersister = sessionFactory().getEntityPersister( AutoEntity.class.getName() );
+		IdentifierGenerator generator = entityPersister.getIdentifierDescriptor().getIdentifierValueGenerator();
 		assertTrue( SequenceStyleGenerator.class.isInstance( generator ) );
 		SequenceStyleGenerator seqGenerator = (SequenceStyleGenerator) generator;
 		assertEquals( SequenceStyleGenerator.DEF_SEQUENCE_NAME, seqGenerator.getDatabaseStructure().getName() );
@@ -98,8 +99,8 @@ public class NewGeneratorMappingsTest extends BaseCoreFunctionalTestCase {
 
 	@Test
 	public void testMinimalTableEntity() {
-		final EntityPersister persister = sessionFactory().getEntityPersister( MinimalTableEntity.class.getName() );
-		IdentifierGenerator generator = persister.getIdentifierGenerator();
+		final EntityDescriptor entityDescriptor = sessionFactory().getEntityPersister( MinimalTableEntity.class.getName() );
+		IdentifierGenerator generator = entityDescriptor.getIdentifierDescriptor().getIdentifierValueGenerator();
 		assertTrue( TableGenerator.class.isInstance( generator ) );
 		TableGenerator tabGenerator = (TableGenerator) generator;
 		assertEquals( MinimalTableEntity.TBL_NAME, tabGenerator.getTableName() );
@@ -117,8 +118,8 @@ public class NewGeneratorMappingsTest extends BaseCoreFunctionalTestCase {
 	@TestForIssue(jiraKey = "HHH-6790")
 	public void testSequencePerEntity() {
 		// Checking first entity.
-		EntityPersister persister = sessionFactory().getEntityPersister( DedicatedSequenceEntity1.class.getName() );
-		IdentifierGenerator generator = persister.getIdentifierGenerator();
+		EntityDescriptor entityDescriptor = sessionFactory().getEntityPersister( DedicatedSequenceEntity1.class.getName() );
+		IdentifierGenerator generator = entityDescriptor.getIdentifierDescriptor().getIdentifierValueGenerator();
 		assertTrue( SequenceStyleGenerator.class.isInstance( generator ) );
 		SequenceStyleGenerator seqGenerator = (SequenceStyleGenerator) generator;
 		assertEquals(
@@ -127,8 +128,8 @@ public class NewGeneratorMappingsTest extends BaseCoreFunctionalTestCase {
 		);
 
 		// Checking second entity.
-		persister = sessionFactory().getEntityPersister( DedicatedSequenceEntity2.class.getName() );
-		generator = persister.getIdentifierGenerator();
+		entityDescriptor = sessionFactory().getEntityPersister( DedicatedSequenceEntity2.class.getName() );
+		generator = entityDescriptor.getIdentifierDescriptor().getIdentifierValueGenerator();
 		assertTrue( SequenceStyleGenerator.class.isInstance( generator ) );
 		seqGenerator = (SequenceStyleGenerator) generator;
 		assertEquals(

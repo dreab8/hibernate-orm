@@ -6,6 +6,7 @@
  */
 package org.hibernate.test.annotations.basic;
 
+import java.sql.Types;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Basic;
@@ -20,11 +21,13 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
-import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.java.AbstractTypeDescriptor;
-import org.hibernate.type.descriptor.java.MutableMutabilityPlan;
-import org.hibernate.type.descriptor.sql.VarcharTypeDescriptor;
+import org.hibernate.type.internal.BasicTypeImpl;
+import org.hibernate.type.descriptor.java.spi.AbstractBasicJavaDescriptor;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.MutableMutabilityPlan;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.VarcharSqlDescriptor;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.Test;
@@ -58,22 +61,17 @@ public class CollectionAsBasicTest extends BaseUnitTestCase {
 		Set<String> tags;
 	}
 
-	public static class DelimitedStringsType extends AbstractSingleColumnStandardBasicType<Set> {
+	public static class DelimitedStringsType extends BasicTypeImpl<Set> {
 
 		public DelimitedStringsType() {
 			super(
-					VarcharTypeDescriptor.INSTANCE,
-					new DelimitedStringsJavaTypeDescriptor()
+					new DelimitedStringsJavaTypeDescriptor(),
+					VarcharSqlDescriptor.INSTANCE
 			);
-		}
-
-		@Override
-		public String getName() {
-			return "delimited_strings";
 		}
 	}
 
-	public static class DelimitedStringsJavaTypeDescriptor extends AbstractTypeDescriptor<Set> {
+	public static class DelimitedStringsJavaTypeDescriptor extends AbstractBasicJavaDescriptor<Set> {
 		public DelimitedStringsJavaTypeDescriptor() {
 			super(
 					Set.class,
@@ -96,6 +94,11 @@ public class CollectionAsBasicTest extends BaseUnitTestCase {
 		@Override
 		public Set fromString(String string) {
 			return null;
+		}
+
+		@Override
+		public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
+			return context.getTypeConfiguration().getSqlTypeDescriptorRegistry().getDescriptor( Types.VARCHAR );
 		}
 
 		@Override

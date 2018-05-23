@@ -7,9 +7,11 @@
 package org.hibernate.test.annotations.index.jpa;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl;
+import org.hibernate.boot.model.relational.MappedIndex;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.mapping.Bag;
 import org.hibernate.mapping.Column;
@@ -71,16 +73,16 @@ public abstract class AbstractJPAIndexTest extends BaseNonConfigCoreFunctionalTe
 		PersistentClass entity = metadata().getEntityBinding( Car.class.getName() );
 
 		Join join = (Join)entity.getJoinIterator().next();
-		Iterator<Index> itr = join.getTable().getIndexIterator();
+		Iterator<MappedIndex> itr = join.getTable().getIndexIterator();
 		assertTrue( itr.hasNext() );
-		Index index = itr.next();
+		MappedIndex index = itr.next();
 		assertFalse( itr.hasNext() );
 		assertTrue( "index name is not generated", StringHelper.isNotEmpty( index.getName() ) );
 		assertEquals( 2, index.getColumnSpan() );
-		Iterator<Column> columnIterator = index.getColumnIterator();
-		Column column = columnIterator.next();
+		List<Column> columns = index.getColumns();
+		Column column = columns.get( 0 );
 		assertEquals( "dealer_name", column.getName() );
-		column = columnIterator.next();
+		column = columns.get( 1 );
 		assertEquals( "rate", column.getName() );
 		assertSame( join.getTable(), index.getTable() );
 
@@ -93,14 +95,14 @@ public abstract class AbstractJPAIndexTest extends BaseNonConfigCoreFunctionalTe
 		Set set = (Set)property.getValue();
 		Table collectionTable = set.getCollectionTable();
 
-		Iterator<Index> itr = collectionTable.getIndexIterator();
+		Iterator<MappedIndex> itr = collectionTable.getIndexIterator();
 		assertTrue( itr.hasNext() );
-		Index index = itr.next();
+		MappedIndex index = itr.next();
 		assertFalse( itr.hasNext() );
 		assertTrue( "index name is not generated", StringHelper.isNotEmpty( index.getName() ) );
 		assertEquals( 1, index.getColumnSpan() );
-		Iterator<Column> columnIterator = index.getColumnIterator();
-		Column column = columnIterator.next();
+		List<Column> columns = index.getColumns();
+		Column column = columns.get( 0 );
 		assertEquals( "name", column.getName() );
 		assertSame( collectionTable, index.getTable() );
 
@@ -113,9 +115,9 @@ public abstract class AbstractJPAIndexTest extends BaseNonConfigCoreFunctionalTe
 		Bag set = (Bag)property.getValue();
 		Table collectionTable = set.getCollectionTable();
 
-		Iterator<Index> itr = collectionTable.getIndexIterator();
+		Iterator<MappedIndex> itr = collectionTable.getIndexIterator();
 		assertTrue( itr.hasNext() );
-		Index index = itr.next();
+		MappedIndex index = itr.next();
 		assertFalse( itr.hasNext() );
 		assertTrue( "index name is not generated", StringHelper.isNotEmpty( index.getName() ) );
 		assertEquals( 1, index.getColumnSpan() );

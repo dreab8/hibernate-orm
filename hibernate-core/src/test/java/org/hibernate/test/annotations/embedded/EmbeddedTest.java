@@ -13,11 +13,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.Hibernate;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl;
+import org.hibernate.type.StandardBasicTypes;
 
 import org.hibernate.testing.FailureExpected;
 import org.hibernate.testing.TestForIssue;
@@ -40,7 +41,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 	@Test
-	public void testSimple() throws Exception {
+	public void testSimple() {
 		Person person = new Person();
 		Address a = new Address();
 		Country c = new Country();
@@ -75,7 +76,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 	@Test
 	@TestForIssue(jiraKey = "HHH-8172")
-	public void testQueryWithEmbeddedIsNull() throws Exception {
+	public void testQueryWithEmbeddedIsNull() {
 		Person person = new Person();
 		Address a = new Address();
 		Country c = new Country();
@@ -109,7 +110,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 	@Test
 	@TestForIssue(jiraKey = "HHH-8172")
 	@FailureExpected(jiraKey = "HHH-8172")
-	public void testQueryWithEmbeddedParameterAllNull() throws Exception {
+	public void testQueryWithEmbeddedParameterAllNull() {
 		Session s;
 		Transaction tx;
 		Person person = new Person();
@@ -146,7 +147,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 	@Test
 	@TestForIssue(jiraKey = "HHH-8172")
 	@FailureExpected(jiraKey = "HHH-8172")
-	public void testQueryWithEmbeddedParameterOneNull() throws Exception {
+	public void testQueryWithEmbeddedParameterOneNull() {
 		Person person = new Person();
 		Address a = new Address();
 		Country c = new Country();
@@ -183,7 +184,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 	@Test
 	@TestForIssue(jiraKey = "HHH-8172")
-	public void testQueryWithEmbeddedWithNullUsingSubAttributes() throws Exception {
+	public void testQueryWithEmbeddedWithNullUsingSubAttributes() {
 		Person person = new Person();
 		Address a = new Address();
 		Country c = new Country();
@@ -221,7 +222,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 	}
 
 	@Test
-	public void testCompositeId() throws Exception {
+	public void testCompositeId() {
 		Session s;
 		Transaction tx;
 		RegionalArticlePk pk = new RegionalArticlePk();
@@ -238,7 +239,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		reg = (RegionalArticle) s.get( RegionalArticle.class, reg.getPk() );
+		reg = s.get( RegionalArticle.class, reg.getPk() );
 		assertNotNull( reg );
 		assertNotNull( reg.getPk() );
 		assertEquals( "Je ne veux pes rester sage - Dolly", reg.getName() );
@@ -248,7 +249,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 	}
 
 	@Test
-	public void testManyToOneInsideComponent() throws Exception {
+	public void testManyToOneInsideComponent() {
 		Session s;
 		Transaction tx;
 		s = openSession();
@@ -277,7 +278,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 		s = openSession();
 		tx = s.beginTransaction();
 		Query q = s.createQuery( "select p from Person p where p.address.city = :city" );
-		q.setString( "city", add.city );
+		q.setParameter( "city", add.city, StandardBasicTypes.STRING );
 		List result = q.list();
 		Person samePerson = (Person) result.get( 0 );
 		assertNotNull( samePerson.address.type );
@@ -310,7 +311,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		swap = (VanillaSwap) s.get( VanillaSwap.class, swap.getInstrumentId() );
+		swap = s.get( VanillaSwap.class, swap.getInstrumentId() );
 		// All fields must be filled with non-default values
 		fixed = swap.getFixedLeg();
 		assertNotNull( "Fixed leg retrieved as null", fixed );
@@ -379,7 +380,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		deal = (SpreadDeal) s.get( SpreadDeal.class, deal.getId() );
+		deal = s.get( SpreadDeal.class, deal.getId() );
 		// All fields must be filled with non-default values
 		assertNotNull( "Short swap is null.", deal.getShortSwap() );
 		assertNotNull( "Swap is null.", deal.getSwap() );
@@ -414,7 +415,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 	}
 
 	@Test
-	public void testEmbeddedInSecondaryTable() throws Exception {
+	public void testEmbeddedInSecondaryTable() {
 		Session s;
 		s = openSession();
 		s.getTransaction().begin();
@@ -431,7 +432,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 		s.clear();
 
 		Transaction tx = s.beginTransaction();
-		Book loadedBook = (Book) s.get( Book.class, book.getIsbn() );
+		Book loadedBook = s.get( Book.class, book.getIsbn() );
 		assertNotNull( loadedBook.getSummary() );
 		assertEquals( book.getSummary().getText(), loadedBook.getSummary().getText() );
 		s.delete( loadedBook );
@@ -440,7 +441,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 	}
 
 	@Test
-	public void testParent() throws Exception {
+	public void testParent() {
 		Session s;
 		s = openSession();
 		s.getTransaction().begin();
@@ -457,7 +458,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 		s.clear();
 
 		Transaction tx = s.beginTransaction();
-		Book loadedBook = (Book) s.get( Book.class, book.getIsbn() );
+		Book loadedBook = s.get( Book.class, book.getIsbn() );
 		assertNotNull( loadedBook.getSummary() );
 		assertEquals( loadedBook, loadedBook.getSummary().getSummarizedBook() );
 		s.delete( loadedBook );
@@ -466,7 +467,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 	}
 
 	@Test
-	public void testEmbeddedAndMultipleManyToOne() throws Exception {
+	public void testEmbeddedAndMultipleManyToOne() {
 		Session s;
 		s = openSession();
 		Transaction tx = s.beginTransaction();
@@ -490,7 +491,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		provider = (InternetProvider) s.get( InternetProvider.class, provider.getId() );
+		provider = s.get( InternetProvider.class, provider.getId() );
 		assertNotNull( provider.getOwner() );
 		assertNotNull( "Many to one not set", provider.getOwner().getCorporationType() );
 		assertEquals( "Wrong link", type.getType(), provider.getOwner().getCorporationType().getType() );
@@ -504,7 +505,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 	}
 
 	@Test
-	public void testEmbeddedAndOneToMany() throws Exception {
+	public void testEmbeddedAndOneToMany() {
 		Session s;
 		s = openSession();
 		Transaction tx = s.beginTransaction();
@@ -525,7 +526,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		provider = (InternetProvider) s.get( InternetProvider.class, provider.getId() );
+		provider = s.get( InternetProvider.class, provider.getId() );
 		assertNotNull( provider.getOwner() );
 		Set<Manager> topManagement = provider.getOwner().getTopManagement();
 		assertNotNull( "OneToMany not set", topManagement );
@@ -540,7 +541,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 	@Test
 	@TestForIssue(jiraKey = "HHH-9642")
-	public void testEmbeddedAndOneToManyHql() throws Exception {
+	public void testEmbeddedAndOneToManyHql() {
 		Session s;
 		s = openSession();
 		Transaction tx = s.beginTransaction();
@@ -588,7 +589,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		provider = (InternetProvider) s.get( InternetProvider.class, provider.getId() );
+		provider = s.get( InternetProvider.class, provider.getId() );
 		manager = provider.getOwner().getTopManagement().iterator().next();
 		s.delete( manager );
 		s.delete( provider );
@@ -598,7 +599,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 
 	@Test
-	public void testDefaultCollectionTable() throws Exception {
+	public void testDefaultCollectionTable() {
 		//are the tables correct?
 		assertTrue( SchemaUtil.isTablePresent( "WealthyPerson_vacationHomes", metadata() ) );
 		assertTrue( SchemaUtil.isTablePresent( "WealthyPerson_legacyVacationHomes", metadata() ) );
@@ -635,7 +636,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		p = (WealthyPerson) s.get( WealthyPerson.class, p.id );
+		p = s.get( WealthyPerson.class, p.id );
 		assertNotNull( p );
 		assertNotNull( p.address );
 		assertEquals( "Springfield", p.address.city );
@@ -649,11 +650,11 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 	// make sure we support collection of embeddable objects inside embeddable objects
 	@Test
-	public void testEmbeddableInsideEmbeddable() throws Exception {
+	public void testEmbeddableInsideEmbeddable() {
 		Session s;
 		Transaction tx;
 
-		Collection<URLFavorite> urls = new ArrayList<URLFavorite>();
+		Collection<URLFavorite> urls = new ArrayList<>();
 		URLFavorite urlFavorite = new URLFavorite();
 		urlFavorite.setUrl( "http://highscalability.com/" );
 		urls.add( urlFavorite );
@@ -670,7 +671,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 		urlFavorite.setUrl( "http://www.jgroups.org/" );
 		urls.add( urlFavorite );
 
-		Collection<String> ideas = new ArrayList<String>();
+		Collection<String> ideas = new ArrayList<>();
 		ideas.add( "lionheart" );
 		ideas.add( "xforms" );
 		ideas.add( "dynamic content" );
@@ -691,7 +692,7 @@ public class EmbeddedTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		tx = s.beginTransaction();
 		s.flush();
-		favoriteThings = (FavoriteThings) s.get( FavoriteThings.class, favoriteThings.getId() );
+		favoriteThings = s.get( FavoriteThings.class, favoriteThings.getId() );
 		assertTrue( "has web", favoriteThings.getWeb() != null );
 		assertTrue( "has ideas", favoriteThings.getWeb().getIdeas() != null );
 		assertTrue( "has favorite idea 'http'", favoriteThings.getWeb().getIdeas().contains( "http" ) );

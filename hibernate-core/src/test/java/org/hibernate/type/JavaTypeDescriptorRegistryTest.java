@@ -8,10 +8,12 @@ package org.hibernate.type;
 
 import java.util.Comparator;
 
-import org.hibernate.type.descriptor.WrapperOptions;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.spi.WrapperOptions;
+import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
-import org.hibernate.type.descriptor.java.StringTypeDescriptor;
+import org.hibernate.type.descriptor.java.internal.StringJavaDescriptor;
+import org.hibernate.type.descriptor.spi.JdbcRecommendedSqlTypeMappingContext;
+import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptor;
 import org.hibernate.type.spi.TypeConfiguration;
 
 import org.junit.Test;
@@ -30,7 +32,7 @@ public class JavaTypeDescriptorRegistryTest {
 		JavaTypeDescriptor<String> descriptor = typeConfiguration.getJavaTypeDescriptorRegistry()
 				.getDescriptor( String.class );
 
-		assertThat(descriptor, instanceOf(StringTypeDescriptor.class));
+		assertThat(descriptor, instanceOf(StringJavaDescriptor.class));
 	}
 
 	@Test
@@ -46,18 +48,24 @@ public class JavaTypeDescriptorRegistryTest {
 	@Test
 	public void testAddDirectlyToJavaTypeDescriptorRegistry(){
 		TypeConfiguration typeConfiguration = new TypeConfiguration();
-		org.hibernate.type.descriptor.java.JavaTypeDescriptorRegistry.INSTANCE.addDescriptor( new CustomJavaTypeDescriptor()  );
+		typeConfiguration.getJavaTypeDescriptorRegistry().addDescriptor( new CustomJavaTypeDescriptor() );
 		JavaTypeDescriptor descriptor = typeConfiguration.getJavaTypeDescriptorRegistry()
 				.getDescriptor( CustomType.class );
 
-		assertThat(descriptor, instanceOf(CustomJavaTypeDescriptor.class));
+		assertThat( descriptor, instanceOf( CustomJavaTypeDescriptor.class ) );
 	}
 
 	public class CustomType {}
 
 	public class CustomJavaTypeDescriptor implements JavaTypeDescriptor{
+
 		@Override
-		public Class getJavaTypeClass() {
+		public String getTypeName() {
+			return CustomType.class.getName();
+		}
+
+		@Override
+		public Class getJavaType() {
 			return CustomType.class;
 		}
 
@@ -83,6 +91,11 @@ public class JavaTypeDescriptorRegistryTest {
 
 		@Override
 		public String extractLoggableRepresentation(Object value) {
+			return null;
+		}
+
+		@Override
+		public SqlTypeDescriptor getJdbcRecommendedSqlType(JdbcRecommendedSqlTypeMappingContext context) {
 			return null;
 		}
 

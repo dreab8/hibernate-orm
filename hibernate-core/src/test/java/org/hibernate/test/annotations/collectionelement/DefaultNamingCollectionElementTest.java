@@ -12,14 +12,15 @@ import java.util.List;
 import java.util.Locale;
 
 import org.hibernate.Filter;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyHbmImpl;
+import org.hibernate.boot.model.relational.MappedColumn;
 import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.ForeignKey;
+import org.hibernate.query.Query;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
@@ -368,7 +369,10 @@ public class DefaultNamingCollectionElementTest extends BaseNonConfigCoreFunctio
 		);
 		// The default owner join column can only be computed if it has a PK with 1 column.
 		assertEquals ( 1, ownerCollection.getOwner().getKey().getColumnSpan() );
-		assertEquals( ownerForeignKeyNameExpected, ownerCollection.getKey().getColumnIterator().next().getText() );
+		assertEquals(
+				ownerForeignKeyNameExpected,
+				( (MappedColumn) ownerCollection.getKey().getColumnIterator().next() ).getText()
+		);
 
 		boolean hasOwnerFK = false;
 		for ( Iterator it=ownerCollection.getCollectionTable().getForeignKeyIterator(); it.hasNext(); ) {

@@ -31,9 +31,9 @@ public class DDLTest extends BaseNonConfigCoreFunctionalTestCase {
 	public void testBasicDDL() {
 		PersistentClass classMapping = metadata().getEntityBinding( Address.class.getName() );
 		Column stateColumn = (Column) classMapping.getProperty( "state" ).getColumnIterator().next();
-		assertEquals( stateColumn.getLength(), 3 );
+		assertEquals( stateColumn.getLength().longValue(), 3 );
 		Column zipColumn = (Column) classMapping.getProperty( "zip" ).getColumnIterator().next();
-		assertEquals( zipColumn.getLength(), 5 );
+		assertEquals( zipColumn.getLength().longValue(), 5 );
 		assertFalse( zipColumn.isNullable() );
 	}
 
@@ -41,7 +41,7 @@ public class DDLTest extends BaseNonConfigCoreFunctionalTestCase {
 	public void testApplyOnIdColumn() throws Exception {
 		PersistentClass classMapping = metadata().getEntityBinding( Tv.class.getName() );
 		Column serialColumn = (Column) classMapping.getIdentifierProperty().getColumnIterator().next();
-		assertEquals( "Validator annotation not applied on ids", 2, serialColumn.getLength() );
+		assertEquals( "Validator annotation not applied on ids", 2, serialColumn.getLength().longValue() );
 	}
 
 	@Test
@@ -49,7 +49,7 @@ public class DDLTest extends BaseNonConfigCoreFunctionalTestCase {
 	public void testLengthConstraint() throws Exception {
 		PersistentClass classMapping = metadata().getEntityBinding( Tv.class.getName() );
 		Column modelColumn = (Column) classMapping.getProperty( "model" ).getColumnIterator().next();
-		assertEquals( modelColumn.getLength(), 5 );
+		assertEquals( modelColumn.getLength().longValue(), 5 );
 	}
 
 	@Test

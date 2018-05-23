@@ -14,7 +14,10 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.metamodel.model.relational.spi.DatabaseModel;
+import org.hibernate.tool.schema.internal.Helper;
 import org.hibernate.tool.schema.internal.SchemaCreatorImpl;
 
 import org.hibernate.testing.TestForIssue;
@@ -23,8 +26,6 @@ import org.hibernate.test.annotations.id.sequences.entities.Bunny;
 import org.hibernate.test.annotations.id.sequences.entities.PointyTooth;
 import org.hibernate.test.annotations.id.sequences.entities.TwinkleToes;
 import org.junit.Test;
-
-import org.jboss.logging.Logger;
 
 import static org.junit.Assert.assertTrue;
 
@@ -43,7 +44,7 @@ public class JoinColumnOverrideTest extends BaseUnitTestCase {
 
 	@Test
 	@TestForIssue( jiraKey = "ANN-748" )
-	public void testBlownPrecision() throws Exception {
+	public void testBlownPrecision() {
 		StandardServiceRegistry ssr = new StandardServiceRegistryBuilder()
 				.applySetting( AvailableSettings.DIALECT, "SQLServer" )
 				.build();
@@ -57,7 +58,9 @@ public class JoinColumnOverrideTest extends BaseUnitTestCase {
 			boolean foundPointyToothCreate = false;
 			boolean foundTwinkleToesCreate = false;
 
-			List<String> commands = new SchemaCreatorImpl( ssr ).generateCreationCommands( metadata, false );
+			DatabaseModel databaseModel = Helper.buildDatabaseModel( (MetadataImplementor) metadata );
+			List<String> commands = new SchemaCreatorImpl( databaseModel, ssr )
+					.generateCreationCommands( metadata, false );
 			for ( String command : commands ) {
 				log.debug( command );
 

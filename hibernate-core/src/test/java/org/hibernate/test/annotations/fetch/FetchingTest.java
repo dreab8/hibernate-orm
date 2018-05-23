@@ -119,7 +119,7 @@ public class FetchingTest extends BaseCoreFunctionalTestCase {
 
 		s.clear();
 
-		s.createCriteria( Branch.class ).list();
+		s.createQuery( "from Branch").list();
 
 		s.getTransaction().rollback();
 		s.close();

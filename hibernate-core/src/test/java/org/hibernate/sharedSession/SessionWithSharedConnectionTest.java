@@ -15,7 +15,6 @@ import org.hibernate.event.spi.EventType;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.event.spi.PostInsertEventListener;
 import org.hibernate.metamodel.model.domain.spi.EntityDescriptor;
-import org.hibernate.persister.entity.EntityPersister;
 
 import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
 import org.hibernate.testing.TestForIssue;
@@ -44,7 +43,7 @@ public class SessionWithSharedConnectionTest extends BaseCoreFunctionalTestCase 
 		Session secondSession = session.sessionWithOptions()
 				.transactionContext()
 				.openSession();
-		secondSession.createCriteria( IrrelevantEntity.class ).list();
+		secondSession.createQuery( "from IrrelevantEntity" ).list();
 
 		//the list should have registered and then released a JDBC resource
 		assertFalse(
@@ -125,23 +124,23 @@ public class SessionWithSharedConnectionTest extends BaseCoreFunctionalTestCase 
 
 	}
 
-//	@Test
-//	@TestForIssue( jiraKey = "HHH-7090" )
-//	public void testSharedTransactionContextAutoJoining() {
-//		Session session = sessionFactory().openSession();
-//		session.getTransaction().begin();
-//
-//		Session secondSession = session.sessionWithOptions()
-//				.transactionContext()
-//				.autoJoinTransactions( true )
-//				.openSession();
-//
-//		// directly assert state of the second session
-//		assertFalse( ((SessionImplementor) secondSession).shouldAutoJoinTransaction() );
-//
-//		secondSession.close();
-//		session.close();
-//	}
+	@Test
+	@TestForIssue( jiraKey = "HHH-7090" )
+	public void testSharedTransactionContextAutoJoining() {
+		Session session = sessionFactory().openSession();
+		session.getTransaction().begin();
+
+		Session secondSession = session.sessionWithOptions()
+				.transactionContext()
+				.autoJoinTransactions( true )
+				.openSession();
+
+		// directly assert state of the second session
+		assertFalse( ((SessionImplementor) secondSession).shouldAutoJoinTransaction() );
+
+		secondSession.close();
+		session.close();
+	}
 
 	@Test
 	@TestForIssue( jiraKey = "HHH-7090" )

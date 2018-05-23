@@ -14,9 +14,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.query.Query;
 
 import org.hibernate.testing.FailureExpected;
 import org.hibernate.testing.TestForIssue;
@@ -72,7 +72,7 @@ public class OneToOneWithDerivedIdentityTest extends BaseCoreFunctionalTestCase 
 		Bar barWithFoo = new Bar();
 		barWithFoo.setFoo( foo );
 		barWithFoo.setDetails( "wrong details" );
-		bar = (Bar) s.get( Bar.class, barWithFoo );
+		bar = s.get( Bar.class, barWithFoo );
 		assertSame( bar, barWithFoo );
 		assertEquals( "Some details", bar.getDetails() );
 		SessionImplementor si = (SessionImplementor) s;
@@ -138,7 +138,7 @@ public class OneToOneWithDerivedIdentityTest extends BaseCoreFunctionalTestCase 
 
 		s.getTransaction().begin();
 
-		p = (Person) s.get( Person.class, persons.get( 0 ).getId() );
+		p = s.get( Person.class, persons.get( 0 ).getId() );
 		assertEquals( p.getName(), "Alfio" );
 
 		s.getTransaction().commit();

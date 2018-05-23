@@ -19,7 +19,7 @@ import javax.persistence.OptimisticLockException;
 
 import org.hibernate.AnnotationException;
 import org.hibernate.Hibernate;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -51,7 +51,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	}
 	@Test
 	@RequiresDialectFeature( DialectChecks.SupportsExpectedLobUsagePattern.class )
-	public void testEntity() throws Exception {
+	public void testEntity() {
 		Forest forest = new Forest();
 		forest.setName( "Fontainebleau" );
 		Session s;
@@ -64,7 +64,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		forest = (Forest) s.get( Forest.class, forest.getId() );
+		forest = s.get( Forest.class, forest.getId() );
 		assertNotNull( forest );
 		forest.setName( "Fontainebleau" );
 		//should not execute SQL update
@@ -73,7 +73,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		forest = (Forest) s.get( Forest.class, forest.getId() );
+		forest = s.get( Forest.class, forest.getId() );
 		assertNotNull( forest );
 		forest.setLength( 23 );
 		//should execute dynamic SQL update
@@ -90,7 +90,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	@Test
 	@RequiresDialectFeature( DialectChecks.SupportsExpectedLobUsagePattern.class )
 	@SkipForDialect(value = TeradataDialect.class , comment = "One transaction hangs the other")
-	public void testVersioning() throws Exception {
+	public void testVersioning() {
 		Forest forest = new Forest();
 		forest.setName( "Fontainebleau" );
 		forest.setLength( 33 );
@@ -107,8 +107,8 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 		s = openSession();
 		tx = s.beginTransaction();
 
-		forest = (Forest) parallelSession.get( Forest.class, forest.getId() );
-		Forest reloadedForest = (Forest) s.get( Forest.class, forest.getId() );
+		forest = parallelSession.get( Forest.class, forest.getId() );
+		Forest reloadedForest = s.get( Forest.class, forest.getId() );
 		reloadedForest.setLength( 11 );
 		assertNotSame( forest, reloadedForest );
 		tx.commit();
@@ -135,7 +135,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	
 	@Test
 	@RequiresDialectFeature(DialectChecks.SupportsExpectedLobUsagePattern.class)
-	public void testWhereClause() throws Exception {
+	public void testWhereClause() {
 		List<Doctor> doctors = new ArrayList<>();
 
 		Doctor goodDoctor = new Doctor();
@@ -201,7 +201,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 
 	@Test 
 	@RequiresDialectFeature( DialectChecks.SupportsExpectedLobUsagePattern.class )
-	public void testPolymorphism() throws Exception {
+	public void testPolymorphism() {
 		Forest forest = new Forest();
 		forest.setName( "Fontainebleau" );
 		forest.setLength( 33 );
@@ -225,7 +225,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 
 	@Test
 	@RequiresDialectFeature( DialectChecks.SupportsExpectedLobUsagePattern.class )
-	public void testType() throws Exception {
+	public void testType() {
 		Forest f = new Forest();
 		f.setName( "Broceliande" );
 		String description = "C'est une enorme foret enchantee ou vivais Merlin et toute la clique";
@@ -240,7 +240,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		f = (Forest) s.get( Forest.class, f.getId() );
+		f = s.get( Forest.class, f.getId() );
 		assertNotNull( f );
 		assertEquals( description, f.getLongDescription() );
 		s.delete( f );
@@ -258,7 +258,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	 * issues.  
 	 */
 	@Test
-	public void testImportTypeDefinitions() throws Exception {
+	public void testImportTypeDefinitions() {
 		LastName lastName = new LastName();
 		lastName.setName("reddy");
 				
@@ -281,12 +281,12 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 		 
 		s = openSession();
 		tx = s.beginTransaction();
-		name = (Name) s.get( Name.class, name.getId() );
+		name = s.get( Name.class, name.getId() );
 		assertNotNull( name );
 		assertEquals( "sharath", name.getFirstName() );
 		assertEquals( "REDDY", name.getLastName().getName() );
 		
-		formalName = (FormalLastName) s.get(FormalLastName.class, formalName.getId());
+		formalName = s.get(FormalLastName.class, formalName.getId());
 		assertEquals( "REDDY", formalName.getLastName().getName() );
 		
 		s.delete(name);
@@ -296,7 +296,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Test
-	public void testNonLazy() throws Exception {
+	public void testNonLazy() {
 		Session s;
 		Transaction tx;
 		s = openSession();
@@ -311,8 +311,8 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		f = (Forest) s.load( Forest.class, f.getId() );
-		t = (Tree) s.load( Tree.class, t.getId() );
+		f = s.load( Forest.class, f.getId() );
+		t = s.load( Tree.class, t.getId() );
 		assertFalse( "Default should be lazy", Hibernate.isInitialized( f ) );
 		assertTrue( "Tree is not lazy", Hibernate.isInitialized( t ) );
 		tx.commit();
@@ -320,7 +320,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Test
-	public void testCache() throws Exception {
+	public void testCache() {
 		Session s;
 		Transaction tx;
 		s = openSession();
@@ -369,10 +369,10 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		topic = (Topic) s.load( Topic.class, topic.getId() );
+		topic = s.load( Topic.class, topic.getId() );
 		
 		s.enableFilter("byState").setParameter("state", "published");
-		topic = (Topic) s.load( Topic.class, topic.getId() );
+		topic = s.load( Topic.class, topic.getId() );
 		assertNotNull(topic); 
 		assertTrue(topic.getNarratives().size() == 1); 
 		assertEquals("published", topic.getNarratives().iterator().next().getState());
@@ -466,8 +466,8 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 
 		tx = s.beginTransaction();
 		s.clear();
-		team2 = (SoccerTeam)s.load(team2.getClass(), team2.getId());
-		team = (SoccerTeam)s.load(team.getClass(), team.getId());
+		team2 = s.load(team2.getClass(), team2.getId());
+		team = s.load(team.getClass(), team.getId());
 		int count = ( (Long) s.createQuery( "select count(*) from Player" ).iterate().next() ).intValue();
 		assertEquals("expected count of 2 but got = " + count, count, 2);
 
@@ -487,7 +487,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Test
-	public void testFilter() throws Exception {
+	public void testFilter() {
 		Session s;
 		Transaction tx;
 		s = openSession();
@@ -511,7 +511,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 		assertEquals( 1, count );
 		s.disableFilter( "betweenLength" );
 		s.enableFilter( "minLength" ).setParameter( "minLength", 5 );
-		count = ( (Long) s.createQuery( "select count(*) from Forest" ).iterate().next() ).longValue();
+		count = (Long) s.createQuery( "select count(*) from Forest" ).iterate().next();
 		assertEquals( 2l, count );
 		s.disableFilter( "minLength" );
 		tx.rollback();
@@ -523,7 +523,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	 * defined on a parent MappedSuperclass(s)
 	 */
 	@Test
-	public void testInheritFiltersFromMappedSuperclass() throws Exception {
+	public void testInheritFiltersFromMappedSuperclass() {
 		Session s;
 		Transaction tx;
 		s = openSession();
@@ -556,9 +556,9 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 		s.disableFilter( "byName" );
 		
 		s.enableFilter( "byCategory" ).setParameter( "category", "Industrial" );
-		count = ( (Long) s.createQuery( "select count(*) from Drill" ).iterate().next() ).longValue();
+		count = (Long) s.createQuery( "select count(*) from Drill" ).iterate().next();
 		assertEquals( 1, count );
-		count = ( (Long) s.createQuery( "select count(*) from PowerDrill" ).iterate().next() ).longValue();
+		count = (Long) s.createQuery( "select count(*) from PowerDrill" ).iterate().next() ;
 		assertEquals( 1, count );
 		s.disableFilter( "byCategory" );
 		
@@ -568,7 +568,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	
 	@Test
 	@RequiresDialectFeature( DialectChecks.SupportsExpectedLobUsagePattern.class )
-	public void testParameterizedType() throws Exception {
+	public void testParameterizedType() {
 		Session s;
 		Transaction tx;
 		s = openSession();
@@ -635,7 +635,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Test
-	public void testCompositeType() throws Exception {
+	public void testCompositeType() {
 		Session s;
 		Transaction tx;
 		s = openSession();
@@ -652,7 +652,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 		tx.commit();
 		s.clear();
 		tx = s.beginTransaction();
-		r = (Ransom) s.get( Ransom.class, r.getId() );
+		r = s.get( Ransom.class, r.getId() );
 		assertNotNull( r );
 		assertNotNull( r.getAmount() );
 		assertTrue( 0 == new BigDecimal( 100000 ).compareTo( r.getAmount().getAmount() ) );
@@ -662,7 +662,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Test
-	public void testFormula() throws Exception {
+	public void testFormula() {
 		Session s = openSession();
 		Transaction tx = s.beginTransaction();
 		org.hibernate.test.annotations.entity.Flight airFrance = new Flight();
@@ -674,7 +674,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		airFrance = (Flight) s.get( Flight.class, airFrance.getId() );
+		airFrance = s.get( Flight.class, airFrance.getId() );
 		assertNotNull( airFrance );
 		assertEquals( 10000000, airFrance.getMaxAltitudeInMilimeter() );
 		s.delete( airFrance );
@@ -697,8 +697,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 		
 		s = openSession();
 		tx = s.beginTransaction();
-		contactDetails = 
-			(ContactDetails) s.get( ContactDetails.class, contactDetails.getId() );
+		contactDetails = s.get( ContactDetails.class, contactDetails.getId() );
 		assertNotNull( contactDetails );
 		assertEquals( "999999", contactDetails.getLocalPhoneNumber().getNumber() );
 		assertEquals( "041111111", contactDetails.getOverseasPhoneNumber().getNumber() );
@@ -744,10 +743,9 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 	 * pass. 
 	 * 
 	 * 
-	 * @throws Exception
 	 */
 	@Test
-	public void testSetSimpleValueTypeNameInSecondPass() throws Exception {
+	public void testSetSimpleValueTypeNameInSecondPass() {
 		Peugot derived = new Peugot();
 		derived.setName("sharath");
 		
@@ -761,7 +759,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 		
 		s = openSession();
 		tx = s.beginTransaction();
-		derived = (Peugot) s.get( Peugot.class, derived.getId() );
+		derived = s.get( Peugot.class, derived.getId() );
 		assertNotNull( derived );
 		assertEquals( "SHARATH", derived.getName() );
 		s.delete(derived);

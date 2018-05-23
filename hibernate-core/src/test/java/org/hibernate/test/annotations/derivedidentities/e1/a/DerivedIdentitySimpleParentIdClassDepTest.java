@@ -8,7 +8,7 @@ package org.hibernate.test.annotations.derivedidentities.e1.a;
 
 import java.util.List;
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class DerivedIdentitySimpleParentIdClassDepTest extends BaseNonConfigCoreFunctionalTestCase {
 	@Test
-	public void testManyToOne() throws Exception {
+	public void testManyToOne() {
 		assertTrue( SchemaUtil.isColumnPresent( "Dependent", "emp_empId", metadata() ) );
 		assertTrue( ! SchemaUtil.isColumnPresent( "Dependent", "emp", metadata() ) );
 
