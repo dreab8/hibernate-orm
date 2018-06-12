@@ -35,7 +35,7 @@ public class CriteriaQueryIsBoundManualParameterTest extends BaseEntityManagerFu
 
 	@Test
 	@TestForIssue(jiraKey = "HHH-9403")
-	public void testWildcardGenericAttributeCanBeResolved() {
+	public void testCriteriaQueryParameterIsBoundCheckNotFails() {
 		doInJPA( this::entityManagerFactory, entityManager -> {
 			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 			CriteriaQuery<Item> query = builder.createQuery( Item.class );
