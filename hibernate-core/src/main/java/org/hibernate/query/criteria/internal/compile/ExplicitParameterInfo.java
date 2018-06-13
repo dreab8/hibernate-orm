@@ -13,7 +13,7 @@ import javax.persistence.Parameter;
 /**
  * @author Steve Ebersole
  */
-public class ExplicitParameterInfo<T> implements Parameter<T> {
+public class ExplicitParameterInfo<T> {
 	private final String name;
 	private final Integer position;
 	private final Class<T> type;
@@ -43,7 +43,6 @@ public class ExplicitParameterInfo<T> implements Parameter<T> {
 		return position;
 	}
 
-	@Override
 	public Class<T> getParameterType() {
 		return type;
 	}
