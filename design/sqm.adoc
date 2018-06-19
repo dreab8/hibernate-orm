@@ -1,0 +1,108 @@
+
+[plantuml,select-statement,png]
+.SQM Select Statement
+....
+@startuml
+skinparam handwritten true
+
+interface SqmNode
+
+
+interface SqmStatement{
+	Set<SqmParameter> getQueryParameters()
+}
+
+interface SqmSelectStatement
+
+class SqmQuerySpec
+
+SqmNode <|-- SqmStatement
+
+SqmStatement <|-- SqmSelectStatement
+
+SqmSelectStatement - SqmQuerySpec
+
+@enduml
+....
+
+
+[plantuml,QuerySpec,png]
+.SqmQuerySpec
+....
+@startuml
+
+interface SqmFromClauseContainer
+interface SqmWhereClauseContainer
+
+class SqmQuerySpec
+
+SqmFromClauseContainer <|-- SqmQuerySpec
+SqmWhereClauseContainer <|-- SqmQuerySpec
+
+SqmQuerySpec -- SqmSelectClause
+
+SqmQuerySpec -- SqmFromClause
+
+SqmQuerySpec -- SqmWhereClause
+
+SqmQuerySpec -- SqmOrderByClause
+
+SqmQuerySpec -- SqmLimitOffsetClause
+
+@enduml
+....
+
+
+[plantuml,SqmSelectClause,png]
+.SqmSelectClause
+....
+@startuml
+
+interface SqmAliasedExpressionContainer<T extends SqmAliasedNode> {
+	T add(SqmExpression expression, String alias);
+	void add(T aliasExpression)
+}
+
+class SqmSelectClause<SqmSelection>
+
+SqmAliasedExpressionContainer <|-- SqmSelectClause
+
+SqmSelectClause --> "*" SqmSelection
+@enduml
+....
+
+[plantuml,SqmSelection,png]
+.SqmSelection
+....
+@startuml
+
+interface SqmNode
+
+interface SqmTypedNode {
+	JavaTypeDescriptor getJavaTypeDescriptor()
+}
+
+interface SqmAliasedNode {
+	SqmSelectableNode getSelectableNode();
+	String getAlias();
+}
+
+interface SqmVisitableNode{
+	<T> T accept(SemanticQueryWalker<T> walker);
+}
+
+SqmNode <|-- SqmTypedNode
+
+SqmTypedNode <|-- SqmAliasedNode
+
+SqmAliasedNode <|-- SqmSelection
+
+SqmNode <|-- SqmVisitableNode
+
+SqmVisitableNode <|-- SqmSelection
+
+@enduml
+....
+
+
+
