@@ -30,6 +30,7 @@ SqmSelectStatement - SqmQuerySpec
 .SqmQuerySpec
 ....
 @startuml
+skinparam handwritten true
 
 interface SqmFromClauseContainer
 interface SqmWhereClauseContainer
@@ -57,10 +58,15 @@ SqmQuerySpec -- SqmLimitOffsetClause
 .SqmSelectClause
 ....
 @startuml
+skinparam handwritten true
 
 interface SqmAliasedExpressionContainer<T extends SqmAliasedNode> {
 	T add(SqmExpression expression, String alias);
 	void add(T aliasExpression)
+}
+
+class SqmSelectClause{
+	boolean isDistinct()
 }
 
 class SqmSelectClause<SqmSelection>
@@ -75,6 +81,7 @@ SqmSelectClause --> "*" SqmSelection
 .SqmSelection
 ....
 @startuml
+skinparam handwritten true
 
 interface SqmNode
 
@@ -83,13 +90,14 @@ interface SqmTypedNode {
 }
 
 interface SqmAliasedNode {
-	SqmSelectableNode getSelectableNode();
 	String getAlias();
 }
 
 interface SqmVisitableNode{
 	<T> T accept(SemanticQueryWalker<T> walker);
 }
+
+interface SqmSelectableNode
 
 SqmNode <|-- SqmTypedNode
 
@@ -101,8 +109,126 @@ SqmNode <|-- SqmVisitableNode
 
 SqmVisitableNode <|-- SqmSelection
 
+SqmTypedNode <|-- SqmSelectableNode
+SqmVisitableNode <|-- SqmSelectableNode
+
+
+SqmAliasedNode --> SqmSelectableNode
+
 @enduml
 ....
+
+[plantuml,SqmFromClause,png]
+.SqmFromClause
+....
+@startuml
+skinparam handwritten true
+
+interface SqmFrom
+interface SqmJoin
+interface SqmQualifiedJoin
+interface SqmPredicate
+
+enum SqmJoinType
+
+SqmFromClause -- "*" SqmFromElementSpace
+
+SqmFromElementSpace -- SqmRoot
+
+SqmFromElementSpace -- "*" SqmJoin
+
+SqmFrom <|-- SqmRoot
+
+SqmFrom <|-- SqmJoin
+
+SqmJoin --> SqmJoinType
+
+SqmJoin <|-- SqmQualifiedJoin
+SqmQualifiedJoin <|-- SqmNavigableJoin
+SqmQualifiedJoin <|-- SqmEntityJoin
+SqmJoin <|-- SqmCrossJoin
+
+
+SqmQualifiedJoin --> SqmPredicate
+
+
+@enduml
+....
+
+[plantuml,SqmFrom,png]
+.SqmFrom
+....
+@startuml
+skinparam handwritten true
+
+interface SqmVisitableNode
+interface SqmTypedNode
+interface SqmFrom
+interface UsageDetails
+interface SqmNavigableReference
+
+package org.hibernate.sql.ast.produce.metamodel.spi {
+interface TableGroupInfo{
+	String getUniqueIdentifier()
+	String getIdentificationVariable()
+	EntityDescriptor getIntrinsicSubclassEntityMetadata()
+}
+}
+
+TableGroupInfo <|-- SqmFrom
+SqmVisitableNode <|-- SqmFrom
+SqmTypedNode <|-- SqmFrom
+
+SqmFrom -- UsageDetails
+SqmFrom -- SqmNavigableReference
+
+
+@enduml
+....
+
+[plantuml,SqmNavigableReference,png]
+.SqmNavigableReference
+....
+@startuml
+skinparam handwritten true
+
+interface SqmNavigableReference
+interface SqmFromExporter
+interface SemanticPathPart
+interface SqmExpression {
+	ExpressableType getExpressableType();
+	ExpressableType getInferableType();
+}
+
+interface SqmSelectableNode
+
+package org.hibernate.sql.ast.produce.metamodel.spi {
+interface ExpressableType<T> {
+	JavaTypeDescriptor<T> getJavaTypeDescriptor();
+}
+
+interface NavigableReferenceInfo {
+}
+
+}
+
+SqmExpression <|-- SqmNavigableReference
+NavigableReferenceInfo <|-- SqmNavigableReference
+SqmFromExporter <|-- SqmNavigableReference
+SemanticPathPart <|-- SqmNavigableReference
+
+SqmSelectableNode <|-- SqmExpression
+
+SqmExpression --> ExpressableType
+
+@enduml
+....
+
+
+
+
+
+
 
 
 
