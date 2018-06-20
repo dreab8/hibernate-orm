@@ -25,7 +25,7 @@ public interface ValueBinder<X> {
 	 *
 	 * @throws SQLException Indicates a JDBC error occurred.
 	 */
-	public void bind(PreparedStatement st, X value, int index, WrapperOptions options) throws SQLException;
+	void bind(PreparedStatement st, X value, int index, WrapperOptions options) throws SQLException;
 
 	/**
 	 * Bind a value to a CallableStatement.
@@ -37,5 +37,5 @@ public interface ValueBinder<X> {
 	 *
 	 * @throws SQLException Indicates a JDBC error occurred.
 	 */
-	public void bind(CallableStatement st, X value, String name, WrapperOptions options) throws SQLException;
+	void bind(CallableStatement st, X value, String name, WrapperOptions options) throws SQLException;
 }
