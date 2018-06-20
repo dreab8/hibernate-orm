@@ -6,6 +6,7 @@
  */
 package org.hibernate.type.descriptor;
 
+import java.io.Serializable;
 import java.sql.CallableStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,7 +16,7 @@ import java.sql.SQLException;
  *
  * @author Steve Ebersole
  */
-public interface ValueExtractor<X> {
+public interface ValueExtractor<X> extends Serializable {
 	/**
 	 * Extract value from result set
 	 *

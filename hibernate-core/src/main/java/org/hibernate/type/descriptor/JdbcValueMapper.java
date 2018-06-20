@@ -6,6 +6,8 @@
  */
 package org.hibernate.type.descriptor;
 
+import java.io.Serializable;
+
 import org.hibernate.type.descriptor.java.BasicJavaDescriptor;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
@@ -13,7 +15,7 @@ import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
  * @author Steve Ebersole
  * @author Andrea Boriero
  */
-public interface JdbcValueMapper<X> {
+public interface JdbcValueMapper<X> extends Serializable {
 	ValueExtractor<X> getValueExtractor();
 
 	ValueBinder<X> getValueBinder();

@@ -5,6 +5,7 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.type.descriptor;
+import java.io.Serializable;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -14,7 +15,7 @@ import java.sql.SQLException;
  *
  * @author Steve Ebersole
  */
-public interface ValueBinder<X> {
+public interface ValueBinder<X> extends Serializable {
 	/**
 	 * Bind a value to a prepared statement.
 	 *
