@@ -476,7 +476,7 @@ public abstract class AbstractHANADialect extends Dialect {
 		}
 
 		@Override
-		public <X> ValueExtractor<X> getExtractor(JavaTypeDescriptor<X> javaTypeDescriptor) {
+		public <X> ValueExtractor<X> createExtractor(BasicJavaDescriptor<X> javaTypeDescriptor) {
 			return new BasicExtractor<X>( javaTypeDescriptor, this ) {
 
 				@Override
@@ -570,7 +570,7 @@ public abstract class AbstractHANADialect extends Dialect {
 		}
 
 		@Override
-		public <X> ValueExtractor<X> getExtractor(JavaTypeDescriptor<X> javaTypeDescriptor) {
+		public <X> ValueExtractor<X> createExtractor(BasicJavaDescriptor<X> javaTypeDescriptor) {
 			return new BasicExtractor<X>( javaTypeDescriptor, this ) {
 
 				@Override
