@@ -203,12 +203,13 @@ interface SqmExpression {
 interface SqmSelectableNode
 
 package org.hibernate.sql.ast.produce.metamodel.spi {
-interface ExpressableType<T> {
-	JavaTypeDescriptor<T> getJavaTypeDescriptor();
-}
 
-interface NavigableReferenceInfo {
-}
+	interface ExpressableType<T> {
+		JavaTypeDescriptor<T> getJavaTypeDescriptor();
+	}
+
+	interface NavigableReferenceInfo {
+	}
 
 }
 
@@ -220,6 +221,15 @@ SemanticPathPart <|-- SqmNavigableReference
 SqmSelectableNode <|-- SqmExpression
 
 SqmExpression --> ExpressableType
+
+SqmNavigableReference <|-- SqmColumnReference
+SqmNavigableReference <|-- SqmEntityIdentifierReferenceSimple
+SqmNavigableReference <|-- SqmEntityReference
+SqmNavigableReference <|-- SqmCollectionElementReferenceEntity
+SqmNavigableReference <|-- SqmCollectionElementReferenceBasic
+SqmNavigableReference <|-- SqmCollectionElementReferenceEmbedded
+SqmNavigableReference <|-- SqmMinElementReferenceEmbedded
+SqmNavigableReference <|-- SqmIndexedElementReferenceEmbedded
 
 @enduml
 ....
