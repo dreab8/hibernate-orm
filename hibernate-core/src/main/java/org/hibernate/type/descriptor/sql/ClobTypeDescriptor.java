@@ -66,7 +66,6 @@ public abstract class ClobTypeDescriptor extends AbstractTemplateSqlTypeDescript
 		return getClobBinder( javaTypeDescriptor );
 	}
 
-
 	public static final ClobTypeDescriptor DEFAULT = new ClobTypeDescriptor() {
 		@Override
 		public <X> BasicBinder<X> getClobBinder(final JavaTypeDescriptor<X> javaTypeDescriptor) {
@@ -75,10 +74,14 @@ public abstract class ClobTypeDescriptor extends AbstractTemplateSqlTypeDescript
 				protected void doBind(PreparedStatement st, X value, int index, WrapperOptions options)
 						throws SQLException {
 					if ( options.useStreamForLobBinding() ) {
-						STREAM_BINDING.getClobBinder( javaTypeDescriptor ).doBind( st, value, index, options );
+						( (BasicBinder<X>) STREAM_BINDING.getJdbcValueMapper( (BasicJavaDescriptor<X>) javaTypeDescriptor )
+								.getValueBinder() )
+								.doBind( st, value, index, options );
 					}
 					else {
-						CLOB_BINDING.getClobBinder( javaTypeDescriptor ).doBind( st, value, index, options );
+						( (BasicBinder<X>) CLOB_BINDING.getJdbcValueMapper( (BasicJavaDescriptor<X>) javaTypeDescriptor )
+								.getValueBinder() )
+								.doBind( st, value, index, options );
 					}
 				}
 
@@ -86,10 +89,14 @@ public abstract class ClobTypeDescriptor extends AbstractTemplateSqlTypeDescript
 				protected void doBind(CallableStatement st, X value, String name, WrapperOptions options)
 						throws SQLException {
 					if ( options.useStreamForLobBinding() ) {
-						STREAM_BINDING.getClobBinder( javaTypeDescriptor ).doBind( st, value, name, options );
+						( (BasicBinder<X>) STREAM_BINDING.getJdbcValueMapper( (BasicJavaDescriptor<X>) javaTypeDescriptor )
+								.getValueBinder() )
+								.doBind( st, value, name, options );
 					}
 					else {
-						CLOB_BINDING.getClobBinder( javaTypeDescriptor ).doBind( st, value, name, options );
+						( (BasicBinder<X>) CLOB_BINDING.getJdbcValueMapper( (BasicJavaDescriptor<X>) javaTypeDescriptor )
+								.getValueBinder() )
+								.doBind( st, value, name, options );
 					}
 				}
 			};

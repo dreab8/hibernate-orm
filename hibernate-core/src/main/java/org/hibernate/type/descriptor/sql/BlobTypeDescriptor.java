@@ -84,7 +84,9 @@ public abstract class BlobTypeDescriptor extends AbstractTemplateSqlTypeDescript
 					else if ( options.useStreamForLobBinding() ) {
 						descriptor = STREAM_BINDING;
 					}
-					descriptor.getBlobBinder( javaTypeDescriptor ).doBind( st, value, index, options );
+					( (BasicBinder<X>) descriptor.getJdbcValueMapper( (BasicJavaDescriptor<X>) javaTypeDescriptor )
+							.getValueBinder() )
+							.doBind( st, value, index, options );
 				}
 
 				@Override
@@ -98,7 +100,8 @@ public abstract class BlobTypeDescriptor extends AbstractTemplateSqlTypeDescript
 					else if ( options.useStreamForLobBinding() ) {
 						descriptor = STREAM_BINDING;
 					}
-					descriptor.getBlobBinder( javaTypeDescriptor ).doBind( st, value, name, options );
+					( (BasicBinder<X>) descriptor.getJdbcValueMapper( (BasicJavaDescriptor<X>) javaTypeDescriptor )
+							.getValueBinder() ).doBind( st, value, name, options );
 				}
 			};
 		}
