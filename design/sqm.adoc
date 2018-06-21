@@ -210,7 +210,7 @@ SqmVisitableNode <|-- SqmFrom
 SqmTypedNode <|-- SqmFrom
 
 SqmFrom -- UsageDetails
-SqmFrom -- SqmNavigableReference
+SqmFrom --> SqmNavigableReference
 
 
 @enduml
@@ -252,6 +252,57 @@ SqmSelectableNode <|-- SqmExpression
 
 SqmExpression --> ExpressableType
 
+
+@enduml
+....
+
+[plantuml,SqmWhereClause,png]
+.SqmWhereClause
+....
+@startuml
+skinparam handwritten true
+
+interface SqmPredicate
+
+SqmWhereClause --> SqmPredicate
+
+@enduml
+....
+
+SemanticQueryProducer#interpret(String sql)
+
+[plantuml,query-sequence,png]
+.Producing SQM SelectStatement
+....
+@startuml
+skinparam handwritten true
+
+actor App
+boundary Session
+
+App -> Session : createQuery(String queryString)
+
+Session -> QueryEngine : getSemanticQueryProducer()
+Session <-- QueryEngine : SemanticQueryProducer
+
+
+Session -> SemanticQueryProducer : interpret(queryString)
+
+SemanticQueryProducer --> HqlParseTreeBuilder : parseHql(querySytring)
+
+SemanticQueryProducer <--  HqlParseTreeBuilder : HqlParser
+
+SemanticQueryProducer --> HqlParser : statement()
+SemanticQueryProducer <-- HqlParser : StatementContext
+
+SemanticQueryProducer --> SemanticQueryBuilder : buildSemanticModel(StatementContext, SessionFactory )
+
+SemanticQueryBuilder --> SemanticQueryBuilder : visitStatement(StatementContext)
+
+SemanticQueryProducer <-- SemanticQueryBuilder : SqmStatement
+
+
+QueryEngine <-- SemanticQueryProducer : SqmStatement
 
 @enduml
 ....
