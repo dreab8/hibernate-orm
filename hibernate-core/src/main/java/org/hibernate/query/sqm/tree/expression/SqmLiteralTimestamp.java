@@ -19,7 +19,7 @@ import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 /**
  * @author Steve Ebersole
  */
-public class SqmLiteralTimestamp implements SqmLiteral<Timestamp>, ImpliedTypeSqmExpression {
+public class SqmLiteralTimestamp implements SqmLiteral<Timestamp> {
 	public static SqmLiteralTimestamp from(String literalText, SqmCreationContext creationContext) {
 		final Timestamp literal = Timestamp.valueOf(
 				LocalDateTime.from( JdbcTimestampJavaDescriptor.FORMATTER.parse( literalText ) )

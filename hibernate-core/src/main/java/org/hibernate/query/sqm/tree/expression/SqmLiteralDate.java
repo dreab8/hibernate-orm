@@ -19,7 +19,7 @@ import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 /**
  * @author Steve Ebersole
  */
-public class SqmLiteralDate implements SqmLiteral<Date>, ImpliedTypeSqmExpression {
+public class SqmLiteralDate implements SqmLiteral<Date> {
 	public static SqmLiteralDate from(String literalText, SqmCreationContext creationContext) {
 		final LocalDate localDate = LocalDate.from( JdbcDateJavaDescriptor.FORMATTER.parse( literalText ) );
 		final Date literal = new Date( localDate.toEpochDay() );
