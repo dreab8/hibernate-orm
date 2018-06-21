@@ -8,7 +8,6 @@ package org.hibernate.query.sqm.tree.predicate;
 
 import org.hibernate.query.sqm.consume.spi.SemanticQueryWalker;
 import org.hibernate.query.sqm.tree.expression.SqmExpression;
-import org.hibernate.type.spi.BasicType;
 
 /**
  * Represents an expression whose type is boolean, and can therefore be used as a predicate.
@@ -20,7 +19,7 @@ public class BooleanExpressionSqmPredicate implements SqmPredicate {
 
 	public BooleanExpressionSqmPredicate(SqmExpression booleanExpression) {
 		assert booleanExpression.getExpressableType() != null;
-		final Class expressionJavaType = ( (BasicType) booleanExpression.getExpressableType() ).getJavaType();
+		final Class expressionJavaType = ( booleanExpression.getExpressableType() ).getJavaType();
 		assert boolean.class.equals( expressionJavaType ) || Boolean.class.equals( expressionJavaType );
 
 		this.booleanExpression = booleanExpression;
