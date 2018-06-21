@@ -40,15 +40,15 @@ class SqmQuerySpec
 SqmFromClauseContainer <|-- SqmQuerySpec
 SqmWhereClauseContainer <|-- SqmQuerySpec
 
-SqmQuerySpec -- SqmSelectClause
+SqmQuerySpec -- "0..1" SqmSelectClause
 
 SqmQuerySpec -- SqmFromClause
 
-SqmQuerySpec -- SqmWhereClause
+SqmQuerySpec -- "0..1" SqmWhereClause
 
-SqmQuerySpec -- SqmOrderByClause
+SqmQuerySpec -- "0..1" SqmOrderByClause
 
-SqmQuerySpec -- SqmLimitOffsetClause
+SqmQuerySpec -- "0..1" SqmLimitOffsetClause
 
 @enduml
 ....
@@ -97,6 +97,10 @@ interface SqmVisitableNode{
 	<T> T accept(SemanticQueryWalker<T> walker);
 }
 
+class SqmSelection {
+	String alias
+}
+
 interface SqmSelectableNode
 
 SqmNode <|-- SqmTypedNode
@@ -109,14 +113,40 @@ SqmNode <|-- SqmVisitableNode
 
 SqmVisitableNode <|-- SqmSelection
 
-SqmTypedNode <|-- SqmSelectableNode
-SqmVisitableNode <|-- SqmSelectableNode
-
-
 SqmAliasedNode --> SqmSelectableNode
+
+SqmSelection --> SqmSelectableNode
+
 
 @enduml
 ....
+
+`org.hibernate.query.sqm.tree.select.SqmSelection` represents an individual selection within a select clause.
+
+[plantuml,SqmSelectableNode,png]
+.SqmSelectableNode
+....
+@startuml
+skinparam handwritten true
+
+interface SqmSelectableNode
+interface SqmTypedNode
+interface SqmVisitableNode
+interface SqmExpression
+
+SqmTypedNode <|-- SqmSelectableNode
+
+SqmVisitableNode <|-- SqmSelectableNode
+
+SqmSelectableNode <|-- SqmDynamicInstantiation
+
+SqmSelectableNode <|-- SqmExpression
+
+
+@enduml
+....
+
+`org.hibernate.query.sqm.tree.select.SqmSelectableNode` defines a SQM AST node that can be used as a selection in the query, or as an argument to a dynamic-instantiation.
 
 [plantuml,SqmFromClause,png]
 .SqmFromClause
@@ -222,14 +252,6 @@ SqmSelectableNode <|-- SqmExpression
 
 SqmExpression --> ExpressableType
 
-SqmNavigableReference <|-- SqmColumnReference
-SqmNavigableReference <|-- SqmEntityIdentifierReferenceSimple
-SqmNavigableReference <|-- SqmEntityReference
-SqmNavigableReference <|-- SqmCollectionElementReferenceEntity
-SqmNavigableReference <|-- SqmCollectionElementReferenceBasic
-SqmNavigableReference <|-- SqmCollectionElementReferenceEmbedded
-SqmNavigableReference <|-- SqmMinElementReferenceEmbedded
-SqmNavigableReference <|-- SqmIndexedElementReferenceEmbedded
 
 @enduml
 ....
