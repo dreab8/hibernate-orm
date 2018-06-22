@@ -309,6 +309,8 @@ Session <-- SemanticQueryProducer : SqmStatement
 create SmqQueryImpl
 Session -> SmqQueryImpl : new(sourceQueryString,SqmStatement,Class resultType,SharedSessionContractImplementor)
 
+
+
 App <- Session : SqmQueryImpl
 
 @enduml
@@ -767,44 +769,64 @@ SqmSelectStatementImpl{
 	}
 ----
 
-== From SQM to SQL AST
+== From SQM to SQL AST to SQL
 
-[plantuml,query-sequence,png]
+[plantuml,sqm-to-ast,png]
 .Producing AST SQL Statement
 ....
 @startuml
 skinparam handwritten true
 
 actor App
-boundary Session
+boundary SqmQueryImpl
 
-App -> SqmQueryImpl : createQuery(String queryString)
+App -> SqmQueryImpl : doList()
 
-Session -> QueryEngine : getSemanticQueryProducer()
-Session <-- QueryEngine : SemanticQueryProducer
+SqmQueryImpl -> SqmQueryImpl :resolveSelectQueryPlan()
+activate SqmQueryImpl
 
-Session -> SemanticQueryProducer : interpret(queryString)
+SqmQueryImpl -> QuerySplitter : split(SqmStatement)
+SqmQueryImpl <- QuerySplitter : SqmSelectStatement[]
 
-SemanticQueryProducer --> HqlParseTreeBuilder : parseHql(querySytring)
+create ConcreteSqmSelectQueryPlan
+SqmQueryImpl -> ConcreteSqmSelectQueryPlan : (SqmSelectStatement, Class resultType, QueryOptions)
 
-SemanticQueryProducer <--  HqlParseTreeBuilder : HqlParser
+deactivate SqmQueryImpl
 
-SemanticQueryProducer --> HqlParser : statement()
-SemanticQueryProducer <-- HqlParser : StatementContext
+SqmQueryImpl -> ConcreteSqmSelectQueryPlan : performList(ExecutionContext)
 
-SemanticQueryProducer --> SemanticQueryBuilder : buildSemanticModel(StatementContext, SessionFactory )
-
-SemanticQueryBuilder --> SemanticQueryBuilder : visitStatement(StatementContext)
-
-SemanticQueryProducer <-- SemanticQueryBuilder : SqmStatement
+activate ConcreteSqmSelectQueryPlan
 
 
-Session <-- SemanticQueryProducer : SqmStatement
+ConcreteSqmSelectQueryPlan -> ConcreteSqmSelectQueryPlan : buildJdbcSelect(ExecutionContext)
 
-create SmqQueryImpl
-Session -> SmqQueryImpl : new(sourceQueryString,SqmStatement,Class resultType,SharedSessionContractImplementor)
+activate ConcreteSqmSelectQueryPlan
 
-App <- Session : SqmQueryImpl
+create SqmSelectToSqlAstConverter
+
+ConcreteSqmSelectQueryPlan -> SqmSelectToSqlAstConverter : new
+
+ConcreteSqmSelectQueryPlan -> SqmSelectToSqlAstConverter : interpret(SqmStatement)
+
+ConcreteSqmSelectQueryPlan <- SqmSelectToSqlAstConverter : SqlAstSelectDescriptor
+
+ConcreteSqmSelectQueryPlan -> SqlAstSelectToJdbcSelectConverter : interpret(SqlAstSelectDescriptor, ParameterBindingContext)
+
+ConcreteSqmSelectQueryPlan <- SqlAstSelectToJdbcSelectConverter : JdbcSelect
+
+deactivate ConcreteSqmSelectQueryPlan
+
+create JdbcSelectExecutorStandardImpl
+
+ConcreteSqmSelectQueryPlan -> JdbcSelectExecutorStandardImpl : new
+
+ConcreteSqmSelectQueryPlan -> JdbcSelectExecutorStandardImpl : list(JdbcSelect, ExecutionContext, RowTransformer)
+
+ConcreteSqmSelectQueryPlan <- JdbcSelectExecutorStandardImpl
+
+SqmQueryImpl <- ConcreteSqmSelectQueryPlan
+App <- SqmQueryImpl
 
 @enduml
 ....
+
