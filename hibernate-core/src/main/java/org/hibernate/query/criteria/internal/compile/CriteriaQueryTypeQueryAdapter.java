@@ -353,7 +353,7 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 			return (ExplicitParameterInfo) param;
 		}
 		else if ( ParameterExpression.class.isInstance( param ) ) {
-			return explicitParameterInfoMap.get( (ParameterExpression) param );
+			return explicitParameterInfoMap.get( param );
 		}
 		else {
 			for ( ExplicitParameterInfo parameterInfo : explicitParameterInfoMap.values() ) {
@@ -443,12 +443,14 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 
 	public Parameter<?> getParameter(String name) {
 		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		return jpqlQuery.getParameter( name );
 	}
 
 	@Override
 	public <T> Parameter<T> getParameter(String name, Class<T> type) {
 		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		return jpqlQuery.getParameter( name, type );
 	}
 
@@ -456,8 +458,7 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 	@SuppressWarnings({ "unchecked" })
 	public QueryImplementor<X> setParameter(String name, Object value) {
 		entityManager.checkOpen( true );
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateBindValue( value );
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, value );
 		return this;
 	}
@@ -466,8 +467,7 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 	@SuppressWarnings({ "unchecked" })
 	public QueryImplementor<X> setParameter(String name, Calendar calendar, TemporalType temporalType) {
 		entityManager.checkOpen( true );
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateCalendarBind();
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, calendar, temporalType );
 		return this;
 	}
@@ -476,30 +476,30 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 	@SuppressWarnings({ "unchecked" })
 	public QueryImplementor<X> setParameter(String name, Date date, TemporalType temporalType) {
 		entityManager.checkOpen( true );
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateDateBind();
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, date, temporalType );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setEntity(String name, Object val) {
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		jpqlQuery.setEntity( name, val );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setParameter(String name, Object val, Type type) {
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, val, type );
 		return this;
 	}
 
 	@Override
 	public <T> QueryImplementor<X> setParameter(QueryParameter<T> parameter, T val) {
+		entityManager.checkOpen( false );
 		final ExplicitParameterInfo parameterInfo = resolveParameterInfo( parameter );
 		if ( parameterInfo.isNamed() ) {
 			jpqlQuery.setParameter( parameterInfo.getName(), val );
@@ -513,6 +513,7 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 	@Override
 	public <P> QueryImplementor<X> setParameter(
 			QueryParameter<P> parameter, P val, TemporalType temporalType) {
+		entityManager.checkOpen( false );
 		final ExplicitParameterInfo parameterInfo = resolveParameterInfo( parameter );
 		if ( parameterInfo.isNamed() ) {
 			jpqlQuery.setParameter( parameterInfo.getName(), val, temporalType );
@@ -525,14 +526,15 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 
 	@Override
 	public <P> QueryImplementor<X> setParameter(String name, P val, TemporalType temporalType) {
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, val, temporalType );
 		return this;
 	}
 
 	@Override
 	public <P> QueryImplementor<X> setParameterList(QueryParameter<P> parameter, Collection<P> values) {
+		entityManager.checkOpen( false );
 		final ExplicitParameterInfo parameterInfo = resolveParameterInfo( parameter );
 		if ( parameterInfo.isNamed() ) {
 			jpqlQuery.setParameter( parameterInfo.getName(), values );
@@ -545,70 +547,71 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 
 	@Override
 	public QueryImplementor<X> setParameterList(String name, Collection values) {
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, values );
 		return this;
 	}
 
 	@Override
 	public Query<X> setParameterList(int position, Collection values) {
-		ExplicitParameterInfo parameterInfo = locateParameterByPosition( position );
-		parameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByPosition( position );
 		jpqlQuery.setParameter( position, values );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setParameterList(String name, Collection values, Type type) {
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, values, type );
 		return this;
 	}
 
 	@Override
 	public Query<X> setParameterList(int position, Collection values, Type type) {
-		ExplicitParameterInfo parameterInfo = locateParameterByPosition( position );
-		parameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByPosition( position );
 		jpqlQuery.setParameter( position, values, type );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setParameterList(String name, Object[] values, Type type) {
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, values, type );
 		return this;
 	}
 
 	@Override
 	public Query<X> setParameterList(int position, Object[] values, Type type) {
-		ExplicitParameterInfo parameterInfo = locateParameterByPosition( position );
-		parameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByPosition( position );
 		jpqlQuery.setParameter( position, values, type );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setParameterList(String name, Object[] values) {
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, values );
 		return this;
 	}
 
 	@Override
 	public Query<X> setParameterList(int position, Object[] values) {
-		ExplicitParameterInfo parameterInfo = locateParameterByPosition( position );
-		parameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByPosition( position );
 		jpqlQuery.setParameter( position, values );
 		return this;
 	}
 
 	@Override
 	public <P> QueryImplementor<X> setParameter(QueryParameter<P> parameter, P value, Type type) {
+		entityManager.checkOpen( false );
 		final ExplicitParameterInfo parameterInfo = resolveParameterInfo( parameter );
 		if ( parameterInfo.isNamed() ) {
 			jpqlQuery.setParameter( parameterInfo.getName(), value, type );
@@ -621,6 +624,7 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 
 	@Override
 	public QueryImplementor<X> setParameter(Parameter<Instant> param, Instant value, TemporalType temporalType){
+		entityManager.checkOpen( false );
 		final ExplicitParameterInfo parameterInfo = resolveParameterInfo( param );
 		if ( parameterInfo.isNamed() ) {
 			jpqlQuery.setParameter( parameterInfo.getName(), value, temporalType );
@@ -633,6 +637,7 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 
 	@Override
 	public QueryImplementor<X> setParameter(Parameter<LocalDateTime> param, LocalDateTime value, TemporalType temporalType){
+		entityManager.checkOpen( false );
 		final ExplicitParameterInfo parameterInfo = resolveParameterInfo( param );
 		if ( parameterInfo.isNamed() ) {
 			jpqlQuery.setParameter( parameterInfo.getName(), value, temporalType );
@@ -645,6 +650,7 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 
 	@Override
 	public QueryImplementor<X> setParameter(Parameter<ZonedDateTime> param, ZonedDateTime value, TemporalType temporalType){
+		entityManager.checkOpen( false );
 		final ExplicitParameterInfo parameterInfo = resolveParameterInfo( param );
 		if ( parameterInfo.isNamed() ) {
 			jpqlQuery.setParameter( parameterInfo.getName(), value, temporalType );
@@ -657,6 +663,7 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 
 	@Override
 	public QueryImplementor<X> setParameter(Parameter<OffsetDateTime> param, OffsetDateTime value, TemporalType temporalType){
+		entityManager.checkOpen( false );
 		final ExplicitParameterInfo parameterInfo = resolveParameterInfo( param );
 		if ( parameterInfo.isNamed() ) {
 			jpqlQuery.setParameter( parameterInfo.getName(), value, temporalType );
@@ -669,32 +676,32 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 
 	@Override
 	public QueryImplementor<X> setParameter(String name, Instant value, TemporalType temporalType){
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateCalendarBind();
+		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, value, temporalType );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setParameter(String name, LocalDateTime value, TemporalType temporalType){
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateCalendarBind();
+		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, value, temporalType );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setParameter(String name, ZonedDateTime value, TemporalType temporalType){
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateCalendarBind();
+		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, value, temporalType );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setParameter(String name, OffsetDateTime value, TemporalType temporalType){
-		ExplicitParameterInfo parameterInfo = locateParameterByName( name );
-		parameterInfo.validateCalendarBind();
+		entityManager.checkOpen( false );
+		locateParameterByName( name );
 		jpqlQuery.setParameter( name, value, temporalType );
 		return this;
 	}
@@ -739,56 +746,56 @@ public class CriteriaQueryTypeQueryAdapter<X> implements QueryImplementor<X> {
 
 	@Override
 	public QueryImplementor<X> setParameter(int position, LocalDateTime value, TemporalType temporalType) {
-		final ExplicitParameterInfo explicitParameterInfo = locateParameterByPosition( position );
-		explicitParameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByPosition( position );
 		jpqlQuery.setParameter( position, value, temporalType );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setParameter(int position, Instant value, TemporalType temporalType) {
-		final ExplicitParameterInfo explicitParameterInfo = locateParameterByPosition( position );
-		explicitParameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByPosition( position );
 		jpqlQuery.setParameter( position, value, temporalType );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setParameter(int position, ZonedDateTime value, TemporalType temporalType) {
-		final ExplicitParameterInfo explicitParameterInfo = locateParameterByPosition( position );
-		explicitParameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByPosition( position );
 		jpqlQuery.setParameter( position, value, temporalType );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setParameter(int position, OffsetDateTime value, TemporalType temporalType) {
-		final ExplicitParameterInfo explicitParameterInfo = locateParameterByPosition( position );
-		explicitParameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByPosition( position );
 		jpqlQuery.setParameter( position, value, temporalType );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setParameter(int position, Object val, Type type) {
-		final ExplicitParameterInfo explicitParameterInfo = locateParameterByPosition( position );
-		explicitParameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByPosition( position );
 		jpqlQuery.setParameter( position, val, type );
 		return this;
 	}
 
 	@Override
 	public QueryImplementor<X> setEntity(int position, Object val) {
-		final ExplicitParameterInfo explicitParameterInfo = locateParameterByPosition( position );
-		explicitParameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByPosition( position );
 		jpqlQuery.setParameter( position, val );
 		return this;
 	}
 
 	@Override
 	public <P> QueryImplementor<X> setParameter(int position, P val, TemporalType temporalType) {
-		final ExplicitParameterInfo explicitParameterInfo = locateParameterByPosition( position );
-		explicitParameterInfo.validateDateBind();
+		entityManager.checkOpen( false );
+		locateParameterByPosition( position );
 		jpqlQuery.setParameter( position, val, temporalType );
 		return this;
 	}
