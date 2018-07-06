@@ -10,8 +10,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OrderColumn;
+import javax.persistence.Table;
 
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
@@ -198,6 +208,28 @@ public class ForeignKeyGenerationTest extends BaseUnitTestCase {
 		public String toSQL() {
 			return ssr.getService( JdbcEnvironment.class ).getDialect().getAlterTableString( tableName ) + " add constraint " + fkConstraintName + " foreign key (" + fkColumnName + ") references " + referenceTableName;
 		}
+	}
+
+	@Test
+	@TestForIssue(jiraKey = "HHH-9591")
+	public void oneToOneTest2() throws Exception {
+		createSchema( new Class[] { Item.class} );
+		List<String> sqlLines = Files.readAllLines( output.toPath(), Charset.defaultCharset() );
+		sqlLines = null;
+	}
+
+		@Entity(name = "Item")
+	@Table(name = "ITEM")
+	public static class Item {
+		@Id
+		private Long id;
+
+		@ElementCollection
+		@CollectionTable(name = "IMAGE", joinColumns = @JoinColumn(name = "ITEM_ID"))
+		@OrderColumn
+		@Column(name = "IMAGE_NAME")
+		private List<String> images = new ArrayList<>();
+
 	}
 
 }
