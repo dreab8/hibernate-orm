@@ -4,18 +4,18 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.gambit;
+package org.wip60.gambit;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
 
 /**
  * @author Andrea Boriero
  */
 @Entity
-public class EntityWithManyToOneJoinTable {
+public class EntityWithOneToOneSharingPrimaryKey {
 	private Integer id;
 
 	// alphabetical
@@ -23,10 +23,10 @@ public class EntityWithManyToOneJoinTable {
 	private SimpleEntity other;
 	private Integer someInteger;
 
-	public EntityWithManyToOneJoinTable() {
+	public EntityWithOneToOneSharingPrimaryKey() {
 	}
 
-	public EntityWithManyToOneJoinTable(Integer id, String name, Integer someInteger) {
+	public EntityWithOneToOneSharingPrimaryKey(Integer id, String name, Integer someInteger) {
 		this.id = id;
 		this.name = name;
 		this.someInteger = someInteger;
@@ -49,8 +49,8 @@ public class EntityWithManyToOneJoinTable {
 		this.name = name;
 	}
 
-	@ManyToOne
-	@JoinTable(name = "ENTITY_OTHER")
+	@OneToOne
+	@PrimaryKeyJoinColumn
 	public SimpleEntity getOther() {
 		return other;
 	}
