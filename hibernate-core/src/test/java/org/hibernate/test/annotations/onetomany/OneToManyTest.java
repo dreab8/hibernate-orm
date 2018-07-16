@@ -25,6 +25,7 @@ import javax.persistence.PersistenceException;
 
 import org.hibernate.AnnotationException;
 import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.annotations.OnDelete;
@@ -177,15 +178,9 @@ public class OneToManyTest extends BaseNonConfigCoreFunctionalTestCase {
 			tx.commit();
 			fail( "A one to many should not allow several trainer per Tiger" );
 		}
-		catch (PersistenceException ce) {
-			try {
-				assertTyping( ConstraintViolationException.class, ce.getCause() );
-				//success
-
-			}
-			finally {
-				tx.rollback();
-			}
+		catch ( HibernateException ce ) {
+			tx.rollback();
+			//success
 		}
 		s.close();
 	}

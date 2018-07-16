@@ -19,6 +19,7 @@ import javax.persistence.OptimisticLockException;
 
 import org.hibernate.AnnotationException;
 import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -119,7 +120,7 @@ public class BasicHibernateAnnotationsTest extends BaseCoreFunctionalTestCase {
 			parallelTx.commit();
 			fail( "All optimistic locking should have make it fail" );
 		}
-		catch (OptimisticLockException e) {
+		catch (HibernateException e) {
 			if ( parallelTx != null ) parallelTx.rollback();
 		}
 		finally {

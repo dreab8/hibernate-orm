@@ -222,7 +222,7 @@ public class CompositeUserTypeTest extends BaseCoreFunctionalTestCase {
 	 * Tests the {@code <} operator on composite types. As long as we don't support it, we need to throw an exception
 	 * rather than create a random query.
 	 */
-	@Test
+	@Test( expected = QuerySyntaxException.class )
 	@TestForIssue( jiraKey = "HHH-5946" )
 	@RequiresDialectFeature( value = DialectChecks.DoesNotSupportRowValueConstructorSyntax.class )
 	public void testLessThanOperator() {
@@ -231,10 +231,6 @@ public class CompositeUserTypeTest extends BaseCoreFunctionalTestCase {
 			final Query q = s.createQuery( "from Transaction where value < :amount" );
 			q.setParameter( "amount", new MonetoryAmount( BigDecimal.ZERO, Currency.getInstance( "EUR" ) ) );
 			q.list();
-		}
-		catch (IllegalArgumentException e) {
-			assertTyping( QuerySyntaxException.class, e.getCause() );
-			//expected
 		}
 		finally {
 			s.close();
@@ -245,7 +241,7 @@ public class CompositeUserTypeTest extends BaseCoreFunctionalTestCase {
 	 * Tests the {@code <=} operator on composite types. As long as we don't support it, we need to throw an exception
 	 * rather than create a random query.
 	 */
-	@Test
+	@Test( expected = QuerySyntaxException.class )
 	@TestForIssue( jiraKey = "HHH-5946" )
 	@RequiresDialectFeature( value = DialectChecks.DoesNotSupportRowValueConstructorSyntax.class )
 	public void testLessOrEqualOperator() {
@@ -254,10 +250,6 @@ public class CompositeUserTypeTest extends BaseCoreFunctionalTestCase {
 			final Query q = s.createQuery( "from Transaction where value <= :amount" );
 			q.setParameter( "amount", new MonetoryAmount( BigDecimal.ZERO, Currency.getInstance( "USD" ) ) );
 			q.list();
-		}
-		catch (IllegalArgumentException e) {
-			assertTyping( QuerySyntaxException.class, e.getCause() );
-			//expected
 		}
 		finally {
 			s.close();
@@ -268,7 +260,7 @@ public class CompositeUserTypeTest extends BaseCoreFunctionalTestCase {
 	 * Tests the {@code >} operator on composite types. As long as we don't support it, we need to throw an exception
 	 * rather than create a random query.
 	 */
-	@Test
+	@Test( expected = QuerySyntaxException.class )
 	@TestForIssue( jiraKey = "HHH-5946" )
 	@RequiresDialectFeature( value = DialectChecks.DoesNotSupportRowValueConstructorSyntax.class )
 	public void testGreaterThanOperator() {
@@ -277,10 +269,6 @@ public class CompositeUserTypeTest extends BaseCoreFunctionalTestCase {
 			final Query q = s.createQuery( "from Transaction where value > :amount" );
 			q.setParameter( "amount", new MonetoryAmount( BigDecimal.ZERO, Currency.getInstance( "EUR" ) ) );
 			q.list();
-		}
-		catch (IllegalArgumentException e) {
-			assertTyping( QuerySyntaxException.class, e.getCause() );
-			//expected
 		}
 		finally {
 			s.close();
@@ -291,7 +279,7 @@ public class CompositeUserTypeTest extends BaseCoreFunctionalTestCase {
 	 * Tests the {@code >=} operator on composite types. As long as we don't support it, we need to throw an exception
 	 * rather than create a random query.
 	 */
-	@Test
+	@Test( expected = QuerySyntaxException.class )
 	@TestForIssue( jiraKey = "HHH-5946" )
 	@RequiresDialectFeature( value = DialectChecks.DoesNotSupportRowValueConstructorSyntax.class )
 	public void testGreaterOrEqualOperator() {
@@ -300,10 +288,6 @@ public class CompositeUserTypeTest extends BaseCoreFunctionalTestCase {
 			final Query q = s.createQuery( "from Transaction where value >= :amount" );
 			q.setParameter( "amount", new MonetoryAmount( BigDecimal.ZERO, Currency.getInstance( "USD" ) ) );
 			q.list();
-		}
-		catch (IllegalArgumentException e) {
-			assertTyping( QuerySyntaxException.class, e.getCause() );
-			//expected
 		}
 		finally {
 			s.close();

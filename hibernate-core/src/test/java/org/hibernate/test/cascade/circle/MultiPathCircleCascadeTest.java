@@ -683,24 +683,14 @@ public class MultiPathCircleCascadeTest extends BaseCoreFunctionalTestCase {
 	) {
 		if ( isNullValue ) {
 			if ( checkNullability ) {
-                if ( isLegacy ) {
-					assertTyping( PropertyValueException.class, ex );
-				}
-				else {
-					assertTyping( PersistenceException.class, ex );
-				}
+				assertTrue( ex instanceof PropertyValueException );
 			}
 			else {
 				assertTrue( (ex instanceof JDBCException) || (ex.getCause() instanceof JDBCException) );
 			}
 		}
 		else {
-			if ( isLegacy ) {
-				assertTyping( TransientPropertyValueException.class, ex );
-			}
-			else {
-				assertTyping( IllegalStateException.class, ex );
-			}
+			assertTrue( ex instanceof TransientPropertyValueException );
 		}
 	}
 

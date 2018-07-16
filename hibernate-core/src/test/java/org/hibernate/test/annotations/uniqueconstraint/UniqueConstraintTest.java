@@ -55,16 +55,12 @@ public class UniqueConstraintTest extends BaseCoreFunctionalTestCase {
         s.persist(house2);
         try {
             s.flush();
-            fail( "Database constraint non-existant" );
-        }
-        catch (PersistenceException e) {
-            assertTyping( JDBCException.class, e.getCause() );
+            fail("Database constraint non-existant");
+        } catch(JDBCException e) {
             //success
         }
-        finally {
-            tx.rollback();
-            s.close();
-        }
+        tx.rollback();
+        s.close();
     }
     
 }

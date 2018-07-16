@@ -52,10 +52,9 @@ public class ManyToManyAssociationClassGeneratedIdTest extends AbstractManyToMan
 			s.getTransaction().commit();
 			fail( "should have failed because inserts are before deletes");
 		}
-		catch (PersistenceException e) {
-			s.getTransaction().rollback();
+		catch( ConstraintViolationException ex ) {
 			// expected
-			assertTyping( ConstraintViolationException.class, e.getCause() );
+			s.getTransaction().rollback();
 		}
 		finally {
 			s.close();
@@ -81,10 +80,9 @@ public class ManyToManyAssociationClassGeneratedIdTest extends AbstractManyToMan
 			s.getTransaction().commit();
 			fail( "should have failed because inserts are before deletes");
 		}
-		catch (PersistenceException e) {
-			s.getTransaction().rollback();
+		catch( ConstraintViolationException ex ) {
 			// expected
-			assertTyping( ConstraintViolationException.class, e.getCause() );
+			s.getTransaction().rollback();
 		}
 		finally {
 			s.close();
@@ -110,10 +108,9 @@ public class ManyToManyAssociationClassGeneratedIdTest extends AbstractManyToMan
 			s.getTransaction().commit();
 			fail( "should have failed because inserts are before deletes");
 		}
-		catch (PersistenceException e) {
-			s.getTransaction().rollback();
+		catch( ConstraintViolationException ex ) {
 			// expected
-			assertTyping( ConstraintViolationException.class, e.getCause() );
+			s.getTransaction().rollback();
 		}
 		finally {
 			s.close();

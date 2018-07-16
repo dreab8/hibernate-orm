@@ -165,14 +165,9 @@ public class JoinTest extends BaseNonConfigCoreFunctionalTestCase {
 			tx.commit();
 			fail( "unique constraints violation on secondary table" );
 		}
-		catch (PersistenceException e) {
-			try {
-				assertTyping( ConstraintViolationException.class, e.getCause() );
-				//success
-			}
-			finally {
-				tx.rollback();
-			}
+		catch (HibernateException e) {
+			//success
+			tx.rollback();
 		}
 		finally {
 			s.close();

@@ -229,7 +229,7 @@ public class EntityTest extends BaseNonConfigCoreFunctionalTestCase {
 			tx.commit();
 			fail( "unique constraints not respected" );
 		}
-		catch (PersistenceException e) {
+		catch (HibernateException e) {
 			//success
 			if ( tx != null ) {
 				tx.rollback();
@@ -281,13 +281,8 @@ public class EntityTest extends BaseNonConfigCoreFunctionalTestCase {
 			tx.commit();
 			fail( "Optimistic locking should work" );
 		}
-		catch (PersistenceException expected) {
-			if ( expected.getCause() instanceof StaleStateException ) {
-				//expected
-			}
-			else {
-				fail( "StaleStateException expected but is " + expected.getCause() );
-			}
+		catch (StaleStateException expected) {
+			// expected exception
 		}
 		finally {
 			if ( tx != null ) {

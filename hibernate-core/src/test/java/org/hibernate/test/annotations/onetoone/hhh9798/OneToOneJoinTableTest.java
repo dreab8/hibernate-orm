@@ -24,7 +24,7 @@ import static org.junit.Assert.fail;
 @TestForIssue(jiraKey = "HHH-9798")
 public class OneToOneJoinTableTest extends BaseCoreFunctionalTestCase {
 
-	@Test
+	@Test(expected = org.hibernate.exception.ConstraintViolationException.class)
 	public void storeNonUniqueRelationship() throws Throwable {
 		Session session = null;
 		try {
@@ -43,9 +43,6 @@ public class OneToOneJoinTableTest extends BaseCoreFunctionalTestCase {
 			tx.commit();
 
 			fail();
-		}catch (PersistenceException e){
-			assertTyping( ConstraintViolationException.class, e.getCause());
-			// expected
 		}
 		finally {
 			if ( session != null ) {

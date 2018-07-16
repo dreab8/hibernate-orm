@@ -35,15 +35,14 @@ public class EmbeddableIntegratorTest extends BaseUnitTestCase {
 	/**
 	 * Throws a mapping exception because DollarValue is not mapped
 	 */
-	@Test
+	@Test(expected = JDBCException.class)
 	public void testWithoutIntegrator() {
 		SessionFactory sf = new Configuration().addAnnotatedClass( Investor.class )
 				.setProperty( "hibernate.hbm2ddl.auto", "create-drop" )
 				.buildSessionFactory();
-
+		Session sess = null;
 		try {
-			Session sess = sf.openSession();
-			try {
+			sess = sf.openSession();
 				sess.getTransaction().begin();
 				Investor myInv = getInvestor();
 				myInv.setId( 1L );
@@ -56,11 +55,12 @@ public class EmbeddableIntegratorTest extends BaseUnitTestCase {
 
 				Investor inv = (Investor) sess.get( Investor.class, 1L );
 				assertEquals( new BigDecimal( "100" ), inv.getInvestments().get( 0 ).getAmount().getAmount() );
-			}catch (PersistenceException e){
-				assertTyping(JDBCException.class, e.getCause());
-				sess.getTransaction().rollback();
-			}
+
 			sess.close();
+		}catch (Exception e){
+			sess.getTransaction().rollback();
+			sess.close();
+			throw e;
 		}
 		finally {
 			sf.close();

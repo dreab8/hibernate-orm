@@ -51,9 +51,8 @@ public class CascadeTest extends AbstractJPATest {
 				s.getTransaction().commit();
 				fail( "expecting TransientObjectException on flush" );
 			}
-			catch (IllegalStateException e) {
-				assertTyping( TransientObjectException.class, e.getCause() );
-				log.trace( "handled expected exception", e );
+			catch (TransientObjectException toe) {
+				log.trace( "handled expected exception", toe );
 				s.getTransaction().rollback();
 			}
 			finally {

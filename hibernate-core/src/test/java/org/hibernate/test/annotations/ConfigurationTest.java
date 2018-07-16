@@ -64,8 +64,7 @@ public class ConfigurationTest {
 							session.createQuery( "from Boat" ).list();
 							fail( "Boat should not be mapped" );
 						}
-						catch (IllegalArgumentException expected) {
-							assertTyping( QuerySyntaxException.class, expected.getCause() );
+						catch (QuerySyntaxException expected) {
 							// expected outcome
 
 							// see org.hibernate.test.jpa.compliance.tck2_2.QueryApiTest#testInvalidQueryMarksTxnForRollback

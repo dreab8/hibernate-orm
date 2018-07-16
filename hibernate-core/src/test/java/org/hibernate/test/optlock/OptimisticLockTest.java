@@ -88,12 +88,26 @@ public class OptimisticLockTest extends BaseCoreFunctionalTestCase {
 			mainSession.flush();
 			fail( "expecting opt lock failure" );
 		}
-		catch (PersistenceException e){
-			// expected
-			checkException( mainSession, e );
+		catch ( StaleObjectStateException expected ) {
+			// expected result...
+		}
+		catch( StaleStateException expected ) {
+			// expected result (if using versioned batching)...
+		}
+		catch( JDBCException e ) {
+			// SQLServer will report this condition via a SQLException
+			// when using its SNAPSHOT transaction isolation...
+			if ( ! ( getDialect() instanceof SQLServerDialect && e.getErrorCode() == 3960 ) ) {
+				throw e;
+			}
+			else {
+				// it seems to "lose track" of the transaction as well...
+				mainSession.getTransaction().rollback();
+				mainSession.beginTransaction();
+			}
 		}
 		mainSession.clear();
-		mainSession.getTransaction().rollback();
+		mainSession.getTransaction().commit();
 		mainSession.close();
 
 		mainSession = openSession();
@@ -142,12 +156,23 @@ public class OptimisticLockTest extends BaseCoreFunctionalTestCase {
 		catch ( StaleObjectStateException e ) {
 			// expected
 		}
-		catch (PersistenceException e){
-			// expected
-			checkException( mainSession, e );
+		catch( StaleStateException expected ) {
+			// expected result (if using versioned batching)...
+		}
+		catch( JDBCException e ) {
+			// SQLServer will report this condition via a SQLException
+			// when using its SNAPSHOT transaction isolation...
+			if ( ! ( getDialect() instanceof SQLServerDialect && e.getErrorCode() == 3960 ) ) {
+				throw e;
+			}
+			else {
+				// it seems to "lose track" of the transaction as well...
+				mainSession.getTransaction().rollback();
+				mainSession.beginTransaction();
+			}
 		}
 		mainSession.clear();
-		mainSession.getTransaction().rollback();
+		mainSession.getTransaction().commit();
 		mainSession.close();
 
 		mainSession = openSession();
