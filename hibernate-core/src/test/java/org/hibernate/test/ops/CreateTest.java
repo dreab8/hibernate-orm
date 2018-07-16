@@ -132,9 +132,8 @@ public class CreateTest extends AbstractOperationTestCase {
 			tx.commit();
 			fail( "Expecting constraint failure" );
 		}
-		catch (PersistenceException e){
+		catch (ConstraintViolationException te) {
 			//verify that an exception is thrown!
-			assertTyping(ConstraintViolationException.class, e.getCause());
 		}
 		tx.rollback();
 		s.close();
@@ -149,9 +148,8 @@ public class CreateTest extends AbstractOperationTestCase {
 			tx.commit();
 			assertFalse(true);
 		}
-		catch (PersistenceException e){
+		catch (ConstraintViolationException te) {
 			//verify that an exception is thrown!
-			assertTyping(ConstraintViolationException.class, e.getCause());
 		}
 		tx.rollback();
 		s.close();
@@ -173,9 +171,8 @@ public class CreateTest extends AbstractOperationTestCase {
 			s.persist(dupe);
 			assertFalse(true);
 		}
-		catch (PersistenceException e){
+		catch (PersistentObjectException poe) {
 			//verify that an exception is thrown!
-			assertTyping(PersistentObjectException.class, e.getCause());
 		}
 		tx.rollback();
 		s.close();
@@ -189,9 +186,8 @@ public class CreateTest extends AbstractOperationTestCase {
 			s.persist(nondupe);
 			assertFalse(true);
 		}
-		catch (PersistenceException e){
+		catch (PersistentObjectException poe) {
 			//verify that an exception is thrown!
-			assertTyping(PersistentObjectException.class, e.getCause());
 		}
 		tx.rollback();
 		s.close();

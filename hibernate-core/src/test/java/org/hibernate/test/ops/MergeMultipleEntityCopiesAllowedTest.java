@@ -674,9 +674,8 @@ public class MergeMultipleEntityCopiesAllowedTest extends BaseCoreFunctionalTest
 			category1_1 = (Category) s.merge( category1_1 );
 			fail( "should have failed because one representation is an older version." );
 		}
-		catch (PersistenceException e){
+		catch( StaleObjectStateException ex ) {
 			// expected
-			assertTyping( StaleObjectStateException.class, e.getCause());
 		}
 		finally {
 			tx.rollback();
@@ -726,9 +725,8 @@ public class MergeMultipleEntityCopiesAllowedTest extends BaseCoreFunctionalTest
 			category1_1 = (Category) s.merge( category1_1 );
 			fail( "should have failed because one representation is an older version." );
 		}
-		catch (PersistenceException e){
+		catch( StaleObjectStateException ex ) {
 			// expected
-			assertTyping( StaleObjectStateException.class, e.getCause());
 		}
 		finally {
 			tx.rollback();

@@ -49,7 +49,7 @@ public class AutoDiscoveryTest extends BaseCoreFunctionalTestCase {
 		return new Class[] { Group.class, User.class, Membership.class };
 	}
 
-	@Test
+	@Test( expected = NonUniqueDiscoveredSqlAliasException.class )
 	public void testAutoDiscoveryWithDuplicateColumnLabels() {
 		Session session = openSession();
 		session.beginTransaction();
@@ -79,18 +79,17 @@ public class AutoDiscoveryTest extends BaseCoreFunctionalTestCase {
 				assertEquals( "stliu", row1[1] );
 			}
 			session.getTransaction().commit();
+		}catch (Exception e) {
+			session.close();
+			session = openSession();
+			session.beginTransaction();
+			session.createQuery( "delete from User" ).executeUpdate();
+			session.getTransaction().commit();
+			session.close();
+			throw e;
 		}
-		catch (PersistenceException e) {
-			//expected
-			assertTyping( NonUniqueDiscoveredSqlAliasException.class, e.getCause() );
-		}
-		session.close();
 
-		session = openSession();
-		session.beginTransaction();
-		session.createQuery( "delete from User" ).executeUpdate();
-		session.getTransaction().commit();
-		session.close();
+
 	}
 
 	@Test

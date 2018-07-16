@@ -1090,8 +1090,7 @@ public abstract class AbstractEntityWithOneToManyTest extends BaseCoreFunctional
 			s.merge( cOrig );
 			assertFalse( isContractVersioned );
 		}
-		catch (PersistenceException ex) {
-			assertTyping(StaleObjectStateException.class, ex.getCause());
+		catch (StaleObjectStateException ex) {
 			assertTrue( isContractVersioned);
 		}
 		finally {
@@ -1149,14 +1148,11 @@ public abstract class AbstractEntityWithOneToManyTest extends BaseCoreFunctional
 			t.commit();
 			assertFalse( isContractVersioned );
 		}
-		catch (PersistenceException ex) {
+		catch (StaleStateException ex) {
 			t.rollback();
 			assertTrue( isContractVersioned );
-			if ( !sessionFactory().getSessionFactoryOptions().isJdbcBatchVersionedData() ) {
-				assertTyping( StaleObjectStateException.class, ex.getCause() );
-			}
-			else {
-				assertTyping( StaleStateException.class, ex.getCause() );
+			if ( ! sessionFactory().getSessionFactoryOptions().isJdbcBatchVersionedData() ) {
+				assertTrue( StaleObjectStateException.class.isInstance( ex ) );
 			}
 		}
 		s.close();

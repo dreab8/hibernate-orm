@@ -59,9 +59,8 @@ public class MergeTest extends AbstractOperationTestCase {
 			s.getTransaction().commit();
 			fail( "was expecting staleness error" );
 		}
-		catch (PersistenceException e){
-			// expected
-			assertTyping( StaleObjectStateException.class, e.getCause());
+		catch ( StaleObjectStateException expected ) {
+			// expected outcome...
 		}
 		finally {
 			s.getTransaction().rollback();
