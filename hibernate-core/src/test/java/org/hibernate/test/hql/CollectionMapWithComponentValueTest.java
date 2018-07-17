@@ -113,7 +113,7 @@ public class CollectionMapWithComponentValueTest extends BaseCoreFunctionalTestC
 				fail( "HibernateException expected - Could not determine type for EmbeddableValue" );
 			}
 			catch ( Exception e ) {
-				assertTyping( IllegalArgumentException.class, e );
+				assertTyping( HibernateException.class, e );
 			}
 
 			// Hibernate additional form
@@ -124,7 +124,7 @@ public class CollectionMapWithComponentValueTest extends BaseCoreFunctionalTestC
 				fail( "HibernateException expected - Could not determine type for EmbeddableValue" );
 			}
 			catch ( Exception e ) {
-				assertTyping( IllegalArgumentException.class, e );
+				assertTyping( HibernateException.class, e );
 			}
 
 			// Test value property dereference

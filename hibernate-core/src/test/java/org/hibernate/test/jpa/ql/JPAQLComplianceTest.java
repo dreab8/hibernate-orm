@@ -84,9 +84,7 @@ public class JPAQLComplianceTest extends AbstractJPATest {
 					try {
 						s.createQuery( "select item from Item item where item.id = ?1 and item.name = :name" ).list();
 						fail( "Expecting QuerySyntaxException because of named and positional parameters mixture" );
-					} catch ( IllegalArgumentException e ) {
-						assertNotNull( e.getCause() );
-						assertTyping( QuerySyntaxException.class, e.getCause() );
+					} catch ( QuerySyntaxException e ) {
 					}
 				}
 		);
@@ -102,9 +100,7 @@ public class JPAQLComplianceTest extends AbstractJPATest {
 						s.createQuery( "select item from Item item where item.id = :id and item.name = ?1" ).list();
 						fail( "Expecting QuerySyntaxException because of named and positional parameters mixture" );
 					}
-					catch (IllegalArgumentException e) {
-						assertNotNull( e.getCause() );
-						assertTyping( QuerySyntaxException.class, e.getCause() );
+					catch (QuerySyntaxException e) {
 					}
 				}
 		);
@@ -162,9 +158,7 @@ public class JPAQLComplianceTest extends AbstractJPATest {
 						q.list();
 						fail( "Expecting QuerySyntaxException because of named and positional parameters mixture" );
 					}
-					catch (IllegalArgumentException e) {
-						assertNotNull( e.getCause() );
-						assertTyping( QuerySyntaxException.class, e.getCause() );
+					catch (QuerySyntaxException e) {
 					}
 				}
 		);

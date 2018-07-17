@@ -882,9 +882,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 							s.createQuery( "from Animal a where a.offspring.description = 'xyz'" ).list();
 							fail( "illegal collection dereference semantic did not cause failure" );
 						}
-						catch (IllegalArgumentException e) {
-							assertTyping( QueryException.class, e.getCause() );
-						}
 						catch (QueryException qe) {
 							log.trace( "expected failure...", qe );
 						}
@@ -897,9 +894,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 						try {
 							s.createQuery( "from Animal a where a.offspring.father.description = 'xyz'" ).list();
 							fail( "illegal collection dereference semantic did not cause failure" );
-						}
-						catch (IllegalArgumentException e) {
-							assertTyping( QueryException.class, e.getCause() );
 						}
 						catch (QueryException qe) {
 							log.trace( "expected failure...", qe );
@@ -914,9 +908,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 							s.createQuery( "from Animal a order by a.offspring.description" ).list();
 							fail( "illegal collection dereference semantic did not cause failure" );
 						}
-						catch (IllegalArgumentException e) {
-							assertTyping( QueryException.class, e.getCause() );
-						}
 						catch (QueryException qe) {
 							log.trace( "expected failure...", qe );
 						}
@@ -929,9 +920,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 						try {
 							s.createQuery( "from Animal a order by a.offspring.father.description" ).list();
 							fail( "illegal collection dereference semantic did not cause failure" );
-						}
-						catch (IllegalArgumentException e) {
-							assertTyping( QueryException.class, e.getCause() );
 						}
 						catch (QueryException qe) {
 							log.trace( "expected failure...", qe );
@@ -1618,9 +1606,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 								.list();
 						fail( "query execution should have failed" );
 					}
-					catch (IllegalArgumentException e) {
-						assertTyping( TypeMismatchException.class, e.getCause() );
-					}
 					catch (TypeMismatchException tme) {
 						// expected behavior
 					}
@@ -1638,9 +1623,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 						try {
 							s.createQuery( "from Human h join fetch h.friends f join fetch f.friends fof" ).list();
 							fail( "failure expected" );
-						}
-						catch (IllegalArgumentException e) {
-							assertTyping( MultipleBagFetchException.class, e.getCause() );
 						}
 						catch( HibernateException e ) {
 							assertTrue( "unexpected failure reason : " + e, e.getMessage().indexOf( "multiple bags" ) > 0 );
@@ -1752,9 +1734,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 		try {
 			s.createQuery( "from Animal a where a.mother in (select m from Animal a1 inner join a1.mother as m join fetch m.mother)" ).list();
 			fail( "fetch join allowed in subquery" );
-		}
-		catch (IllegalArgumentException e) {
-			assertTyping( QueryException.class, e.getCause() );
 		}
 		catch( QueryException expected ) {
 			// expected behavior
@@ -1945,9 +1924,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 							s.createQuery( "select mother from Human a left join fetch a.mother mother" ).list();
 							fail( "invalid fetch semantic allowed!" );
 						}
-						catch (IllegalArgumentException e) {
-							assertTyping( QueryException.class, e.getCause() );
-						}
 						catch( QueryException e ) {
 						}
 					}
@@ -1959,9 +1935,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 						try {
 							s.createQuery( "select mother from Human a left join fetch a.mother mother" ).list();
 							fail( "invalid fetch semantic allowed!" );
-						}
-						catch (IllegalArgumentException e) {
-							assertTyping( QueryException.class, e.getCause() );
 						}
 						catch( QueryException e ) {
 						}
@@ -3590,9 +3563,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 			getSelectNewQuery( session ).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
 			fail("'select new' together with a resulttransformer should result in error!");
 		}
-		catch (IllegalArgumentException e) {
-			assertTyping( QueryException.class, e.getCause() );
-		}
 		catch(QueryException he) {
 			assertTrue(he.getMessage().indexOf("ResultTransformer")==0);
 		}
@@ -3601,9 +3571,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 			getSelectNewQuery( session ).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).iterate();
 			fail("'select new' together with a resulttransformer should result in error!");
 		}
-		catch (IllegalArgumentException e) {
-			assertTyping( QueryException.class, e.getCause() );
-		}
 		catch(HibernateException he) {
 			assertTrue(he.getMessage().indexOf("ResultTransformer")==0);
 		}
@@ -3611,9 +3578,6 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 		try {
 			getSelectNewQuery( session ).setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).scroll();
 			fail("'select new' together with a resulttransformer should result in error!");
-		}
-		catch (IllegalArgumentException e) {
-			assertTyping( QueryException.class, e.getCause() );
 		}
 		catch(HibernateException he) {
 			assertTrue(he.getMessage().indexOf("ResultTransformer")==0);
@@ -3871,10 +3835,8 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 				fail("Should have thrown exception");
 			} );
 		}
-		catch (IllegalArgumentException e) {
-			final Throwable cause = e.getCause();
-			assertThat( cause, instanceOf( QuerySyntaxException.class ) );
-			assertTrue( cause.getMessage().contains( "expecting EOF, found ')'" ) );
+		catch (QuerySyntaxException e) {
+			assertTrue( e.getMessage().contains( "expecting EOF, found ')'" ) );
 		}
 	}
 
