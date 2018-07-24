@@ -15,6 +15,7 @@ import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 import org.junit.Test;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.hibernate.testing.transaction.TransactionUtil.doInHibernate;
 import static org.junit.Assert.assertThat;
 
@@ -38,20 +39,20 @@ public class TestInsertable extends BaseCoreFunctionalTestCase {
 				}
 		);
 
-		doInHibernate(
-				this::sessionFactory,
-				session -> {
-					session.update( price );
-					price.setInitalPrice( 20 );
-					price.setDescription( "first item" );
-				}
-		);
+//		doInHibernate(
+//				this::sessionFactory,
+//				session -> {
+//					session.update( price );
+//					price.setInitalPrice( 20 );
+//					price.setDescription( "first item" );
+//				}
+//		);
 
 		doInHibernate(
 				this::sessionFactory,
 				session -> {
 					assertThat( session.get( Price.class, price.getId() ).getInitalPrice(), is( 12 ) );
-					assertThat( session.get( Price.class, price.getId() ).getDescription(), is( "first item" ) );
+					assertThat( session.get( Price.class, price.getId() ).getDescription(), nullValue() );
 				}
 		);
 	}
@@ -61,6 +62,7 @@ public class TestInsertable extends BaseCoreFunctionalTestCase {
 		@Id
 		private Integer id;
 
+		@Column(insertable = false)
 		private String description;
 
 		public Price() {
@@ -77,7 +79,7 @@ public class TestInsertable extends BaseCoreFunctionalTestCase {
 			this.initalPrice = initalPrice;
 		}
 
-		@Column(updatable = false)
+
 		private Integer initalPrice;
 
 		public Integer getId() {
@@ -100,6 +102,7 @@ public class TestInsertable extends BaseCoreFunctionalTestCase {
 			return description;
 		}
 
+		@Column(insertable = false)
 		public void setDescription(String description) {
 			this.description = description;
 		}
