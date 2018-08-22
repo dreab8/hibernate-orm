@@ -26,6 +26,7 @@ import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
 import org.junit.Test;
 
 import static org.hibernate.testing.junit4.ExtraAssertions.assertTyping;
+import static org.hibernate.testing.transaction.TransactionUtil.doInHibernate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -180,6 +181,14 @@ public class JoinTest extends BaseNonConfigCoreFunctionalTestCase {
 	}
 
 	@Test
+	public void testDelete(){
+		doInHibernate(this::sessionFactory, session -> {
+			session.createQuery( "delete from Life" ).executeUpdate();
+		});
+	}
+
+
+	@Test
 	public void testFetchModeOnSecondaryTable() throws Exception {
 		Cat cat = new Cat();
 		cat.setStoryPart2( "My long story" );
@@ -194,6 +203,11 @@ public class JoinTest extends BaseNonConfigCoreFunctionalTestCase {
 		//Find a way to test it, I need to define the secondary table on a subclass
 
 		tx.rollback();
+		s.close();
+		s = openSession();
+		 tx = s.beginTransaction();
+		s.createQuery( "delete from Cat" ).executeUpdate();
+		tx.commit();
 		s.close();
 	}
 
