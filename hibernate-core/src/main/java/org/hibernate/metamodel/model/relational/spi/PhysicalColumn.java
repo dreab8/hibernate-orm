@@ -37,6 +37,7 @@ public class PhysicalColumn implements Column {
 	private final boolean isUnique;
 	private final String comment;
 	private final TypeConfiguration typeConfiguration;
+	private Dialect dialect;
 
 	public PhysicalColumn(
 			Table table,
@@ -131,11 +132,18 @@ public class PhysicalColumn implements Column {
 
 	@Override
 	public String render(String identificationVariable) {
-		final Dialect dialect = typeConfiguration.getSessionFactory().getJdbcServices().getDialect();
+		if ( dialect == null ) {
+			dialect = typeConfiguration.getSessionFactory().getJdbcServices().getDialect();
+		}
 		if ( identificationVariable != null ) {
 			return identificationVariable + '.' + name.render( dialect );
 		}
 		return name.render( dialect );
+	}
+
+	@Override
+	public String render() {
+		return render( null );
 	}
 
 	@Override

@@ -98,7 +98,6 @@ public abstract class PersistentClass
 	private boolean customDeleteCallable;
 	private ExecuteUpdateResultCheckStyle deleteCheckStyle;
 
-	private MappedSuperclass superMappedSuperclass;
 	private EmbeddedValueMapping declaredIdentifierValueMapping;
 
 	private boolean isCached;
@@ -1106,7 +1105,7 @@ public abstract class PersistentClass
 
 	@Override
 	public PropertyContainer getSuperPropertyContainer() {
-		return superMappedSuperclass;
+		return (PropertyContainer) getSuperTypeMapping();
 	}
 
 	public void addMappedsuperclassProperty(Property p) {
@@ -1114,12 +1113,17 @@ public abstract class PersistentClass
 		p.setPersistentClass( this );
 	}
 
+	/**
+	 *
+	 * @deprecated since 6.0, use {@link IdentifiableTypeMapping#getSuperTypeMapping()} instead.
+	 */
+	@Deprecated
 	public MappedSuperclass getSuperMappedSuperclass() {
-		return superMappedSuperclass;
+		return (MappedSuperclass) getSuperTypeMapping();
 	}
 
 	public void setSuperMappedSuperclass(MappedSuperclass superMappedSuperclass) {
-		this.superMappedSuperclass = superMappedSuperclass;
+		injectSuperclassMapping( superMappedSuperclass );
 	}
 
 	// End of @Mappedsuperclass support
