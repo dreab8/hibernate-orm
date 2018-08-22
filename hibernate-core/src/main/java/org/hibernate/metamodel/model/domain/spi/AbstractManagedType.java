@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 import org.hibernate.HibernateException;
 import org.hibernate.boot.model.domain.IdentifiableTypeMapping;
 import org.hibernate.boot.model.domain.ManagedTypeMapping;
+import org.hibernate.boot.model.domain.MappedSuperclassMapping;
 import org.hibernate.boot.model.domain.PersistentAttributeMapping;
 import org.hibernate.boot.model.domain.spi.ManagedTypeMappingImplementor;
 import org.hibernate.internal.util.collections.CollectionHelper;
@@ -40,7 +41,7 @@ public abstract class AbstractManagedType<J> implements InheritanceCapable<J> {
 
 	private final TypeConfiguration typeConfiguration;
 
-	private final InheritanceCapable<? super J> superTypeDescriptor;
+	private InheritanceCapable<? super J> superTypeDescriptor;
 	private final Set<InheritanceCapable<? extends J>> subclassTypes = ConcurrentHashMap.newKeySet();
 	private final Set<String> subClassEntityNames = ConcurrentHashMap.newKeySet();
 
@@ -55,6 +56,8 @@ public abstract class AbstractManagedType<J> implements InheritanceCapable<J> {
 
 	// a cache to more easily find the PersistentAttribute by name
 	private Map<String,NonIdPersistentAttribute> declaredAttributesByName;
+
+	private boolean fullyInitialized;
 
 	@SuppressWarnings("WeakerAccess")
 	public AbstractManagedType(
@@ -73,8 +76,6 @@ public abstract class AbstractManagedType<J> implements InheritanceCapable<J> {
 				.resolveStrategy( bootDescriptor, this, creationContext );
 	}
 
-	private boolean fullyInitialized;
-
 	@Override
 	@SuppressWarnings("unchecked")
 	public void finishInitialization(
@@ -83,13 +84,18 @@ public abstract class AbstractManagedType<J> implements InheritanceCapable<J> {
 		if ( fullyInitialized ) {
 			return;
 		}
-
+		ManagedTypeMapping superManagedTypeMapping = bootDescriptor.getSuperManagedTypeMapping();
+		if ( this.superTypeDescriptor == null && superManagedTypeMapping != null && superManagedTypeMapping instanceof MappedSuperclassMapping ) {
+			MappedSuperclassDescriptor<? extends ManagedTypeMapping> mappedSuperclassDescriptor = creationContext.getInFlightRuntimeModel()
+					.getMappedSuperclassDescriptor( superManagedTypeMapping.getJavaTypeMapping().getTypeName() );
+			this.superTypeDescriptor = (InheritanceCapable<? super J>) mappedSuperclassDescriptor;
+		}
 		final int declaredAttributeCount = bootDescriptor.getDeclaredPersistentAttributes().size();
 
 		declaredAttributes = CollectionHelper.arrayList( declaredAttributeCount );
 		declaredAttributesByName = CollectionHelper.concurrentMap( declaredAttributeCount );
 		// NOTE : we can't know the size of declared contributors up front
-		stateArrayContributors = new ArrayList<>();
+		this.stateArrayContributors = new ArrayList<>();
 
 		if ( superTypeDescriptor != null ) {
 			attributes = CollectionHelper.arrayList(

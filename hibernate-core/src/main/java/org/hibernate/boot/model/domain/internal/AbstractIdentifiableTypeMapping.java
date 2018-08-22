@@ -34,7 +34,6 @@ public abstract class AbstractIdentifiableTypeMapping
 
 	private final EntityMappingHierarchy entityMappingHierarchy;
 
-	private IdentifiableTypeMappingImplementor superTypeMapping;
 	private List<IdentifiableTypeMappingImplementor> subTypeMappings;
 
 	private PersistentAttributeMapping declaredIdentifierAttributeMapping;
@@ -48,7 +47,7 @@ public abstract class AbstractIdentifiableTypeMapping
 
 	@Override
 	public void injectSuperclassMapping(IdentifiableTypeMappingImplementor superTypeMapping) {
-		if ( this.superTypeMapping != null ) {
+		if ( getSuperManagedTypeMapping() != null ) {
 			log.debugf( "ManagedTypeMapping#injectSuperTypeMapping called multiple times" );
 			throw new MappingException(
 					String.format(
@@ -60,7 +59,7 @@ public abstract class AbstractIdentifiableTypeMapping
 			);
 		}
 
-		this.superTypeMapping = superTypeMapping;
+		setSuperManagedType( superTypeMapping );
 		( (AbstractIdentifiableTypeMapping) superTypeMapping ).addSubclass( this );
 	}
 
@@ -78,7 +77,7 @@ public abstract class AbstractIdentifiableTypeMapping
 
 	@Override
 	public IdentifiableTypeMapping getSuperTypeMapping() {
-		return superTypeMapping;
+		return (IdentifiableTypeMapping) getSuperManagedTypeMapping();
 	}
 
 	@Override

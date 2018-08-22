@@ -149,8 +149,12 @@ public class RuntimeModelCreationProcess implements ResolutionContext {
 //		resolveForeignKeys( mappingMetadata, creationContext );
 
 		for ( EntityMappingHierarchy bootHierarchy : mappingMetadata.getEntityHierarchies() ) {
+
+			IdentifiableTypeMappingImplementor rootType = bootHierarchy.getRootType();
+
+
 			final EntityDescriptor<?> rootEntityDescriptor = (EntityDescriptor<?>) createIdentifiableType(
-					bootHierarchy.getRootType(),
+					rootType,
 					null,
 					creationContext
 			);
@@ -169,7 +173,7 @@ public class RuntimeModelCreationProcess implements ResolutionContext {
 
 			walkSupers(
 					bootHierarchy,
-					bootHierarchy.getRootType(),
+					rootType,
 					rootEntityDescriptor.getHierarchy(),
 					rootEntityDescriptor,
 					creationContext
@@ -303,7 +307,7 @@ public class RuntimeModelCreationProcess implements ResolutionContext {
 		assert runtimeHierarchy != null;
 		assert runtimeMapping != null;
 
-		if ( runtimeMapping instanceof EntityDescriptor ) {
+		if ( bootMapping instanceof EntityMapping ) {
 			creationContext.registerEntityDescriptor( (EntityDescriptor) runtimeMapping, (EntityMapping) bootMapping );
 		}
 
@@ -314,7 +318,7 @@ public class RuntimeModelCreationProcess implements ResolutionContext {
 			// always create going up
 			final IdentifiableTypeDescriptor<?> runtimeSuperDescriptor = createIdentifiableType(
 					(IdentifiableTypeMappingImplementor) bootMapping.getSuperTypeMapping(),
-					runtimeMapping,
+					null,
 					creationContext
 			);
 

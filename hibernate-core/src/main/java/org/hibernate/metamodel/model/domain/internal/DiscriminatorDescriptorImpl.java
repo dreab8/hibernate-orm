@@ -13,6 +13,7 @@ import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.metamodel.model.domain.spi.DiscriminatorDescriptor;
 import org.hibernate.metamodel.model.domain.spi.DiscriminatorMappings;
+import org.hibernate.metamodel.model.domain.spi.DiscriminatorMappingsImplicitImpl;
 import org.hibernate.metamodel.model.domain.spi.EntityHierarchy;
 import org.hibernate.metamodel.model.domain.spi.ManagedTypeDescriptor;
 import org.hibernate.metamodel.model.relational.spi.Column;
@@ -35,6 +36,8 @@ public class DiscriminatorDescriptorImpl<O,J> implements DiscriminatorDescriptor
 	private final Column column;
 
 	private final NavigableRole navigableRole;
+
+	private DiscriminatorMappings discriminatorMappings;
 
 	@SuppressWarnings("WeakerAccess")
 	public DiscriminatorDescriptorImpl(
@@ -66,8 +69,11 @@ public class DiscriminatorDescriptorImpl<O,J> implements DiscriminatorDescriptor
 
 	@Override
 	public DiscriminatorMappings getDiscriminatorMappings() {
-		// todo (6.0) : will probably need to collect these dynamically during "first phase" of runtime model creation
-		throw new NotYetImplementedException(  );
+		return discriminatorMappings;
+	}
+
+	public void setDiscriminatorMappings(DiscriminatorMappings discriminatorMappings) {
+		this.discriminatorMappings = discriminatorMappings;
 	}
 
 	@Override

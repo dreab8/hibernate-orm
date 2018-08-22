@@ -12,7 +12,6 @@ import javax.persistence.metamodel.Type;
 
 import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.boot.model.domain.IdentifiableTypeMapping;
-import org.hibernate.boot.model.domain.spi.ManagedTypeMappingImplementor;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.metamodel.model.domain.spi.AbstractIdentifiableType;
@@ -22,8 +21,8 @@ import org.hibernate.metamodel.model.domain.spi.MappedSuperclassDescriptor;
 import org.hibernate.metamodel.model.domain.spi.NavigableContainer;
 import org.hibernate.metamodel.model.domain.spi.NavigableVisitationStrategy;
 import org.hibernate.sql.ast.produce.spi.ColumnReferenceQualifier;
-import org.hibernate.sql.results.spi.SqlSelectionGroupNode;
 import org.hibernate.sql.results.spi.SqlAstCreationContext;
+import org.hibernate.sql.results.spi.SqlSelectionGroupNode;
 import org.hibernate.type.descriptor.java.spi.IdentifiableJavaDescriptor;
 
 /**
@@ -33,6 +32,7 @@ public class MappedSuperclassImpl<J>
 		extends AbstractIdentifiableType<J>
 		implements MappedSuperclassDescriptor<J> {
 	private final EntityHierarchy hierarchy;
+	private final NavigableRole navigableRole;
 
 	@SuppressWarnings("unchecked")
 	public MappedSuperclassImpl(
@@ -47,6 +47,7 @@ public class MappedSuperclassImpl<J>
 				creationContext
 		);
 		this.hierarchy = hierarchy;
+		navigableRole = new NavigableRole(bootMapping.getName());
 	}
 
 	@Override
@@ -57,13 +58,6 @@ public class MappedSuperclassImpl<J>
 	@Override
 	public PersistenceType getPersistenceType() {
 		return PersistenceType.MAPPED_SUPERCLASS;
-	}
-
-	@Override
-	public void finishInitialization(
-			ManagedTypeMappingImplementor bootDescriptor,
-			RuntimeModelCreationContext creationContext) {
-		throw new NotYetImplementedFor6Exception(  );
 	}
 
 	@Override
@@ -118,7 +112,7 @@ public class MappedSuperclassImpl<J>
 
 	@Override
 	public NavigableRole getNavigableRole() {
-		throw new NotYetImplementedFor6Exception(  );
+		return navigableRole;
 	}
 
 	@Override
@@ -143,4 +137,5 @@ public class MappedSuperclassImpl<J>
 	public IdentifiableTypeDescriptor<? super J> getSupertype() {
 		throw new NotYetImplementedFor6Exception(  );
 	}
+
 }

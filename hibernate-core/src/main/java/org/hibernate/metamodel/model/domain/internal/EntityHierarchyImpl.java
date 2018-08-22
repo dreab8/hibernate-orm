@@ -20,9 +20,12 @@ import org.hibernate.mapping.Property;
 import org.hibernate.mapping.RootClass;
 import org.hibernate.mapping.Subclass;
 import org.hibernate.mapping.UnionSubclass;
+import org.hibernate.mapping.Value;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.RepresentationMode;
 import org.hibernate.metamodel.model.domain.spi.DiscriminatorDescriptor;
+import org.hibernate.metamodel.model.domain.spi.DiscriminatorMappingsExplicitImpl;
+import org.hibernate.metamodel.model.domain.spi.DiscriminatorMappingsImplicitImpl;
 import org.hibernate.metamodel.model.domain.spi.EntityDescriptor;
 import org.hibernate.metamodel.model.domain.spi.EntityHierarchy;
 import org.hibernate.metamodel.model.domain.spi.EntityIdentifier;
@@ -225,13 +228,21 @@ public class EntityHierarchyImpl implements EntityHierarchy {
 			RootClass rootEntityBinding,
 			RuntimeModelCreationContext creationContext) {
 		creationContext.getDatabaseObjectResolver().resolveTable( rootEntityBinding.getRootTable() );
-		if ( rootEntityBinding.getDiscriminator() == null ) {
+		Value discriminator = rootEntityBinding.getDiscriminator();
+		if ( discriminator == null ) {
 			return null;
+		}
+		DiscriminatorMappingsImplicitImpl discriminatorMappings;
+		String discriminatorValue = rootEntityBinding.getDiscriminatorValue();
+		if(discriminatorValue == null){
+			discriminatorMappings = DiscriminatorMappingsImplicitImpl.INSTANCE;
+		}else{
+			discriminatorMappings = new DiscriminatorMappingsExplicitImpl();
 		}
 
 		return new DiscriminatorDescriptorImpl(
 				hierarchy,
-				(BasicValueMapping) rootEntityBinding.getDiscriminator(),
+				(BasicValueMapping) discriminator,
 				creationContext
 		);
 

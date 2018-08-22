@@ -160,6 +160,7 @@ public final class RuntimeModelDescriptorFactoryImpl
 			try {
 				final MappedSuperclassDescriptor descriptor = constructor.newInstance(
 						bootMapping,
+						null,
 						superTypeDescriptor,
 						creationContext
 				);

@@ -113,4 +113,5 @@ public interface EntityHierarchy {
 
 		return null;
 	}
+
 }

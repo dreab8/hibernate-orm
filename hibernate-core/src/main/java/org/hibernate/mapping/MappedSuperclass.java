@@ -6,7 +6,9 @@
  */
 package org.hibernate.mapping;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,11 +21,11 @@ import org.hibernate.boot.model.domain.IdentifiableTypeMapping;
 import org.hibernate.boot.model.domain.MappedJoin;
 import org.hibernate.boot.model.domain.MappedSuperclassJavaTypeMapping;
 import org.hibernate.boot.model.domain.PersistentAttributeMapping;
-import org.hibernate.boot.model.domain.ResolutionContext;
 import org.hibernate.boot.model.domain.internal.AbstractMappedSuperclassMapping;
 import org.hibernate.boot.model.relational.MappedTable;
-import org.hibernate.cfg.NotYetImplementedException;
+import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.RepresentationMode;
+import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
 
 /**
  * Represents a @MappedSuperclass.
@@ -240,11 +242,22 @@ public class MappedSuperclass extends AbstractMappedSuperclassMapping implements
 
 	@Override
 	public Collection<MappedJoin> getMappedJoins() {
-		throw new NotYetImplementedException( "Mapped superclass secondary tables is not implemented yet" );
+		return Collections.emptyList();
 	}
 
 	@Override
 	public MappedTable getMappedTable() {
 		throw new MappingException( "This should not be called on a MappedSuperclass" );
+	}
+
+	@Override
+	public <X> IdentifiableTypeDescriptor<X> makeRuntimeDescriptor(
+			IdentifiableTypeDescriptor superTypeDescriptor,
+			RuntimeModelCreationContext creationContext) {
+		return creationContext.getRuntimeModelDescriptorFactory().createMappedSuperclassDescriptor(
+				this,
+				superTypeDescriptor,
+				creationContext
+		);
 	}
 }

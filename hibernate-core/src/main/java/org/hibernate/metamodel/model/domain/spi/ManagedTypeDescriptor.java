@@ -17,7 +17,6 @@ import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.annotations.Remove;
 import org.hibernate.boot.model.domain.spi.ManagedTypeMappingImplementor;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
-import org.hibernate.sql.ast.produce.metamodel.spi.ExpressableType;
 import org.hibernate.type.descriptor.java.spi.ManagedJavaDescriptor;
 import org.hibernate.type.spi.TypeConfiguration;
 
@@ -34,7 +33,7 @@ import org.hibernate.type.spi.TypeConfiguration;
  * @author Steve Ebersole
  */
 public interface ManagedTypeDescriptor<T>
-		extends ManagedType<T>, NavigableContainer<T>, EmbeddedContainer<T>, ExpressableType<T>, StateArrayContributorContainer {
+		extends ManagedType<T>, EmbeddedContainer<T>, StateArrayContributorContainer {
 
 	/**
 	 * Opportunity to perform any final tasks as part of initialization of the
