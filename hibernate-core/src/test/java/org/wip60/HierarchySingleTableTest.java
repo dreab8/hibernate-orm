@@ -15,14 +15,15 @@ package org.wip60;
 
 import java.util.Date;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.SecondaryTable;
+
+import org.hibernate.annotations.DiscriminatorOptions;
 
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 import org.junit.Test;
@@ -33,7 +34,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Andrea Boriero
  */
-public class HierarchyTest extends BaseCoreFunctionalTestCase {
+public class HierarchySingleTableTest extends BaseCoreFunctionalTestCase {
 
 	@Override
 	protected Class<?>[] getAnnotatedClasses() {
@@ -41,92 +42,58 @@ public class HierarchyTest extends BaseCoreFunctionalTestCase {
 				A.class,
 				B.class,
 				C.class,
-				D.class
 		};
 	}
 
 	@Test
-	public void testIt() {
+	public void testSaveA() {
 		doInHibernate(
 				this::sessionFactory,
 				session -> {
-					C c = new C();
-					c.setAge( 12 );
-					c.setCreateDate( new Date() );
-					c.setName( "Bob" );
-					session.persist( c );
+					A a = new A("Bob");
+
+					B b = new B("Fab");
+					session.persist( a );
+					session.persist( b );
 					session.flush();
 					session.clear();
-					c = session.get( C.class, c.getId() );
-					assertNotNull( c.getCreateDate() );
-					assertNotNull( c.getName() );
+					a = session.get( A.class, a.getId() );
+					assertNotNull( a.getName() );
 				}
 		);
 
 	}
 
 	@Test
-	public void testIt_3() {
+	public void testSaveB() {
 		doInHibernate(
 				this::sessionFactory,
 				session -> {
-					C c = new C();
-					c.setAge( 12 );
-					c.setCreateDate( new Date() );
-					c.setName( "Bob" );
-					session.persist( c );
-
-					D d = new D();
-					d.setName( "name" );
-					d.setCreateDate( new Date() );
-					session.persist( d );
-				}
-		);
-
-	}
-
-	@Test
-	public void testIt2() {
-		doInHibernate(
-				this::sessionFactory,
-				session -> {
-					B b = new B();
-					b.setCreateDate( new Date() );
-					b.setName( "Bob" );
+					B b = new B("Fab");
 					session.persist( b );
 					session.flush();
 					session.clear();
 					b = session.get( B.class, b.getId() );
-					assertNotNull( b.getCreateDate() );
 					assertNotNull( b.getName() );
 				}
 		);
 
 	}
 
-	@MappedSuperclass
-	public static abstract class A {
-		@Column(nullable = false)
-		private Date createDate;
-
-		public Date getCreateDate() {
-			return createDate;
-		}
-
-		public void setCreateDate(Date createDate) {
-			this.createDate = createDate;
-		}
-	}
-
 	@Entity
 	@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-	public static class B extends A {
+	@DiscriminatorColumn(name = "DB_TYPE")
+	@DiscriminatorOptions(force = true, insert = false)
+	public static class A {
 		@Id
 		@GeneratedValue
 		private Integer id;
 		@Column(nullable = false)
 		private String name;
 
+		public A(String name) {
+			this.name = name;
+		}
 
 		public Integer getId() {
 			return id;
@@ -146,12 +113,13 @@ public class HierarchyTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Entity
-//	@DiscriminatorValue("C")
-	@SecondaryTable(name = "C")
-	public static class C extends B {
-		@Column(table = "C")
+	@DiscriminatorValue( "B" )
+	public static class B extends A {
 		private int age;
 
+		public B(String name) {
+			super( name );
+		}
 
 		public int getAge() {
 			return age;
@@ -163,8 +131,12 @@ public class HierarchyTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Entity
-	public static class D extends B {
+	public static class C extends A {
 		private int prop;
+
+		public C(String name) {
+			super( name );
+		}
 
 		public int getProp() {
 			return prop;
@@ -174,4 +146,6 @@ public class HierarchyTest extends BaseCoreFunctionalTestCase {
 			this.prop = prop;
 		}
 	}
+
+
 }
