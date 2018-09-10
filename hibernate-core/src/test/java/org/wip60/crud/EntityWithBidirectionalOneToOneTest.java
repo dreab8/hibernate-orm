@@ -250,8 +250,8 @@ public class EntityWithBidirectionalOneToOneTest extends BaseCoreFunctionalTestC
 						NO QUERY
 					 */
 
-					String description = child.getParent().getDescription();
-					assertThat( description, CoreMatchers.notNullValue() );
+//					String description = child.getParent().getDescription();
+//					assertThat( description, CoreMatchers.notNullValue() );
 
 					/*
 					>>> EAGER
