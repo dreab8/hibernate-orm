@@ -11,7 +11,14 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.wip60.crud;
+
+/*
+ * Hibernate, Relational Persistence for Idiomatic Java
+ *
+ * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
+ * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
+ */
+package org.wip60.crud.OneToOne;
 
 import java.util.Objects;
 import javax.persistence.Entity;
@@ -20,6 +27,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.hamcrest.CoreMatchers;
@@ -40,9 +48,12 @@ public class EntityWithBidirectionalOneToOneTest extends BaseCoreFunctionalTestC
 		@OneToOne(mappedBy = "parent")
 		private Child child;
 
+		@OneToOne
+		private Child child2;
+
 		Parent() {
 
-		}
+		}AssociationKey
 
 		Parent(Integer id) {
 			this.id = id;
@@ -96,7 +107,7 @@ public class EntityWithBidirectionalOneToOneTest extends BaseCoreFunctionalTestC
 		@Id
 		private Integer id;
 		private String name;
-		@OneToOne(fetch = FetchType.LAZY)
+		@OneToOne
 		private Parent parent;
 
 		Child() {
@@ -158,9 +169,8 @@ public class EntityWithBidirectionalOneToOneTest extends BaseCoreFunctionalTestC
 		return new Class[] { Parent.class, Child.class };
 	}
 
-
-	@Test
-	public void testOneToOne() {
+	@Before
+	public void setUp() {
 		doInHibernate( this::sessionFactory, session -> {
 			Parent parent = new Parent( 1 );
 			parent.setDescription( "Hibernate" );
@@ -169,6 +179,21 @@ public class EntityWithBidirectionalOneToOneTest extends BaseCoreFunctionalTestC
 			session.save( parent );
 			session.save( child );
 		} );
+	}
+
+	@Test
+	public void testGetChild() {
+		doInHibernate(
+				this::sessionFactory,
+				session -> {
+					final Child child = session.get( Child.class, 2 );
+				}
+		);
+	}
+
+	@Test
+	public void testHqlSelectChildJoinParent() {
+
 
 		doInHibernate(
 				this::sessionFactory,
@@ -212,23 +237,10 @@ public class EntityWithBidirectionalOneToOneTest extends BaseCoreFunctionalTestC
 							where
 								entitywith0_.parent_id=?
 
-						>>> LAZY
-
-							select
-								entitywith0_.id as id1_0_,
-								entitywith0_.name as name2_0_,
-								entitywith0_.parent_id as parent_i3_0_
-							from
-								Child entitywith0_
-							inner join
-								Parent entitywith1_
-									on entitywith0_.parent_id=entitywith1_.id
-							where
-								entitywith1_.id=?
 
 					 */
 //					Parent parent = child.getParent();
-//					assertThat( child.getParent(), CoreMatchers.notNullValue() );
+//					assertThat( parent, CoreMatchers.notNullValue() );
 					/*
 					triggered by child.getParent()
 					>>> EAGER
