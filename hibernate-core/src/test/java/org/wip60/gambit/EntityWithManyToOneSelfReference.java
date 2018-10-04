@@ -80,7 +80,7 @@ public class EntityWithManyToOneSelfReference {
 		this.name = name;
 	}
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne
 	@JoinColumn
 	public EntityWithManyToOneSelfReference getOther() {
 		return other;

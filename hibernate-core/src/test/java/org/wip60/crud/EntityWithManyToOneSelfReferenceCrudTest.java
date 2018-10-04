@@ -16,6 +16,7 @@ package org.wip60.crud;
 import java.util.List;
 
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
+import org.junit.Before;
 import org.junit.Test;
 
 import org.wip60.gambit.EntityWithManyToOneSelfReference;
@@ -34,8 +35,9 @@ public class EntityWithManyToOneSelfReferenceCrudTest extends BaseCoreFunctional
 		return new Class[] { EntityWithManyToOneSelfReference.class };
 	}
 
-	@Test
-	public void testOperations() {
+
+	@Before
+	public void setUp() {
 		final EntityWithManyToOneSelfReference entity1 = new EntityWithManyToOneSelfReference(
 				1,
 				"first",
@@ -52,6 +54,16 @@ public class EntityWithManyToOneSelfReferenceCrudTest extends BaseCoreFunctional
 			session.save( entity1 );
 			session.save( entity2 );
 		} );
+	}
+
+	@Override
+	protected boolean isCleanupTestDataRequired() {
+		return true;
+	}
+
+	@Test
+	public void testGetEntityWithTheAssociation() {
+
 
 		doInHibernate( this::sessionFactory, session -> {
 						   final EntityWithManyToOneSelfReference loaded = session.get(
@@ -62,16 +74,20 @@ public class EntityWithManyToOneSelfReferenceCrudTest extends BaseCoreFunctional
 						   assertThat( loaded.getName(), equalTo( "second" ) );
 					   }
 		);
+	}
 
-//		doInHibernate( this::sessionFactory, session -> {
-//						   final EntityWithManyToOneSelfReference loaded = session.get(
-//								   EntityWithManyToOneSelfReference.class,
-//								   1
-//						   );
-//						   assert loaded != null;
-//						   assertThat( loaded.getName(), equalTo( "first" ) );
-//					   }
-//		);
+	@Test
+	public void testGetEntityWithutTheAssociatio() {
+
+		doInHibernate( this::sessionFactory, session -> {
+						   final EntityWithManyToOneSelfReference loaded = session.get(
+								   EntityWithManyToOneSelfReference.class,
+								   1
+						   );
+						   assert loaded != null;
+						   assertThat( loaded.getName(), equalTo( "first" ) );
+					   }
+		);
 //
 //		doInHibernate( this::sessionFactory, session -> {
 //						   final EntityWithManyToOneSelfReference loaded = session.get(

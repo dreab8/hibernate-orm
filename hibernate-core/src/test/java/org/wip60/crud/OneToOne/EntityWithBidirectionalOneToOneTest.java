@@ -48,12 +48,9 @@ public class EntityWithBidirectionalOneToOneTest extends BaseCoreFunctionalTestC
 		@OneToOne(mappedBy = "parent")
 		private Child child;
 
-		@OneToOne
-		private Child child2;
-
 		Parent() {
 
-		}AssociationKey
+		}
 
 		Parent(Integer id) {
 			this.id = id;
@@ -181,12 +178,42 @@ public class EntityWithBidirectionalOneToOneTest extends BaseCoreFunctionalTestC
 		} );
 	}
 
+	@Override
+	protected boolean isCleanupTestDataRequired() {
+		return false;
+	}
+
 	@Test
 	public void testGetChild() {
 		doInHibernate(
 				this::sessionFactory,
 				session -> {
 					final Child child = session.get( Child.class, 2 );
+					/*
+					select
+						entitywith0_.id as id1_0_0_,
+						entitywith0_.name as name2_0_0_,
+						entitywith0_.parent_id as parent_i3_0_0_,
+						entitywith1_.id as id1_1_1_,
+						entitywith1_.description as descript2_1_1_
+					from
+						Child entitywith0_
+					left outer join
+						Parent entitywith1_
+							on entitywith0_.parent_id=entitywith1_.id
+					where
+						entitywith0_.id=?
+					 */
+				}
+		);
+	}
+
+	@Test
+	public void testGetParent(){
+		doInHibernate(
+				this::sessionFactory,
+				session -> {
+					session.get( Parent.class, 1 );
 				}
 		);
 	}
