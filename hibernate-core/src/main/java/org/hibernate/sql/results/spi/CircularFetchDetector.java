@@ -23,13 +23,8 @@ import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
  * @author Steve Ebersole
  */
 public class CircularFetchDetector {
-	private Map<NavigablePath, Fetch> navigablePathFetchMap;
 
 	public Fetch findBiDirectionalFetch(FetchParent fetchParent, Fetchable fetchable) {
-		if ( navigablePathFetchMap == null ) {
-			return null;
-		}
-
 		// bi-directional references are a special case that need special treatment.
 		//
 		// `p.address.resident.homeAddress
@@ -43,11 +38,10 @@ public class CircularFetchDetector {
 		// see if we have such a case...
 
 		final NavigablePath parentParentPath = fetchParent.getNavigablePath().getParent();
-
-		final NavigableRole fetchableNavigableRole = fetchable.getNavigableRole();
-		final String fetchableNavName = fetchableNavigableRole.getNavigableName();
-
 		if ( parentParentPath != null ) {
+			boolean isCircular = fetchable.isCircular( fetchParent );
+			final NavigableRole fetchableNavigableRole = fetchable.getNavigableRole();
+			final String fetchableNavName = fetchableNavigableRole.getNavigableName();
 			// NOTE : pointing back to the root is a special special case :)
 			//		it requires type checking to detect
 
@@ -77,22 +71,11 @@ public class CircularFetchDetector {
 						fetchableNavigablePath
 				);
 
-				addFetch( biDirectionalFetch );
-
 				return biDirectionalFetch;
 			}
-		}
-
-		if ( parentParentPath != null && parentParentPath.getLocalName().equals( fetchableNavName ) ) {
 		}
 
 		return null;
 	}
 
-	public void addFetch(Fetch fetch) {
-		if ( navigablePathFetchMap == null ) {
-			navigablePathFetchMap = new HashMap<>();
-		}
-		navigablePathFetchMap.put( fetch.getNavigablePath(), fetch );
-	}
 }

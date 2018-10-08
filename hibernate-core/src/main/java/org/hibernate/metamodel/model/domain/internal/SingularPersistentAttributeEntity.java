@@ -135,6 +135,7 @@ public class SingularPersistentAttributeEntity<O, J>
 	private StateArrayContributor referencedUkAttribute;
 	private SingleEntityLoader singleEntityLoader;
 	private ForeignKey foreignKey;
+	private String mappedBy;
 
 	public SingularPersistentAttributeEntity(
 			ManagedTypeDescriptor<O> runtimeModelContainer,
@@ -146,6 +147,7 @@ public class SingularPersistentAttributeEntity<O, J>
 		super( runtimeModelContainer, bootModelAttribute, propertyAccess, disposition );
 		this.classification = classification;
 		this.navigableRole = runtimeModelContainer.getNavigableRole().append( bootModelAttribute.getName() );
+		this.mappedBy = bootModelAttribute.getMappedBy();
 
 		final ToOne valueMapping = (ToOne) bootModelAttribute.getValueMapping();
 		referencedUkAttributeName = valueMapping.getReferencedPropertyName();
@@ -207,6 +209,16 @@ public class SingularPersistentAttributeEntity<O, J>
 				runtimeModelContainer,
 				entityDescriptor
 		);
+	}
+
+	@Override
+	public boolean isCircular(FetchParent fetchParent) {
+		String fullPath = fetchParent.getNavigableContainer().getNavigableRole().getFullPath();
+		fullPath = fullPath + "." + getNavigableName();
+		if(mappedBy != null && mappedBy.equals( fetchParent.getNavigablePath().getLocalName()) && fetchParent.getNavigableContainer().getNavigableRole().getParent().getNavigableName().equals( getEntityDescriptor().getNavigableName()  )){
+			return true;
+		}
+		return false;
 	}
 
 	@Override
