@@ -4,19 +4,24 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later
  * See the lgpl.txt file in the root directory or http://www.gnu.org/licenses/lgpl-2.1.html
  */
-package org.hibernate.orm.test.crud;
+package org.hibernate.orm.test.crud.manytoone;
 
 import java.util.List;
 
+import org.hibernate.Hibernate;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.orm.test.SessionFactoryBasedFunctionalTest;
 import org.hibernate.orm.test.support.domains.gambit.EntityWithManyToOneSelfReference;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author Steve Ebersole
@@ -33,9 +38,8 @@ public class EntityWithManyToOneSelfReferenceCrudTest extends SessionFactoryBase
 		return true;
 	}
 
-	@Test
-	public void testGetEntity() {
-
+	@BeforeEach
+	public void setUp() {
 		final EntityWithManyToOneSelfReference entity1 = new EntityWithManyToOneSelfReference(
 				1,
 				"first",
@@ -53,7 +57,17 @@ public class EntityWithManyToOneSelfReferenceCrudTest extends SessionFactoryBase
 			session.save( entity1 );
 			session.save( entity2 );
 		} );
+	}
 
+	@AfterEach
+	public void tearDown() {
+		sessionFactoryScope().inTransaction( session -> {
+			session.createQuery( "delete from EntityWithManyToOneSelfReference" ).executeUpdate();
+		} );
+	}
+
+	@Test
+	public void testGetEntity() {
 		sessionFactoryScope().inTransaction(
 				session -> {
 					final EntityWithManyToOneSelfReference loaded = session.get(
@@ -63,21 +77,29 @@ public class EntityWithManyToOneSelfReferenceCrudTest extends SessionFactoryBase
 					assert loaded != null;
 					assertThat( loaded.getName(), equalTo( "second" ) );
 					assert loaded.getOther() != null;
+					assertTrue(
+							"The ManyToOne association has not been initialized",
+							Hibernate.isInitialized( loaded.getOther() )
+					);
 					assertThat( loaded.getOther().getName(), equalTo( "first" ) );
 				}
 		);
 
-		sessionFactoryScope().inTransaction(
-				session -> {
-					final EntityWithManyToOneSelfReference loaded = session.get(
-							EntityWithManyToOneSelfReference.class,
-							1
-					);
-					assert loaded != null;
-					assertThat( loaded.getName(), equalTo( "first" ) );
-					assertThat( loaded.getOther(), nullValue() );
-				}
-		);
+//		sessionFactoryScope().inTransaction(
+//				session -> {
+//					final EntityWithManyToOneSelfReference loaded = session.get(
+//							EntityWithManyToOneSelfReference.class,
+//							1
+//					);
+//					assert loaded != null;
+//					assertThat( loaded.getName(), equalTo( "first" ) );
+//					assertThat( loaded.getOther(), nullValue() );
+//				}
+//		);
+	}
+
+	@Test
+	public void testByMultipleIds() {
 
 		sessionFactoryScope().inTransaction(
 				session -> {
@@ -104,6 +126,10 @@ public class EntityWithManyToOneSelfReferenceCrudTest extends SessionFactoryBase
 					assertThat( loaded.getOther().getName(), equalTo( "first" ) );
 				}
 		);
+	}
+
+	@Test
+	public void testHqlQueries() {
 
 		// todo (6.0) : the restriction here uses the wrong table alias...
 		sessionFactoryScope().inTransaction(

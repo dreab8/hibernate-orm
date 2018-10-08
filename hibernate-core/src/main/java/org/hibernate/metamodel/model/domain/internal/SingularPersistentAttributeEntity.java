@@ -48,6 +48,7 @@ import org.hibernate.metamodel.model.domain.spi.Helper;
 import org.hibernate.metamodel.model.domain.spi.JoinablePersistentAttribute;
 import org.hibernate.metamodel.model.domain.spi.ManagedTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.Navigable;
+import org.hibernate.metamodel.model.domain.spi.NavigableContainer;
 import org.hibernate.metamodel.model.domain.spi.NavigableVisitationStrategy;
 import org.hibernate.metamodel.model.domain.spi.NonIdPersistentAttribute;
 import org.hibernate.metamodel.model.domain.spi.StateArrayContributor;
@@ -97,6 +98,7 @@ import org.hibernate.sql.results.internal.domain.entity.ImmediateUkEntityFetch;
 import org.hibernate.sql.results.spi.DomainResult;
 import org.hibernate.sql.results.spi.DomainResultCreationContext;
 import org.hibernate.sql.results.spi.DomainResultCreationState;
+import org.hibernate.sql.results.spi.EntityFetch;
 import org.hibernate.sql.results.spi.Fetch;
 import org.hibernate.sql.results.spi.FetchParent;
 import org.hibernate.sql.results.spi.SqlSelection;
@@ -135,6 +137,7 @@ public class SingularPersistentAttributeEntity<O, J>
 	private StateArrayContributor referencedUkAttribute;
 	private SingleEntityLoader singleEntityLoader;
 	private ForeignKey foreignKey;
+	private String mappedBy;
 
 	public SingularPersistentAttributeEntity(
 			ManagedTypeDescriptor<O> runtimeModelContainer,
@@ -146,6 +149,7 @@ public class SingularPersistentAttributeEntity<O, J>
 		super( runtimeModelContainer, bootModelAttribute, propertyAccess, disposition );
 		this.classification = classification;
 		this.navigableRole = runtimeModelContainer.getNavigableRole().append( bootModelAttribute.getName() );
+		this.mappedBy = bootModelAttribute.getMappedBy();
 
 		final ToOne valueMapping = (ToOne) bootModelAttribute.getValueMapping();
 		referencedUkAttributeName = valueMapping.getReferencedPropertyName();
@@ -207,6 +211,77 @@ public class SingularPersistentAttributeEntity<O, J>
 				runtimeModelContainer,
 				entityDescriptor
 		);
+	}
+
+	@Override
+	public boolean isCircular(FetchParent fetchParent, Fetchable fetchable) {
+		final NavigableContainer parentNavigableContainer = fetchParent.getNavigableContainer();
+		if ( parentNavigableContainer != null ) {
+			if ( fetchParent.getNavigablePath().getFullPath().equals( fetchable.getNavigableRole().getFullPath() ) ) {
+				/*
+					@Entity
+					public class TestEntity{
+						...
+						@ManyToOne
+						private TestEntity other;
+						...
+					}
+
+					This detect the circularity of Entity.other.other
+				 */
+				return true;
+			}
+			NavigableRole parentParentNavigableRole = parentNavigableContainer.getNavigableRole().getParent();
+			if ( parentParentNavigableRole != null &&
+					parentParentNavigableRole.getNavigableName().equals( getEntityDescriptor().getNavigableName() ) ) {
+				/*
+				Given the following mapping :
+
+				@Entity
+				public class Parent {
+					...
+					@OneToOne(mappedBy = "parent")
+					private Child child;
+					@OneToOne(mappedBy = "parent")
+					private Child2 child2;
+					...
+				}
+				@Entity
+				public static class Child {
+					...
+					@OneToOne
+					private Parent parent;
+					...
+				}
+				@Entity
+				public static class Child2 {
+					...
+					@OneToOne
+					private Parent parent;
+					...
+				}
+				when Session.get(Child.class,...) is executed
+				we have to distinguish between:
+					- Child.parent.child
+					- Child.parent.child2
+				In both cases mappedBy is null and getNavigableName() is equal to parentMappedBy but only the first case has a circular association.
+				To distinguish the 2 situations we have to check that parentParentNavigableRole.getNavigableName() is equal to getEntityDescriptor().getNavigableName()
+				 */
+				if ( mappedBy != null && mappedBy.equals( fetchParent.getNavigablePath().getLocalName() ) ) {
+					return true;
+				}
+				String parentMappedBy = ( (EntityFetch) fetchParent ).getEntityValuedNavigable().getMappedBy();
+				if ( mappedBy == null && getNavigableName().equals( parentMappedBy ) ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public String getMappedBy() {
+		return mappedBy;
 	}
 
 	@Override

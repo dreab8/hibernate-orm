@@ -6,8 +6,6 @@
  */
 package org.hibernate.sql.results.spi;
 
-import org.hibernate.metamodel.model.domain.NavigableRole;
-import org.hibernate.metamodel.model.domain.spi.Navigable;
 import org.hibernate.query.NavigablePath;
 import org.hibernate.sql.ast.produce.metamodel.spi.Fetchable;
 import org.hibernate.sql.results.internal.BiDirectionalFetchImpl;
@@ -34,45 +32,38 @@ public class CircularFetchDetector {
 		// see if we have such a case...
 
 		final NavigablePath parentParentPath = fetchParent.getNavigablePath().getParent();
-
-		final NavigableRole fetchableNavigableRole = fetchable.getNavigableRole();
-		final String fetchableNavName = fetchableNavigableRole.getNavigableName();
-
 		if ( parentParentPath != null ) {
-			// NOTE : pointing back to the root is a special special case :)
-			//		it requires type checking to detect
-			if ( fetchParent instanceof Fetch ) {
+			boolean isCircular = fetchable.isCircular( fetchParent, fetchable );
+			if ( isCircular ) {
 				final FetchParent parentFetchParent = ( (Fetch) fetchParent ).getFetchParent();
-				final Navigable parentParentNavigable = parentFetchParent.getNavigableContainer();
 
-				if ( parentParentNavigable == fetchable ) {
-					// we do...
-					//
-					// in other words, the `Fetchable`'s `NavigablePath`, relative to its FetchParent here would
-					// be:
-					// 		a.parent.child.parent
-					//
-					// it's parentPath is `a.parent.child` so its parentParentPath is `a.parent`.  so this Fetchable's
-					// path is really the same reference as its parentParentPath.  This is a special case, handled here...
+				// we do...
+				//
+				// in other words, the `Fetchable`'s `NavigablePath`, relative to its FetchParent here would
+				// be:
+				// 		a.parent.child.parent
+				//
+				// it's parentPath is `a.parent.child` so its parentParentPath is `a.parent`.  so this Fetchable's
+				// path is really the same reference as its parentParentPath.  This is a special case, handled here...
 
-					// first, this *should* mean we have already "seen" the Fetch generated parentParentPath.  So
-					// look up in the `navigablePathFetchMap` to get that Fetch
+				// first, this *should* mean we have already "seen" the Fetch generated parentParentPath.  So
+				// look up in the `navigablePathFetchMap` to get that Fetch
 
-					// and use it to create and register the "bi directional" form
+				// and use it to create and register the "bi directional" form
 
-					final NavigablePath fetchableNavigablePath = fetchParent.getNavigablePath()
-							.append( fetchableNavName );
+				final NavigablePath fetchableNavigablePath = fetchParent.getNavigablePath()
+						.append( fetchable.getNavigableRole().getNavigableName() );
 
-					final Fetch biDirectionalFetch = new BiDirectionalFetchImpl(
-							(Fetch) parentFetchParent,
-							fetchableNavigablePath
-					);
+				final Fetch biDirectionalFetch = new BiDirectionalFetchImpl(
+						parentFetchParent,
+						fetchableNavigablePath
+				);
 
-					return biDirectionalFetch;
-				}
+				return biDirectionalFetch;
 			}
 		}
 
 		return null;
 	}
+
 }

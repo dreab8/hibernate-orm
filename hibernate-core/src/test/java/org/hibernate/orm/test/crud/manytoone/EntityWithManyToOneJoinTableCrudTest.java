@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later
  * See the lgpl.txt file in the root directory or http://www.gnu.org/licenses/lgpl-2.1.html
  */
-package org.hibernate.orm.test.crud;
+package org.hibernate.orm.test.crud.manytoone;
 
 import java.util.Calendar;
 
@@ -13,6 +13,8 @@ import org.hibernate.orm.test.SessionFactoryBasedFunctionalTest;
 import org.hibernate.orm.test.support.domains.gambit.EntityWithManyToOneJoinTable;
 import org.hibernate.orm.test.support.domains.gambit.SimpleEntity;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -35,8 +37,8 @@ public class EntityWithManyToOneJoinTableCrudTest extends SessionFactoryBasedFun
 		return true;
 	}
 
-	@Test
-	public void testOperations() {
+	@BeforeEach
+	public void setUp() {
 		EntityWithManyToOneJoinTable entity = new EntityWithManyToOneJoinTable( 1, "first", Integer.MAX_VALUE );
 
 		SimpleEntity other = new SimpleEntity(
@@ -50,8 +52,22 @@ public class EntityWithManyToOneJoinTableCrudTest extends SessionFactoryBasedFun
 
 		entity.setOther( other );
 
-		sessionFactoryScope().inTransaction( session -> session.save( other ) );
-		sessionFactoryScope().inTransaction( session -> session.save( entity ) );
+		sessionFactoryScope().inTransaction( session -> {
+			session.save( other );
+			session.save( entity );
+		} );
+	}
+
+	@AfterEach
+	public void tearDown() {
+		sessionFactoryScope().inTransaction( session -> {
+			session.createQuery( "delete from EntityWithManyToOneJoinTable" ).executeUpdate();
+			session.createQuery( "delete from SimpleEntity" ).executeUpdate();
+		} );
+	}
+
+	@Test
+	public void testGetEntityWithManyToOneJoinTable() {
 
 		sessionFactoryScope().inTransaction(
 				session -> {
@@ -62,6 +78,10 @@ public class EntityWithManyToOneJoinTableCrudTest extends SessionFactoryBasedFun
 					assertThat( loaded.getOther().getId(), equalTo( 2 ) );
 				}
 		);
+	}
+
+	@Test
+	public void testGetSimpleEntity() {
 
 		sessionFactoryScope().inTransaction(
 				session -> {
@@ -71,6 +91,10 @@ public class EntityWithManyToOneJoinTableCrudTest extends SessionFactoryBasedFun
 				}
 		);
 
+	}
+
+	@Test
+	public void testSelectAtributeNameFromEntityWithManyToOneJoinTable() {
 		sessionFactoryScope().inTransaction(
 				session -> {
 					final String value = session.createQuery(
@@ -80,7 +104,5 @@ public class EntityWithManyToOneJoinTableCrudTest extends SessionFactoryBasedFun
 					assertThat( value, equalTo( "first" ) );
 				}
 		);
-
-
 	}
 }

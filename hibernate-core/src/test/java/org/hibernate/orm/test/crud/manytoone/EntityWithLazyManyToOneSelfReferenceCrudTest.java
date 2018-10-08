@@ -4,10 +4,11 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later
  * See the lgpl.txt file in the root directory or http://www.gnu.org/licenses/lgpl-2.1.html
  */
-package org.hibernate.orm.test.crud;
+package org.hibernate.orm.test.crud.manytoone;
 
 import java.util.List;
 
+import org.hibernate.Hibernate;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.orm.test.SessionFactoryBasedFunctionalTest;
 import org.hibernate.orm.test.support.domains.gambit.EntityWithLazyManyToOneSelfReference;
@@ -18,6 +19,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Andrea Boriero
@@ -78,6 +81,10 @@ public class EntityWithLazyManyToOneSelfReferenceCrudTest extends SessionFactory
 					);
 					assert loaded != null;
 					assertThat( loaded.getName(), equalTo( "first" ) );
+					assertFalse(
+							"The ManyToOne association should not be initialized",
+							Hibernate.isInitialized( loaded.getOther() )
+					);
 				}
 		);
 
