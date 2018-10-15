@@ -20,16 +20,15 @@ import java.util.Map;
  * @author Chris Cranford
  */
 public class EntityOfDynamicComponent {
-	private Integer id;
+	private Long id;
 	private String note;
-	private Map values = new HashMap<>();
 	private Map valuesWithProperties = new HashMap<>();
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
@@ -39,14 +38,6 @@ public class EntityOfDynamicComponent {
 
 	public void setNote(String note) {
 		this.note = note;
-	}
-
-	public Map getValues() {
-		return values;
-	}
-
-	public void setValues(Map values) {
-		this.values = values;
 	}
 
 	public Map getValuesWithProperties() {
@@ -62,7 +53,6 @@ public class EntityOfDynamicComponent {
 		return "EntityOfDynamicComponent{" +
 				"id=" + id +
 				", note='" + note + '\'' +
-				", values=" + values +
 				", valuesWithProperties=" + valuesWithProperties +
 				'}';
 	}

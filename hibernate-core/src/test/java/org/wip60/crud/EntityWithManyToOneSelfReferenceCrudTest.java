@@ -49,10 +49,17 @@ public class EntityWithManyToOneSelfReferenceCrudTest extends BaseCoreFunctional
 				Integer.MAX_VALUE,
 				entity1
 		);
+		final EntityWithManyToOneSelfReference entity3 = new EntityWithManyToOneSelfReference(
+				3,
+				"third",
+				Integer.MAX_VALUE,
+				entity2
+		);
 
 		doInHibernate( this::sessionFactory, session -> {
 			session.save( entity1 );
 			session.save( entity2 );
+			session.save( entity3 );
 		} );
 	}
 
