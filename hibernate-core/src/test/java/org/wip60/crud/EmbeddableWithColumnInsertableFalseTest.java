@@ -12,6 +12,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -29,22 +31,34 @@ public class EmbeddableWithColumnInsertableFalseTest extends BaseCoreFunctionalT
 		return new Class[] { Person.class };
 	}
 
-
-	@Test
-	public void testSavingAndUpdating() {
+	@Before
+	public void setUp() {
 		doInHibernate( this::sessionFactory, session -> {
 			Name name = new Name( "Fabiana", "Fab" );
 			Person person = new Person( 1, name, 33 );
 			session.save( person );
 		} );
+	}
 
+	@After
+	public void tearDown() {
+		doInHibernate( this::sessionFactory, session -> {
+			session.createQuery( "delete from Person" ).executeUpdate();
+		} );
+	}
+
+	@Test
+	public void testSaving() {
 		doInHibernate( this::sessionFactory, session -> {
 
 			Person person = session.get( Person.class, 1 );
 			assertThat( person.name.secondName, nullValue() );
 			assertThat( person.name.firstName, is( "Fabiana" ) );
 		} );
+	}
 
+	@Test
+	public void testUpdating() {
 		doInHibernate( this::sessionFactory, session -> {
 			Person person = session.get( Person.class, 1 );
 			person.setAge( 34 );
@@ -59,7 +73,7 @@ public class EmbeddableWithColumnInsertableFalseTest extends BaseCoreFunctionalT
 		} );
 	}
 
-	@Entity
+	@Entity(name = "Person")
 	public static class Person {
 		@Id
 		private Integer id;

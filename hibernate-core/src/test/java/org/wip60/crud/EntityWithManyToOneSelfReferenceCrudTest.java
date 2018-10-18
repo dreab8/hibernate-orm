@@ -22,6 +22,8 @@ import org.junit.Test;
 import org.wip60.gambit.EntityWithManyToOneSelfReference;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hibernate.testing.transaction.TransactionUtil.doInHibernate;
 
@@ -70,77 +72,71 @@ public class EntityWithManyToOneSelfReferenceCrudTest extends BaseCoreFunctional
 
 	@Test
 	public void testGetEntityWithTheAssociation() {
-
-
 		doInHibernate( this::sessionFactory, session -> {
 						   final EntityWithManyToOneSelfReference loaded = session.get(
 								   EntityWithManyToOneSelfReference.class,
 								   2
 						   );
-						   assert loaded != null;
+						   assertThat( loaded, notNullValue() );
 						   assertThat( loaded.getName(), equalTo( "second" ) );
+						   assertThat( loaded.getOther(), notNullValue() );
+						   assertThat( loaded.getOther().getName(), equalTo( "first" ) );
 					   }
 		);
 	}
 
 	@Test
-	public void testGetEntityWithutTheAssociatio() {
-
+	public void testGetEntityWithNoAssociation() {
 		doInHibernate( this::sessionFactory, session -> {
 						   final EntityWithManyToOneSelfReference loaded = session.get(
 								   EntityWithManyToOneSelfReference.class,
 								   1
 						   );
-						   assert loaded != null;
+						   assertThat( loaded, notNullValue() );
+						   assertThat( loaded.getName(), equalTo( "first" ) );
+						   assertThat( loaded.getOther(), nullValue() );
+					   }
+		);
+	}
+
+	@Test
+	public void testByMultipleIds() {
+		doInHibernate( this::sessionFactory, session -> {
+						   final List<EntityWithManyToOneSelfReference> list = session.byMultipleIds(
+								   EntityWithManyToOneSelfReference.class )
+								   .multiLoad( 1, 3 );
+						   assert list.size() != 0;
+						   final EntityWithManyToOneSelfReference loaded = list.get( 0 );
+						   assertThat( loaded, notNullValue() );
 						   assertThat( loaded.getName(), equalTo( "first" ) );
 					   }
 		);
-//
-//		doInHibernate( this::sessionFactory, session -> {
-//						   final EntityWithManyToOneSelfReference loaded = session.get(
-//								   EntityWithManyToOneSelfReference.class,
-//								   2
-//						   );
-//						   assert loaded != null;
-//						   assertThat( loaded.getName(), equalTo( "second" ) );
-//						   assert loaded.getOther() != null;
-//						   assertThat( loaded.getOther().getName(), equalTo( "first" ) );
-//					   }
-//		);
-//
-//		doInHibernate( this::sessionFactory, session -> {
-//						   final List<EntityWithManyToOneSelfReference> list = session.byMultipleIds(
-//								   EntityWithManyToOneSelfReference.class )
-//								   .multiLoad( 1, 3 );
-//						   assert list.size() != 0;
-//						   final EntityWithManyToOneSelfReference loaded = list.get( 0 );
-//						   assert loaded != null;
-//						   assertThat( loaded.getName(), equalTo( "first" ) );
-//					   }
-//		);
-//
-//		doInHibernate( this::sessionFactory, session -> {
-//						   final List<EntityWithManyToOneSelfReference> list = session.byMultipleIds(
-//								   EntityWithManyToOneSelfReference.class )
-//								   .multiLoad( 2, 3 );
-//						   assert list.size() != 0;
-//						   final EntityWithManyToOneSelfReference loaded = list.get( 0 );
-//						   assert loaded != null;
-//						   assertThat( loaded.getName(), equalTo( "second" ) );
-//						   assert loaded.getOther() != null;
-//						   assertThat( loaded.getOther().getName(), equalTo( "first" ) );
-//					   }
-//		);
-//
-//		// todo (6.0) : the restriction here uses the wrong table alias...
-//		doInHibernate( this::sessionFactory, session -> {
-//						   final String value = session.createQuery(
-//								   "select e.name from EntityWithManyToOneSelfReference e where e.other.name = 'first'",
-//								   String.class
-//						   ).uniqueResult();
-//						   assertThat( value, equalTo( "second" ) );
-//					   }
-//		);
+
+		doInHibernate( this::sessionFactory, session -> {
+						   final List<EntityWithManyToOneSelfReference> list = session.byMultipleIds(
+								   EntityWithManyToOneSelfReference.class )
+								   .multiLoad( 2, 3 );
+						   assert list.size() != 0;
+						   final EntityWithManyToOneSelfReference loaded = list.get( 0 );
+						   assertThat( loaded, notNullValue() );
+						   assertThat( loaded.getName(), equalTo( "second" ) );
+						   assertThat( loaded.getOther(), notNullValue() );
+						   assertThat( loaded.getOther().getName(), equalTo( "first" ) );
+					   }
+		);
+	}
+
+	@Test
+	public void testHqlSelect() {
+		// todo (6.0) : the restriction here uses the wrong table alias...
+		doInHibernate( this::sessionFactory, session -> {
+						   final String value = session.createQuery(
+								   "select e.name from EntityWithManyToOneSelfReference e where e.other.name = 'first'",
+								   String.class
+						   ).uniqueResult();
+						   assertThat( value, equalTo( "second" ) );
+					   }
+		);
 	}
 
 }

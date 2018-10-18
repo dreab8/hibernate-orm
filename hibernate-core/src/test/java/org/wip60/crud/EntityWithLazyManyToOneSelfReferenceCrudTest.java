@@ -72,7 +72,7 @@ public class EntityWithLazyManyToOneSelfReferenceCrudTest extends BaseCoreFuncti
 	}
 
 	@Test
-	public void testGet() {
+	public void testGetEntityWithNoAssociation() {
 		doInHibernate( this::sessionFactory, session -> {
 						   final EntityWithLazyManyToOneSelfReference loaded = session.get(
 								   EntityWithLazyManyToOneSelfReference.class,
@@ -83,7 +83,10 @@ public class EntityWithLazyManyToOneSelfReferenceCrudTest extends BaseCoreFuncti
 						   assertThat( loaded.getOther(), nullValue() );
 					   }
 		);
+	}
 
+	@Test
+	public void testGetEntityWithTheAssociation() {
 		doInHibernate( this::sessionFactory, session -> {
 						   final EntityWithLazyManyToOneSelfReference loaded = session.get(
 								   EntityWithLazyManyToOneSelfReference.class,
@@ -95,7 +98,6 @@ public class EntityWithLazyManyToOneSelfReferenceCrudTest extends BaseCoreFuncti
 						   assertThat( loaded.getOther().getName(), equalTo( "first" ) );
 					   }
 		);
-
 	}
 
 	@Test
