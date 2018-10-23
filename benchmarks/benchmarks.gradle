@@ -1,0 +1,76 @@
+buildscript {
+	repositories {
+		mavenCentral()
+		mavenLocal()
+
+		maven {
+			url 'https://plugins.gradle.org/m2/'
+		}
+		jcenter()
+	}
+	dependencies {
+		classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.7'
+	}
+}
+
+plugins {
+	id 'java'
+}
+
+apply from: rootProject.file( 'gradle/libraries.gradle' )
+apply from: rootProject.file( 'gradle/base-information.gradle' )
+
+
+group 'org.dreab8'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+apply plugin: 'me.champeau.gradle.jmh'
+
+repositories {
+	mavenCentral()
+}
+
+def defaultOrm5Version = '5.3.7.Final'
+def orm6Version = ormVersion.fullName
+
+def useOrm5 = project.hasProperty( 'orm5' ) ? true : false
+
+def hibernateVersion = orm6Version
+if ( useOrm5 ) {
+	hibernateVersion = project.getProperty( 'orm5' )
+	if(hibernateVersion.equals('')){
+		hibernateVersion = defaultOrm5Version
+	}
+}
+
+dependencies {
+	if ( useOrm5 ) {
+		compile group: 'org.hibernate', name: 'hibernate-core', version: hibernateVersion
+		compile group: 'org.hibernate', name: 'hibernate-testing', version: hibernateVersion
+	}
+	else {
+		compile( project( ':hibernate-core' ) )
+		compile( project( ':hibernate-testing' ) )
+	}
+	compile group: 'javax.persistence', name: 'javax.persistence-api', version: '2.2'
+	testCompile group: 'junit', name: 'junit', version: '4.12'
+	compile group: "com.h2database", name: "h2", version: "1.4.181"
+	compile libraries.logging
+	runtime libraries.jta
+	runtime libraries.dom4j
+	runtime libraries.classmate
+	runtime libraries.byteBuddy
+	runtime libraries.commons_annotations
+}
+
+def formattedDate = new Date().format( 'yyyy-MM-dd-HH:mm:ss' )
+
+jmh {
+	iterations = 5 //default 10
+	fork = 2 //default 10
+	humanOutputFile = project.file( "reports/jmh/_v${hibernateVersion}-human_${formattedDate}.txt" ) //human-readable output file
+	resultsFile = project.file( "reports/jmh/_v${hibernateVersion}-results_${formattedDate}.txt" ) //results file
+	jmhVersion = '1.21'
+}

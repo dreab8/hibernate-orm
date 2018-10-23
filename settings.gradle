@@ -16,6 +16,8 @@ include 'hibernate-envers'
 
 include 'hibernate-java8'
 
+include 'benchmarks'
+
 //include 'hibernate-osgi'
 
 //include 'hibernate-c3p0'
