@@ -40,8 +40,10 @@ public abstract class AbstractBatchImpl implements Batch {
 	private final SqlStatementLogger sqlStatementLogger;
 	private final SqlExceptionHelper sqlExceptionHelper;
 
-	private LinkedHashMap<String,PreparedStatement> statements = new LinkedHashMap<String,PreparedStatement>();
-	private LinkedHashSet<BatchObserver> observers = new LinkedHashSet<BatchObserver>();
+	private LinkedHashMap<String, PreparedStatement> statements = new LinkedHashMap<>();
+	private LinkedHashSet<BatchObserver> observers = new LinkedHashSet<>();
+
+	private boolean releaseStatementsProcessInProgress;
 
 	protected AbstractBatchImpl(BatchKey key, JdbcCoordinator jdbcCoordinator) {
 		if ( key == null ) {
@@ -152,12 +154,18 @@ public abstract class AbstractBatchImpl implements Batch {
 	}
 
 	protected void releaseStatements() {
-		for ( PreparedStatement statement : getStatements().values() ) {
-			clearBatch( statement );
-			jdbcCoordinator.getResourceRegistry().release( statement );
-			jdbcCoordinator.afterStatementExecution();
+		releaseStatementsProcessInProgress = true;
+		try {
+			for ( PreparedStatement statement : getStatements().values() ) {
+				clearBatch( statement );
+				jdbcCoordinator.getResourceRegistry().release( statement );
+				jdbcCoordinator.afterStatementExecution();
+			}
 		}
-		getStatements().clear();
+		finally {
+			getStatements().clear();
+			releaseStatementsProcessInProgress = false;
+		}
 	}
 
 	protected void clearBatch(PreparedStatement statement) {
@@ -192,7 +200,9 @@ public abstract class AbstractBatchImpl implements Batch {
 		if ( getStatements() != null && !getStatements().isEmpty() ) {
 			LOG.batchContainedStatementsOnRelease();
 		}
-		releaseStatements();
+		if ( !releaseStatementsProcessInProgress ) {
+			releaseStatements();
+		}
 		observers.clear();
 	}
 }
