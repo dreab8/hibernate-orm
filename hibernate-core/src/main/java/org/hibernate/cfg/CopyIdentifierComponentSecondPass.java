@@ -173,6 +173,7 @@ public class CopyIdentifierComponentSecondPass implements SecondPass {
 		final BasicValue referencedValue = (BasicValue) referencedProperty.getValueMapping();
 		value.setExplicitTypeName( referencedValue.getTypeName() );
 		value.setTypeParameters( referencedValue.getTypeParameters() );
+		value.setJavaTypeDescriptor( referencedValue.getExplicitJavaTypeDescriptor() );
 		final List<MappedColumn> mappedColumns = referencedValue.getMappedColumns();
 		if ( joinColumns[0].isNameDeferred() ) {
 			joinColumns[0].copyReferencedStructureAndCreateDefaultJoinColumns(
@@ -184,35 +185,34 @@ public class CopyIdentifierComponentSecondPass implements SecondPass {
 			mappedColumns.forEach(
 					selectable -> {//FIXME take care of Formula
 
-				if (  Column.class.isInstance( selectable ) ) {
-
-				final Column column = (Column) selectable;
-				final Ejb3JoinColumn joinColumn;
-				String logicalColumnName = null;
-				if ( isExplicitReference ) {
-					final String columnName = column.getText(
-					);
-					//JPA 2 requires referencedColumnNames to be case insensitive
-					joinColumn = columnByReferencedName.get( columnName.toLowerCase(Locale.ROOT ) );
-				}
-				else {
-					joinColumn = columnByReferencedName.get( "" + index.get() );
-					index.getAndIncrement();
-				}
-				if ( joinColumn == null && ! joinColumns[0].isNameDeferred() ) {
-					throw new AnnotationException(
-							isExplicitReference ?
-									"Unable to find column reference in the @MapsId mapping: " + logicalColumnName :
-									"Implicit column reference in the @MapsId mapping fails, try to use explicit referenceColumnNames: " + referencedEntityName
-					);
-				}
-				final String columnName = joinColumn == null || joinColumn.isNameDeferred() ? "tata_" + column.getName() : joinColumn
-						.getName();
-				value.addColumn( new Column( columnName, false ) );
-				if ( joinColumn != null ) {
-					applyComponentColumnSizeValueToJoinColumn( column, joinColumn );joinColumn.linkWithValue( value );
-				}
-				if ( value.getMappedTable() != null ) {column.setTableName( value .getMappedTable().getNameIdentifier() );
+						if ( Column.class.isInstance( selectable ) ) {
+							final Column column = (Column) selectable;
+							final Ejb3JoinColumn joinColumn;
+							String logicalColumnName = null;
+							if ( isExplicitReference ) {
+								final String columnName = column.getText();
+								//JPA 2 requires referencedColumnNames to be case insensitive
+								joinColumn = columnByReferencedName.get( columnName.toLowerCase( Locale.ROOT ) );
+							}
+							else {
+								joinColumn = columnByReferencedName.get( "" + index.get() );
+								index.getAndIncrement();
+							}
+							if ( joinColumn == null && !joinColumns[0].isNameDeferred() ) {
+								throw new AnnotationException(
+										isExplicitReference ?
+												"Unable to find column reference in the @MapsId mapping: " + logicalColumnName :
+												"Implicit column reference in the @MapsId mapping fails, try to use explicit referenceColumnNames: " + referencedEntityName
+								);
+							}
+							final String columnName = joinColumn == null
+									|| joinColumn.isNameDeferred() ? "tata_" + column.getName() : joinColumn.getName();
+							Column valueColumn = new Column( columnName, false );
+							valueColumn.setTableName( value.getMappedTable().getNameIdentifier() );
+							value.addColumn( valueColumn );
+							if ( joinColumn != null ) {
+								applyComponentColumnSizeValueToJoinColumn( column, joinColumn );
+								joinColumn.linkWithValue( value );
 							}
 						}
 						else {

@@ -370,6 +370,7 @@ public class BinderHelper {
 		//build the list of column names
 		for (Ejb3JoinColumn column1 : columns) {
 			Column column = new Column( column1.getReferencedColumn(), false );
+			column.setTableName( column1.getMappedTable().getNameIdentifier());
 			orderedColumns.add( column );
 			columnsToProperty.put( column, new HashSet<>() );
 		}
@@ -381,7 +382,7 @@ public class BinderHelper {
 			matchColumnsByProperty( (Property) it.next(), columnsToProperty );
 		}
 		if ( isPersistentClass ) {
-			matchColumnsByProperty( (Property) ( (PersistentClass) columnOwner ).getIdentifierAttributeMapping(), columnsToProperty );
+			matchColumnsByProperty( ((PersistentClass) columnOwner ).getIdentifierAttributeMapping(), columnsToProperty );
 		}
 
 		//first naive implementation
