@@ -207,12 +207,18 @@ public class CopyIdentifierComponentSecondPass implements SecondPass {
 							}
 							final String columnName = joinColumn == null
 									|| joinColumn.isNameDeferred() ? "tata_" + column.getName() : joinColumn.getName();
-							Column valueColumn = new Column( columnName, false );
-							valueColumn.setTableName( value.getMappedTable().getNameIdentifier() );
-							value.addColumn( valueColumn );
+
 							if ( joinColumn != null ) {
-								applyComponentColumnSizeValueToJoinColumn( column, joinColumn );
+								applyComponentColumnValuesToJoinColumn( column, joinColumn );
 								joinColumn.linkWithValue( value );
+							}
+							else {
+								Column valueColumn = new Column(
+										value.getMappedTable().getNameIdentifier(),
+										columnName,
+										false
+								);
+								value.addColumn( valueColumn );
 							}
 						}
 						else {
@@ -224,11 +230,12 @@ public class CopyIdentifierComponentSecondPass implements SecondPass {
 		return property;
 	}
 
-	private void applyComponentColumnSizeValueToJoinColumn(Column column, Ejb3JoinColumn joinColumn) {
+	private void applyComponentColumnValuesToJoinColumn(Column column, Ejb3JoinColumn joinColumn) {
 		Column mappingColumn = joinColumn.getMappingColumn();
 		mappingColumn.setLength( column.getLength() );
 		mappingColumn.setPrecision( column.getPrecision() );
 		mappingColumn.setScale( column.getScale() );
+		mappingColumn.setNullable( column.isNullable() );
 	}
 
 	public boolean dependentUpon( CopyIdentifierComponentSecondPass other ) {

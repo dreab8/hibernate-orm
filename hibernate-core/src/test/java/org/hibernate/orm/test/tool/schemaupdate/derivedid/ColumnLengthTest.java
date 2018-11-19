@@ -66,9 +66,10 @@ public class ColumnLengthTest extends BaseSchemaUnitTestCase {
 				.setFormat( false )
 				.create( EnumSet.of( TargetType.SCRIPT ) ) );
 
+		List<String> sqlScriptOutputFileLines = getSqlScriptOutputFileLines();
 		assertTrue( checkCommandIsGenerated(
-				getSqlScriptOutputFileLines(),
-				"create table DEPENDENT (name varchar(255) not null, FK1 varchar(32) not null, FK2 varchar(10) not null, primary key (FK1, FK2, name));"
+				sqlScriptOutputFileLines,
+				"create table DEPENDENT (FK1 varchar(32) not null, FK2 varchar(10) not null, name varchar(255) not null, primary key (FK1, FK2, name))"
 		) );
 
 	}
