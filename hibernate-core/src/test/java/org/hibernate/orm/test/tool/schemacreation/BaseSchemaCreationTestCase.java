@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Andrea Boriero
  */
-@RequiresDialect(dialectClass = H2Dialect.class, matchSubTypes = true)
 public class BaseSchemaCreationTestCase extends BaseSchemaUnitTestCase {
 	protected final RecordingTarget target = new RecordingTarget( getDialect() );
 
@@ -68,13 +67,13 @@ public class BaseSchemaCreationTestCase extends BaseSchemaUnitTestCase {
 		);
 	}
 
-	protected void assertThatActionIsGenerated(String action) {
+	protected void assertThatActionIsGenerated(String regex) {
 		assertTrue(
 				target.containsAction(
 						Pattern.compile(
-								action.toLowerCase() )
+								regex.toLowerCase() )
 				),
-				"The expected action has not been generated : " + action
+				"The expected regex has not been generated : " + regex
 		);
 	}
 }

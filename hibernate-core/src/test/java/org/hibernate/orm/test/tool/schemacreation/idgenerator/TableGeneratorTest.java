@@ -13,13 +13,18 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.hibernate.dialect.H2Dialect;
+import org.hibernate.orm.test.tool.schemacreation.BaseSchemaCreationTestCase;
+
+import org.hibernate.testing.junit5.RequiresDialect;
 import org.hibernate.testing.junit5.schema.SchemaScope;
 import org.hibernate.testing.junit5.schema.SchemaTest;
 
 /**
  * @author Andrea Boriero
  */
-public class TableGeneratorTest extends AbstractGenerationTest {
+@RequiresDialect(dialectClass = H2Dialect.class)
+public class TableGeneratorTest extends BaseSchemaCreationTestCase {
 	private static final int INITIAL_VALUE = 5;
 	private static final int EXPECTED_DB_INSERTED_VALUE = INITIAL_VALUE;
 

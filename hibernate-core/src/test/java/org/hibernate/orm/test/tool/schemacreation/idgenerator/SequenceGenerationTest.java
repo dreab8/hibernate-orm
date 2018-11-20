@@ -14,13 +14,18 @@ import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import org.hibernate.dialect.H2Dialect;
+import org.hibernate.orm.test.tool.schemacreation.BaseSchemaCreationTestCase;
+
+import org.hibernate.testing.junit5.RequiresDialect;
 import org.hibernate.testing.junit5.schema.SchemaScope;
 import org.hibernate.testing.junit5.schema.SchemaTest;
 
 /**
  * @author Andrea Boriero
  */
-public class SequenceGenerationTest extends AbstractGenerationTest {
+@RequiresDialect(dialectClass = H2Dialect.class)
+public class SequenceGenerationTest extends BaseSchemaCreationTestCase {
 
 	@Override
 	protected Class<?>[] getAnnotatedClasses() {
