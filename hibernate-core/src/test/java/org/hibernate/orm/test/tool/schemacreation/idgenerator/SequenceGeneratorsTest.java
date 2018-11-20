@@ -6,7 +6,6 @@
  */
 package org.hibernate.orm.test.tool.schemacreation.idgenerator;
 
-import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,16 +14,15 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.SequenceGenerators;
 import javax.persistence.Table;
 
+import org.hibernate.orm.test.tool.schemacreation.BaseSchemaCreationTestCase;
+
 import org.hibernate.testing.junit5.schema.SchemaScope;
 import org.hibernate.testing.junit5.schema.SchemaTest;
-
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author Andrea Boriero
  */
-public class SequenceGeneratorsTest extends AbstractGenerationTest {
+public class SequenceGeneratorsTest extends BaseSchemaCreationTestCase {
 
 	@Override
 	protected Class<?>[] getAnnotatedClasses() {
@@ -33,18 +31,9 @@ public class SequenceGeneratorsTest extends AbstractGenerationTest {
 
 	@SchemaTest
 	public void testSequenceIsGenerated(SchemaScope scope) throws Exception {
+		assertThatActionIsGenerated( "CREATE TABLE TEST_ENTITY \\(ID .*, PRIMARY KEY \\(ID\\)\\)" );
 
-		List<String> commands = getSqlScriptOutputFileLines();
-
-		assertThat(
-				isCommandGenerated( commands, "CREATE TABLE TEST_ENTITY \\(ID .*, PRIMARY KEY \\(ID\\)\\)" ),
-				is( true )
-		);
-
-		assertThat(
-				isCommandGenerated( commands, "CREATE SEQUENCE SEQUENCE_GENERATOR START WITH 5 INCREMENT BY 3" ),
-				is( true )
-		);
+		assertThatActionIsGenerated( "CREATE SEQUENCE SEQUENCE_GENERATOR START WITH 5 INCREMENT BY 3" );
 	}
 
 	@Entity(name = "TestEntity")

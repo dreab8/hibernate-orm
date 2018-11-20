@@ -17,9 +17,6 @@ import javax.persistence.Table;
 import org.hibernate.testing.junit5.schema.SchemaScope;
 import org.hibernate.testing.junit5.schema.SchemaTest;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-
 /**
  * @author Andrea Boriero
  */
@@ -34,15 +31,9 @@ public class SequenceGenerationTest extends AbstractGenerationTest {
 	public void testSequenceIsGenerated(SchemaScope scope) throws Exception {
 		List<String> commands = getSqlScriptOutputFileLines();
 
-		assertThat(
-				isCommandGenerated( commands, "create table test_entity \\(id .*, primary key \\(id\\)\\)" ),
-				is( true )
-		);
+		assertThatActionIsGenerated( "create table test_entity \\(id .*, primary key \\(id\\)\\)" );
 
-		assertThat(
-				isCommandGenerated( commands, "create sequence sequence_generator start with 5 increment by 3" ),
-				is( true )
-		);
+		assertThatActionIsGenerated( "create sequence sequence_generator start with 5 increment by 3" );
 	}
 
 	@Entity(name = "TestEntity")

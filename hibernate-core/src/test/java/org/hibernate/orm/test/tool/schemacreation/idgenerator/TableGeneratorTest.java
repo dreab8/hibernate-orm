@@ -6,7 +6,6 @@
  */
 package org.hibernate.orm.test.tool.schemacreation.idgenerator;
 
-import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,8 +15,6 @@ import javax.persistence.TableGenerator;
 
 import org.hibernate.testing.junit5.schema.SchemaScope;
 import org.hibernate.testing.junit5.schema.SchemaTest;
-
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Andrea Boriero
@@ -34,34 +31,11 @@ public class TableGeneratorTest extends AbstractGenerationTest {
 	@SchemaTest
 	public void testTableGeneratorIsGenerated(SchemaScope schemaScope) throws Exception {
 
-		final List<String> commands = getSqlScriptOutputFileLines();
+		assertThatActionIsGenerated( "CREATE TABLE TEST_ENTITY \\(ID .*, PRIMARY KEY \\(ID\\)\\)" );
 
-		final String expectedTestEntityTableCreationCommand = "CREATE TABLE TEST_ENTITY \\(ID .*, PRIMARY KEY \\(ID\\)\\)";
-		assertTrue(
-				"The command '" + expectedTestEntityTableCreationCommand + "' has not been correctly generated",
-				isCommandGenerated( commands, expectedTestEntityTableCreationCommand )
-		);
+		assertThatActionIsGenerated( "CREATE TABLE ID_TABLE_GENERATOR \\(PK .*, VALUE .*, PRIMARY KEY \\(PK\\)\\)" );
 
-		final String expectedIdTableGeneratorCreationCommand = "CREATE TABLE ID_TABLE_GENERATOR \\(PK .*, VALUE .*, PRIMARY KEY \\(PK\\)\\)";
-
-		assertTrue(
-				"The command '" + expectedIdTableGeneratorCreationCommand + "' has not been correctly generated",
-
-				isCommandGenerated(
-						commands,
-						expectedIdTableGeneratorCreationCommand
-				)
-		);
-
-		final String expectedInsertIntoTableGeneratorCommand = "INSERT INTO ID_TABLE_GENERATOR\\(PK, VALUE\\) VALUES \\('TEST_ENTITY_ID'," + EXPECTED_DB_INSERTED_VALUE + "\\)";
-
-		assertTrue(
-				"The command '" + expectedInsertIntoTableGeneratorCommand + "' has not been correctly generated",
-				isCommandGenerated(
-						commands,
-						expectedInsertIntoTableGeneratorCommand
-				)
-		);
+		assertThatActionIsGenerated( "INSERT INTO ID_TABLE_GENERATOR\\(PK, VALUE\\) VALUES \\('TEST_ENTITY_ID'," + EXPECTED_DB_INSERTED_VALUE + "\\)" );
 	}
 
 	@Entity(name = "TestEntity")
