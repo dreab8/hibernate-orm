@@ -6,7 +6,6 @@
  */
 package org.hibernate.orm.test.tool.schemaupdate.derivedid;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.EnumSet;
 import java.util.List;
@@ -20,8 +19,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MapsId;
 import javax.persistence.Table;
 
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.dialect.H2Dialect;
 import org.hibernate.orm.test.tool.BaseSchemaUnitTestCase;
 import org.hibernate.tool.schema.TargetType;
@@ -38,7 +35,8 @@ import static org.junit.Assert.assertTrue;
  */
 @RequiresDialect(dialectClass = H2Dialect.class)
 @TestForIssue( jiraKey= "HHH-12212")
-public class ColumnLengthTest extends BaseSchemaUnitTestCase {
+public class ColumnLengthTest
+		extends BaseSchemaUnitTestCase {
 
 	@Override
 	protected boolean createSqlScriptTempOutputFile() {
@@ -55,10 +53,6 @@ public class ColumnLengthTest extends BaseSchemaUnitTestCase {
 		return false;
 	}
 
-	private StandardServiceRegistry ssr;
-	private File outputFile;
-	private MetadataImplementor metadata;
-
 	@SchemaTest
 	public void testTheColumnsLenghtAreApplied(SchemaScope schemaScope) throws Exception {
 		schemaScope.withSchemaExport( schemaExport -> schemaExport
@@ -66,9 +60,8 @@ public class ColumnLengthTest extends BaseSchemaUnitTestCase {
 				.setFormat( false )
 				.create( EnumSet.of( TargetType.SCRIPT ) ) );
 
-		List<String> sqlScriptOutputFileLines = getSqlScriptOutputFileLines();
 		assertTrue( checkCommandIsGenerated(
-				sqlScriptOutputFileLines,
+				getSqlScriptOutputFileLines(),
 				"create table DEPENDENT (FK1 varchar(32) not null, FK2 varchar(10) not null, name varchar(255) not null, primary key (FK1, FK2, name))"
 		) );
 

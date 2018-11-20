@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.hibernate.boot.MetadataSources;
@@ -21,6 +22,7 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.jdbc.connections.spi.ConnectionProvider;
 import org.hibernate.metamodel.model.relational.spi.DatabaseModel;
 import org.hibernate.orm.test.util.DdlTransactionIsolatorTestingImpl;
@@ -33,9 +35,11 @@ import org.hibernate.tool.schema.internal.Helper;
 import org.hibernate.tool.schema.internal.SchemaCreatorImpl;
 import org.hibernate.tool.schema.internal.SchemaDropperImpl;
 import org.hibernate.tool.schema.internal.exec.GenerationTargetToDatabase;
+import org.hibernate.tool.schema.internal.exec.ScriptTargetOutputToFile;
 import org.hibernate.tool.schema.spi.SchemaFilter;
 import org.hibernate.tool.schema.spi.SchemaManagementTool;
 import org.hibernate.tool.schema.spi.SchemaMigrator;
+import org.hibernate.tool.schema.spi.ScriptTargetOutput;
 
 import org.hibernate.testing.junit5.schema.FunctionalMetaModelTesting;
 import org.hibernate.testing.junit5.schema.SchemaScope;
@@ -211,6 +215,14 @@ public abstract class BaseSchemaUnitTestCase
 
 	protected String getOutputTempScriptFileAbsolutePath() {
 		return output.getAbsolutePath();
+	}
+
+	protected ScriptTargetOutput getScriptTargetOutputToFile(){
+		Map settings = standardServiceRegistry.getService(	ConfigurationService.class ).getSettings();
+		return new ScriptTargetOutputToFile(
+				output,
+				(String) settings.get( AvailableSettings.HBM2DDL_CHARSET_NAME )
+		);
 	}
 
 	protected Class<?>[] getAnnotatedClasses() {
