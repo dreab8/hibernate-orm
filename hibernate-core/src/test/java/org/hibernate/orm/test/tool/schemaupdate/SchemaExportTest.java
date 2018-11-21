@@ -122,7 +122,7 @@ public class SchemaExportTest extends BaseSchemaUnitTestCase {
 	}
 
 	private boolean doesDialectSupportDropTableIfExist() {
-		return Dialect.getDialect().supportsIfExistsAfterTableName() || Dialect.getDialect()
+		return getDialect().supportsIfExistsAfterTableName() || Dialect.getDialect()
 				.supportsIfExistsBeforeTableName();
 	}
 }

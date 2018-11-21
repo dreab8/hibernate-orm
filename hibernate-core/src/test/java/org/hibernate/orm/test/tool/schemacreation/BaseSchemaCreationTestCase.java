@@ -10,12 +10,10 @@ import java.util.regex.Pattern;
 
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
-import org.hibernate.dialect.H2Dialect;
 import org.hibernate.orm.test.tool.BaseSchemaUnitTestCase;
 import org.hibernate.orm.test.tool.util.RecordingTarget;
 import org.hibernate.tool.schema.internal.exec.GenerationTargetToStdout;
 
-import org.hibernate.testing.junit5.RequiresDialect;
 import org.hibernate.testing.junit5.schema.SchemaScope;
 
 import static org.hamcrest.MatcherAssert.assertThat;

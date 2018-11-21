@@ -100,41 +100,18 @@ public class CrossSchemaForeignKeyGenerationTest extends BaseSchemaUnitTestCase 
 	@SchemaTest
 	@TestForIssue(jiraKey = "HHH-10420")
 	public void testSchemaMigrationForeignKeysAreGeneratedAfterAllTheTablesAreCreated(SchemaScope schemaScope) {
-		final TargetImpl target = new TargetImpl();
 		schemaScope.withSchemaMigrator( schemaMigrator ->
 												schemaMigrator.doMigration(
 														new TestExecutionOptions(),
-														new TestTargetDescriptor( target )
+														new TestTargetDescriptor()
 												) );
 		schemaScope.withSchemaMigrator( schemaMigrator ->
 												schemaMigrator.doMigration(
 														new TestExecutionOptions(),
-														new TestTargetDescriptor( target )
+														new TestTargetDescriptor()
 												) );
 
 	}
-
-	class TargetImpl implements ScriptTargetOutput {
-		boolean found = false;
-
-		@Override
-		public void prepare() {
-
-		}
-
-		@Override
-		public void accept(String action) {
-			if ( action.startsWith( "insert into test_seq" ) ) {
-				found = true;
-			}
-		}
-
-		@Override
-		public void release() {
-
-		}
-	}
-
 
 	class TestExecutionOptions implements ExecutionOptions {
 		@Override
@@ -154,20 +131,15 @@ public class CrossSchemaForeignKeyGenerationTest extends BaseSchemaUnitTestCase 
 	}
 
 	class TestTargetDescriptor implements TargetDescriptor {
-		private TargetImpl target;
-
-		public TestTargetDescriptor(TargetImpl target) {
-			this.target = target;
-		}
 
 		@Override
 		public EnumSet<TargetType> getTargetTypes() {
-			return EnumSet.of( TargetType.SCRIPT, TargetType.DATABASE );
+			return EnumSet.of(  TargetType.DATABASE );
 		}
 
 		@Override
 		public ScriptTargetOutput getScriptTargetOutput() {
-			return target;
+			return null;
 		}
 	}
 }
