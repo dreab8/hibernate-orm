@@ -748,7 +748,8 @@ public class Table implements MappedTable<Column>, Serializable {
 			PhysicalNamingStrategy namingStrategy,
 			JdbcEnvironment jdbcEnvironment,
 			IdentifierGeneratorFactory identifierGeneratorFactory,
-			RuntimeDatabaseModelProducer.Callback callback, TypeConfiguration typeConfiguration) {
+			RuntimeDatabaseModelProducer.Callback callback,
+			TypeConfiguration typeConfiguration) {
 
 		InflightTable runtimeTable;
 		if ( getSubselect() != null ) {
@@ -802,7 +803,7 @@ public class Table implements MappedTable<Column>, Serializable {
 					throw new MappingException( "UK column must be a physical column" );
 				}
 				final org.hibernate.metamodel.model.relational.spi.Column column = tableColumnXref.get( mappedColumn );
-				runtimeUk.addColumn( (PhysicalColumn) column, bootUk.getColumnOrderMap().get( column ) );
+				runtimeUk.addColumn( (PhysicalColumn) column, bootUk.getColumnOrderMap().get( mappedColumn ) );
 			}
 			callback.uniqueKeyBuilt( bootUk, runtimeUk );
 		} );
