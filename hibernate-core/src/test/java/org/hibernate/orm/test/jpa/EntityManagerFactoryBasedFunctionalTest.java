@@ -78,9 +78,6 @@ public class EntityManagerFactoryBasedFunctionalTest
 	protected void entityManagerFactoryBuilt(EntityManagerFactory factory) {
 	}
 
-	protected void applySettings(Map<String, Object> settings) {
-	}
-
 	protected boolean strictJpaCompliance() {
 		return false;
 	}
@@ -106,7 +103,7 @@ public class EntityManagerFactoryBasedFunctionalTest
 
 	protected Map<Object, Object> buildSettings() {
 		Map<Object, Object> settings = getConfig();
-		addMappings( settings );
+		applySettings( settings );
 
 		if ( exportSchema() ) {
 			settings.put( AvailableSettings.HBM2DDL_AUTO, "create-drop" );
@@ -139,7 +136,7 @@ public class EntityManagerFactoryBasedFunctionalTest
 		return config;
 	}
 
-	protected void addMappings(Map<Object, Object> settings) {
+	protected void applySettings(Map<Object, Object> settings) {
 		String[] mappings = getMappings();
 		if ( mappings != null ) {
 			settings.put( org.hibernate.jpa.AvailableSettings.HBXML_FILES, String.join( ",", mappings ) );
@@ -147,11 +144,11 @@ public class EntityManagerFactoryBasedFunctionalTest
 	}
 
 	public Map<Class, String> getCachedClasses() {
-		return new HashMap<Class, String>();
+		return new HashMap<>();
 	}
 
 	public Map<String, String> getCachedCollections() {
-		return new HashMap<String, String>();
+		return new HashMap<>();
 	}
 
 	public String[] getEjb3DD() {

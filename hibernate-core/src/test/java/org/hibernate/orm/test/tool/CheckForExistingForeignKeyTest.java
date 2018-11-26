@@ -36,12 +36,13 @@ import org.hibernate.tool.schema.internal.HibernateSchemaManagementTool;
 import org.hibernate.tool.schema.internal.exec.GenerationTarget;
 import org.hibernate.tool.schema.spi.ExecutionOptions;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import org.mockito.Mockito;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -73,7 +74,7 @@ public class CheckForExistingForeignKeyTest {
 		TableInformation tableInformation = new TableInformationImpl( null, null, null, false, null );
 
 		boolean found = checkForExistingForeignKey( foreignKey, tableInformation );
-		Assert.assertFalse( "Key should not be found", found );
+		assertFalse( found, "Key should not be found" );
 	}
 
 	/**
@@ -85,7 +86,7 @@ public class CheckForExistingForeignKeyTest {
 		ForeignKey foreignKey = new ForeignKey( "objectId2id", true, "", false, false, null, null, null );
 
 		boolean found = checkForExistingForeignKey( foreignKey, null );
-		Assert.assertFalse( "Key should not be found", found );
+		assertFalse( found, "Key should not be found" );
 	}
 
 	/**
@@ -123,7 +124,7 @@ public class CheckForExistingForeignKeyTest {
 
 		// foreignKey name with same name should match
 		boolean found = checkForExistingForeignKey( foreignKey, tableInformation );
-		Assert.assertTrue( "Key should be found", found );
+		assertTrue( found, "Key should be found" );
 	}
 
 	/**
@@ -160,7 +161,7 @@ public class CheckForExistingForeignKeyTest {
 
 		// foreignKey name with same name should match
 		boolean found = checkForExistingForeignKey( foreignKey, tableInformation );
-		Assert.assertFalse( "Key should not be found", found );
+		assertFalse( found, "Key should not be found" );
 	}
 
 	/**
@@ -205,7 +206,7 @@ public class CheckForExistingForeignKeyTest {
 
 		// Check single-column-key to single-column-key, existing (table1.objectId => table2.id)
 		boolean found = checkForExistingForeignKey( foreignKey, tableInformation );
-		Assert.assertTrue( "Key should be found", found );
+		assertTrue( found, "Key should be found" );
 	}
 
 	/**
@@ -271,7 +272,7 @@ public class CheckForExistingForeignKeyTest {
 
 		// Check single-column-key to single-column-key, existing (table1.objectId => table2.id)
 		boolean found = checkForExistingForeignKey( foreignKey, tableInformation );
-		Assert.assertFalse( "Key should not be found", found );
+		assertFalse( found, "Key should not be found" );
 	}
 
 	private TableInformation createTableInfo(List<ForeignKeyInformation> fks) {

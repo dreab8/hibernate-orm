@@ -37,7 +37,7 @@ import org.hibernate.testing.junit5.RequiresDialectFeature;
 import org.hibernate.testing.junit5.schema.SchemaScope;
 import org.hibernate.testing.junit5.schema.SchemaTest;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @RequiresDialectFeature(feature = DialectFeatureChecks.SupportsSequences.class)
 public class ExportIdentifierTest extends BaseSchemaUnitTestCase {
