@@ -167,8 +167,8 @@ public class EntityWithBidirectionalOneToOneTest extends SessionFactoryBasedFunc
 			Child child = parent.getChild();
 			assertThat( child, CoreMatchers.notNullValue() );
 			assertTrue(
+					Hibernate.isInitialized( child ),
 					"The child eager OneToOne association is not initialized"
-					Hibernate.isInitialized( child )
 			);
 			assertThat( child.getName(), CoreMatchers.notNullValue() );
 			assertThat( child.getParent(), CoreMatchers.notNullValue() );
@@ -176,8 +176,8 @@ public class EntityWithBidirectionalOneToOneTest extends SessionFactoryBasedFunc
 			Child2 child2 = parent.getChild2();
 			assertThat( child2, CoreMatchers.notNullValue() );
 			assertTrue(
+					Hibernate.isInitialized( child2 ),
 					"The child2 eager OneToOne association is not initialized"
-					Hibernate.isInitialized( child2 )
 			);
 			assertThat( child2.getName(), equalTo( "Fab2" ) );
 			assertThat( child2.getParent(), CoreMatchers.notNullValue() );

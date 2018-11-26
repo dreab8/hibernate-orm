@@ -38,7 +38,6 @@ import org.hibernate.tool.schema.internal.Helper;
 
 import org.hibernate.testing.RequiresDialect;
 import org.hibernate.testing.TestForIssue;
-import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author Vlad Mihalcea
  */
 @RequiresDialect(PostgreSQL81Dialect.class)
-public class PostgreSQLMultipleSchemaSequenceTest extends BaseUnitTestCase {
+public class PostgreSQLMultipleSchemaSequenceTest {
 
 	private File output;
 	private StandardServiceRegistry ssr;
@@ -68,7 +67,6 @@ public class PostgreSQLMultipleSchemaSequenceTest extends BaseUnitTestCase {
 	public void tearsDown() {
 		StandardServiceRegistryBuilder.destroy( ssr );
 	}
-
 
 	@Test
 	@TestForIssue(jiraKey = "HHH-5538")
@@ -154,7 +152,6 @@ public class PostgreSQLMultipleSchemaSequenceTest extends BaseUnitTestCase {
 				finally {
 					StandardServiceRegistryBuilder.destroy( ssr2 );
 				}
-
 			}
 			finally {
 				// clean up
