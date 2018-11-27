@@ -30,16 +30,23 @@ import org.hibernate.resource.transaction.spi.DdlTransactionIsolator;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.hbm2ddl.SchemaValidator;
+import org.hibernate.tool.schema.SourceType;
 import org.hibernate.tool.schema.TargetType;
 import org.hibernate.tool.schema.internal.Helper;
 import org.hibernate.tool.schema.internal.SchemaCreatorImpl;
 import org.hibernate.tool.schema.internal.SchemaDropperImpl;
 import org.hibernate.tool.schema.internal.exec.GenerationTargetToDatabase;
 import org.hibernate.tool.schema.internal.exec.ScriptTargetOutputToFile;
+import org.hibernate.tool.schema.spi.CommandAcceptanceException;
+import org.hibernate.tool.schema.spi.ExceptionHandler;
+import org.hibernate.tool.schema.spi.ExecutionOptions;
 import org.hibernate.tool.schema.spi.SchemaFilter;
 import org.hibernate.tool.schema.spi.SchemaManagementTool;
 import org.hibernate.tool.schema.spi.SchemaMigrator;
+import org.hibernate.tool.schema.spi.ScriptSourceInput;
 import org.hibernate.tool.schema.spi.ScriptTargetOutput;
+import org.hibernate.tool.schema.spi.SourceDescriptor;
+import org.hibernate.tool.schema.spi.TargetDescriptor;
 
 import org.hibernate.testing.junit5.schema.FunctionalMetaModelTesting;
 import org.hibernate.testing.junit5.schema.SchemaScope;
@@ -58,14 +65,16 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author Andrea Boriero
  */
 @FunctionalMetaModelTesting
-public abstract class BaseSchemaUnitTestCase
-		implements ServiceRegistryAccess, ServiceRegistryContainer, SchemaScopeProducer {
+public abstract class BaseSchemaUnitTestCase implements
+		ServiceRegistryAccess, ServiceRegistryContainer, SchemaScopeProducer, ExecutionOptions, ExceptionHandler {
 	protected static final Class<?>[] NO_CLASSES = new Class[0];
 	protected static final String[] NO_MAPPINGS = new String[0];
 
 	private StandardServiceRegistry standardServiceRegistry;
 	private DatabaseModel databaseModel;
 	private MetadataImplementor metadata;
+
+	private String metadataExtractionStrategyValue;
 
 	private File output;
 	private SchemaScope schemaScope;
@@ -91,6 +100,7 @@ public abstract class BaseSchemaUnitTestCase
 		}
 		finally {
 			StandardServiceRegistryBuilder.destroy( standardServiceRegistry );
+			standardServiceRegistry = null;
 			schemaScope = null;
 			metadata = null;
 			databaseModel = null;
@@ -109,14 +119,20 @@ public abstract class BaseSchemaUnitTestCase
 
 	@Override
 	public SchemaScope produceTestScope(TestParameter<String> metadataExtractionStrategy) {
-		final String metadataExtractionStrategyValue = metadataExtractionStrategy.getValue();
+		metadataExtractionStrategyValue = metadataExtractionStrategy.getValue();
 		if ( schemaScope == null ) {
-			schemaScope = produceSchemaScope( metadataExtractionStrategyValue );
+			schemaScope = produceSchemaScope( metadataExtractionStrategyValue, NO_CLASSES );
+
 		}
 		return schemaScope;
 	}
 
-	private SchemaScope produceSchemaScope(String metadataExtractionStrategyValue) {
+	protected SchemaScope regenerateSchemaScope(Class<?>[] annotatedClasses) {
+		schemaScope = produceSchemaScope( metadataExtractionStrategyValue, annotatedClasses );
+		return schemaScope;
+	}
+
+	private SchemaScope produceSchemaScope(String metadataExtractionStrategyValue, Class<?>[] annotatedClasses) {
 		try {
 			createTempOutputFile();
 		}
@@ -124,9 +140,11 @@ public abstract class BaseSchemaUnitTestCase
 			fail( "Fail creating temporary file" + e.getMessage() );
 		}
 
-		setStandardServiceRegistry( buildServiceRegistry( metadataExtractionStrategyValue ) );
-		afterServiceRegistryCreation( standardServiceRegistry );
-		metadata = buildMetadata( standardServiceRegistry );
+		if ( standardServiceRegistry == null ) {
+			setStandardServiceRegistry( buildServiceRegistry( metadataExtractionStrategyValue ) );
+			afterServiceRegistryCreation( standardServiceRegistry );
+		}
+		metadata = buildMetadata( standardServiceRegistry, annotatedClasses );
 		metadata.validate();
 
 		afterMetadataCreation( metadata );
@@ -176,7 +194,7 @@ public abstract class BaseSchemaUnitTestCase
 		 */
 		if ( dialect == null ) {
 			if ( schemaScope == null ) {
-				schemaScope = produceSchemaScope( SchemaTestExtension.METADATA_ACCESS_STRATEGIES.get( 0 ) );
+				schemaScope = produceSchemaScope( SchemaTestExtension.METADATA_ACCESS_STRATEGIES.get( 0 ), NO_CLASSES );
 			}
 			dialect = metadata.getDatabase().getDialect();
 		}
@@ -217,8 +235,8 @@ public abstract class BaseSchemaUnitTestCase
 		return output.getAbsolutePath();
 	}
 
-	protected ScriptTargetOutput getScriptTargetOutputToFile(){
-		Map settings = standardServiceRegistry.getService(	ConfigurationService.class ).getSettings();
+	protected ScriptTargetOutput getScriptTargetOutputToFile() {
+		Map settings = standardServiceRegistry.getService( ConfigurationService.class ).getSettings();
 		return new ScriptTargetOutputToFile(
 				output,
 				(String) settings.get( AvailableSettings.HBM2DDL_CHARSET_NAME )
@@ -264,9 +282,16 @@ public abstract class BaseSchemaUnitTestCase
 				.build();
 	}
 
-	private MetadataImplementor buildMetadata(StandardServiceRegistry standardServiceRegistry) {
+	private MetadataImplementor buildMetadata(
+			StandardServiceRegistry standardServiceRegistry,
+			Class<?>[] annotatedClasses) {
 		final MetadataSources metadataSources = new MetadataSources( standardServiceRegistry );
-		addAnnotatedClass( metadataSources );
+		if ( annotatedClasses.length == 0 ) {
+			addAnnotatedClasses( metadataSources );
+		}
+		else {
+			addAnnotatedClasses( metadataSources, annotatedClasses );
+		}
 		addResources( metadataSources );
 
 		return (MetadataImplementor) metadataSources.buildMetadata();
@@ -283,8 +308,12 @@ public abstract class BaseSchemaUnitTestCase
 		}
 	}
 
-	private void addAnnotatedClass(MetadataSources metadataSources) {
+	private void addAnnotatedClasses(MetadataSources metadataSources) {
 		Class<?>[] annotatedClasses = getAnnotatedClasses();
+		addAnnotatedClasses( metadataSources, annotatedClasses );
+	}
+
+	private void addAnnotatedClasses(MetadataSources metadataSources, Class<?>[] annotatedClasses) {
 		for ( int i = 0; i < annotatedClasses.length; i++ ) {
 			metadataSources.addAnnotatedClass( annotatedClasses[i] );
 		}
@@ -381,6 +410,54 @@ public abstract class BaseSchemaUnitTestCase
 			}
 			return new SchemaDropperImpl( databaseModel, standardServiceRegistry );
 		}
+	}
+
+	protected SourceDescriptor getSourceDescriptor() {
+		return new SourceDescriptor() {
+			@Override
+			public SourceType getSourceType() {
+				return SourceType.METADATA;
+			}
+
+			@Override
+			public ScriptSourceInput getScriptSourceInput() {
+				return null;
+			}
+		};
+	}
+
+	protected TargetDescriptor getDatabaseTargetDescriptor(EnumSet<TargetType> targetTypes) {
+		return new TargetDescriptor() {
+			@Override
+			public EnumSet<TargetType> getTargetTypes() {
+				return targetTypes;
+			}
+
+			@Override
+			public ScriptTargetOutput getScriptTargetOutput() {
+				return getScriptTargetOutputToFile();
+			}
+		};
+	}
+
+	@Override
+	public Map getConfigurationValues() {
+		return getStandardServiceRegistry().getService( ConfigurationService.class ).getSettings();
+	}
+
+	@Override
+	public boolean shouldManageNamespaces() {
+		return false;
+	}
+
+	@Override
+	public ExceptionHandler getExceptionHandler() {
+		return this;
+	}
+
+	@Override
+	public void handleException(CommandAcceptanceException exception) {
+		throw exception;
 	}
 
 }

@@ -8,7 +8,6 @@ package org.hibernate.orm.test.tool.schemaupdate.foreignkeys;
 
 import java.io.IOException;
 import java.util.EnumSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,17 +17,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.orm.test.tool.BaseSchemaUnitTestCase;
-import org.hibernate.tool.schema.SourceType;
 import org.hibernate.tool.schema.TargetType;
-import org.hibernate.tool.schema.spi.CommandAcceptanceException;
-import org.hibernate.tool.schema.spi.ExceptionHandler;
-import org.hibernate.tool.schema.spi.ExecutionOptions;
-import org.hibernate.tool.schema.spi.ScriptSourceInput;
-import org.hibernate.tool.schema.spi.ScriptTargetOutput;
-import org.hibernate.tool.schema.spi.SourceDescriptor;
-import org.hibernate.tool.schema.spi.TargetDescriptor;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit5.DialectFeatureChecks;
@@ -44,8 +34,7 @@ import static org.hamcrest.core.Is.is;
  */
 @TestForIssue(jiraKey = "HHH-12271")
 @RequiresDialectFeature(feature = DialectFeatureChecks.SupportDropConstraints.class)
-public class ForeignKeyDropTest
-		extends BaseSchemaUnitTestCase implements ExecutionOptions, ExceptionHandler {
+public class ForeignKeyDropTest extends BaseSchemaUnitTestCase {
 	@Override
 	protected boolean createSqlScriptTempOutputFile() {
 		return true;
@@ -60,7 +49,11 @@ public class ForeignKeyDropTest
 	@TestForIssue(jiraKey = "HHH-11236")
 	public void testForeignKeyDropIsCorrectlyGenerated(SchemaScope schemaScope) throws Exception {
 		schemaScope.withSchemaDropper( null, schemaDropper ->
-				schemaDropper.doDrop( this, getSourceDescriptor(), getTargetDescriptor() ) );
+				schemaDropper.doDrop(
+						this,
+						getSourceDescriptor(),
+						getDatabaseTargetDescriptor( EnumSet.of( TargetType.DATABASE ) )
+				) );
 		assertThat(
 				"The ddl foreign key drop command has not been properly generated",
 				checkDropForeignKeyConstraint( "CHILD_ENTITY" ),
@@ -111,54 +104,5 @@ public class ForeignKeyDropTest
 	public static class ChildEntity {
 		@Id
 		private Long id;
-	}
-
-	private SourceDescriptor getSourceDescriptor() {
-		return new SourceDescriptor() {
-			@Override
-			public SourceType getSourceType() {
-				return SourceType.METADATA;
-			}
-
-			@Override
-			public ScriptSourceInput getScriptSourceInput() {
-				return null;
-			}
-		};
-	}
-
-	private TargetDescriptor getTargetDescriptor() {
-		return new TargetDescriptor() {
-			@Override
-			public EnumSet<TargetType> getTargetTypes() {
-				return EnumSet.of( TargetType.DATABASE );
-			}
-
-			@Override
-			public ScriptTargetOutput getScriptTargetOutput() {
-				return getScriptTargetOutputToFile();
-			}
-		};
-	}
-
-
-	@Override
-	public Map getConfigurationValues() {
-		return getStandardServiceRegistry().getService( ConfigurationService.class ).getSettings();
-	}
-
-	@Override
-	public boolean shouldManageNamespaces() {
-		return false;
-	}
-
-	@Override
-	public ExceptionHandler getExceptionHandler() {
-		return this;
-	}
-
-	@Override
-	public void handleException(CommandAcceptanceException exception) {
-		throw exception;
 	}
 }

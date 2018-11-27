@@ -34,5 +34,5 @@ public @interface RequiresDialect {
 	/**
 	 * Should subtypes of {@link #dialectClass()} be matched?
 	 */
-	boolean matchSubTypes() default false;
+	boolean matchSubTypes() default true;
 }
