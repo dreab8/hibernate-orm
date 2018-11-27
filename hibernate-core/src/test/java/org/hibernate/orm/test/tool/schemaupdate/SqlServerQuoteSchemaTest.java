@@ -45,6 +45,11 @@ public class SqlServerQuoteSchemaTest extends BaseSchemaUnitTestCase {
 	}
 
 	@Override
+	protected Class<?>[] getAnnotatedClasses() {
+		return new Class[] { MyEntity.class };
+	}
+
+	@Override
 	protected void beforeEach(SchemaScope scope) {
 		try {
 			executeSqlStatement( "DROP TABLE [my-schema].my_entity" );
