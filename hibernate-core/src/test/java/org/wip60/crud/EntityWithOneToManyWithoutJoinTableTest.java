@@ -136,12 +136,14 @@ public class EntityWithOneToManyWithoutJoinTableTest extends BaseCoreFunctionalT
 				} );
 
 		EntityWithManyToOneWithoutJoinTable child2 = new EntityWithManyToOneWithoutJoinTable( 3, Integer.MIN_VALUE );
+		System.out.println( "=========================================================" );
 		inTransaction(
 				session -> {
 					EntityWithOneToManyNotOwned retrieved = session.get( EntityWithOneToManyNotOwned.class, 1 );
 					retrieved.addChild( child2 );
 					session.save( child2 );
 				} );
+		System.out.println( "=========================================================" );
 
 		inTransaction(
 				session -> {
