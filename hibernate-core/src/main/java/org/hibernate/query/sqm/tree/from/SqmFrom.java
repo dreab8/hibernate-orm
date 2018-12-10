@@ -12,6 +12,7 @@ import org.hibernate.query.sqm.tree.SqmVisitableNode;
 import org.hibernate.query.sqm.tree.expression.domain.SqmNavigableReference;
 import org.hibernate.sql.ast.produce.metamodel.spi.TableGroupInfo;
 import org.hibernate.sql.ast.produce.spi.FromClauseIndex;
+import org.hibernate.sql.ast.produce.spi.SqlAstCreationContext;
 import org.hibernate.sql.ast.tree.spi.from.TableGroup;
 
 /**
@@ -44,7 +45,7 @@ public interface SqmFrom extends TableGroupInfo, SqmVisitableNode, SqmTypedNode 
 	 */
 	UsageDetails getUsageDetails();
 
-	default TableGroup locateMapping(FromClauseIndex fromClauseIndex) {
+	default TableGroup locateMapping(FromClauseIndex fromClauseIndex, SqlAstCreationContext creationContext) {
 		// todo (6.0) : re-look at FromClauseIndex and what  it exposes (to avoid recursions here)
 		return fromClauseIndex.resolveTableGroup( getUniqueIdentifier() );
 	}

@@ -106,8 +106,8 @@ public class FromClauseIndex implements TableGroupResolver {
 		}
 	}
 
-	public TableGroup findResolvedTableGroup(SqmFrom fromElement) {
-		return fromElement.locateMapping( this );
+	public TableGroup findResolvedTableGroup(SqmFrom fromElement, SqlAstCreationContext creationContext) {
+		return fromElement.locateMapping( this, creationContext );
 
 //		// todo (6.0) : this is a hacky solution/workaround to the fact that SQM creates joins for composites/embeddables whereas we do not in the SQL-AST
 //		//		so the cross referencing is off

@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
-import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.internal.util.collections.Stack;
 import org.hibernate.internal.util.collections.StandardStack;
@@ -255,6 +254,21 @@ public abstract class BaseSqmToSqlAstConverter
 		this.queryOptions = queryOptions;
 	}
 
+	@Override
+	public TableSpace getTableSpace() {
+		return tableSpace;
+	}
+
+	@Override
+	public QuerySpec getCurrentQuerySpec() {
+		return currentQuerySpec();
+	}
+
+	@Override
+	public SqlAliasBaseGenerator getSqlAliasBaseGenerator() {
+		return sqlAliasBaseManager;
+	}
+
 	public SqlAstProducerContext getProducerContext() {
 		return producerContext;
 	}
@@ -297,6 +311,7 @@ public abstract class BaseSqmToSqlAstConverter
 		return querySpecStack;
 	}
 
+	@Override
 	public Stack<TableGroup> getTableGroupStack() {
 		return tableGroupStack;
 	}
@@ -305,6 +320,7 @@ public abstract class BaseSqmToSqlAstConverter
 		return shallownessStack;
 	}
 
+	@Override
 	public Stack<NavigableReference> getNavigableReferenceStack() {
 		return navigableReferenceStack;
 	}
@@ -495,7 +511,7 @@ public abstract class BaseSqmToSqlAstConverter
 		log.tracef( "Starting resolution of SqmRoot [%s] to TableGroup", sqmRoot );
 
 		if ( fromClauseIndex.isResolved( sqmRoot ) ) {
-			final TableGroup resolvedTableGroup = fromClauseIndex.findResolvedTableGroup( sqmRoot );
+			final TableGroup resolvedTableGroup = fromClauseIndex.findResolvedTableGroup( sqmRoot, this );
 			log.tracef( "SqmRoot [%s] resolved to existing TableGroup [%s]", sqmRoot, resolvedTableGroup );
 			return resolvedTableGroup;
 		}
@@ -555,19 +571,19 @@ public abstract class BaseSqmToSqlAstConverter
 
 	@Override
 	public NavigableReference visitRootEntityReference(SqmEntityReference sqmEntityReference) {
-		return fromClauseIndex.findResolvedTableGroup( sqmEntityReference.getExportedFromElement() )
+		return fromClauseIndex.findResolvedTableGroup( sqmEntityReference.getExportedFromElement(), this )
 				.getNavigableReference();
 	}
 
 	@Override
 	public Object visitQualifiedAttributeJoinFromElement(SqmNavigableJoin joinedFromElement) {
-		final TableGroup existing = fromClauseIndex.findResolvedTableGroup( joinedFromElement );
+		final TableGroup existing = fromClauseIndex.findResolvedTableGroup( joinedFromElement, this );
 		if ( existing != null ) {
 			return existing;
 		}
 
 		final QuerySpec querySpec = currentQuerySpec();
-		final TableGroup lhsTableGroup = fromClauseIndex.findResolvedTableGroup( joinedFromElement.getLhs() );
+		final TableGroup lhsTableGroup = fromClauseIndex.findResolvedTableGroup( joinedFromElement.getLhs(), this );
 
 		final PersistentAttributeDescriptor joinedAttribute = joinedFromElement.getAttributeReference().getReferencedNavigable();
 		if ( joinedAttribute instanceof SingularPersistentAttributeEmbedded ) {
@@ -799,62 +815,7 @@ public abstract class BaseSqmToSqlAstConverter
 
 	@Override
 	public DomainResultProducer visitEntityIdentifierReference(SqmEntityIdentifierReference expression) {
-		final TableGroup resolvedTableGroup;
-		/*
-		if ( getCurrentClauseStack().getCurrent().equals( Clause.FROM ) ) {
-			final EntityIdentifier identifier = expression.getReferencedNavigable();
-			final EntityTypeDescriptor entityMetadata = (EntityTypeDescriptor) identifier.getContainer();
-			final EntityTableGroup group = entityMetadata.createRootTableGroup(
-					expression.getExportedFromElement(),
-					new RootTableGroupContext() {
-						@Override
-						public void addRestriction(Predicate predicate) {
-							currentQuerySpec().addRestriction( predicate );
-						}
-
-						@Override
-						public QuerySpec getQuerySpec() {
-							return currentQuerySpec();
-						}
-
-						@Override
-						public TableSpace getTableSpace() {
-							return tableSpace;
-						}
-
-						@Override
-						public SqlAliasBaseGenerator getSqlAliasBaseGenerator() {
-							return BaseSqmToSqlAstConverter.this.getSqlAliasBaseManager();
-						}
-
-						@Override
-						public JoinType getTableReferenceJoinType() {
-							return JoinType.INNER;
-						}
-
-						@Override
-						public LockOptions getLockOptions() {
-							return queryOptions.getLockOptions();
-						}
-					}
-			);
-
-			group.applyAffectedTableNames( affectedTableNames::add );
-
-			tableGroupStack.push( group );
-			fromClauseIndex.crossReference( expression.getExportedFromElement(), group );
-
-			TableGroupJoin tableGroupJoin = new TableGroupJoin( JoinType.INNER, group, null );
-			tableSpace.addJoinedTableGroup( tableGroupJoin );
-
-			navigableReferenceStack.push( group.getNavigableReference() );
-
-			resolvedTableGroup = group;
-		}
-		else {*/
-			resolvedTableGroup = getFromClauseIndex().findResolvedTableGroup( expression.getExportedFromElement() );
-		/*}*/
-
+		final TableGroup resolvedTableGroup = getFromClauseIndex().findResolvedTableGroup( expression.getExportedFromElement(), this );
 		if ( resolvedTableGroup == null ) {
 			throw new ConversionException( "Could not find matching resolved TableGroup : " + expression.getExportedFromElement() );
 		}
@@ -884,7 +845,7 @@ public abstract class BaseSqmToSqlAstConverter
 
 	@Override
 	public BasicValuedNavigableReference visitBasicValuedSingularAttribute(SqmSingularAttributeReferenceBasic sqmAttributeReference) {
-		final TableGroup resolvedTableGroup = getFromClauseIndex().findResolvedTableGroup( sqmAttributeReference.getExportedFromElement() );
+		final TableGroup resolvedTableGroup = getFromClauseIndex().findResolvedTableGroup( sqmAttributeReference.getExportedFromElement(), this );
 		if ( resolvedTableGroup == null ) {
 			throw new ConversionException(
 					"Could not find matching resolved TableGroup for " + sqmAttributeReference + " : " + sqmAttributeReference.getExportedFromElement().getUniqueIdentifier()
@@ -900,7 +861,7 @@ public abstract class BaseSqmToSqlAstConverter
 
 	@Override
 	public EntityValuedNavigableReference visitEntityValuedSingularAttribute(SqmSingularAttributeReferenceEntity sqmAttributeReference) {
-		final TableGroup resolvedTableGroup = fromClauseIndex.findResolvedTableGroup( sqmAttributeReference.getExportedFromElement() );
+		final TableGroup resolvedTableGroup = fromClauseIndex.findResolvedTableGroup( sqmAttributeReference.getExportedFromElement(), this );
 		if ( resolvedTableGroup != null ) {
 			return (EntityValuedNavigableReference) resolvedTableGroup.getNavigableReference();
 		}
@@ -918,7 +879,7 @@ public abstract class BaseSqmToSqlAstConverter
 
 	@Override
 	public EmbeddableValuedNavigableReference visitEmbeddableValuedSingularAttribute(SqmSingularAttributeReferenceEmbedded sqmAttributeReference) {
-		final TableGroup resolvedTableGroup = getFromClauseIndex().findResolvedTableGroup( sqmAttributeReference.getExportedFromElement() );
+		final TableGroup resolvedTableGroup = getFromClauseIndex().findResolvedTableGroup( sqmAttributeReference.getExportedFromElement(), this );
 		if ( resolvedTableGroup == null ) {
 			throw new ConversionException( "Could not find matching resolved TableGroup : " + sqmAttributeReference.getExportedFromElement() );
 		}
@@ -935,7 +896,7 @@ public abstract class BaseSqmToSqlAstConverter
 
 	@Override
 	public AnyValuedNavigableReference visitAnyValuedSingularAttribute(SqmSingularAttributeReferenceAny sqmAttributeReference) {
-		final TableGroup resolvedTableGroup = getFromClauseIndex().findResolvedTableGroup( sqmAttributeReference.getExportedFromElement() );
+		final TableGroup resolvedTableGroup = getFromClauseIndex().findResolvedTableGroup( sqmAttributeReference.getExportedFromElement(), this );
 		if ( resolvedTableGroup == null ) {
 			throw new ConversionException( "Could not find matching resolved TableGroup : " + sqmAttributeReference.getExportedFromElement() );
 		}
@@ -1835,7 +1796,8 @@ public abstract class BaseSqmToSqlAstConverter
 	@Override
 	public ColumnReference visitExplicitColumnReference(SqmColumnReference sqmColumnReference) {
 		final TableGroup tableGroup = fromClauseIndex.findResolvedTableGroup(
-				sqmColumnReference.getSqmFromBase()
+				sqmColumnReference.getSqmFromBase(),
+				this
 		);
 
 		final ColumnReference columnReference = tableGroup.locateColumnReferenceByName( sqmColumnReference.getColumnName() );
