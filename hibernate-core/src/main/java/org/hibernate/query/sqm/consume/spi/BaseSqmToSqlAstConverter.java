@@ -413,9 +413,7 @@ public abstract class BaseSqmToSqlAstConverter
 			if ( whereClause != null ) {
 				currentClauseStack.push( Clause.WHERE );
 				try {
-					astQuerySpec.setWhereClauseRestrictions(
-							(Predicate) whereClause.getPredicate().accept( this )
-					);
+					astQuerySpec.addRestriction( (Predicate) whereClause.getPredicate().accept( this ) );
 				}
 				finally {
 					currentClauseStack.pop();
@@ -718,7 +716,65 @@ public abstract class BaseSqmToSqlAstConverter
 
 	@Override
 	public Object visitQualifiedEntityJoinFromElement(SqmEntityJoin joinedFromElement) {
-		throw new NotYetImplementedFor6Exception();
+		final QuerySpec querySpec = currentQuerySpec();
+		final EntityTypeDescriptor entityDescriptor = joinedFromElement.getNavigableReference().getEntityDescriptor();
+		final EntityTableGroup group = entityDescriptor.createRootTableGroup(
+				joinedFromElement,
+				new RootTableGroupContext() {
+					@Override
+					public void addRestriction(Predicate predicate) {
+						log.debugf(
+								"Adding restriction [%s] to where-clause for entity-join [%s]",
+								predicate,
+								joinedFromElement.getNavigableReference()
+						);
+						querySpec.addRestriction( predicate );
+					}
+
+					@Override
+					public QuerySpec getQuerySpec() {
+						return querySpec;
+					}
+
+					@Override
+					public TableSpace getTableSpace() {
+						return tableSpace;
+					}
+
+					@Override
+					public SqlAliasBaseGenerator getSqlAliasBaseGenerator() {
+						return BaseSqmToSqlAstConverter.this.getSqlAliasBaseManager();
+					}
+
+					@Override
+					public JoinType getTableReferenceJoinType() {
+						return joinedFromElement.getJoinType().getCorrespondingSqlJoinType();
+					}
+
+					@Override
+					public LockOptions getLockOptions() {
+						return queryOptions.getLockOptions();
+					}
+				}
+		);
+
+		group.applyAffectedTableNames( affectedTableNames::add );
+
+		TableGroupJoin tableGroupJoin = new TableGroupJoin( joinedFromElement.getJoinType().getCorrespondingSqlJoinType(), group, null );
+		tableSpace.addJoinedTableGroup( tableGroupJoin );
+
+		tableGroupStack.push( group );
+		fromClauseIndex.crossReference( joinedFromElement, tableGroupJoin.getJoinedGroup() );
+
+		if ( joinedFromElement.getOnClausePredicate() != null ) {
+			currentQuerySpec().addRestriction(
+					(Predicate) joinedFromElement.getOnClausePredicate().accept( this )
+			);
+		}
+
+		navigableReferenceStack.push( tableGroupJoin.getJoinedGroup().getNavigableReference() );
+
+		return tableGroupJoin;
 	}
 
 	@Override
@@ -743,7 +799,62 @@ public abstract class BaseSqmToSqlAstConverter
 
 	@Override
 	public DomainResultProducer visitEntityIdentifierReference(SqmEntityIdentifierReference expression) {
-		final TableGroup resolvedTableGroup = getFromClauseIndex().findResolvedTableGroup( expression.getExportedFromElement() );
+		final TableGroup resolvedTableGroup;
+		/*
+		if ( getCurrentClauseStack().getCurrent().equals( Clause.FROM ) ) {
+			final EntityIdentifier identifier = expression.getReferencedNavigable();
+			final EntityTypeDescriptor entityMetadata = (EntityTypeDescriptor) identifier.getContainer();
+			final EntityTableGroup group = entityMetadata.createRootTableGroup(
+					expression.getExportedFromElement(),
+					new RootTableGroupContext() {
+						@Override
+						public void addRestriction(Predicate predicate) {
+							currentQuerySpec().addRestriction( predicate );
+						}
+
+						@Override
+						public QuerySpec getQuerySpec() {
+							return currentQuerySpec();
+						}
+
+						@Override
+						public TableSpace getTableSpace() {
+							return tableSpace;
+						}
+
+						@Override
+						public SqlAliasBaseGenerator getSqlAliasBaseGenerator() {
+							return BaseSqmToSqlAstConverter.this.getSqlAliasBaseManager();
+						}
+
+						@Override
+						public JoinType getTableReferenceJoinType() {
+							return JoinType.INNER;
+						}
+
+						@Override
+						public LockOptions getLockOptions() {
+							return queryOptions.getLockOptions();
+						}
+					}
+			);
+
+			group.applyAffectedTableNames( affectedTableNames::add );
+
+			tableGroupStack.push( group );
+			fromClauseIndex.crossReference( expression.getExportedFromElement(), group );
+
+			TableGroupJoin tableGroupJoin = new TableGroupJoin( JoinType.INNER, group, null );
+			tableSpace.addJoinedTableGroup( tableGroupJoin );
+
+			navigableReferenceStack.push( group.getNavigableReference() );
+
+			resolvedTableGroup = group;
+		}
+		else {*/
+			resolvedTableGroup = getFromClauseIndex().findResolvedTableGroup( expression.getExportedFromElement() );
+		/*}*/
+
 		if ( resolvedTableGroup == null ) {
 			throw new ConversionException( "Could not find matching resolved TableGroup : " + expression.getExportedFromElement() );
 		}
@@ -1851,11 +1962,11 @@ public abstract class BaseSqmToSqlAstConverter
 	public LikePredicate visitLikePredicate(LikeSqmPredicate predicate) {
 		final Expression escapeExpression = predicate.getEscapeCharacter() == null
 				? null
-				: (Expression) predicate.getEscapeCharacter().accept( this );
+				: toExpression( predicate.getEscapeCharacter().accept( this ) );
 
 		return new LikePredicate(
-				(Expression) predicate.getMatchExpression().accept( this ),
-				(Expression) predicate.getPattern().accept( this ),
+				toExpression( predicate.getMatchExpression().accept( this ) ),
+				toExpression( predicate.getPattern().accept( this ) ),
 				escapeExpression,
 				predicate.isNegated()
 		);

@@ -1102,6 +1102,15 @@ public class SemanticQueryBuilder
 
 			joinType = SqmJoinType.LEFT;
 		}
+		else if ( joinTypeQualifier.LEFT() != null ) {
+			joinType = SqmJoinType.LEFT;
+		}
+		else if ( joinTypeQualifier.RIGHT() != null ) {
+			throw new SemanticException( "RIGHT OUTER joins are not yet supported : " + ctx.getText() );
+		}
+		else if ( joinTypeQualifier.FULL() != null ) {
+			throw new SemanticException( "FULL OUTER joins are not yet supported : " + ctx.getText() );
+		}
 		else {
 			joinType = SqmJoinType.INNER;
 		}
@@ -1615,12 +1624,26 @@ public class SemanticQueryBuilder
 
 		final boolean isBaseTerminal = ctx.dotIdentifierSequence() == null || ctx.dotIdentifierSequence().isEmpty();
 
-		final SemanticPathPart base = semanticPathPartStack.getCurrent().resolvePathPart(
-				ctx.identifier().getText(),
-				ctx.getText(),
-				isBaseTerminal,
-				this
-		);
+		final SemanticPathPart base;
+		try {
+			base = semanticPathPartStack.getCurrent().resolvePathPart(
+					ctx.identifier().getText(),
+					ctx.getText(),
+					isBaseTerminal,
+					this
+			);
+		}
+		catch ( SemanticException e ) {
+			if ( !isBaseTerminal ) {
+				EntityTypeDescriptor entityByName = getSessionFactory()
+						.getMetamodel()
+						.findEntityDescriptor( ctx.getText() );
+				if ( entityByName != null ) {
+					return new SemanticPathPartNamedEntity( entityByName );
+				}
+			}
+			throw e;
+		}
 
 		if ( !isBaseTerminal ) {
 			semanticPathPartStack.push( base );

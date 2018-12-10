@@ -306,7 +306,7 @@ public class MetamodelImpl extends AbstractRuntimeModel implements MetamodelImpl
 		final String importedName = getNameImportMap().get( name );
 
 		if ( INVALID_IMPORT.equals( importedName ) ) {
-			return null;
+			return name;
 		}
 
 		if ( importedName == null ) {
@@ -321,7 +321,7 @@ public class MetamodelImpl extends AbstractRuntimeModel implements MetamodelImpl
 			}
 			catch (ClassLoadingException cnfe) {
 				getNameImportMap().put( name, INVALID_IMPORT );
-				return null;
+				return name;
 			}
 		}
 
