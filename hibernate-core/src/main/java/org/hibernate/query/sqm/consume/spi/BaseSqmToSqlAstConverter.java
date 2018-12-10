@@ -776,17 +776,28 @@ public abstract class BaseSqmToSqlAstConverter
 
 		group.applyAffectedTableNames( affectedTableNames::add );
 
-		TableGroupJoin tableGroupJoin = new TableGroupJoin( joinedFromElement.getJoinType().getCorrespondingSqlJoinType(), group, null );
-		tableSpace.addJoinedTableGroup( tableGroupJoin );
-
 		tableGroupStack.push( group );
-		fromClauseIndex.crossReference( joinedFromElement, tableGroupJoin.getJoinedGroup() );
+		fromClauseIndex.crossReference( joinedFromElement, group );
 
+		final Predicate predicate;
 		if ( joinedFromElement.getOnClausePredicate() != null ) {
-			currentQuerySpec().addRestriction(
-					(Predicate) joinedFromElement.getOnClausePredicate().accept( this )
-			);
+			// todo (6.0) : Can we actually render this in the on-clause?
+			// rendering these in the where clause doesn't seem appropropriate
+			// but the join order and column references in the on-clause seem to force our hand here.
+			predicate = null; //(Predicate) joinedFromElement.getOnClausePredicate().accept( this );
+			querySpec.addRestriction( (Predicate) joinedFromElement.getOnClausePredicate().accept( this ) );
 		}
+		else {
+			predicate = null;
+		}
+
+		final TableGroupJoin tableGroupJoin = new TableGroupJoin(
+				joinedFromElement.getJoinType().getCorrespondingSqlJoinType(),
+				group,
+				predicate
+		);
+
+		tableSpace.addJoinedTableGroup( tableGroupJoin );
 
 		navigableReferenceStack.push( tableGroupJoin.getJoinedGroup().getNavigableReference() );
 

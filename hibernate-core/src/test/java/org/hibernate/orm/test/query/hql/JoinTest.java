@@ -63,6 +63,25 @@ public class JoinTest extends SessionFactoryBasedFunctionalTest {
 					session.save( entity );
 				}
 		);
+
+		sessionFactoryScope().inTransaction(
+				session -> {
+					final AuditRevisionEntity revEntity = new AuditRevisionEntity();
+					revEntity.setId( 2 );
+					revEntity.setTimestamp( Instant.now().getEpochSecond() );
+
+					final AuditEntityId entityId = new AuditEntityId();
+					entityId.setId( 2 );
+					entityId.setRev( revEntity );
+
+					final AuditEntity entity = new AuditEntity();
+					entity.setOriginalId( entityId );
+					entity.setData( "test" );
+
+					session.save( revEntity );
+					session.save( entity );
+				}
+		);
 	}
 
 	@AfterEach
@@ -79,6 +98,7 @@ public class JoinTest extends SessionFactoryBasedFunctionalTest {
 		);
 	}
 
+
 	@Test
 	public void testImplicitJoins() {
 		StringBuilder hql = new StringBuilder();
@@ -87,10 +107,11 @@ public class JoinTest extends SessionFactoryBasedFunctionalTest {
 		hql.append( "inner join " + AuditEntity.class.getName() + " s " );
 		hql.append( "on e.originalId.id = s.originalId.id " );
 		hql.append( "and e.originalId.rev.id = s.originalId.rev.id " );
+		hql.append( "where e.originalId.id = :id" );
 
 		sessionFactoryScope().inTransaction(
 				session -> {
-					List results = session.createQuery( hql.toString() ).getResultList();
+					List results = session.createQuery( hql.toString() ).setParameter( "id", 1 ).getResultList();
 					assertThat( results.size(), CoreMatchers.is( 1 ) );
 				}
 		);
