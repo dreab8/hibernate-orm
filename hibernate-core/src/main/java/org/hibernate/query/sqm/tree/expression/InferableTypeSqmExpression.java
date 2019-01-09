@@ -6,8 +6,6 @@
  */
 package org.hibernate.query.sqm.tree.expression;
 
-import java.util.function.Supplier;
-
 import org.hibernate.sql.ast.produce.metamodel.spi.ExpressableType;
 
 /**
@@ -36,5 +34,5 @@ public interface InferableTypeSqmExpression extends SqmExpression {
 	 *
 	 * @param inference The implied type inference
 	 */
-	void impliedType(Supplier<? extends ExpressableType> inference);
+	void impliedType(ExpressableType inference);
 }

@@ -6,9 +6,6 @@
  */
 package org.hibernate.query.criteria.sqm;
 
-import java.util.Locale;
-import java.util.function.Supplier;
-
 import org.hibernate.metamodel.model.domain.spi.AllowableParameterType;
 import org.hibernate.query.ParameterMetadata;
 import org.hibernate.query.criteria.spi.ParameterExpression;
@@ -31,7 +28,7 @@ public class JpaParameterSqmWrapper implements SqmParameter {
 	private final boolean allowMultiValuedBinding;
 
 	private AllowableParameterType parameterType;
-	private Supplier<? extends ExpressableType> impliedTypeAccess;
+	private ExpressableType impliedType;
 
 	public JpaParameterSqmWrapper(ParameterExpression jpaParameterExpression, boolean allowMultiValuedBinding) {
 		this.jpaParameterExpression = jpaParameterExpression;
@@ -40,6 +37,7 @@ public class JpaParameterSqmWrapper implements SqmParameter {
 		// todo (6.0) : how to best handle typing?
 		//		atm criteria support only defines typing in terms of JTD, but SQM
 		//		expects the ExpressableType hierarchy
+		parameterType = jpaParameterExpression.getExplicitType();
 	}
 
 	public ParameterExpression<?> getJpaParameterExpression() {
@@ -63,14 +61,9 @@ public class JpaParameterSqmWrapper implements SqmParameter {
 	}
 
 	@Override
-	public AllowableParameterType getAnticipatedType() {
-		return getExpressableType();
-	}
-
-	@Override
 	public AllowableParameterType getExpressableType() {
-		if ( impliedTypeAccess != null ) {
-			final ExpressableType type = impliedTypeAccess.get();
+		if ( impliedType != null ) {
+			final ExpressableType type = impliedType;
 			if ( type != null ) {
 				if ( type instanceof AllowableParameterType ) {
 					return (AllowableParameterType) type;
@@ -85,13 +78,8 @@ public class JpaParameterSqmWrapper implements SqmParameter {
 	}
 
 	@Override
-	public Supplier<? extends ExpressableType> getInferableType() {
-		return () -> parameterType;
-	}
-
-	@Override
-	public void impliedType(Supplier<? extends ExpressableType> inference) {
-		this.impliedTypeAccess = inference;
+	public void impliedType(ExpressableType inference) {
+		this.impliedType = inference;
 	}
 
 	@Override

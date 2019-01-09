@@ -874,17 +874,11 @@ public abstract class BaseSqmToSqlAstConverter
 
 	private final Map<SqmParameter,List<JdbcParameter>> jdbcParamsBySqmParam = new TreeMap<>(
 			(o1, o2) -> {
-				if ( o1 instanceof SqmNamedParameter ) {
-					final SqmNamedParameter one = (SqmNamedParameter) o1;
-					final SqmNamedParameter another = (SqmNamedParameter) o2;
-
-					return one.getName().compareTo( another.getName() );
+				if ( o1 instanceof SqmNamedParameter || o1 instanceof JpaParameterSqmWrapper ) {
+					return o1.getName().compareTo( o2.getName() );
 				}
 				else if ( o1 instanceof SqmPositionalParameter ) {
-					final SqmPositionalParameter one = (SqmPositionalParameter) o1;
-					final SqmPositionalParameter another = (SqmPositionalParameter) o2;
-
-					return one.getPosition().compareTo( another.getPosition() );
+					return o1.getPosition().compareTo( o2.getPosition() );
 				}
 
 				throw new HibernateException( "Unexpected SqmParameter type for comparison : " + o1 + " & " + o2 );

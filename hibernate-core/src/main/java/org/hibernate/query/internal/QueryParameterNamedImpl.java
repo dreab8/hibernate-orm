@@ -33,9 +33,7 @@ public class QueryParameterNamedImpl<T> extends AbstractQueryParameter<T> {
 		return new QueryParameterNamedImpl<T>(
 				parameter.getName(),
 				parameter.allowMultiValuedBinding(),
-				parameter.getAnticipatedType() != null ?
-						(AllowableParameterType) parameter.getAnticipatedType() :
-						null
+				parameter.getExpressableType()
 		);
 	}
 

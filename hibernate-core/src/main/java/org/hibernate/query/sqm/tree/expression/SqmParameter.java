@@ -49,17 +49,6 @@ public interface SqmParameter extends InferableTypeSqmExpression {
 	 */
 	boolean allowMultiValuedBinding();
 
-	/**
-	 * Based on the context it is declared, what is the anticipated type for
-	 * bind values?
-	 * <p/>
-	 * NOTE: If {@link #allowMultiValuedBinding()} is true, this will indicate
-	 * the Type of the individual values.
-	 *
-	 * @return The anticipated Type.
-	 */
-	AllowableParameterType getAnticipatedType();
-
 	@Override
 	AllowableParameterType getExpressableType();
 }

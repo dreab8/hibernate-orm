@@ -8,7 +8,6 @@ package org.hibernate.query.sqm.tree.expression;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.hibernate.query.sqm.consume.spi.SemanticQueryWalker;
 import org.hibernate.query.sqm.tree.predicate.SqmPredicate;
@@ -49,7 +48,7 @@ public class SqmCaseSearched extends AbstractInferableTypeSqmExpression {
 	}
 
 	@Override
-	public void impliedType(Supplier<? extends ExpressableType> inference) {
+	public void impliedType(ExpressableType inference) {
 		super.impliedType( inference );
 
 		// apply the inference to `when` and `otherwise` fragments...

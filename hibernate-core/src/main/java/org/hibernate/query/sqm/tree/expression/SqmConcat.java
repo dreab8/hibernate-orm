@@ -6,11 +6,8 @@
  */
 package org.hibernate.query.sqm.tree.expression;
 
-import java.util.function.Supplier;
-
-import org.hibernate.sql.ast.produce.metamodel.spi.BasicValuedExpressableType;
 import org.hibernate.query.sqm.consume.spi.SemanticQueryWalker;
-import org.hibernate.query.sqm.tree.internal.Helper;
+import org.hibernate.sql.ast.produce.metamodel.spi.BasicValuedExpressableType;
 import org.hibernate.sql.ast.produce.metamodel.spi.ExpressableType;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptor;
 
@@ -43,39 +40,25 @@ public class SqmConcat implements SqmExpression {
 
 	@Override
 	public BasicValuedExpressableType getExpressableType() {
-		return resultType;
+		return getInferableType();
 	}
 
-	@Override
+
 	@SuppressWarnings("unchecked")
-	public Supplier<? extends BasicValuedExpressableType> getInferableType() {
-		return () -> {
-			// check LHS
-			{
-				final Supplier<? extends BasicValuedExpressableType> inference =
-						(Supplier<? extends BasicValuedExpressableType>) lhsOperand.getInferableType();
-				if ( inference != null ) {
-					final BasicValuedExpressableType inferableType = inference.get();
-					if ( inferableType != null ) {
-						return inferableType;
-					}
-				}
-			}
+	private BasicValuedExpressableType getInferableType() {
+		// check LHS
+		final ExpressableType lshExpressableType = lhsOperand.getExpressableType();
+		if ( lshExpressableType != null ) {
+			return (BasicValuedExpressableType) lshExpressableType;
+		}
 
-			// check RHS
-			{
-				final Supplier<? extends BasicValuedExpressableType> inference =
-						(Supplier<? extends BasicValuedExpressableType>) rhsOperand.getInferableType();
-				if ( inference != null ) {
-					final BasicValuedExpressableType inferableType = inference.get();
-					if ( inferableType != null ) {
-						return inferableType;
-					}
-				}
-			}
+		// check RHS
+		final ExpressableType rhsExpressableType = rhsOperand.getExpressableType();
+		if ( rhsExpressableType != null ) {
+			return (BasicValuedExpressableType) rhsExpressableType;
+		}
 
-			return resultType;
-		};
+		return resultType;
 	}
 
 	@Override

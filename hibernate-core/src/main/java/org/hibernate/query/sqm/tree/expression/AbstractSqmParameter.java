@@ -6,10 +6,7 @@
  */
 package org.hibernate.query.sqm.tree.expression;
 
-import java.util.function.Supplier;
-
 import org.hibernate.metamodel.model.domain.spi.AllowableParameterType;
-import org.hibernate.sql.ast.produce.metamodel.spi.ExpressableType;
 
 /**
  * Common support for SqmParameter impls
@@ -42,16 +39,5 @@ public abstract class AbstractSqmParameter extends AbstractInferableTypeSqmExpre
 	@Override
 	public AllowableParameterType getExpressableType() {
 		return (AllowableParameterType) super.getExpressableType();
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public Supplier<? extends AllowableParameterType> getInferableType() {
-		return (Supplier<? extends AllowableParameterType>) super.getInferableType();
-	}
-
-	@Override
-	public AllowableParameterType getAnticipatedType() {
-		return getExpressableType();
 	}
 }

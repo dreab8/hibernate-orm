@@ -17,7 +17,7 @@ import org.hibernate.type.spi.StandardSpiBasicTypes;
  */
 public abstract class AbstractInferableTypeSqmExpression implements InferableTypeSqmExpression {
 	private ExpressableType inherentType;
-	private Supplier<? extends ExpressableType> typeInference;
+	private ExpressableType typeInference;
 
 	public AbstractInferableTypeSqmExpression(ExpressableType inherentType) {
 		this.inherentType = inherentType;
@@ -39,12 +39,11 @@ public abstract class AbstractInferableTypeSqmExpression implements InferableTyp
 		return getInferableType().get();
 	}
 
-	@Override
-	public Supplier<? extends ExpressableType> getInferableType() {
+	protected Supplier<? extends ExpressableType> getInferableType() {
 		return () -> {
 			final ExpressableType inferredType;
 			if ( typeInference != null ) {
-				inferredType = typeInference.get();
+				inferredType = typeInference;
 			}
 			else {
 				inferredType = null;
@@ -76,7 +75,7 @@ public abstract class AbstractInferableTypeSqmExpression implements InferableTyp
 	}
 
 	@Override
-	public void impliedType(Supplier<? extends ExpressableType> inference) {
+	public void impliedType(ExpressableType inference) {
 		this.typeInference = inference;
 	}
 }

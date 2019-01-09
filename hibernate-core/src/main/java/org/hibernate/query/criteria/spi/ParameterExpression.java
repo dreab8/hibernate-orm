@@ -28,6 +28,7 @@ public class ParameterExpression<T>
 	public ParameterExpression(String name, Class<T> javaType, CriteriaNodeBuilder builder) {
 		super( javaType, builder );
 		this.name = name;
+		explicitType = builder.getSessionFactory().getTypeConfiguration().getBasicTypeRegistry().getBasicType( javaType );
 	}
 
 	public ParameterExpression(Class<T> javaType, CriteriaNodeBuilder builder) {
@@ -36,6 +37,9 @@ public class ParameterExpression<T>
 
 	@Override
 	public String getName() {
+		if ( name == null ) {
+			return this.toString();
+		}
 		return name;
 	}
 
@@ -73,7 +77,6 @@ public class ParameterExpression<T>
 	public void setAllowsMultiValuedBinding(boolean allowsMultiValuedBinding) {
 		this.allowsMultiValuedBinding = allowsMultiValuedBinding;
 	}
-
 
 	@Override
 	public ParameterMemento toMemento() {

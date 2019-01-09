@@ -765,7 +765,7 @@ public class SemanticQueryBuilder
 	@SuppressWarnings("SameParameterValue")
 	private void applyImpliedType(SqmExpression sqmExpression, StandardBasicType impliedType) {
 		if ( sqmExpression instanceof InferableTypeSqmExpression ) {
-			( (InferableTypeSqmExpression) sqmExpression ).impliedType( () -> impliedType );
+			( (InferableTypeSqmExpression) sqmExpression ).impliedType( impliedType );
 		}
 	}
 
@@ -1251,15 +1251,15 @@ public class SemanticQueryBuilder
 		//		2) fallback type - generally this is one of the standard basic type
 		//		3) inferred type - a type that is inferred by its surroundings
 
-		if ( lhs.getInferableType() != null ) {
+		if ( lhs.getExpressableType() != null ) {
 			if ( rhs instanceof InferableTypeSqmExpression ) {
-				( (InferableTypeSqmExpression) rhs ).impliedType( lhs.getInferableType() );
+				( (InferableTypeSqmExpression) rhs ).impliedType( lhs.getExpressableType()  );
 			}
 		}
 
-		if ( rhs.getInferableType() != null ) {
+		if ( rhs.getExpressableType() != null ) {
 			if ( lhs instanceof InferableTypeSqmExpression ) {
-				( (InferableTypeSqmExpression) lhs ).impliedType( rhs.getInferableType() );
+				( (InferableTypeSqmExpression) lhs ).impliedType( rhs.getExpressableType() );
 			}
 		}
 
@@ -1312,28 +1312,28 @@ public class SemanticQueryBuilder
 		final SqmExpression lowerBound = (SqmExpression) ctx.expression().get( 1 ).accept( this );
 		final SqmExpression upperBound = (SqmExpression) ctx.expression().get( 2 ).accept( this );
 
-		if ( expression.getInferableType() != null ) {
+		if ( expression.getExpressableType() != null ) {
 			if ( lowerBound instanceof InferableTypeSqmExpression ) {
-				( (InferableTypeSqmExpression) lowerBound ).impliedType( expression.getInferableType() );
+				( (InferableTypeSqmExpression) lowerBound ).impliedType( expression.getExpressableType() );
 			}
 			if ( upperBound instanceof InferableTypeSqmExpression ) {
-				( (InferableTypeSqmExpression) upperBound ).impliedType( expression.getInferableType() );
+				( (InferableTypeSqmExpression) upperBound ).impliedType( expression.getExpressableType() );
 			}
 		}
-		else if ( lowerBound.getInferableType() != null ) {
+		else if ( lowerBound.getExpressableType() != null ) {
 			if ( expression instanceof InferableTypeSqmExpression ) {
-				( (InferableTypeSqmExpression) expression ).impliedType( lowerBound.getInferableType() );
+				( (InferableTypeSqmExpression) expression ).impliedType( lowerBound.getExpressableType() );
 			}
 			if ( upperBound instanceof InferableTypeSqmExpression ) {
-				( (InferableTypeSqmExpression) upperBound ).impliedType( lowerBound.getInferableType() );
+				( (InferableTypeSqmExpression) upperBound ).impliedType( lowerBound.getExpressableType() );
 			}
 		}
-		else if ( upperBound.getInferableType() != null ) {
+		else if ( upperBound.getExpressableType() != null ) {
 			if ( expression instanceof InferableTypeSqmExpression ) {
-				( (InferableTypeSqmExpression) expression ).impliedType( upperBound.getInferableType() );
+				( (InferableTypeSqmExpression) expression ).impliedType( upperBound.getExpressableType() );
 			}
 			if ( lowerBound instanceof InferableTypeSqmExpression ) {
-				( (InferableTypeSqmExpression) lowerBound ).impliedType( upperBound.getInferableType() );
+				( (InferableTypeSqmExpression) lowerBound ).impliedType( upperBound.getExpressableType() );
 			}
 		}
 
@@ -1389,9 +1389,9 @@ public class SemanticQueryBuilder
 				for ( HqlParser.ExpressionContext expressionContext : tupleExpressionListContext.expression() ) {
 					final SqmExpression listItemExpression = (SqmExpression) expressionContext.accept( this );
 
-					if ( testExpression.getInferableType() != null ) {
+					if ( testExpression.getExpressableType() != null ) {
 						if ( listItemExpression instanceof InferableTypeSqmExpression ) {
-							( (InferableTypeSqmExpression) listItemExpression ).impliedType( testExpression.getInferableType() );
+							( (InferableTypeSqmExpression) listItemExpression ).impliedType( testExpression.getExpressableType() );
 						}
 					}
 

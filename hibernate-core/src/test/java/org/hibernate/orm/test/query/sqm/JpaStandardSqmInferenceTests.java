@@ -9,16 +9,15 @@ package org.hibernate.orm.test.query.sqm;
 import javax.money.MonetaryAmount;
 
 import org.hibernate.boot.MetadataSources;
+import org.hibernate.query.sqm.tree.SqmStatement;
+import org.hibernate.query.sqm.tree.expression.SqmParameter;
+
 import org.hibernate.testing.junit5.SessionFactoryBasedFunctionalTest;
 import org.hibernate.testing.orm.domain.helpdesk.HelpDeskDomainModel;
 import org.hibernate.testing.orm.domain.helpdesk.Status;
 import org.hibernate.testing.orm.domain.retail.RetailDomainModel;
-import org.hibernate.query.sqm.tree.SqmStatement;
-import org.hibernate.query.sqm.tree.expression.SqmParameter;
-
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -128,7 +127,7 @@ public class JpaStandardSqmInferenceTests extends SessionFactoryBasedFunctionalT
 			assertEquals(
 					"Anticipated type for query parameter [" + queryParameter + "]",
 					expectedParameterTypes[count++],
-					queryParameter.getAnticipatedType().getJavaType()
+					queryParameter.getExpressableType().getJavaType()
 			);
 
 //			assertThat(

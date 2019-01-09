@@ -44,7 +44,6 @@ public class BasicCriteriaExecutionTests extends BaseSessionFactoryFunctionalTes
 	}
 
 	@Test
-	@FailureExpected( "Criteria nodes do not currently track ExpressableType + StackOverflow resolving implied type" )
 	public void testExecutingBasicCriteriaQueryLiteralPredicate() {
 		final HibernateCriteriaBuilder criteriaBuilder = sessionFactory().getQueryEngine().getCriteriaBuilder();
 
@@ -62,7 +61,6 @@ public class BasicCriteriaExecutionTests extends BaseSessionFactoryFunctionalTes
 	}
 
 	@Test
-	@FailureExpected( "Criteria nodes do not currently track ExpressableType" )
 	public void testExecutingBasicCriteriaQueryParameterPredicate() {
 		final HibernateCriteriaBuilder criteriaBuilder = sessionFactory().getQueryEngine().getCriteriaBuilder();
 

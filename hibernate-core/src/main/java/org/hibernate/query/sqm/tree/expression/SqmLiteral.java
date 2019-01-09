@@ -6,8 +6,6 @@
  */
 package org.hibernate.query.sqm.tree.expression;
 
-import java.util.function.Supplier;
-
 import org.hibernate.query.sqm.consume.spi.SemanticQueryWalker;
 import org.hibernate.sql.ast.produce.metamodel.spi.BasicValuedExpressableType;
 
@@ -36,12 +34,6 @@ public class SqmLiteral<T> extends AbstractInferableTypeSqmExpression implements
 	@Override
 	public BasicValuedExpressableType getExpressableType() {
 		return (BasicValuedExpressableType) super.getExpressableType();
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public Supplier<? extends BasicValuedExpressableType> getInferableType() {
-		return (Supplier<? extends BasicValuedExpressableType>) super.getInferableType();
 	}
 
 	@Override
