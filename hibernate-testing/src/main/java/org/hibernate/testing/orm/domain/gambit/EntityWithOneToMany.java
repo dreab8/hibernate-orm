@@ -6,8 +6,8 @@
  */
 package org.hibernate.testing.orm.domain.gambit;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
@@ -22,7 +22,7 @@ public class EntityWithOneToMany {
 
 	// alphabetical
 	private String name;
-	private List<SimpleEntity> others = new ArrayList<>(  );
+	private Set<SimpleEntity> others = new HashSet<>(  );
 	private Integer someInteger;
 
 	public EntityWithOneToMany() {
@@ -52,11 +52,11 @@ public class EntityWithOneToMany {
 	}
 
 	@OneToMany(fetch = FetchType.LAZY)
-	public List<SimpleEntity> getOthers() {
+	public Set<SimpleEntity> getOthers() {
 		return others;
 	}
 
-	public void setOthers(List<SimpleEntity> others) {
+	public void setOthers(Set<SimpleEntity> others) {
 		this.others = others;
 	}
 

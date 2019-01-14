@@ -9,6 +9,9 @@ package org.hibernate.metamodel.model.domain.internal;
 import java.util.Set;
 
 import org.hibernate.LockMode;
+import org.hibernate.NotYetImplementedFor6Exception;
+import org.hibernate.collection.spi.PersistentCollection;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.mapping.Property;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.spi.AbstractPersistentCollectionDescriptor;
@@ -72,5 +75,11 @@ public class PersistentSetDescriptorImpl<O,E> extends AbstractPersistentCollecti
 	@Override
 	public String toString() {
 		return getNavigableRole().getFullPath();
+	}
+
+	@Override
+	protected void doProcessQueuedOps(
+			PersistentCollection collection, Object id, SharedSessionContractImplementor session) {
+		// do nothing
 	}
 }

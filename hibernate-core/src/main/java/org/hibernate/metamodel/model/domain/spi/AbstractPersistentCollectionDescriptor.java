@@ -50,6 +50,7 @@ import org.hibernate.mapping.Any;
 import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.IdentifierCollection;
 import org.hibernate.mapping.IndexedCollection;
+import org.hibernate.mapping.KeyValue;
 import org.hibernate.mapping.ManyToOne;
 import org.hibernate.mapping.OneToMany;
 import org.hibernate.mapping.Property;
@@ -66,9 +67,11 @@ import org.hibernate.metamodel.model.domain.internal.collection.CollectionElemen
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionIndexEmbeddedImpl;
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionIndexEntityImpl;
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionRemovalExecutor;
+import org.hibernate.metamodel.model.domain.internal.collection.CollectionRowsDeletionExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.FetchedTableReferenceCollectorImpl;
 import org.hibernate.metamodel.model.domain.internal.collection.JoinTableCreationExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.JoinTableRemovalExecutor;
+import org.hibernate.metamodel.model.domain.internal.collection.JoinTableRowsDeleletionExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.OneToManyCreationExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.OneToManyRemovalExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.RootTableReferenceCollectorImpl;
@@ -96,9 +99,9 @@ import org.hibernate.sql.ast.tree.spi.from.TableGroupJoin;
 import org.hibernate.sql.ast.tree.spi.from.TableReference;
 import org.hibernate.sql.ast.tree.spi.from.TableReferenceJoin;
 import org.hibernate.sql.ast.tree.spi.from.TableSpace;
+import org.hibernate.sql.ast.tree.spi.predicate.ComparisonPredicate;
 import org.hibernate.sql.ast.tree.spi.predicate.Junction;
 import org.hibernate.sql.ast.tree.spi.predicate.Predicate;
-import org.hibernate.sql.ast.tree.spi.predicate.ComparisonPredicate;
 import org.hibernate.sql.results.internal.domain.collection.CollectionFetchImpl;
 import org.hibernate.sql.results.internal.domain.collection.CollectionInitializerProducer;
 import org.hibernate.sql.results.internal.domain.collection.CollectionResultImpl;
@@ -120,7 +123,8 @@ import static org.hibernate.metamodel.model.domain.spi.CollectionElement.Element
 /**
  * @author Steve Ebersole
  */
-public abstract class AbstractPersistentCollectionDescriptor<O,C,E> implements PersistentCollectionDescriptor<O,C,E> {
+public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
+		implements PersistentCollectionDescriptor<O, C, E> {
 	private static final Logger log = Logger.getLogger( AbstractPersistentCollectionDescriptor.class );
 
 	private final SessionFactoryImplementor sessionFactory;
@@ -143,6 +147,7 @@ public abstract class AbstractPersistentCollectionDescriptor<O,C,E> implements P
 	private CollectionLoader collectionLoader;
 	private CollectionCreationExecutor collectionCreationExecutor;
 	private CollectionRemovalExecutor collectionRemovalExecutor;
+	private CollectionRowsDeletionExecutor collectionRowsDeletionExecutor;
 
 	private final String mappedBy;
 
@@ -166,6 +171,8 @@ public abstract class AbstractPersistentCollectionDescriptor<O,C,E> implements P
 	private final boolean hasOrphanDeletes;
 	private final boolean inverse;
 
+	private boolean isRowInsertEnabled;
+	private boolean isRowDeleteEnabled;
 	private boolean fullyInitialized;
 	private Table separateCollectionTable;
 	private Table dmlTargetTable;
@@ -219,7 +226,13 @@ public abstract class AbstractPersistentCollectionDescriptor<O,C,E> implements P
 		);
 		spaces.addAll( collectionBinding.getSynchronizedTables() );
 
-		this.keyJavaTypeDescriptor = collectionBinding.getKey().getJavaTypeMapping().getJavaTypeDescriptor();
+		KeyValue key = collectionBinding.getKey();
+
+
+		this.isRowDeleteEnabled = key.isNullable() && key.isUpdateable();
+		this.isRowInsertEnabled = key.isUpdateable();
+
+		this.keyJavaTypeDescriptor = key.getJavaTypeMapping().getJavaTypeDescriptor();
 
 		this.sqlAliasStem = SqlAliasStemHelper.INSTANCE.generateStemFromAttributeName( pluralProperty.getName() );
 
@@ -354,6 +367,11 @@ public abstract class AbstractPersistentCollectionDescriptor<O,C,E> implements P
 		}
 
 		this.elementDescriptor = resolveElementDescriptor( this, bootCollectionDescriptor, separateCollectionTable, creationContext );
+
+		if ( !isOneToMany() ) {
+			this.isRowDeleteEnabled = true;
+			this.isRowInsertEnabled = true;
+		}
 
 		this.javaTypeDescriptor = (CollectionJavaDescriptor<C>) bootCollectionDescriptor.getJavaTypeMapping().getJavaTypeDescriptor();
 
@@ -1029,21 +1047,49 @@ public abstract class AbstractPersistentCollectionDescriptor<O,C,E> implements P
 	}
 
 	@Override
+	public void deleteRows(PersistentCollection collection, Object key, SharedSessionContractImplementor session) {
+		if ( collectionRowsDeletionExecutor == null ) {
+			collectionRowsDeletionExecutor = generateCollectionRowsDeletionExecutor();
+		}
+		collectionRowsDeletionExecutor.deleteRows( collection, key, session );
+	}
+
+	private CollectionRowsDeletionExecutor generateCollectionRowsDeletionExecutor() {
+		if ( isInverse() || !isRowDeleteEnabled() ) {
+			return CollectionRowsDeletionExecutor.NO_OP;
+		}
+		else if ( isOneToMany() ) {
+			throw new NotYetImplementedFor6Exception( getClass() );
+		}
+		else {
+			return new JoinTableRowsDeleletionExecutor( this, sessionFactory, hasIndex() && !indexContainsFormula() );
+		}
+	}
+
+	protected boolean hasIndex() {
+		return false;
+	}
+
+	protected boolean indexContainsFormula() {
+		return false;
+	}
+
+	@Override
 	public void recreate(
 			PersistentCollection collection,
 			Object key,
 			SharedSessionContractImplementor session) {
-//
-//		if ( isInverse() ) {
-//			// EARLY EXIT!!
-//			return;
-//		}
-//
-//		if ( !isRowInsertEnabled() ) {
-//			// EARLY EXIT!!
-//			return;
-//		}
-//
+
+		if ( isInverse() ) {
+			// EARLY EXIT!!
+			return;
+		}
+
+		if ( !isRowInsertEnabled() ) {
+			// EARLY EXIT!!
+			return;
+		}
+
 		if ( collectionCreationExecutor == null ) {
 			collectionCreationExecutor = generateCollectionCreationExecutor();
 		}
@@ -1056,37 +1102,36 @@ public abstract class AbstractPersistentCollectionDescriptor<O,C,E> implements P
 	}
 
 	private CollectionCreationExecutor generateCollectionCreationExecutor() {
-		if ( isInverse() || ! isRowInsertEnabled() ) {
+		if ( isInverse() || !isRowInsertEnabled() ) {
 			return CollectionCreationExecutor.NO_OP;
 		}
-		else if ( getSeparateCollectionTable() != null ) {
-			return new JoinTableCreationExecutor( this, dmlTargetTable, getSessionFactory() );
+		else if ( isOneToMany() ) {
+			return new OneToManyCreationExecutor( this, dmlTargetTable, getSessionFactory() );
 		}
 		else {
-			assert getElementDescriptor().getClassification() == ONE_TO_MANY;
-			return new OneToManyCreationExecutor( this, dmlTargetTable, getSessionFactory() );
+			return new JoinTableCreationExecutor( this, dmlTargetTable, getSessionFactory() );
 		}
 	}
 
 	protected boolean isRowInsertEnabled() {
-		return true;
+		return isRowInsertEnabled;
 	}
 
 	@Override
 	public void remove(Object key, SharedSessionContractImplementor session) {
 		log.tracef( "Starting #remove(%s)", key );
 
-//		if ( isInverse() ) {
-//			// EARLY EXIT!!
-//			log.tracef( "Skipping remove for inverse collection" );
-//			return;
-//		}
-//
-//		if ( ! isRowDeleteEnabled() ) {
-//			// EARLY EXIT!!
-//			log.tracef( "Skipping remove for collection - row deletion disabled" );
-//			return;
-//		}
+		if ( isInverse() ) {
+			// EARLY EXIT!!
+			log.tracef( "Skipping remove for inverse collection" );
+			return;
+		}
+
+		if ( !isRowDeleteEnabled() ) {
+			// EARLY EXIT!!
+			log.tracef( "Skipping remove for collection - row deletion disabled" );
+			return;
+		}
 
 		if ( collectionRemovalExecutor == null ) {
 			collectionRemovalExecutor = generateCollectionRemovalExecutor();
@@ -1101,20 +1146,20 @@ public abstract class AbstractPersistentCollectionDescriptor<O,C,E> implements P
 	}
 
 	private CollectionRemovalExecutor generateCollectionRemovalExecutor() {
-		if ( isInverse() || ! isRowDeleteEnabled() ) {
+		if ( isInverse() || !isRowDeleteEnabled() ) {
 			return CollectionRemovalExecutor.NO_OP;
 		}
-		else if ( getSeparateCollectionTable() != null ) {
-			return new JoinTableRemovalExecutor( this, sessionFactory );
+		else if ( isOneToMany() ) {
+			return new OneToManyRemovalExecutor( this, sessionFactory );
+
 		}
 		else {
-			assert getElementDescriptor().getClassification() == ONE_TO_MANY;
-			return new OneToManyRemovalExecutor( this, sessionFactory );
+			return new JoinTableRemovalExecutor( this, sessionFactory );
 		}
 	}
 
 	protected boolean isRowDeleteEnabled() {
-		return true;
+		return isRowDeleteEnabled;
 	}
 
 	@Override
@@ -1126,4 +1171,18 @@ public abstract class AbstractPersistentCollectionDescriptor<O,C,E> implements P
 			return ( (SingularPersistentAttribute) getForeignKeyTargetNavigable() ).getPropertyAccess().getGetter().get( owner );
 		}
 	}
+
+	@Override
+	public void processQueuedOps(
+			PersistentCollection collection, Object key, SharedSessionContractImplementor session) {
+		if ( collection.hasQueuedOperations() && isOneToMany() ) {
+			doProcessQueuedOps(collection, key, session);
+		}
+	}
+
+	protected abstract void doProcessQueuedOps(
+			PersistentCollection collection,
+			Object id,
+			SharedSessionContractImplementor session);
+
 }
