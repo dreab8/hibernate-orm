@@ -139,11 +139,15 @@ public class EntityWithOneToManyWithoutJoinTableTest extends BaseCoreFunctionalT
 		System.out.println( "=========================================================" );
 		inTransaction(
 				session -> {
+					System.out.println( "=============================================" );
 					EntityWithOneToManyNotOwned retrieved = session.get( EntityWithOneToManyNotOwned.class, 1 );
+					System.out.println( "********************************************" );
+
 					retrieved.addChild( child2 );
 					session.save( child2 );
+					System.out.println( "=============================================" );
+
 				} );
-		System.out.println( "=========================================================" );
 
 		inTransaction(
 				session -> {
@@ -163,6 +167,38 @@ public class EntityWithOneToManyWithoutJoinTableTest extends BaseCoreFunctionalT
 
 					assertThat( othersById.get( 2 ).getSomeInteger(), is( Integer.MAX_VALUE ) );
 					assertThat( othersById.get( 3 ).getSomeInteger(), is( Integer.MIN_VALUE ) );
+				} );
+	}
+
+	@Test
+	public void testRemoveElements() {
+		EntityWithOneToManyNotOwned owner = new EntityWithOneToManyNotOwned();
+		owner.setId( 1 );
+
+		EntityWithManyToOneWithoutJoinTable child1 = new EntityWithManyToOneWithoutJoinTable( 2, Integer.MAX_VALUE );
+
+		owner.addChild( child1 );
+
+		inTransaction(
+				session -> {
+					session.save( child1 );
+					session.save( owner );
+				} );
+
+
+		inTransaction(
+				session -> {
+					EntityWithOneToManyNotOwned retrieved = session.get( EntityWithOneToManyNotOwned.class, 1 );
+					retrieved.getChildren().clear();
+				} );
+
+		inTransaction(
+				session -> {
+					EntityWithOneToManyNotOwned retrieved = session.get( EntityWithOneToManyNotOwned.class, 1 );
+					assertThat( retrieved, notNullValue() );
+					List<EntityWithManyToOneWithoutJoinTable> children = retrieved.getChildren();
+
+					assertThat( children.size(), is( 0 ) );
 				} );
 	}
 }
