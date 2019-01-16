@@ -68,6 +68,7 @@ import org.hibernate.metamodel.model.domain.internal.collection.CollectionIndexE
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionIndexEntityImpl;
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionRemovalExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionRowsDeletionExecutor;
+import org.hibernate.metamodel.model.domain.internal.collection.CollectionRowsUpdateExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.FetchedTableReferenceCollectorImpl;
 import org.hibernate.metamodel.model.domain.internal.collection.JoinTableCreationExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.JoinTableRemovalExecutor;
@@ -148,6 +149,7 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 	private CollectionCreationExecutor collectionCreationExecutor;
 	private CollectionRemovalExecutor collectionRemovalExecutor;
 	private CollectionRowsDeletionExecutor collectionRowsDeletionExecutor;
+	private CollectionRowsUpdateExecutor collectionRowsUpdateExecutor;
 
 	private final String mappedBy;
 
@@ -1063,6 +1065,24 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 		}
 		else {
 			return new JoinTableRowsDeleletionExecutor( this, sessionFactory, hasIndex() && !indexContainsFormula() );
+		}
+	}
+
+	@Override
+	public void updateRows(
+			PersistentCollection collection, Object key, SharedSessionContractImplementor session) {
+		if ( collectionRowsUpdateExecutor == null ) {
+			collectionRowsUpdateExecutor = generateCollectionRowsUpdateExecutor();
+		}
+		collectionRowsUpdateExecutor.updateRows( collection, key, session );
+	}
+
+	protected CollectionRowsUpdateExecutor generateCollectionRowsUpdateExecutor(PersistentCollection collection) {
+		if ( !isInverse() && collection.isRowUpdatePossible() ) {
+			throw new NotYetImplementedFor6Exception( getClass() );
+		}
+		else {
+			return CollectionRowsUpdateExecutor.NO_OP;
 		}
 	}
 
