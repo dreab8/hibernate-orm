@@ -68,6 +68,7 @@ import org.hibernate.metamodel.model.domain.internal.collection.CollectionIndexE
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionIndexEntityImpl;
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionRemovalExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionRowsDeletionExecutor;
+import org.hibernate.metamodel.model.domain.internal.collection.CollectionRowsInsertExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionRowsUpdateExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.FetchedTableReferenceCollectorImpl;
 import org.hibernate.metamodel.model.domain.internal.collection.JoinTableCreationExecutor;
@@ -150,6 +151,7 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 	private CollectionRemovalExecutor collectionRemovalExecutor;
 	private CollectionRowsDeletionExecutor collectionRowsDeletionExecutor;
 	private CollectionRowsUpdateExecutor collectionRowsUpdateExecutor;
+	private CollectionRowsInsertExecutor collectionRowsInsertExecutor;
 
 	private final String mappedBy;
 
@@ -1069,21 +1071,35 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 	}
 
 	@Override
-	public void updateRows(
-			PersistentCollection collection, Object key, SharedSessionContractImplementor session) {
-		if ( collectionRowsUpdateExecutor == null ) {
-			collectionRowsUpdateExecutor = generateCollectionRowsUpdateExecutor();
+	public void insertRows(PersistentCollection collection, Object key, SharedSessionContractImplementor session) {
+		if ( collectionRowsInsertExecutor == null ) {
+			collectionRowsInsertExecutor = generateCollectionRowsInsertExecutor();
 		}
-		collectionRowsUpdateExecutor.updateRows( collection, key, session );
+		collectionRowsInsertExecutor.insertRows( collection, key, session );
 	}
 
-	protected CollectionRowsUpdateExecutor generateCollectionRowsUpdateExecutor(PersistentCollection collection) {
-		if ( !isInverse() && collection.isRowUpdatePossible() ) {
-			throw new NotYetImplementedFor6Exception( getClass() );
+	private CollectionRowsInsertExecutor generateCollectionRowsInsertExecutor(){
+		if ( isInverse() || !isRowInsertEnabled() ) {
+			return CollectionRowsInsertExecutor.NO_OP;
 		}
-		else {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public void updateRows(PersistentCollection collection, Object key, SharedSessionContractImplementor session) {
+		if ( collection.isRowUpdatePossible() ) {
+			if ( collectionRowsUpdateExecutor == null ) {
+				collectionRowsUpdateExecutor = generateCollectionRowsUpdateExecutor();
+			}
+			collectionRowsUpdateExecutor.updateRows( collection, key, session );
+		}
+	}
+
+	protected CollectionRowsUpdateExecutor generateCollectionRowsUpdateExecutor() {
+		if ( isInverse() ) {
 			return CollectionRowsUpdateExecutor.NO_OP;
 		}
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	protected boolean hasIndex() {
@@ -1099,17 +1115,6 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 			PersistentCollection collection,
 			Object key,
 			SharedSessionContractImplementor session) {
-
-		if ( isInverse() ) {
-			// EARLY EXIT!!
-			return;
-		}
-
-		if ( !isRowInsertEnabled() ) {
-			// EARLY EXIT!!
-			return;
-		}
-
 		if ( collectionCreationExecutor == null ) {
 			collectionCreationExecutor = generateCollectionCreationExecutor();
 		}
@@ -1141,18 +1146,6 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 	public void remove(Object key, SharedSessionContractImplementor session) {
 		log.tracef( "Starting #remove(%s)", key );
 
-		if ( isInverse() ) {
-			// EARLY EXIT!!
-			log.tracef( "Skipping remove for inverse collection" );
-			return;
-		}
-
-		if ( !isRowDeleteEnabled() ) {
-			// EARLY EXIT!!
-			log.tracef( "Skipping remove for collection - row deletion disabled" );
-			return;
-		}
-
 		if ( collectionRemovalExecutor == null ) {
 			collectionRemovalExecutor = generateCollectionRemovalExecutor();
 		}
@@ -1166,10 +1159,14 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 	}
 
 	private CollectionRemovalExecutor generateCollectionRemovalExecutor() {
-		if ( isInverse() || !isRowDeleteEnabled() ) {
-			return CollectionRemovalExecutor.NO_OP;
+		if ( isInverse() ) {
+			return (key, session) -> log.tracef( "Skipping remove for inverse collection" );
 		}
-		else if ( isOneToMany() ) {
+		if ( !isRowDeleteEnabled() ) {
+			return (key, session) -> log.tracef( "Skipping remove for collection - row deletion disabled" );
+		}
+
+		if ( isOneToMany() ) {
 			return new OneToManyRemovalExecutor( this, sessionFactory );
 
 		}

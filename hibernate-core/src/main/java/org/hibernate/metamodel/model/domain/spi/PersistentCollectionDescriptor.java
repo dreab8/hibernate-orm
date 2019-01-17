@@ -440,12 +440,10 @@ public interface PersistentCollectionDescriptor<O,C,E>
 	/**
 	 * Insert the persistent state of any new collection elements
 	 */
-	default void insertRows(
+	void insertRows(
 			PersistentCollection collection,
 			Object key,
-			SharedSessionContractImplementor session) {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
+			SharedSessionContractImplementor session);
 
 	/**
 	 * Process queued operations within the PersistentCollection.
