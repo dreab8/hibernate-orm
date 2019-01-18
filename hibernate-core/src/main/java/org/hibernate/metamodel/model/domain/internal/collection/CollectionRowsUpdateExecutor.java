@@ -16,7 +16,7 @@ public interface CollectionRowsUpdateExecutor {
 
 	CollectionRowsUpdateExecutor NO_OP = (collection, key, session) -> {};
 
-	void updateRows(
+	void execute(
 			PersistentCollection collection,
 			Object key,
 			SharedSessionContractImplementor session);

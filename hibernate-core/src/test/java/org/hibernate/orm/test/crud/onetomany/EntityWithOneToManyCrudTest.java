@@ -9,6 +9,7 @@ package org.hibernate.orm.test.crud.onetomany;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,6 +18,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.testing.junit5.SessionFactoryBasedFunctionalTest;
 import org.hibernate.testing.orm.domain.gambit.EntityWithOneToMany;
 import org.hibernate.testing.orm.domain.gambit.SimpleEntity;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -35,6 +37,20 @@ public class EntityWithOneToManyCrudTest extends SessionFactoryBasedFunctionalTe
 				EntityWithOneToMany.class,
 				SimpleEntity.class
 		};
+	}
+
+	@AfterEach
+	public void tearDown() {
+		sessionFactoryScope().inTransaction(
+				session -> {
+					List<EntityWithOneToMany> results = session.createQuery( "from EntityWithOneToMany e" ).list();
+					results.forEach(
+							entity -> {
+								Set<SimpleEntity> others = entity.getOthers();
+								others.forEach( other -> session.remove( other ) );
+								session.remove( entity );
+							} );
+				} );
 	}
 
 	@Test
@@ -161,6 +177,7 @@ public class EntityWithOneToManyCrudTest extends SessionFactoryBasedFunctionalTe
 						}
 					}
 					others.remove( toRemove );
+					session.remove( toRemove );
 				}
 		);
 
@@ -175,7 +192,7 @@ public class EntityWithOneToManyCrudTest extends SessionFactoryBasedFunctionalTe
 
 					);
 					assertThat( others.size(), is( 1 ) );
-					assertThat( others.iterator().next(), is( 3 ) );
+					assertThat( others.iterator().next().getId(), is( 3 ) );
 				}
 		);
 	}

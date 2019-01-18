@@ -23,7 +23,7 @@ public interface CollectionCreationExecutor {
 	/**
 	 * Execute the creation
 	 */
-	void create(
+	void execute(
 			PersistentCollection collection,
 			Object key,
 			SharedSessionContractImplementor session);

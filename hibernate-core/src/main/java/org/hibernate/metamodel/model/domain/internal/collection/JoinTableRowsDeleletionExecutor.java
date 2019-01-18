@@ -73,7 +73,7 @@ public class JoinTableRowsDeleletionExecutor implements CollectionRowsDeletionEx
 	}
 
 	@Override
-	public void deleteRows(
+	public void execute(
 			PersistentCollection collection, Object key, SharedSessionContractImplementor session) {
 		Iterator deletes = collection.getDeletes( collectionDescriptor, !deleteByIndex );
 		if ( log.isDebugEnabled() ) {

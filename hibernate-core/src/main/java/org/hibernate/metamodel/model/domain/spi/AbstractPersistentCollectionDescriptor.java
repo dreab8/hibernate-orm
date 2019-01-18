@@ -59,6 +59,7 @@ import org.hibernate.mapping.Value;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.metamodel.model.domain.internal.SqlAliasStemHelper;
+import org.hibernate.metamodel.model.domain.internal.collection.AbstractCreationExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.BasicCollectionElementImpl;
 import org.hibernate.metamodel.model.domain.internal.collection.BasicCollectionIndexImpl;
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionCreationExecutor;
@@ -68,12 +69,12 @@ import org.hibernate.metamodel.model.domain.internal.collection.CollectionIndexE
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionIndexEntityImpl;
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionRemovalExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionRowsDeletionExecutor;
-import org.hibernate.metamodel.model.domain.internal.collection.CollectionRowsInsertExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.CollectionRowsUpdateExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.FetchedTableReferenceCollectorImpl;
 import org.hibernate.metamodel.model.domain.internal.collection.JoinTableCreationExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.JoinTableRemovalExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.JoinTableRowsDeleletionExecutor;
+import org.hibernate.metamodel.model.domain.internal.collection.JoinTableRowsInsertExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.OneToManyCreationExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.OneToManyRemovalExecutor;
 import org.hibernate.metamodel.model.domain.internal.collection.RootTableReferenceCollectorImpl;
@@ -81,6 +82,7 @@ import org.hibernate.metamodel.model.relational.spi.Column;
 import org.hibernate.metamodel.model.relational.spi.ForeignKey;
 import org.hibernate.metamodel.model.relational.spi.Table;
 import org.hibernate.naming.Identifier;
+import org.hibernate.pretty.MessageHelper;
 import org.hibernate.property.access.spi.PropertyAccess;
 import org.hibernate.query.NavigablePath;
 import org.hibernate.query.spi.ComparisonOperator;
@@ -151,7 +153,7 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 	private CollectionRemovalExecutor collectionRemovalExecutor;
 	private CollectionRowsDeletionExecutor collectionRowsDeletionExecutor;
 	private CollectionRowsUpdateExecutor collectionRowsUpdateExecutor;
-	private CollectionRowsInsertExecutor collectionRowsInsertExecutor;
+	private CollectionCreationExecutor collectionRowsInsertExecutor;
 
 	private final String mappedBy;
 
@@ -1055,7 +1057,7 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 		if ( collectionRowsDeletionExecutor == null ) {
 			collectionRowsDeletionExecutor = generateCollectionRowsDeletionExecutor();
 		}
-		collectionRowsDeletionExecutor.deleteRows( collection, key, session );
+		collectionRowsDeletionExecutor.execute( collection, key, session );
 	}
 
 	private CollectionRowsDeletionExecutor generateCollectionRowsDeletionExecutor() {
@@ -1075,14 +1077,25 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 		if ( collectionRowsInsertExecutor == null ) {
 			collectionRowsInsertExecutor = generateCollectionRowsInsertExecutor();
 		}
-		collectionRowsInsertExecutor.insertRows( collection, key, session );
+		if ( log.isDebugEnabled() ) {
+			log.debugf(
+					"Inserting rows of collection: %s",
+					MessageHelper.collectionInfoString( this, collection, key, session )
+			);
+		}
+		collectionRowsInsertExecutor.execute( collection, key, session );
 	}
 
-	private CollectionRowsInsertExecutor generateCollectionRowsInsertExecutor(){
+	private CollectionCreationExecutor generateCollectionRowsInsertExecutor() {
 		if ( isInverse() || !isRowInsertEnabled() ) {
-			return CollectionRowsInsertExecutor.NO_OP;
+			return AbstractCreationExecutor.NO_OP;
 		}
-		throw new NotYetImplementedFor6Exception( getClass() );
+		else if ( isOneToMany() ) {
+			throw new NotYetImplementedFor6Exception( getClass() );
+		}
+		else {
+			return new JoinTableRowsInsertExecutor( this, dmlTargetTable, getSessionFactory() );
+		}
 	}
 
 	@Override
@@ -1091,7 +1104,7 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 			if ( collectionRowsUpdateExecutor == null ) {
 				collectionRowsUpdateExecutor = generateCollectionRowsUpdateExecutor();
 			}
-			collectionRowsUpdateExecutor.updateRows( collection, key, session );
+			collectionRowsUpdateExecutor.execute( collection, key, session );
 		}
 	}
 
@@ -1123,7 +1136,7 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 			log.debugf( "Inserting collection: %s", LoggingHelper.toLoggableString( getNavigableRole(), key ) );
 		}
 
-		collectionCreationExecutor.create( collection, key, session );
+		collectionCreationExecutor.execute( collection, key, session );
 	}
 
 	private CollectionCreationExecutor generateCollectionCreationExecutor() {
@@ -1154,7 +1167,7 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 			log.debug( "Deleting collection: " + LoggingHelper.toLoggableString( getNavigableRole(), key ) );
 		}
 
-		collectionRemovalExecutor.remove( key, session );
+		collectionRemovalExecutor.execute( key, session );
 
 	}
 

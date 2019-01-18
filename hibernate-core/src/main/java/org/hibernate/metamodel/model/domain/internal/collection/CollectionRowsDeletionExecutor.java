@@ -15,6 +15,6 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 public interface CollectionRowsDeletionExecutor {
 	CollectionRowsDeletionExecutor NO_OP = (collection, key, session) -> {};
 
-	void deleteRows(PersistentCollection collection, Object key, SharedSessionContractImplementor session);
+	void execute(PersistentCollection collection, Object key, SharedSessionContractImplementor session);
 }
 
