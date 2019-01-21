@@ -8,10 +8,7 @@ package org.wip60.crud;
 
 import java.util.Calendar;
 
-import org.hibernate.boot.MetadataSources;
-
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
-
 import org.junit.Test;
 
 import org.wip60.gambit.EntityWithOneToMany;

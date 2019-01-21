@@ -7,21 +7,30 @@
 package org.wip60.gambit;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+
+import org.hibernate.annotations.GenericGenerator;
 
 /**
  * @author Andrea Boriero
  */
 @Entity
+@GenericGenerator(name="increment", strategy = "increment")
 public class EntityWithOneToMany {
 	private Integer id;
 
 	// alphabetical
 	private String name;
-	private List<SimpleEntity> others = new ArrayList<>(  );
+
+	private Set<SimpleEntity> others = new HashSet<>(  );
+
+	private List<SimpleEntity> othersIdentifierBag = new ArrayList<>(  );
 	private Integer someInteger;
 
 	EntityWithOneToMany(){}
@@ -37,6 +46,19 @@ public class EntityWithOneToMany {
 		return id;
 	}
 
+	@OneToMany
+	@org.hibernate.annotations.CollectionId(
+			columns = @Column(name = "BAG_ID"),
+			type = @org.hibernate.annotations.Type(type = "long"),
+			generator = "increment")
+	public List<SimpleEntity> getOthersIdentifierBag() {
+		return othersIdentifierBag;
+	}
+
+	public void setOthersIdentifierBag(List<SimpleEntity> othersIdentifierBag) {
+		this.othersIdentifierBag = othersIdentifierBag;
+	}
+
 	public void setId(Integer id) {
 		this.id = id;
 	}
@@ -50,11 +72,11 @@ public class EntityWithOneToMany {
 	}
 
 	@OneToMany
-	public List<SimpleEntity> getOthers() {
+	public Set<SimpleEntity> getOthers() {
 		return others;
 	}
 
-	public void setOthers(List<SimpleEntity> others) {
+	public void setOthers(Set<SimpleEntity> others) {
 		this.others = others;
 	}
 
@@ -68,6 +90,12 @@ public class EntityWithOneToMany {
 
 	public void addOther(SimpleEntity other) {
 		others.add( other );
+	}
+
+	@Entity(name = "SimpleEntity2")
+	public static class SimpleEntity2{
+		@Id
+		private Long id;
 	}
 }
 
