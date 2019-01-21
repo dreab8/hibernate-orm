@@ -6,23 +6,30 @@
  */
 package org.hibernate.testing.orm.domain.gambit;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
+import org.hibernate.annotations.GenericGenerator;
+
 /**
  * @author Andrea Boriero
  */
 @Entity
+@GenericGenerator(name="increment", strategy = "increment")
 public class EntityWithOneToMany {
 	private Integer id;
 
 	// alphabetical
 	private String name;
 	private Set<SimpleEntity> others = new HashSet<>(  );
+	private List<SimpleEntity> othersIdentifierBag = new ArrayList<>(  );
 	private Integer someInteger;
 
 	public EntityWithOneToMany() {
@@ -70,5 +77,18 @@ public class EntityWithOneToMany {
 
 	public void addOther(SimpleEntity other) {
 		others.add( other );
+	}
+
+	@OneToMany
+	@org.hibernate.annotations.CollectionId(
+			columns = @Column(name = "BAG_ID"),
+			type = @org.hibernate.annotations.Type(type = "long"),
+			generator = "identity")
+	public List<SimpleEntity> getOthersIdentifierBag() {
+		return othersIdentifierBag;
+	}
+
+	public void setOthersIdentifierBag(List<SimpleEntity> othersIdentifierBag) {
+		this.othersIdentifierBag = othersIdentifierBag;
 	}
 }
