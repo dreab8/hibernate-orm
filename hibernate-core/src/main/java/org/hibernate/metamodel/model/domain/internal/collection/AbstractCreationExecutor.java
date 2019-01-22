@@ -123,12 +123,14 @@ public abstract class AbstractCreationExecutor implements CollectionCreationExec
 		// todo (6.0) : probably not the correct `assumedIdentifier`
 		if ( collectionDescriptor.getIdDescriptor() != null ) {
 			final Object identifier = collection.getIdentifier( entry, assumedIdentifier, collectionDescriptor );
-			collectionDescriptor.getCollectionKeyDescriptor().dehydrate(
-					collectionDescriptor.getCollectionKeyDescriptor().unresolve( identifier, session ),
+			collectionDescriptor.getIdDescriptor().dehydrate(
+					collectionDescriptor.getIdDescriptor().unresolve( identifier, session ),
 					(jdbcValue, type, boundColumn) -> createBinding(
-							jdbcValue, boundColumn,
+							jdbcValue,
+							boundColumn,
 							type,
-							jdbcParameterBindings, session
+							jdbcParameterBindings,
+							session
 					),
 					Clause.INSERT,
 					session

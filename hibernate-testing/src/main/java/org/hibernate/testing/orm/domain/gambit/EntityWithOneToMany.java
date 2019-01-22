@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -80,10 +82,11 @@ public class EntityWithOneToMany {
 	}
 
 	@OneToMany
+	@CollectionTable(name = "idbag")
 	@org.hibernate.annotations.CollectionId(
 			columns = @Column(name = "BAG_ID"),
 			type = @org.hibernate.annotations.Type(type = "long"),
-			generator = "identity")
+			generator = "increment")
 	public List<SimpleEntity> getOthersIdentifierBag() {
 		return othersIdentifierBag;
 	}

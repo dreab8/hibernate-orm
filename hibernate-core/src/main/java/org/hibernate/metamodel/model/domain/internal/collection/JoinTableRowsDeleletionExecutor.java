@@ -269,8 +269,8 @@ public class JoinTableRowsDeleletionExecutor implements CollectionRowsDeletionEx
 		// todo (6.0) : probably not the correct `assumedIdentifier`
 		final Object identifier = collection.getIdentifier( entry, assumedIdentifier, collectionDescriptor );
 
-		collectionDescriptor.getCollectionKeyDescriptor().dehydrate(
-				collectionDescriptor.getCollectionKeyDescriptor().unresolve( identifier, session ),
+		collectionDescriptor.getIdDescriptor().dehydrate(
+				collectionDescriptor.getIdDescriptor().unresolve( identifier, session ),
 				(jdbcValue, type, boundColumn) -> createBinding(
 						jdbcValue,
 						boundColumn,

@@ -65,6 +65,9 @@ public class EntityWithOneToManyCrudTest extends SessionFactoryBasedFunctionalTe
 				Long.MAX_VALUE,
 				null
 		);
+
+		entity.getOthersIdentifierBag().add( firstOther );
+
 		SimpleEntity secondOther = new SimpleEntity(
 				3,
 				Calendar.getInstance().getTime(),

@@ -11,13 +11,16 @@ import java.util.Collection;
 import org.hibernate.mapping.Property;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.spi.AbstractPluralPersistentAttribute;
+import org.hibernate.metamodel.model.domain.spi.IdentifierBagAttribute;
 import org.hibernate.metamodel.model.domain.spi.PersistentCollectionDescriptor;
 import org.hibernate.property.access.spi.PropertyAccess;
 
 /**
  * @author Andrea Boriero
  */
-public class IdentifierBagAttributeImpl<O, E> extends AbstractPluralPersistentAttribute<O, Collection<E>, E> {
+public class IdentifierBagAttributeImpl<O, E>
+		extends AbstractPluralPersistentAttribute<O, Collection<E>, E>
+		implements IdentifierBagAttribute<O,E> {
 	public IdentifierBagAttributeImpl(
 			PersistentCollectionDescriptor collectionDescriptor,
 			Property bootProperty,
