@@ -142,16 +142,18 @@ public class CollectionLoaderImpl implements CollectionLoader {
 				key
 		);
 
-		// todo (6.0) - calling endRead here but should we?
 		PersistentCollection collection = session.getPersistenceContext().getCollection( collectionKey );
+		finishInitialization( collection, session );
 
-		// taken from LoadingCollectoinEntry#finishLoading, can we refactor?
+		return collection;
+	}
+
+	private void finishInitialization(PersistentCollection collection, SharedSessionContractImplementor session) {
+		// todo (6.0) - taken from LoadingCollectoinEntry#finishLoading, can we refactor?
 		collection.endRead();
 
 		final CollectionEntry entry = session.getPersistenceContext().getCollectionEntry( collection );
 		entry.postInitialize( collection );
-
-		return collection;
 	}
 
 	private JdbcSelect resolveJdbcSelect(
