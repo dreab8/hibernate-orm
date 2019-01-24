@@ -11,6 +11,7 @@ import java.util.EnumMap;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.collection.spi.PersistentCollection;
+import org.hibernate.engine.spi.CollectionEntry;
 import org.hibernate.engine.spi.CollectionKey;
 import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
@@ -141,7 +142,16 @@ public class CollectionLoaderImpl implements CollectionLoader {
 				key
 		);
 
-		return session.getPersistenceContext().getCollection( collectionKey );
+		// todo (6.0) - calling endRead here but should we?
+		PersistentCollection collection = session.getPersistenceContext().getCollection( collectionKey );
+
+		// taken from LoadingCollectoinEntry#finishLoading, can we refactor?
+		collection.endRead();
+
+		final CollectionEntry entry = session.getPersistenceContext().getCollectionEntry( collection );
+		entry.postInitialize( collection );
+
+		return collection;
 	}
 
 	private JdbcSelect resolveJdbcSelect(
