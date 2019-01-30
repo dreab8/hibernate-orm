@@ -875,11 +875,6 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 	}
 
 	@Override
-	public boolean hasCascades() {
-		return false;
-	}
-
-	@Override
 	public Type getIdentifierType() {
 		return null;
 	}
