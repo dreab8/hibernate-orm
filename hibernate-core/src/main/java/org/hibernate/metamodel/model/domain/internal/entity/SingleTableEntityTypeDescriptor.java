@@ -25,6 +25,7 @@ import org.hibernate.boot.model.domain.EntityMapping;
 import org.hibernate.bytecode.enhance.spi.LazyPropertyInitializer;
 import org.hibernate.cache.spi.entry.CacheEntry;
 import org.hibernate.cache.spi.entry.CacheEntryStructure;
+import org.hibernate.classic.Lifecycle;
 import org.hibernate.engine.internal.Versioning;
 import org.hibernate.engine.spi.CascadeStyle;
 import org.hibernate.engine.spi.EntityEntry;
@@ -38,10 +39,12 @@ import org.hibernate.jdbc.Expectations;
 import org.hibernate.jdbc.TooManyRowsAffectedException;
 import org.hibernate.loader.internal.TemplateParameterBindingContext;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
+import org.hibernate.metamodel.model.domain.RepresentationMode;
 import org.hibernate.metamodel.model.domain.spi.AbstractEntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.DiscriminatorDescriptor;
 import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
+import org.hibernate.metamodel.model.domain.spi.NonIdPersistentAttribute;
 import org.hibernate.metamodel.model.domain.spi.PluralPersistentAttribute;
 import org.hibernate.metamodel.model.domain.spi.StateArrayContributor;
 import org.hibernate.metamodel.model.domain.spi.TenantDiscrimination;
@@ -88,6 +91,8 @@ import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescriptor<T> {
 	private Boolean hasCollections;
 	private final boolean isJpaCacheComplianceEnabled;
+	private final boolean lifecycleImplementor;
+
 
 	public SingleTableEntityTypeDescriptor(
 			EntityMapping bootMapping,
@@ -98,6 +103,12 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 				.getSessionFactoryOptions()
 				.getJpaCompliance()
 				.isJpaCacheComplianceEnabled();
+		if ( getRepresentationStrategy().getMode() == RepresentationMode.MAP ) {
+			lifecycleImplementor = false;
+		}
+		else {
+			lifecycleImplementor = Lifecycle.class.isAssignableFrom( bootMapping.getMappedClass() );
+		}
 	}
 
 
@@ -120,11 +131,6 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 	@Override
 	public String asLoggableText() {
 		return String.format( "SingleTableEntityDescriptor<%s>", getEntityName() );
-	}
-
-	@Override
-	public Set<String> getAffectedTableNames() {
-		return Collections.emptySet();
 	}
 
 	@Override
@@ -167,7 +173,7 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 	public void lock(
 			Object id, Object version, Object object, LockMode lockMode, SharedSessionContractImplementor session)
 			throws HibernateException {
-
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
@@ -177,7 +183,7 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 			Object object,
 			LockOptions lockOptions,
 			SharedSessionContractImplementor session) throws HibernateException {
-
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	protected Object insertInternal(
@@ -815,68 +821,49 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 	}
 
 	@Override
-	public Type[] getPropertyTypes() {
-		return new Type[0];
-	}
-
-	@Override
-	public JavaTypeDescriptor[] getPropertyJavaTypeDescriptors() {
-		return null;
-	}
-
-	@Override
-	public String[] getPropertyNames() {
-		return new String[0];
-	}
-
-	@Override
 	public boolean[] getPropertyInsertability() {
-		return new boolean[0];
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public ValueInclusion[] getPropertyInsertGenerationInclusions() {
-		return new ValueInclusion[0];
+		throw new NotYetImplementedFor6Exception( getClass() );
+
 	}
 
 	@Override
 	public ValueInclusion[] getPropertyUpdateGenerationInclusions() {
-		return new ValueInclusion[0];
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public boolean[] getPropertyUpdateability() {
-		return new boolean[0];
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public boolean[] getPropertyCheckability() {
-		return new boolean[0];
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public boolean[] getPropertyNullability() {
-		return new boolean[0];
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public boolean[] getPropertyVersionability() {
-		return new boolean[0];
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public boolean[] getPropertyLaziness() {
-		return new boolean[0];
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public CascadeStyle[] getPropertyCascadeStyles() {
-		return new CascadeStyle[0];
-	}
-
-	@Override
-	public Type getIdentifierType() {
-		return null;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
@@ -886,77 +873,57 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 
 	@Override
 	public boolean isCacheInvalidationRequired() {
-		return false;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public boolean isLazyPropertiesCacheable() {
-		return false;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public CacheEntryStructure getCacheEntryStructure() {
-		return null;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public CacheEntry buildCacheEntry(
 			Object entity, Object[] state, Object version, SharedSessionContractImplementor session) {
-		return null;
-	}
-
-	@Override
-	public boolean isBatchLoadable() {
-		return false;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public boolean isSelectBeforeUpdateRequired() {
-		return false;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public Serializable getIdByUniqueKey(
 			Serializable key, String uniquePropertyName, SharedSessionContractImplementor session) {
-		return null;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public Object getCurrentVersion(Object id, SharedSessionContractImplementor session)
 			throws HibernateException {
-		return null;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public Object forceVersionIncrement(
 			Object id, Object currentVersion, SharedSessionContractImplementor session)
 			throws HibernateException {
-		return null;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public boolean isInstrumented() {
-		return false;
-	}
-
-	@Override
-	public boolean hasInsertGeneratedProperties() {
-		return false;
-	}
-
-	@Override
-	public boolean hasUpdateGeneratedProperties() {
-		return false;
-	}
-
-	@Override
-	public boolean isVersionPropertyGenerated() {
-		return false;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public void afterReassociate(Object entity, SharedSessionContractImplementor session) {
-
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
@@ -1010,13 +977,13 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 	@Override
 	public void processInsertGeneratedProperties(
 			Object id, Object entity, Object[] state, SharedSessionContractImplementor session) {
-
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public void processUpdateGeneratedProperties(
 			Object id, Object entity, Object[] state, SharedSessionContractImplementor session) {
-
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
@@ -1026,12 +993,7 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 
 	@Override
 	public boolean implementsLifecycle() {
-		return false;
-	}
-
-	@Override
-	public boolean hasUninitializedLazyProperties(Object object) {
-		return false;
+		return lifecycleImplementor;
 	}
 
 	@Override
@@ -1047,22 +1009,22 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 
 	@Override
 	public FilterAliasGenerator getFilterAliasGenerator(String rootAlias) {
-		return null;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public int[] resolveAttributeIndexes(String[] attributeNames) {
-		return new int[0];
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public boolean canUseReferenceCacheEntries() {
-		return false;
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public void registerAffectingFetchProfile(String fetchProfileName) {
-
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
@@ -1148,5 +1110,4 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 			return allNull;
 		}
 	}
-
 }
