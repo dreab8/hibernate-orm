@@ -44,7 +44,6 @@ import org.hibernate.metamodel.model.domain.spi.AbstractEntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.DiscriminatorDescriptor;
 import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
-import org.hibernate.metamodel.model.domain.spi.NonIdPersistentAttribute;
 import org.hibernate.metamodel.model.domain.spi.PluralPersistentAttribute;
 import org.hibernate.metamodel.model.domain.spi.StateArrayContributor;
 import org.hibernate.metamodel.model.domain.spi.TenantDiscrimination;
@@ -82,8 +81,6 @@ import org.hibernate.sql.exec.spi.JdbcMutationExecutor;
 import org.hibernate.sql.exec.spi.JdbcUpdate;
 import org.hibernate.sql.exec.spi.ParameterBindingContext;
 import org.hibernate.sql.ast.produce.spi.SqlAstCreationContext;
-import org.hibernate.type.Type;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -821,11 +818,6 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 	}
 
 	@Override
-	public boolean[] getPropertyInsertability() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
 	public ValueInclusion[] getPropertyInsertGenerationInclusions() {
 		throw new NotYetImplementedFor6Exception( getClass() );
 
@@ -838,16 +830,6 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 
 	@Override
 	public boolean[] getPropertyUpdateability() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public boolean[] getPropertyCheckability() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public boolean[] getPropertyNullability() {
 		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
