@@ -42,6 +42,7 @@ import org.hibernate.metamodel.model.domain.internal.SingularPersistentAttribute
 import org.hibernate.metamodel.model.domain.internal.SingularPersistentAttributeEmbedded;
 import org.hibernate.metamodel.model.domain.internal.SingularPersistentAttributeEntity;
 import org.hibernate.metamodel.model.domain.spi.ManagedTypeDescriptor;
+import org.hibernate.metamodel.model.domain.spi.ManagedTypeRepresentationStrategy;
 import org.hibernate.metamodel.model.domain.spi.PersistentAttributeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.PersistentCollectionDescriptor;
 import org.hibernate.metamodel.model.domain.spi.PluralPersistentAttribute;
@@ -96,6 +97,9 @@ public class Property implements Serializable, PersistentAttributeMapping {
 
 	@Override
 	public ValueMapping getValueMapping() {
+		if ( value instanceof DependantValue ) {
+			return ( (DependantValue) value ).getWrappedValue();
+		}
 		return value;
 	}
 
@@ -459,8 +463,8 @@ public class Property implements Serializable, PersistentAttributeMapping {
 		// todo (7.0) : better served through polymorphism though Value?
 
 		// todo (6.0) : how to handle synthetic/virtual properties?
-		assert !Backref.class.isInstance( this );
-		assert !IndexBackref.class.isInstance( this );
+//		assert !Backref.class.isInstance( this );
+//		assert !IndexBackref.class.isInstance( this );
 		assert !SyntheticProperty.class.isInstance( this );
 
 		if ( value instanceof Collection ) {
@@ -544,7 +548,7 @@ public class Property implements Serializable, PersistentAttributeMapping {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <O,T> SingularPersistentAttribute<O,T> buildSingularAttribute(
+	private <O,T> PersistentAttributeDescriptor<O,T> buildSingularAttribute(
 			ManagedTypeDescriptor runtimeContainer,
 			ManagedTypeMapping bootContainer,
 			SingularPersistentAttribute.Disposition singularAttributeDisposition,
@@ -555,6 +559,21 @@ public class Property implements Serializable, PersistentAttributeMapping {
 				runtimeContainer,
 				context.getSessionFactory().getSessionFactoryOptions().getBytecodeProvider()
 		);
+		return getPersistentAttributeDescriptor(
+				value,
+				runtimeContainer,
+				singularAttributeDisposition,
+				context,
+				propertyAccess
+		);
+	}
+
+	private <O, T> PersistentAttributeDescriptor<O, T> getPersistentAttributeDescriptor(
+			Value value,
+			ManagedTypeDescriptor runtimeContainer,
+			SingularPersistentAttribute.Disposition singularAttributeDisposition,
+			RuntimeModelCreationContext context,
+			PropertyAccess propertyAccess) {
 		if ( value instanceof BasicValueMapping ) {
 			return new SingularPersistentAttributeBasic(
 					runtimeContainer,
@@ -587,6 +606,14 @@ public class Property implements Serializable, PersistentAttributeMapping {
 		}
 		else if ( value instanceof Any ) {
 			throw new NotYetImplementedFor6Exception();
+		}
+		else if ( value instanceof DependantValue ) {
+			return getPersistentAttributeDescriptor(
+					( (DependantValue) value ).getWrappedValue(),
+					runtimeContainer,
+					singularAttributeDisposition,
+					context,
+					propertyAccess );
 		}
 
 		throw new MappingException( "Unrecognized ValueMapping type for conversion to runtime model : " + value );
