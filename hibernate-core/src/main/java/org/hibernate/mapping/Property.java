@@ -97,9 +97,6 @@ public class Property implements Serializable, PersistentAttributeMapping {
 
 	@Override
 	public ValueMapping getValueMapping() {
-		if ( value instanceof DependantValue ) {
-			return ( (DependantValue) value ).getWrappedValue();
-		}
 		return value;
 	}
 
@@ -608,6 +605,7 @@ public class Property implements Serializable, PersistentAttributeMapping {
 			throw new NotYetImplementedFor6Exception();
 		}
 		else if ( value instanceof DependantValue ) {
+			// todo (6.0): is there a batter way to manage DependantValue?
 			return getPersistentAttributeDescriptor(
 					( (DependantValue) value ).getWrappedValue(),
 					runtimeContainer,
