@@ -119,7 +119,7 @@ public class BasicCollectionMapper<T extends Collection> extends AbstractCollect
 			for ( Object oldEntry : oldCollection ) {
 				for ( Iterator itor = addedElements.iterator(); itor.hasNext(); ) {
 					Object newEntry = itor.next();
-					if ( isSame( collectionDescriptor, oldEntry, newEntry ) ) {
+					if ( isSame( collectionDescriptor, oldEntry, newEntry, session ) ) {
 						itor.remove();
 						break;
 					}
@@ -132,7 +132,7 @@ public class BasicCollectionMapper<T extends Collection> extends AbstractCollect
 			for ( Object newEntry : newCollection ) {
 				for ( Iterator itor = deleteElements.iterator(); itor.hasNext(); ) {
 					Object deleteEntry = itor.next();
-					if ( isSame( collectionDescriptor, deleteEntry, newEntry ) ) {
+					if ( isSame( collectionDescriptor, deleteEntry, newEntry, session ) ) {
 						itor.remove();
 						break;
 					}
