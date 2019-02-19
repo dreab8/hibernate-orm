@@ -21,7 +21,7 @@ import org.hibernate.LockOptions;
 import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.StaleStateException;
-import org.hibernate.boot.model.domain.EntityMapping;
+import org.hibernate.boot.model.domain.spi.EntityMappingImplementor;
 import org.hibernate.bytecode.enhance.spi.LazyPropertyInitializer;
 import org.hibernate.cache.spi.entry.CacheEntry;
 import org.hibernate.cache.spi.entry.CacheEntryStructure;
@@ -92,7 +92,7 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 
 
 	public SingleTableEntityTypeDescriptor(
-			EntityMapping bootMapping,
+			EntityMappingImplementor bootMapping,
 			IdentifiableTypeDescriptor<? super T> superTypeDescriptor,
 			RuntimeModelCreationContext creationContext) throws HibernateException {
 		super( bootMapping, superTypeDescriptor, creationContext );
@@ -872,11 +872,6 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 	@Override
 	public CacheEntry buildCacheEntry(
 			Object entity, Object[] state, Object version, SharedSessionContractImplementor session) {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public boolean isSelectBeforeUpdateRequired() {
 		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
