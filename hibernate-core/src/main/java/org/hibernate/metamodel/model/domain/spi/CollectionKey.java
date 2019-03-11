@@ -25,6 +25,7 @@ import org.hibernate.sql.SqlExpressableType;
 import org.hibernate.sql.ast.Clause;
 import org.hibernate.sql.ast.produce.spi.ColumnReferenceQualifier;
 import org.hibernate.sql.ast.produce.spi.SqlExpressionResolver;
+import org.hibernate.sql.results.internal.domain.embedded.CompositeResultImpl;
 import org.hibernate.sql.results.spi.DomainResult;
 import org.hibernate.sql.results.spi.DomainResultCreationContext;
 import org.hibernate.sql.results.spi.DomainResultCreationState;
@@ -106,12 +107,13 @@ public class CollectionKey<T> implements Navigable<T> {
 
 
 	void createForeignKeyTargteNavigable() {
-		if ( isEmpty( collectionDescriptor.getMappedByProperty() ) ) {
-			foreignKeyTargetNavigable = collectionDescriptor.findEntityOwnerDescriptor().getIdentifierDescriptor();
-		}
-		else {
+		if ( !isEmpty( collectionDescriptor.getMappedByProperty() ) && collectionDescriptor.isOneToMany() ) {
 			foreignKeyTargetNavigable = ( (NavigableContainer) collectionDescriptor.getElementDescriptor() ).findNavigable(
 					collectionDescriptor.getMappedByProperty() );
+		}
+		else {
+			foreignKeyTargetNavigable = collectionDescriptor.findEntityOwnerDescriptor().getIdentifierDescriptor();
+
 		}
 	}
 
@@ -181,23 +183,33 @@ public class CollectionKey<T> implements Navigable<T> {
 			);
 		}
 		else {
-			final List<SqlSelection> sqlSelections = new ArrayList<>();
+			Navigable foreignKeyTargetNavigable = collectionDescriptor.getForeignKeyTargetNavigable();
+			if ( ( foreignKeyTargetNavigable instanceof EmbeddedValuedNavigable ) ) {
 
-			for ( Column column : keyColumns ) {
-				sqlSelections.add(
-						resolveSqlSelection(
-								creationState.getColumnReferenceQualifierStack().getCurrent(),
-								expressionResolver,
-								column,
-								creationContext.getSessionFactory()
-						)
+				return new CompositeResultImpl(
+						null,
+						( (EmbeddedValuedNavigable) foreignKeyTargetNavigable ).getEmbeddedDescriptor(), creationState
 				);
 			}
+			else {
+				final List<SqlSelection> sqlSelections = new ArrayList<>();
 
-			return new ForeignKeyDomainResult(
-					getJavaTypeDescriptor(),
-					sqlSelections
-			);
+				for ( Column column : keyColumns ) {
+					sqlSelections.add(
+							resolveSqlSelection(
+									creationState.getColumnReferenceQualifierStack().getCurrent(),
+									expressionResolver,
+									column,
+									creationContext.getSessionFactory()
+							)
+					);
+				}
+
+				return new ForeignKeyDomainResult(
+						getJavaTypeDescriptor(),
+						sqlSelections
+				);
+			}
 		}
 	}
 
