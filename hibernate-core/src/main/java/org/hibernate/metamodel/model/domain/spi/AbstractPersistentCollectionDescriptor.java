@@ -1276,7 +1276,7 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 	@Override
 	public Object getKeyOfOwner(Object owner, SessionImplementor session) {
 		if ( getForeignKeyTargetNavigable() instanceof EntityIdentifier ) {
-			return getContainer().findFirstEntityDescriptor().getIdentifier( owner, session );
+			return getContainer().findFirstEntityDescriptor().getIdentifier( owner );
 		}
 		else {
 			return ( (SingularPersistentAttribute) getForeignKeyTargetNavigable() ).getPropertyAccess().getGetter().get( owner );
