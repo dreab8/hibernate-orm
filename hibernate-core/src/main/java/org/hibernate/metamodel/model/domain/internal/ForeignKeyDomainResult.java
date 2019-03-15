@@ -9,6 +9,7 @@ package org.hibernate.metamodel.model.domain.internal;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.sql.results.spi.AssemblerCreationContext;
 import org.hibernate.sql.results.spi.AssemblerCreationState;
 import org.hibernate.sql.results.spi.DomainResult;
@@ -53,14 +54,11 @@ public class ForeignKeyDomainResult implements DomainResult {
 			public Object assemble(RowProcessingState rowProcessingState, JdbcValuesSourceProcessingOptions options) {
 				final int size = sqlSelections.size();
 				if ( size == 1 ) {
+
 					return rowProcessingState.getJdbcValue( sqlSelections.get( 0 ) );
 				}
 				else {
-					Object[] result = new Object[size];
-					for ( int i = 0; i < size; i++ ) {
-						result[i] = rowProcessingState.getJdbcValue( sqlSelections.get( i ) );
-					}
-					return result;
+					throw new NotYetImplementedFor6Exception( getClass() );
 				}
 			}
 

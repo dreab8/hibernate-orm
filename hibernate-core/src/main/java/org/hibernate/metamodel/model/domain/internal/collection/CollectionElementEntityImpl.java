@@ -478,11 +478,11 @@ public class CollectionElementEntityImpl<J>
 
 	@Override
 	public boolean areEqual(J x, J y) throws HibernateException {
-		return getEntityDescriptor().areEqual( x,y );
+		return foreignKeyTargetNavigable.areEqual( x,y );
 	}
 
 	@Override
 	public int extractHashCode(J o) {
-		return getEntityDescriptor().extractHashCode( o );
+		return foreignKeyTargetNavigable.extractHashCode( o );
 	}
 }

@@ -12,12 +12,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.mapping.Collection;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.metamodel.model.domain.internal.ForeignKeyDomainResult;
+import org.hibernate.metamodel.model.domain.internal.SingularPersistentAttributeEntity;
 import org.hibernate.metamodel.model.relational.spi.Column;
 import org.hibernate.metamodel.model.relational.spi.ForeignKey;
 import org.hibernate.query.sql.internal.ResolvedScalarDomainResult;
@@ -25,7 +27,7 @@ import org.hibernate.sql.SqlExpressableType;
 import org.hibernate.sql.ast.Clause;
 import org.hibernate.sql.ast.produce.spi.ColumnReferenceQualifier;
 import org.hibernate.sql.ast.produce.spi.SqlExpressionResolver;
-import org.hibernate.sql.results.internal.domain.embedded.CompositeResultImpl;
+import org.hibernate.sql.results.internal.domain.embedded.CompositeForeignKeyResultImpl;
 import org.hibernate.sql.results.spi.DomainResult;
 import org.hibernate.sql.results.spi.DomainResultCreationContext;
 import org.hibernate.sql.results.spi.DomainResultCreationState;
@@ -76,19 +78,6 @@ public class CollectionKey<T> implements Navigable<T> {
 	 */
 	public DomainResult createContainerResult(
 			ColumnReferenceQualifier containerReferenceQualifier,
-			SqlExpressionResolver sqlExpressionResolver) {
-		return createDomainResult(
-				joinForeignKey.getColumnMappings().getTargetColumns(),
-				containerReferenceQualifier,
-				sqlExpressionResolver
-		);
-	}
-
-	/**
-	 * Create a DomainResult for reading the owner/container side of the collection's FK
-	 */
-	public DomainResult createContainerResult(
-			ColumnReferenceQualifier containerReferenceQualifier,
 			DomainResultCreationState creationState,
 			DomainResultCreationContext creationContext) {
 
@@ -113,44 +102,6 @@ public class CollectionKey<T> implements Navigable<T> {
 		}
 		else {
 			foreignKeyTargetNavigable = collectionDescriptor.findEntityOwnerDescriptor().getIdentifierDescriptor();
-
-		}
-	}
-
-	private DomainResult createDomainResult(
-			List<Column> columns,
-			ColumnReferenceQualifier referenceQualifier,
-			SqlExpressionResolver sqlExpressionResolver) {
-		if ( columns.size() == 1 ) {
-			return new ResolvedScalarDomainResult(
-					resolveSqlSelection(
-							referenceQualifier,
-							sqlExpressionResolver,
-							columns.get( 0 ),
-							collectionDescriptor.getSessionFactory()
-					),
-					null,
-					columns.get( 0 ).getJavaTypeDescriptor()
-			);
-		}
-		else {
-			final List<SqlSelection> sqlSelections = new ArrayList<>();
-
-			for ( Column column : columns ) {
-				sqlSelections.add(
-						resolveSqlSelection(
-								referenceQualifier,
-								sqlExpressionResolver,
-								column,
-								collectionDescriptor.getSessionFactory()
-						)
-				);
-			}
-
-			return new ForeignKeyDomainResult(
-					getJavaTypeDescriptor(),
-					sqlSelections
-			);
 		}
 	}
 
@@ -183,15 +134,7 @@ public class CollectionKey<T> implements Navigable<T> {
 			);
 		}
 		else {
-			Navigable foreignKeyTargetNavigable = collectionDescriptor.getForeignKeyTargetNavigable();
-			if ( ( foreignKeyTargetNavigable instanceof EmbeddedValuedNavigable ) ) {
 
-				return new CompositeResultImpl(
-						null,
-						( (EmbeddedValuedNavigable) foreignKeyTargetNavigable ).getEmbeddedDescriptor(), creationState
-				);
-			}
-			else {
 				final List<SqlSelection> sqlSelections = new ArrayList<>();
 
 				for ( Column column : keyColumns ) {
@@ -205,11 +148,17 @@ public class CollectionKey<T> implements Navigable<T> {
 					);
 				}
 
-				return new ForeignKeyDomainResult(
-						getJavaTypeDescriptor(),
+			if ( getForeignKeyTargetNavigable() instanceof EmbeddedValuedNavigable ) {
+				return new CompositeForeignKeyResultImpl(
+						( (EmbeddedValuedNavigable) getForeignKeyTargetNavigable() ).getEmbeddedDescriptor(),
 						sqlSelections
 				);
 			}
+
+			return new ForeignKeyDomainResult(
+					getJavaTypeDescriptor(),
+					sqlSelections
+			);
 		}
 	}
 
@@ -253,6 +202,11 @@ public class CollectionKey<T> implements Navigable<T> {
 
 	@Override
 	public Object unresolve(Object value, SharedSessionContractImplementor session) {
+		if ( getForeignKeyTargetNavigable() instanceof SingularPersistentAttributeEntity ) {
+			return ( (SingularPersistentAttributeEntity) getForeignKeyTargetNavigable() ).getEntityDescriptor()
+					.getIdentifierDescriptor()
+					.unresolve( value, session );
+		}
 		return getForeignKeyTargetNavigable().unresolve( value, session );
 	}
 
@@ -306,5 +260,15 @@ public class CollectionKey<T> implements Navigable<T> {
 	@Override
 	public PersistenceType getPersistenceType() {
 		return null;
+	}
+
+	@Override
+	public boolean areEqual(T x, T y) throws HibernateException {
+		return getForeignKeyTargetNavigable().areEqual( x,y );
+	}
+
+	@Override
+	public int extractHashCode(T o) {
+		return getForeignKeyTargetNavigable().extractHashCode( o );
 	}
 }
