@@ -21,6 +21,7 @@ import org.hibernate.query.NavigablePath;
  */
 public interface Initializer {
 	Object getInitializedInstance();
+
 	NavigablePath getNavigablePath();
 
 	/**
@@ -61,7 +62,7 @@ public interface Initializer {
 	void finishUpRow(RowProcessingState rowProcessingState);
 
 	/**
-	 * Lifecycle method called at the very end of the result values pprocessing
+	 * Lifecycle method called at the very end of the result values processing
 	 */
 	default void endLoading(JdbcValuesSourceProcessingState processingState) {
 		// by default - nothing to do
