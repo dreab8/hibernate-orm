@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 /**
  * @author Steve Ebersole
  */
-@Disabled("We sql generated select for the Card entity is wrong ")
 public class EagerKeyManyToOneTest extends SessionFactoryBasedFunctionalTest {
 	public static final String CARD_ID = "cardId";
 	public static final String KEY_ID = "keyId";
