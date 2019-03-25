@@ -28,14 +28,13 @@ import org.jboss.logging.Logger;
  *
  * @author Gavin King
  */
-public class PersistentArrayHolder<E> extends AbstractPersistentCollection<E> {
+public class PersistentArrayHolder extends AbstractPersistentCollection {
 	private static final CoreMessageLogger LOG = Logger.getMessageLogger(
 			CoreMessageLogger.class,
 			PersistentArrayHolder.class.getName()
 	);
 
-	private Serializable key;
-	protected E[] array;
+	protected Object array;
 
 	//just to help out during the load (ugly, i know)
 	private transient java.util.List tempList;
@@ -45,7 +44,7 @@ public class PersistentArrayHolder<E> extends AbstractPersistentCollection<E> {
 	 */
 	public PersistentArrayHolder(
 			SharedSessionContractImplementor session,
-			PersistentCollectionDescriptor<?,?,E> collectionDescriptor) {
+			PersistentCollectionDescriptor collectionDescriptor) {
 		super( session, collectionDescriptor );
 	}
 
@@ -57,33 +56,30 @@ public class PersistentArrayHolder<E> extends AbstractPersistentCollection<E> {
 	 */
 	public PersistentArrayHolder(
 			SharedSessionContractImplementor session,
-			PersistentCollectionDescriptor<?,?,E>  descriptor,
+			PersistentCollectionDescriptor  descriptor,
 			Object array) {
 		this( session, descriptor );
-		setArray( (E[]) array );
+		setArray( array );
 	}
 
-	private void setArray(E[] array) {
+	private void setArray(Object array) {
 		this.array = array;
 		setInitialized();
 	}
 
 	public PersistentArrayHolder(
+			Object key,
 			SharedSessionContractImplementor session,
-			PersistentCollectionDescriptor<?,?,E>  descriptor,
-			Serializable key) {
-		this( session, descriptor );
-		this.key = key;
+			PersistentCollectionDescriptor descriptor) {
+		super( session, descriptor, key );
 	}
 
 	@Override
-	public Serializable getSnapshot(PersistentCollectionDescriptor<?,?,E> descriptor) {
-//		final int length = (array==null) ? tempList.size() : Array.getLength( array );
+	public Serializable getSnapshot(PersistentCollectionDescriptor descriptor) {
 		final int length = Array.getLength( array );
 		final Serializable result = (Serializable) Array.newInstance( descriptor.getElementDescriptor().getJavaType(), length );
 		for ( int i=0; i<length; i++ ) {
-//			final Object elt = (array==null) ? tempList.get( i ) : Array.get( array, i );
-			final E elt = (E) Array.get( array, i );
+			final Object elt = Array.get( array, i );
 			try {
 				Array.set( result, i, descriptor.getElementDescriptor().getJavaTypeDescriptor().getMutabilityPlan().deepCopy( elt ) );
 			}
@@ -172,7 +168,7 @@ public class PersistentArrayHolder<E> extends AbstractPersistentCollection<E> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Iterator<E> entries(PersistentCollectionDescriptor<?, ?, E> descriptor) {
+	public Iterator entries(PersistentCollectionDescriptor descriptor) {
 		return elements();
 	}
 
@@ -186,15 +182,20 @@ public class PersistentArrayHolder<E> extends AbstractPersistentCollection<E> {
 	public boolean endRead() {
 		setInitialized();
 
-		array = (E[]) Array.newInstance(
-				getCollectionDescriptor().getElementDescriptor().getJavaType(),
-				tempList.size()
-		);
-		for ( int i=0; i<tempList.size(); i++ ) {
-			Array.set( array, i, tempList.get( i ) );
-		}
+		createArray();
+
 		tempList = null;
 		return true;
+	}
+
+	private void createArray() {
+		array = Array.newInstance(
+				getCollectionDescriptor().getElementClass(),
+				tempList.size()
+		);
+		for ( int i = 0; i < tempList.size(); i++ ) {
+			Array.set( array, i, tempList.get( i ) );
+		}
 	}
 
 	@Override
@@ -215,7 +216,7 @@ public class PersistentArrayHolder<E> extends AbstractPersistentCollection<E> {
 			Object owner,
 			PersistentCollectionDescriptor collectionDescriptor) {
 		final Serializable[] cached = (Serializable[]) disassembled;
-		array = (E[]) Array.newInstance( getCollectionDescriptor().getElementDescriptor().getJavaType(), cached.length );
+		array = Array.newInstance( getCollectionDescriptor().getElementDescriptor().getJavaType(), cached.length );
 
 		for ( int i=0; i<cached.length; i++ ) {
 			Array.set( array, i, getCollectionDescriptor().getElementDescriptor().getJavaTypeDescriptor().getMutabilityPlan().assemble( cached[i] ) );
@@ -223,14 +224,14 @@ public class PersistentArrayHolder<E> extends AbstractPersistentCollection<E> {
 	}
 
 	@Override
-	public Serializable disassemble(PersistentCollectionDescriptor<?,?,E> collectionDescriptor) throws HibernateException {
+	public Serializable disassemble(PersistentCollectionDescriptor collectionDescriptor) throws HibernateException {
 		final int length = Array.getLength( array );
 		final Serializable[] result = new Serializable[length];
 		for ( int i=0; i<length; i++ ) {
 			result[i] = collectionDescriptor.getElementDescriptor()
 					.getJavaTypeDescriptor()
 					.getMutabilityPlan()
-					.disassemble( (E) Array.get( array,i ) );
+					.disassemble( Array.get( array,i ) );
 		}
 
 		return result;
@@ -238,6 +239,9 @@ public class PersistentArrayHolder<E> extends AbstractPersistentCollection<E> {
 
 	@Override
 	public Object getValue() {
+		if ( tempList != null ) {
+			createArray();
+		}
 		return array;
 	}
 
@@ -297,9 +301,9 @@ public class PersistentArrayHolder<E> extends AbstractPersistentCollection<E> {
 	}
 
 	@Override
-	public E getSnapshotElement(Object entry, int index) {
+	public Object getSnapshotElement(Object entry, int index) {
 		final Serializable sn = getSnapshot();
-		return (E) Array.get( sn, index );
+		return Array.get( sn, index );
 	}
 
 	@Override

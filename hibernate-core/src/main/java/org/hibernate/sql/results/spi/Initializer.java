@@ -7,6 +7,7 @@
 package org.hibernate.sql.results.spi;
 
 import org.hibernate.query.NavigablePath;
+import org.hibernate.sql.exec.spi.ExecutionContext;
 
 /**
  * Defines a multi-step process for initializing entity, collection and
@@ -64,7 +65,7 @@ public interface Initializer {
 	/**
 	 * Lifecycle method called at the very end of the result values processing
 	 */
-	default void endLoading(JdbcValuesSourceProcessingState processingState) {
+	default void endLoading(ExecutionContext context) {
 		// by default - nothing to do
 	}
 }

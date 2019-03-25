@@ -111,6 +111,7 @@ import org.hibernate.sql.ast.tree.from.TableReferenceJoin;
 import org.hibernate.sql.ast.tree.predicate.ComparisonPredicate;
 import org.hibernate.sql.ast.tree.predicate.Junction;
 import org.hibernate.sql.ast.tree.predicate.Predicate;
+import org.hibernate.sql.ast.tree.sort.SortSpecification;
 import org.hibernate.sql.results.DomainResultCreationException;
 import org.hibernate.sql.results.internal.domain.collection.CollectionFetchImpl;
 import org.hibernate.sql.results.internal.domain.collection.CollectionInitializerProducer;
@@ -197,7 +198,9 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 	private boolean fullyInitialized;
 	private Table separateCollectionTable;
 	private Table dmlTargetTable;
+	private SortSpecification sortSpecification;
 
+	private Class arrayElementClass;
 
 	@SuppressWarnings("unchecked")
 	public AbstractPersistentCollectionDescriptor(
@@ -249,6 +252,9 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 
 		KeyValue key = collectionBinding.getKey();
 
+		if ( collectionBinding.isArray() ) {
+			arrayElementClass = ( (org.hibernate.mapping.Array) collectionBinding ).getElementClass();
+		}
 
 		this.isRowDeleteEnabled = key.isNullable() && key.isUpdateable();
 		this.isRowInsertEnabled = key.isUpdateable();
@@ -854,6 +860,11 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 	}
 
 	@Override
+	public Class getElementClass() {
+		return arrayElementClass;
+	}
+
+	@Override
 	public CollectionIdentifier getIdDescriptor() {
 		return idDescriptor;
 	}
@@ -1022,13 +1033,13 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 			  For CollectionElementEntityImpl the previous call to getElementDescriptor().applyTableReferenceJoins(....) has already
 			  added a PrimaryReference to the joinCollector so now we need to add a secondaryReference
 			*/
+			final TableReference joinedTableReference = new TableReference(
+					separateCollectionTable,
+					sqlAliasBase.generateNewAlias(),
+					false
+			);
 			// todo (6.0) : is there a better way to manage this?
 			if ( joinCollector.getPrimaryTableReference() != null ) {
-				TableReference joinedTableReference = new TableReference(
-						separateCollectionTable,
-						sqlAliasBase.generateNewAlias(),
-						false
-				);
 				joinCollector.addSecondaryReference(
 						new TableReferenceJoin(
 								JoinType.INNER,
@@ -1040,12 +1051,9 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 						) );
 			}
 			else {
-				joinCollector.addPrimaryReference( new TableReference(
-						separateCollectionTable,
-						sqlAliasBase.generateNewAlias(),
-						false
-				) );
+				joinCollector.addPrimaryReference( joinedTableReference );
 			}
+			lhs = joinedTableReference;
 		}
 
 		if ( getIndexDescriptor() != null ) {

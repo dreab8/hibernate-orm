@@ -44,7 +44,26 @@ public class StandardTableGroup extends AbstractTableGroup {
 			TableReference primaryTableReference,
 			List<TableReferenceJoin> tableReferenceJoins,
 			ColumnReferenceQualifier additionalQualifier) {
-		super( navigablePath, navigable, lockMode );
+		this(
+				navigablePath,
+				navigable,
+				lockMode,
+				primaryTableReference,
+				tableReferenceJoins,
+				additionalQualifier,
+				true
+		);
+	}
+
+	public StandardTableGroup(
+			NavigablePath navigablePath,
+			Navigable navigable,
+			LockMode lockMode,
+			TableReference primaryTableReference,
+			List<TableReferenceJoin> tableReferenceJoins,
+			ColumnReferenceQualifier additionalQualifier,
+			boolean isInnerJoinPossible) {
+		super( navigablePath, navigable, lockMode, isInnerJoinPossible );
 
 		this.primaryTableReference = primaryTableReference;
 		this.tableReferenceJoins = tableReferenceJoins;

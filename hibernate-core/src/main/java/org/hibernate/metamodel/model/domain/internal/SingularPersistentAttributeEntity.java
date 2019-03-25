@@ -121,7 +121,7 @@ public class SingularPersistentAttributeEntity<O, J>
 	private final FetchStrategy fetchStrategy;
 
 	private final NotFoundAction notFoundAction;
-	private final String cascade;
+	private final CascadeStyle cascadeStyle;
 
 	private StateArrayContributor referencedUkAttribute;
 	private SingleEntityLoader singleEntityLoader;
@@ -196,7 +196,7 @@ public class SingularPersistentAttributeEntity<O, J>
 
 		instantiationComplete( bootModelAttribute, context );
 
-		this.cascade = bootModelAttribute.getCascade();
+		this.cascadeStyle = CascadeStyles.getCascadeStyle(bootModelAttribute.getCascade());
 		this.fetchStrategy = DomainModelHelper.determineFetchStrategy(
 				bootModelAttribute,
 				runtimeModelContainer,
@@ -206,7 +206,7 @@ public class SingularPersistentAttributeEntity<O, J>
 
 	@Override
 	public CascadeStyle getCascadeStyle() {
-		return CascadeStyles.getCascadeStyle( this.cascade );
+		return this.cascadeStyle;
 	}
 
 	@Override
@@ -615,16 +615,29 @@ public class SingularPersistentAttributeEntity<O, J>
 		final String navigableName = getNavigableName();
 		final NavigablePath navigablePath = fetchParent.getNavigablePath().append( navigableName );
 
+		TableGroup tableGroup = creationState.getFromClauseAccess().getTableGroup( fetchParent.getNavigablePath() );
+
+		JoinType joinType;
+		if ( isNullable() ) {
+			joinType = JoinType.LEFT;
+		}
+		else if ( tableGroup.isInnerJoinPossible() ) {
+			joinType = JoinType.INNER;
+		}
+		else {
+			joinType = JoinType.LEFT;
+		}
+
 		final TableGroupJoin tableGroupJoin = createTableGroupJoin(
 				navigablePath,
-				creationState.getFromClauseAccess().getTableGroup( fetchParent.getNavigablePath() ),
+				tableGroup,
 				resultVariable,
-				isNullable() ? JoinType.LEFT : JoinType.INNER,
+				joinType,
 				lockMode,
 				creationState.getSqlAstCreationState()
 		);
 
-		creationState.getFromClauseAccess().getTableGroup( fetchParent.getNavigablePath() ).addTableGroupJoin( tableGroupJoin );
+		tableGroup.addTableGroupJoin( tableGroupJoin );
 		creationState.getFromClauseAccess().registerTableGroup( navigablePath, tableGroupJoin.getJoinedGroup() );
 
 		return new EntityFetchImpl(
@@ -669,7 +682,7 @@ public class SingularPersistentAttributeEntity<O, J>
 		);
 
 		// handle optional entity references to be outer joins.
-		if ( isNullable() && JoinType.INNER.equals( joinType ) ) {
+		if ( isNullable() && JoinType.INNER == joinType || !lhs.isInnerJoinPossible() ) {
 			joinType = JoinType.LEFT;
 		}
 
@@ -679,11 +692,6 @@ public class SingularPersistentAttributeEntity<O, J>
 				sqlAliasBase,
 				joinCollector
 		);
-
-		// handle optional entity references to be outer joins.
-		if ( isNullable() && JoinType.INNER.equals( joinType ) ) {
-			joinType = JoinType.LEFT;
-		}
 
 		return joinCollector.generateTableGroup( joinType );
 	}

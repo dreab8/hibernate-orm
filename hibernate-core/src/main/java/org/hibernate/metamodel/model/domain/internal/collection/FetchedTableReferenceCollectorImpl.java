@@ -62,13 +62,22 @@ public class FetchedTableReferenceCollectorImpl extends AbstractTableReferenceCo
 	}
 
 	public TableGroupJoin generateTableGroup(JoinType joinType) {
+		boolean isInnerJoinPossible;
+		if ( joinType != JoinType.INNER ) {
+			isInnerJoinPossible = false;
+		}
+		else {
+			isInnerJoinPossible = true;
+		}
+
 		final TableGroup joinedTableGroup = new StandardTableGroup(
 				navigablePath,
 				collectionDescriptor,
 				lockMode,
 				getPrimaryTableReference(),
 				getTableReferenceJoins(),
-				lhs
+				lhs,
+				isInnerJoinPossible
 		);
 
 //		Predicate joinPredicate = null;
