@@ -67,5 +67,4 @@ public interface TableGroup extends SqlAstNode, NavigableReference, ColumnRefere
 		sqlTreeWalker.visitTableGroup( this );
 	}
 
-	boolean isInnerJoinPossible();
 }

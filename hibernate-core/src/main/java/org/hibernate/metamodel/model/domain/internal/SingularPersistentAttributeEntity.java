@@ -617,22 +617,11 @@ public class SingularPersistentAttributeEntity<O, J>
 
 		TableGroup tableGroup = creationState.getFromClauseAccess().getTableGroup( fetchParent.getNavigablePath() );
 
-		JoinType joinType;
-		if ( isNullable() ) {
-			joinType = JoinType.LEFT;
-		}
-		else if ( tableGroup.isInnerJoinPossible() ) {
-			joinType = JoinType.INNER;
-		}
-		else {
-			joinType = JoinType.LEFT;
-		}
-
 		final TableGroupJoin tableGroupJoin = createTableGroupJoin(
 				navigablePath,
 				tableGroup,
 				resultVariable,
-				joinType,
+				isNullable() ? JoinType.LEFT : JoinType.INNER,
 				lockMode,
 				creationState.getSqlAstCreationState()
 		);
@@ -682,7 +671,7 @@ public class SingularPersistentAttributeEntity<O, J>
 		);
 
 		// handle optional entity references to be outer joins.
-		if ( isNullable() && JoinType.INNER == joinType || !lhs.isInnerJoinPossible() ) {
+		if ( isNullable() && JoinType.INNER.equals( joinType ) ) {
 			joinType = JoinType.LEFT;
 		}
 
