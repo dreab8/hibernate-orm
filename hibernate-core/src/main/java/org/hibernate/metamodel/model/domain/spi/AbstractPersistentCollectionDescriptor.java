@@ -903,6 +903,11 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 	}
 
 	@Override
+	public boolean isModified(Object old, Object current, SharedSessionContractImplementor session) {
+		return false;
+	}
+
+	@Override
 	public int getSize(Object loadedKey, SharedSessionContractImplementor session) {
 		if ( collectionSizeSelector == null ) {
 			collectionSizeSelector = new CollectionSizeSelector(

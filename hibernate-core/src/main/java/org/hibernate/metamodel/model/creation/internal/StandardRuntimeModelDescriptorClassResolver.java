@@ -31,6 +31,7 @@ import org.hibernate.metamodel.model.domain.internal.PersistentListDescriptorImp
 import org.hibernate.metamodel.model.domain.internal.PersistentMapDescriptorImpl;
 import org.hibernate.metamodel.model.domain.internal.PersistentSetDescriptorImpl;
 import org.hibernate.metamodel.model.domain.internal.entity.SingleTableEntityTypeDescriptor;
+import org.hibernate.metamodel.model.domain.internal.entity.UnionSubclassEntityDecriptor;
 import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.PersistentCollectionDescriptor;
 
@@ -74,8 +75,7 @@ public class StandardRuntimeModelDescriptorClassResolver implements RuntimeModel
 	}
 
 	public Class<? extends EntityTypeDescriptor> unionSubclassEntityDescriptor() {
-		throw new NotYetImplementedException(  );
-//		return UnionSubclassEntityPersister.class;
+		return UnionSubclassEntityDecriptor.class;
 	}
 
 	@Override

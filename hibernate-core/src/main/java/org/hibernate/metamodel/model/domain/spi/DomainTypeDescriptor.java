@@ -14,11 +14,17 @@ import org.hibernate.metamodel.model.domain.DomainType;
  * @author Steve Ebersole
  */
 public interface DomainTypeDescriptor<J> extends DomainType<J> {
+
+	// todo (6.0) : is this the correct place for isDirty and isModified methods?
 	/**
 	 * Return whether any of the managed type's persistent attribute state is dirty.
 	 */
 	default boolean isDirty(Object one, Object another, SharedSessionContractImplementor session) {
 		return !getJavaTypeDescriptor().areEqual( (J) one, (J) another );
+	}
+
+	default boolean isModified(Object old, Object current, SharedSessionContractImplementor session) {
+		return isDirty( old, current, session );
 	}
 
 	@Override

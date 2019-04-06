@@ -10,99 +10,30 @@ import java.io.Serializable;
 import java.util.Map;
 
 import org.hibernate.HibernateException;
+import org.hibernate.LockMode;
 import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.boot.model.domain.spi.EntityMappingImplementor;
-import org.hibernate.boot.model.domain.spi.ManagedTypeMappingImplementor;
 import org.hibernate.cache.spi.entry.CacheEntry;
 import org.hibernate.cache.spi.entry.CacheEntryStructure;
 import org.hibernate.engine.spi.CascadeStyle;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.engine.spi.ValueInclusion;
 import org.hibernate.internal.FilterAliasGenerator;
-import org.hibernate.mapping.JoinedSubclass;
-import org.hibernate.mapping.RootClass;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.spi.AbstractEntityTypeDescriptor;
-import org.hibernate.metamodel.model.domain.spi.DiscriminatorDescriptor;
-import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
-import org.hibernate.query.NavigablePath;
-import org.hibernate.query.sqm.produce.spi.SqmCreationState;
-import org.hibernate.query.sqm.tree.domain.SqmBasicValuedSimplePath;
-import org.hibernate.query.sqm.tree.domain.SqmPath;
-import org.hibernate.query.sqm.tree.domain.SqmNavigableReference;
-import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 /**
- * @author Steve Ebersole
+ * @author Andrea Boriero
  */
-public class JoinedEntityTypeDescriptor<J> extends AbstractEntityTypeDescriptor<J> {
+public class UnionSubclassEntityDecriptor extends AbstractEntityTypeDescriptor {
 
-	public JoinedEntityTypeDescriptor(
+	public UnionSubclassEntityDecriptor(
 			EntityMappingImplementor bootMapping,
-			IdentifiableTypeDescriptor<? super J> superTypeDescriptor,
-			RuntimeModelCreationContext creationContext) throws HibernateException {
-		super( bootMapping, superTypeDescriptor, creationContext );
-	}
-
-	@Override
-	public String asLoggableText() {
-		return String.format( "SingleTableEntityDescriptor<%s>", getEntityName() );
-
-	}
-
-	@Override
-	public boolean finishInitialization(
-			ManagedTypeMappingImplementor bootDescriptor,
-			RuntimeModelCreationContext creationContext) {
-		final boolean superDone = super.finishInitialization( bootDescriptor, creationContext );
-		if ( !superDone ) {
-			return false;
-		}
-
-		if ( bootDescriptor instanceof RootClass ) {
-			// the hierarchy root
-		}
-		else if ( bootDescriptor instanceof JoinedSubclass ) {
-			// branch/leaf
-		}
-		else {
-			throw new IllegalStateException(
-					"Expecting boot model descriptor to be RootClass or JoinedSubclass, but found : " + bootDescriptor );
-		}
-
-		return true;
-	}
-
-
-	@Override
-	public SqmNavigableReference createSqmExpression(SqmPath lhs, SqmCreationState creationState) {
-		//noinspection unchecked
-		return new SqmBasicValuedSimplePath(
-				new NavigablePath( getNavigableName() + DiscriminatorDescriptor.NAVIGABLE_NAME ),
-				this.getHierarchy().getDiscriminatorDescriptor(),
-				null,
-				creationState.getCreationContext().getQueryEngine().getCriteriaBuilder()
-		);
-	}
-
-	@Override
-	public boolean hasProxy() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public void insert(
-			Object id, Object[] fields, Object object, SharedSessionContractImplementor session)
+			IdentifiableTypeDescriptor superTypeDescriptor,
+			RuntimeModelCreationContext creationContext)
 			throws HibernateException {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public Object insert(
-			Object[] fields, Object object, SharedSessionContractImplementor session) throws HibernateException {
-		throw new NotYetImplementedFor6Exception( getClass() );
+		super( bootMapping, superTypeDescriptor, creationContext );
 	}
 
 	@Override
@@ -110,6 +41,7 @@ public class JoinedEntityTypeDescriptor<J> extends AbstractEntityTypeDescriptor<
 			Object id, Object version, Object object, SharedSessionContractImplementor session)
 			throws HibernateException {
 		throw new NotYetImplementedFor6Exception( getClass() );
+
 	}
 
 	@Override
@@ -124,11 +56,7 @@ public class JoinedEntityTypeDescriptor<J> extends AbstractEntityTypeDescriptor<
 			Object rowId,
 			SharedSessionContractImplementor session) throws HibernateException {
 		throw new NotYetImplementedFor6Exception( getClass() );
-	}
 
-	@Override
-	public boolean hasCascades() {
-		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
@@ -164,35 +92,18 @@ public class JoinedEntityTypeDescriptor<J> extends AbstractEntityTypeDescriptor<
 	}
 
 	@Override
-	public Object getCurrentVersion(
-			Object id, SharedSessionContractImplementor session) throws HibernateException {
+	public Object getCurrentVersion(Object id, SharedSessionContractImplementor session) throws HibernateException {
 		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public Object forceVersionIncrement(
-			Object id, Object currentVersion, SharedSessionContractImplementor session)
-			throws HibernateException {
+			Object id, Object currentVersion, SharedSessionContractImplementor session) throws HibernateException {
 		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public boolean isInstrumented() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public void afterInitialize(Object entity, SharedSessionContractImplementor session) {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public void afterReassociate(Object entity, SharedSessionContractImplementor session) {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public Object createProxy(Object id, SharedSessionContractImplementor session) throws HibernateException {
 		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
@@ -203,35 +114,22 @@ public class JoinedEntityTypeDescriptor<J> extends AbstractEntityTypeDescriptor<
 
 	@Override
 	public Object[] getPropertyValuesToInsert(
-			Object object,
-			Map mergeMap,
-			SharedSessionContractImplementor session) throws HibernateException {
-		final Object[] stateArray = new Object[getStateArrayContributors().size()];
-		visitStateArrayContributors(
-				contributor -> {
-					stateArray[contributor.getStateArrayPosition()] = contributor.getPropertyAccess()
-							.getGetter()
-							.getForInsert(
-									object,
-									mergeMap,
-									session
-							);
-				}
-		);
-
-		return stateArray;
+			Object object, Map mergeMap, SharedSessionContractImplementor session) throws HibernateException {
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
 	public void processInsertGeneratedProperties(
 			Object id, Object entity, Object[] state, SharedSessionContractImplementor session) {
 		throw new NotYetImplementedFor6Exception( getClass() );
+
 	}
 
 	@Override
 	public void processUpdateGeneratedProperties(
 			Object id, Object entity, Object[] state, SharedSessionContractImplementor session) {
 		throw new NotYetImplementedFor6Exception( getClass() );
+
 	}
 
 	@Override
@@ -241,13 +139,6 @@ public class JoinedEntityTypeDescriptor<J> extends AbstractEntityTypeDescriptor<
 
 	@Override
 	public boolean implementsLifecycle() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public EntityTypeDescriptor getSubclassEntityPersister(
-			Object instance,
-			SessionFactoryImplementor factory) {
 		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
@@ -269,20 +160,11 @@ public class JoinedEntityTypeDescriptor<J> extends AbstractEntityTypeDescriptor<
 	@Override
 	public void registerAffectingFetchProfile(String fetchProfileName) {
 		throw new NotYetImplementedFor6Exception( getClass() );
+
 	}
 
 	@Override
 	public boolean hasCollections() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public JavaTypeDescriptor[] getPropertyJavaTypeDescriptors() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public String[] getPropertyNames() {
 		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
@@ -317,7 +199,7 @@ public class JoinedEntityTypeDescriptor<J> extends AbstractEntityTypeDescriptor<
 	}
 
 	@Override
-	public boolean isAffectedByEnabledFilters(SharedSessionContractImplementor session) {
+	public String asLoggableText() {
 		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 }

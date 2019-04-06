@@ -911,6 +911,9 @@ public class SingularPersistentAttributeEntity<O, J>
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean isDirty(Object originalValue, Object currentValue, SharedSessionContractImplementor session) {
+		if ( classification == ONE_TO_ONE ) {
+			return false;
+		}
 		if ( Objects.equals( originalValue, currentValue ) ) {
 			return false;
 		}
@@ -921,6 +924,31 @@ public class SingularPersistentAttributeEntity<O, J>
 		return !getEntityDescriptor()
 				.getIdentifierDescriptor()
 				.areEqual( oldIdentifier, newIdentifier );
+	}
+
+	@Override
+	public boolean isModified(Object old, Object current, SharedSessionContractImplementor session) {
+		if ( classification == ONE_TO_ONE ) {
+			return false;
+		}
+		if ( Objects.equals( old, current ) ) {
+			return false;
+		}
+
+		Object oldIdentifier = extractFkValue( old );
+		Object newIdentifier = extractFkValue( current );
+		if ( referencedUkAttributeName == null || classification.equals( SingularAttributeClassification.ONE_TO_ONE ) ) {
+			return getEntityDescriptor()
+					.getIdentifierDescriptor().isModified( oldIdentifier, newIdentifier, session );
+		}
+		else {
+			return getAssociatedEntityDescriptor()
+					.findPersistentAttribute( referencedUkAttributeName ).isDirty(
+							oldIdentifier,
+							newIdentifier,
+							session
+					);
+		}
 	}
 
 	@Override

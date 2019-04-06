@@ -710,8 +710,7 @@ public class DefaultFlushEntityEventListener implements FlushEntityEventListener
 
 	private Object[] getDatabaseSnapshot(SessionImplementor session, EntityTypeDescriptor entityDescriptor, Object id) {
 		if ( entityDescriptor.isSelectBeforeUpdateRequired() ) {
-			Object[] snapshot = session.getPersistenceContext()
-					.getDatabaseSnapshot( id, entityDescriptor );
+			Object[] snapshot = session.getPersistenceContext().getDatabaseSnapshot( id, entityDescriptor );
 			if ( snapshot == null ) {
 				//do we even really need this? the update will fail anyway....
 				if ( session.getFactory().getStatistics().isStatisticsEnabled() ) {

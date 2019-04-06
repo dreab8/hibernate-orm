@@ -432,4 +432,9 @@ public class CollectionElementEntityImpl<J>
 	public boolean isDirty(Object one, Object another, SharedSessionContractImplementor session) {
 		return getEntityDescriptor().isDirty( one, another, session );
 	}
+
+	@Override
+	public boolean isModified(Object old, Object current, SharedSessionContractImplementor session) {
+		return getEntityDescriptor().isModified( old, current, session );
+	}
 }

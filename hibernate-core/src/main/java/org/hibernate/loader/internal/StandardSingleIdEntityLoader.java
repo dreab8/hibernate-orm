@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
@@ -297,11 +298,21 @@ public class StandardSingleIdEntityLoader<T> implements SingleIdEntityLoader<T> 
 			return null;
 		}
 
-		final int size = list.size();
-		final Object[] values = new Object[size];
-		for ( int i = 0; i < size; i++ ) {
-			values[i] = list.get( i );
+		// todo (6.0) : is there a better way to do this ?
+		final Object[] values = new Object[entityDescriptor.getAttributes(  ).size()];
+		T result = list.get( 0 );
+		if (result.getClass().isArray()){
+			T[] results = (T[]) result;
+			AtomicInteger index = new AtomicInteger( 0 );
+			entityDescriptor.visitStateArrayContributors(
+					stateArrayContributor -> {
+						if ( stateArrayContributor.isUpdatable() ) {
+							values[stateArrayContributor.getStateArrayPosition()] = results[index.getAndIncrement()];
+						}
+					}
+			);
 		}
+
 		return values;
 	}
 
@@ -410,60 +421,6 @@ public class StandardSingleIdEntityLoader<T> implements SingleIdEntityLoader<T> 
 				LockMode.NONE,
 				creationState
 		);
-//		final EntityTableGroup rootTableGroup = entityDescriptor.createRootTableGroup(
-//				new TableGroupInfo() {
-//					@Override
-//					public String getUniqueIdentifier() {
-//						return "root";
-//					}
-//
-//					@Override
-//					public String getIdentificationVariable() {
-//						return null;
-//					}
-//
-//					@Override
-//					public EntityTypeDescriptor getIntrinsicSubclassEntityMetadata() {
-//						return entityDescriptor;
-//					}
-//
-//					@Override
-//					public NavigablePath getNavigablePath() {
-//						return path;
-//					}
-//				},
-//				new RootTableGroupContext() {
-//					@Override
-//					public void addRestriction(Predicate predicate) {
-//						rootQuerySpec.addRestriction( predicate );
-//					}
-//
-//					@Override
-//					public QuerySpec getQuerySpec() {
-//						return rootQuerySpec;
-//					}
-//
-//					@Override
-//					public TableSpace getTableSpace() {
-//						return rootTableSpace;
-//					}
-//
-//					@Override
-//					public SqlAliasBaseGenerator getSqlAliasBaseGenerator() {
-//						return aliasBaseGenerator;
-//					}
-//
-//					@Override
-//					public JoinType getTableReferenceJoinType() {
-//						return null;
-//					}
-//
-//					@Override
-//					public LockOptions getLockOptions() {
-//						return LockOptions.NONE;
-//					}
-//				}
-//		);
 
 		selectStatement.getQuerySpec().getFromClause().addRoot( rootTableGroup );
 
@@ -515,7 +472,8 @@ public class StandardSingleIdEntityLoader<T> implements SingleIdEntityLoader<T> 
 
 		// todo (6.0) : is this correct and/or is there a better way to add the SqlSelection to the SelectClause?
 		entityDescriptor.visitStateArrayContributors(
-				stateArrayContributor ->
+				stateArrayContributor -> {
+					if ( stateArrayContributor.isUpdatable() ) {
 						stateArrayContributor.visitColumns(
 								(sqlExpressableType, column) -> {
 									ColumnReference columnReference;
@@ -530,7 +488,7 @@ public class StandardSingleIdEntityLoader<T> implements SingleIdEntityLoader<T> 
 
 									SqlSelection sqlSelection = new SqlSelectionImpl(
 											position.getJdbcPosition(),
-											position.getValuesArrayPosition() ,
+											position.getValuesArrayPosition(),
 											columnReference,
 											sqlExpressableType.getJdbcValueExtractor()
 									);
@@ -545,7 +503,9 @@ public class StandardSingleIdEntityLoader<T> implements SingleIdEntityLoader<T> 
 								},
 								Clause.SELECT,
 								null
-						)
+						);
+					}
+				}
 		);
 
 		idParameter = new LoadIdParameter(

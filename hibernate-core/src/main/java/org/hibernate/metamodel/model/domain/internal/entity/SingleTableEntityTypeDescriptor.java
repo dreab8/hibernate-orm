@@ -15,12 +15,10 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import org.hibernate.HibernateException;
-import org.hibernate.LockMode;
 import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.StaleStateException;
 import org.hibernate.boot.model.domain.spi.EntityMappingImplementor;
-import org.hibernate.bytecode.enhance.spi.LazyPropertyInitializer;
 import org.hibernate.cache.spi.entry.CacheEntry;
 import org.hibernate.cache.spi.entry.CacheEntryStructure;
 import org.hibernate.classic.Lifecycle;
@@ -140,49 +138,6 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 	@Override
 	public String asLoggableText() {
 		return String.format( "SingleTableEntityDescriptor<%s>", getEntityName() );
-	}
-
-	@Override
-	public int[] findDirty(
-			Object[] currentState,
-			Object[] previousState,
-			Object owner,
-			SharedSessionContractImplementor session) {
-		final List<Integer> results = new ArrayList<>();
-
-		visitStateArrayContributors(
-				contributor -> {
-					final int index = contributor.getStateArrayPosition();
-					final boolean dirty = currentState[index] != LazyPropertyInitializer.UNFETCHED_PROPERTY &&
-							( previousState[index] == LazyPropertyInitializer.UNFETCHED_PROPERTY ||
-									( contributor.isIncludedInDirtyChecking() &&
-											contributor.isDirty( previousState[index], currentState[index], session ) ) );
-
-					if ( dirty ) {
-						results.add( index );
-					}
-				}
-		);
-
-		if ( results.size() == 0 ) {
-			return null;
-		}
-		else {
-			return results.stream().mapToInt( i-> i ).toArray();
-		}
-	}
-
-	@Override
-	public int[] findModified(
-			Object[] old, Object[] current, Object object, SharedSessionContractImplementor session) {
-		return new int[0];
-	}
-
-	@Override
-	public void lock(
-			Object id, Object version, Object object, LockMode lockMode, SharedSessionContractImplementor session)
-			throws HibernateException {
-		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	protected Object insertInternal(

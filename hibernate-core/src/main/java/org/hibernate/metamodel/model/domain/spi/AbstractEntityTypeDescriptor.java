@@ -31,6 +31,7 @@ import org.hibernate.boot.model.domain.MappedJoin;
 import org.hibernate.boot.model.domain.spi.EntityMappingImplementor;
 import org.hibernate.boot.model.domain.spi.ManagedTypeMappingImplementor;
 import org.hibernate.boot.model.relational.MappedTable;
+import org.hibernate.bytecode.enhance.spi.LazyPropertyInitializer;
 import org.hibernate.bytecode.internal.BytecodeEnhancementMetadataNonPojoImpl;
 import org.hibernate.bytecode.internal.BytecodeEnhancementMetadataPojoImpl;
 import org.hibernate.bytecode.spi.BytecodeEnhancementMetadata;
@@ -382,6 +383,63 @@ public abstract class AbstractEntityTypeDescriptor<J>
 	}
 
 	@Override
+	public int[] findDirty(
+			Object[] currentState,
+			Object[] previousState,
+			Object owner,
+			SharedSessionContractImplementor session) {
+		final List<Integer> results = new ArrayList<>();
+
+		visitStateArrayContributors(
+				contributor -> {
+					final int index = contributor.getStateArrayPosition();
+					final boolean dirty = currentState[index] != LazyPropertyInitializer.UNFETCHED_PROPERTY &&
+							( previousState[index] == LazyPropertyInitializer.UNFETCHED_PROPERTY ||
+									( contributor.isIncludedInDirtyChecking() &&
+											contributor.isDirty( previousState[index], currentState[index], session ) ) );
+
+					if ( dirty ) {
+						results.add( index );
+					}
+				}
+		);
+
+		if ( results.size() == 0 ) {
+			return null;
+		}
+		else {
+			return results.stream().mapToInt( i-> i ).toArray();
+		}
+	}
+
+	@Override
+	public int[] findModified(Object[] old, Object[] current, Object object, SharedSessionContractImplementor session) {
+
+		final List<Integer> results = new ArrayList<>();
+		visitStateArrayContributors(
+				contributor -> {
+					final int index = contributor.getStateArrayPosition();
+
+					final boolean modified = current[index] != LazyPropertyInitializer.UNFETCHED_PROPERTY
+							&& contributor.isUpdatable()
+							&& contributor.isIncludedInDirtyChecking()
+							&& contributor.isModified( old[index], current[index], session );
+					if ( modified ) {
+						results.add( index );
+					}
+				}
+		);
+
+		if ( results.isEmpty() ) {
+			return null;
+		}
+		else {
+//			logDirtyProperties( props );
+			return results.stream().mapToInt( i-> i ).toArray();
+		}
+	}
+
+	@Override
 	public EntityJavaDescriptor<J> getJavaTypeDescriptor() {
 		return (EntityJavaDescriptor<J>) super.getJavaTypeDescriptor();
 	}
@@ -637,6 +695,13 @@ public abstract class AbstractEntityTypeDescriptor<J>
 //			lockers.put( lockOptions.getLockMode(), entityLocker );
 		}
 		return entityLocker;
+	}
+
+	@Override
+	public void lock(
+			Object id, Object version, Object object, LockMode lockMode, SharedSessionContractImplementor session)
+			throws HibernateException {
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override

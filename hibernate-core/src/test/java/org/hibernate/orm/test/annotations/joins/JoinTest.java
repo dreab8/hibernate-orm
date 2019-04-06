@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.Locale;
 import javax.persistence.PersistenceException;
 
+import org.hibernate.boot.MetadataBuilder;
+import org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl;
 import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.mapping.Join;
@@ -77,7 +79,7 @@ public class JoinTest extends SessionFactoryBasedFunctionalTest {
 	public void testDefaultValue() {
 		Join join = (Join) getMetadata().getEntityBinding( Life.class.getName() ).getJoinClosureIterator().next();
 		MappedTable joinTable = join.getMappedTable();
-		assertThat(  joinTable.getName(), is("ExtendedLife") );
+		assertThat( joinTable.getName(), is( "ExtendedLife" ) );
 		org.hibernate.mapping.Column owner = new org.hibernate.mapping.Column(
 				joinTable.getNameIdentifier(),
 				"LIFE_ID",
@@ -259,8 +261,8 @@ public class JoinTest extends SessionFactoryBasedFunctionalTest {
 	}
 
 	@Test
-	@FailureExpected(value = "MappedSuperclass support has not yet been implemented ")
-	public void testMappedSuperclassAndSecondaryTable() {
+	@FailureExpected("Single Table Inheritance not yet implemented")
+	public void testSingleTableInheritanceAndSecondaryTable() {
 		inTransaction(
 				session -> {
 					C c = new C();
@@ -276,10 +278,10 @@ public class JoinTest extends SessionFactoryBasedFunctionalTest {
 				} );
 	}
 
-//	@Override
-//	protected void configureMetadataBuilder(MetadataBuilder metadataBuilder) {
-//		super.configureMetadataBuilder( metadataBuilder );
-//		metadataBuilder.applyImplicitNamingStrategy( ImplicitNamingStrategyLegacyJpaImpl.INSTANCE );
-//	}
+	@Override
+	protected void configureMetadataBuilder(MetadataBuilder metadataBuilder) {
+		super.configureMetadataBuilder( metadataBuilder );
+		metadataBuilder.applyImplicitNamingStrategy( ImplicitNamingStrategyLegacyJpaImpl.INSTANCE );
+	}
 
 }

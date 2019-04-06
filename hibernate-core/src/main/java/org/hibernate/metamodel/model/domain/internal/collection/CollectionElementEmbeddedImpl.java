@@ -144,6 +144,11 @@ public class CollectionElementEmbeddedImpl<J>
 	}
 
 	@Override
+	public boolean isModified(Object old, Object current, SharedSessionContractImplementor session) {
+		return getEmbeddedDescriptor().isModified( old, current, session );
+	}
+
+	@Override
 	public boolean areEqual(J x, J y) throws HibernateException {
 		return getEmbeddedDescriptor().areEqual( x,y );
 	}

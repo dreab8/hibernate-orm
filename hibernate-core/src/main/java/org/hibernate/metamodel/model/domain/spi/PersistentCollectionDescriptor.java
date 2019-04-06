@@ -232,8 +232,6 @@ public interface PersistentCollectionDescriptor<O,C,E>
 
 	boolean isExtraLazy();
 
-	boolean isDirty(Object old, Object value, SharedSessionContractImplementor session);
-
 
 	// todo (6.0) : consider better alternatives
 	// 		- delegates?  i.e.

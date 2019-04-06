@@ -190,6 +190,21 @@ public class EmbeddedTypeDescriptorImpl<J>
 	}
 
 	@Override
+	public boolean isModified(Object old, Object current, SharedSessionContractImplementor session) {
+		if ( old == current ) {
+			return false;
+		}
+		for ( NonIdPersistentAttribute attribute : getPersistentAttributes() ) {
+			final Object oneValue = attribute.getPropertyAccess().getGetter().get( old );
+			final Object anotherValue = attribute.getPropertyAccess().getGetter().get( current );
+			if ( attribute.isModified( oneValue, anotherValue, session ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
 	public boolean areEqual(Object x, Object y) {
 		if ( x == y ) {
 			return true;
