@@ -32,12 +32,10 @@ import org.hibernate.boot.model.domain.spi.ManagedTypeMappingImplementor;
 import org.hibernate.bytecode.spi.BytecodeEnhancementMetadata;
 import org.hibernate.cache.spi.entry.CacheEntry;
 import org.hibernate.cache.spi.entry.CacheEntryStructure;
-import org.hibernate.engine.spi.CascadeStyle;
 import org.hibernate.engine.spi.EntityEntryFactory;
 import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.engine.spi.ValueInclusion;
 import org.hibernate.graph.spi.SubGraphImplementor;
 import org.hibernate.internal.FilterAliasGenerator;
 import org.hibernate.loader.spi.EntityLocker;
@@ -192,7 +190,7 @@ public class SqmPolymorphicRootDescriptor<T> implements EntityTypeDescriptor<T> 
 
 	@Override
 	public Collection getSubclassTypes() {
-		return (Collection) Collections.unmodifiableSet( implementors );
+		return Collections.unmodifiableSet( implementors );
 	}
 
 	@Override
@@ -772,16 +770,6 @@ public class SqmPolymorphicRootDescriptor<T> implements EntityTypeDescriptor<T> 
 	}
 
 	@Override
-	public ValueInclusion[] getPropertyInsertGenerationInclusions() {
-		throw new UnsupportedOperationException(  );
-	}
-
-	@Override
-	public ValueInclusion[] getPropertyUpdateGenerationInclusions() {
-		throw new UnsupportedOperationException(  );
-	}
-
-	@Override
 	public boolean[] getPropertyUpdateability() {
 		throw new UnsupportedOperationException(  );
 	}
@@ -793,11 +781,6 @@ public class SqmPolymorphicRootDescriptor<T> implements EntityTypeDescriptor<T> 
 
 	@Override
 	public boolean[] getPropertyLaziness() {
-		throw new UnsupportedOperationException(  );
-	}
-
-	@Override
-	public CascadeStyle[] getPropertyCascadeStyles() {
 		throw new UnsupportedOperationException(  );
 	}
 
