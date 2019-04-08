@@ -164,20 +164,7 @@ public class Column implements Selectable, Serializable, Cloneable {
 			return false;
 		}
 		Column column = (Column) o;
-		return tableName.equals( column.tableName ) &&
-				name.equals( column.name );
-	}
-
-	@SuppressWarnings("SimplifiableIfStatement")
-	public boolean equals(Column column) {
-		if ( null == column ) {
-			return false;
-		}
-		if ( this == column ) {
-			return true;
-		}
-
-		return tableName.equals( column.tableName ) && name.equals( column.name );
+		return name.equals( column.name ) && tableName.equals( column.tableName );
 	}
 
 	public String getSqlType() {
