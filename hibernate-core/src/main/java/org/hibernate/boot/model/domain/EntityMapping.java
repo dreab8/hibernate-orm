@@ -33,6 +33,8 @@ public interface EntityMapping extends IdentifiableTypeMapping, Filterable {
 
 	boolean hasProxy();
 
+	boolean hasFormulaAttributes();
+
 	Class getProxyInterface();
 
 	ExecuteUpdateResultCheckStyle getUpdateResultCheckStyle();

@@ -103,6 +103,8 @@ public abstract class PersistentClass
 
 	private boolean isCached;
 
+	private boolean hasFormulaProperties;
+
 	public PersistentClass(
 			MetadataBuildingContext metadataBuildingContext,
 			EntityMappingHierarchy entityMappingHierarchy) {
@@ -1151,6 +1153,20 @@ public abstract class PersistentClass
 				superTypeDescriptor,
 				creationContext
 		);
+	}
+
+	@Override
+	public boolean hasFormulaAttributes() {
+		boolean hasFormula = false;
+		for ( Property property : properties ) {
+			List<MappedColumn> mappedColumns = property.getMappedColumns();
+			for ( MappedColumn mappedColumn : mappedColumns ) {
+				if ( mappedColumn.isFormula() ) {
+					hasFormula = true;
+				}
+			}
+		}
+		return hasFormula;
 	}
 
 	@Override

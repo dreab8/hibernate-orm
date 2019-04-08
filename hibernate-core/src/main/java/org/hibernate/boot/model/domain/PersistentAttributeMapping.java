@@ -18,10 +18,6 @@ import org.hibernate.tuple.ValueGeneration;
 public interface PersistentAttributeMapping extends MetaAttributable, ValueMappingContainer {
 	String getName();
 
-	default boolean isVirtual() {
-		return false;
-	}
-
 	default boolean isBackRef() {
 		return false;
 	}

@@ -662,20 +662,6 @@ public interface EntityTypeDescriptor<T>
 		return names;
 	}
 
-	/**
-	 * @deprecated yep
-	 */
-	@Remove
-	@Deprecated
-	ValueInclusion[] getPropertyInsertGenerationInclusions();
-
-	/**
-	 * @deprecated yep
-	 */
-	@Remove
-	@Deprecated
-	ValueInclusion[] getPropertyUpdateGenerationInclusions();
-
 	@Remove
 	boolean[] getPropertyUpdateability();
 
@@ -684,9 +670,6 @@ public interface EntityTypeDescriptor<T>
 
 	@Remove
 	boolean[] getPropertyLaziness();
-
-	@Remove
-	CascadeStyle[] getPropertyCascadeStyles();
 
 	default boolean isSubselectLoadable() {
 		// legacy Hibernate behavior is to not allow subselect fetching for entities

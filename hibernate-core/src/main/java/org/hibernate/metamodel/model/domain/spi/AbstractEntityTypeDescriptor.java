@@ -35,10 +35,14 @@ import org.hibernate.bytecode.enhance.spi.LazyPropertyInitializer;
 import org.hibernate.bytecode.internal.BytecodeEnhancementMetadataNonPojoImpl;
 import org.hibernate.bytecode.internal.BytecodeEnhancementMetadataPojoImpl;
 import org.hibernate.bytecode.spi.BytecodeEnhancementMetadata;
+import org.hibernate.cache.spi.entry.CacheEntry;
+import org.hibernate.cache.spi.entry.CacheEntryStructure;
+import org.hibernate.classic.Lifecycle;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.internal.StatefulPersistenceContext;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.spi.CachedNaturalIdValueSource;
+import org.hibernate.engine.spi.CascadeStyle;
 import org.hibernate.engine.spi.CascadeStyles;
 import org.hibernate.engine.spi.EntityEntryFactory;
 import org.hibernate.engine.spi.ExecuteUpdateResultCheckStyle;
@@ -123,9 +127,17 @@ public abstract class AbstractEntityTypeDescriptor<J>
 
 	private final boolean canReadFromCache;
 	private final boolean canWriteToCache;
+	private final boolean invalidateCache;
+	private final boolean isLazyPropertiesCacheable;
 
 	private final boolean hasProxy;
+	private Boolean hasCollections;
 	private final boolean selectBeforeUpdate;
+	private final boolean dynamicUpdate;
+	private final boolean dynamicInsert;
+	private final Boolean hasFormulaProperties;
+	private final boolean lifecycleImplementor;
+
 	private final Class proxyInterface;
 	private final int batchSize;
 
@@ -177,17 +189,31 @@ public abstract class AbstractEntityTypeDescriptor<J>
 				bootMapping.getJpaEntityName()
 		);
 
+		PersistentClass persistentClass = (PersistentClass) bootMapping;
+
+		dynamicUpdate = persistentClass.useDynamicUpdate()
+				|| ( getBytecodeEnhancementMetadata().isEnhancedForLazyLoading() && getBytecodeEnhancementMetadata().getLazyAttributesMetadata().getFetchGroupNames().size() > 1 );
+		dynamicInsert = persistentClass.useDynamicInsert();
+
 		this.sqlAliasStem = SqlAliasStemHelper.INSTANCE.generateStemFromEntityName( bootMapping.getEntityName() );
 		this.dialect = factory.getServiceRegistry().getService( JdbcServices.class ).getDialect();
 
 		if ( creationContext.getSessionFactory().getSessionFactoryOptions().isSecondLevelCacheEnabled() ) {
-			PersistentClass persistentClass = (PersistentClass) bootMapping;
 			this.canWriteToCache = persistentClass.isCached();
 			this.canReadFromCache = determineCanReadFromCache( persistentClass );
+			this.isLazyPropertiesCacheable = persistentClass.getRootClass().isLazyPropertiesCacheable();
 		}
 		else {
 			this.canWriteToCache = false;
 			this.canReadFromCache = false;
+			this.isLazyPropertiesCacheable = false;
+		}
+
+		if ( creationContext.getSessionFactory().getSessionFactoryOptions().isSecondLevelCacheEnabled() ) {
+			this.invalidateCache = canWriteToCache && determineWhetherToInvalidateCache( (PersistentClass) bootMapping, creationContext );
+		}
+		else {
+			this.invalidateCache = false;
 		}
 
 		// Handle any filters applied to the class level
@@ -205,6 +231,15 @@ public abstract class AbstractEntityTypeDescriptor<J>
 		batchSize = batch;
 
 		selectBeforeUpdate = bootMapping.hasSelectBeforeUpdate();
+
+		if ( getRepresentationStrategy().getMode() == RepresentationMode.MAP ) {
+			lifecycleImplementor = false;
+		}
+		else {
+			lifecycleImplementor = Lifecycle.class.isAssignableFrom( bootMapping.getMappedClass() );
+		}
+
+		hasFormulaProperties = bootMapping.hasFormulaAttributes();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -222,6 +257,47 @@ public abstract class AbstractEntityTypeDescriptor<J>
 		}
 		return false;
 	}
+
+	private boolean determineWhetherToInvalidateCache(
+			PersistentClass persistentClass,
+			RuntimeModelCreationContext creationContext) {
+		if ( hasFormulaProperties() ) {
+			return true;
+		}
+
+		if ( hasVersionAttribute() ) {
+			return false;
+		}
+
+		if ( dynamicUpdate ) {
+			return false;
+		}
+
+		// We need to check whether the user may have circumvented this logic (JPA TCK)
+		final boolean complianceEnabled =creationContext.getSessionFactory()
+				.getSessionFactoryOptions()
+				.getJpaCompliance()
+				.isJpaCacheComplianceEnabled();
+		if ( complianceEnabled ) {
+			// The JPA TCK (inadvertently, but still...) requires that we cache
+			// entities with secondary tables even though Hibernate historically
+			// invalidated them
+			return false;
+		}
+
+		if ( persistentClass.getJoinClosureSpan() >= 1 ) {
+			// todo : this should really consider optionality of the secondary tables in count
+			//		non-optional tables do not cause this bypass
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean hasFormulaProperties() {
+		return hasFormulaProperties;
+	}
+
 
 	private EntityHierarchy resolveEntityHierarchy(
 			IdentifiableTypeMapping bootMapping,
@@ -355,6 +431,22 @@ public abstract class AbstractEntityTypeDescriptor<J>
 			);
 		}
 		return getSingleIdLoader().loadDatabaseSnapshot( id, session );
+	}
+
+	@Override
+	public Object getCurrentVersion(Object id, SharedSessionContractImplementor session) throws HibernateException {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public Object forceVersionIncrement(
+			Object id, Object currentVersion, SharedSessionContractImplementor session) throws HibernateException {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public boolean isInstrumented() {
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	@Override
@@ -846,6 +938,59 @@ public abstract class AbstractEntityTypeDescriptor<J>
 	}
 
 	@Override
+	public boolean hasCollections() {
+		// todo (6.0) : do this init up front?
+		if ( hasCollections == null ) {
+			hasCollections = false;
+			controlledVisitAttributes(
+					attr -> {
+						if ( attr instanceof PluralPersistentAttribute ) {
+							hasCollections = true;
+							return false;
+						}
+						else if ( attr instanceof SingularPersistentAttributeEmbedded ) {
+							( (SingularPersistentAttributeEmbedded) attr ).getEmbeddedDescriptor()
+									.controlledVisitAttributes(
+											embeddedAttribute -> {
+												if ( embeddedAttribute instanceof PluralPersistentAttribute ) {
+													hasCollections = true;
+													return false;
+												}
+												return true;
+											}
+									);
+						}
+
+						return true;
+					}
+			);
+		}
+		return hasCollections;
+	}
+
+	@Override
+	public boolean[] getPropertyUpdateability() {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public boolean[] getPropertyVersionability() {
+		boolean[] propertyVersionability = new boolean[getStateArrayContributors().size()];
+		visitStateArrayContributors(
+				contributor -> {
+					final int position = contributor.getStateArrayPosition();
+					propertyVersionability[position] = contributor.isIncludedInOptimisticLocking();
+				}
+		);
+		return propertyVersionability;
+	}
+
+	@Override
+	public boolean[] getPropertyLaziness() {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
 	public Object instantiate(Object id, SharedSessionContractImplementor session) {
 		final J instance = instantiator.instantiate( session );
 		setIdentifier( instance, id, session );
@@ -855,6 +1000,81 @@ public abstract class AbstractEntityTypeDescriptor<J>
 	@Override
 	public Object createProxy(Object id, SharedSessionContractImplementor session) throws HibernateException {
 		return proxyFactory.getProxy( (Serializable) id, session );
+	}
+
+	@Override
+	public Boolean isTransient(Object object, SharedSessionContractImplementor session) throws HibernateException {
+		final Object id = getHierarchy().getIdentifierDescriptor().extractIdentifier( object );
+
+		// we *always* assume an instance with a null
+		// identifier or no identifier property is unsaved.
+		if ( id == null ) {
+			return Boolean.TRUE;
+		}
+
+		// check the version unsaved-value, if appropriate
+		final Object version = getVersion( object );
+		if ( getHierarchy().getVersionDescriptor() != null ) {
+			// let this take precedence if defined, since it works for assigned identifiers
+			// todo (6.0) - this may require some more work to handle proper comparisons.
+			return getHierarchy().getVersionDescriptor().getUnsavedValue() == version;
+		}
+
+		// check the id unsaved-value
+		Boolean result = getHierarchy().getIdentifierDescriptor().getUnsavedValue().isUnsaved( id );
+		if ( result != null ) {
+			return result;
+		}
+
+		// check to see if it is in the second-level cache
+		if ( session.getCacheMode().isGetEnabled() && canReadFromCache() ) {
+			// todo (6.0) - support reading from the cache
+			throw new NotYetImplementedFor6Exception( getClass() );
+		}
+
+		return null;
+	}
+
+	@Override
+	public Object[] getPropertyValuesToInsert(
+			Object object, Map mergeMap, SharedSessionContractImplementor session) throws HibernateException {
+		final Object[] stateArray = new Object[getStateArrayContributors().size()];
+		visitStateArrayContributors(
+				contributor -> {
+					stateArray[contributor.getStateArrayPosition()] = contributor.getPropertyAccess()
+							.getGetter()
+							.getForInsert(
+									object,
+									mergeMap,
+									session
+							);
+				}
+		);
+
+		return stateArray;
+	}
+
+	@Override
+	public void processInsertGeneratedProperties(
+			Object id, Object entity, Object[] state, SharedSessionContractImplementor session) {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public void processUpdateGeneratedProperties(
+			Object id, Object entity, Object[] state, SharedSessionContractImplementor session) {
+		throw new NotYetImplementedFor6Exception( getClass() );
+
+	}
+
+	@Override
+	public Class getMappedClass() {
+		return getJavaTypeDescriptor().getJavaType();
+	}
+
+	@Override
+	public boolean implementsLifecycle() {
+		return lifecycleImplementor;
 	}
 
 	@Override
@@ -1132,6 +1352,21 @@ public abstract class AbstractEntityTypeDescriptor<J>
 	}
 
 	@Override
+	public int[] resolveAttributeIndexes(String[] attributeNames) {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public boolean canUseReferenceCacheEntries() {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public void registerAffectingFetchProfile(String fetchProfileName) {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
 	public boolean hasCascades() {
 		for ( StateArrayContributor contributor : getStateArrayContributors() ) {
 			if ( contributor.getCascadeStyle() != CascadeStyles.NONE ) {
@@ -1144,6 +1379,32 @@ public abstract class AbstractEntityTypeDescriptor<J>
 	@Override
 	public Type getIdentifierType() {
 		return getHierarchy().getIdentifierDescriptor().getNavigableType();
+	}
+
+	@Override
+	public String getIdentifierPropertyName() {
+		return getHierarchy().getIdentifierDescriptor().getNavigableName();
+	}
+
+	@Override
+	public boolean isCacheInvalidationRequired() {
+		return invalidateCache;
+	}
+
+	@Override
+	public boolean isLazyPropertiesCacheable() {
+		return isLazyPropertiesCacheable;
+	}
+
+	@Override
+	public CacheEntryStructure getCacheEntryStructure() {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public CacheEntry buildCacheEntry(
+			Object entity, Object[] state, Object version, SharedSessionContractImplementor session) {
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	private void handleNaturalIdReattachment(Object entity, SharedSessionContractImplementor session) {

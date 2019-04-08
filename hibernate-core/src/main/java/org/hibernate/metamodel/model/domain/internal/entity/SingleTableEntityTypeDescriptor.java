@@ -11,7 +11,6 @@ import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 import org.hibernate.HibernateException;
@@ -19,16 +18,10 @@ import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.StaleObjectStateException;
 import org.hibernate.StaleStateException;
 import org.hibernate.boot.model.domain.spi.EntityMappingImplementor;
-import org.hibernate.cache.spi.entry.CacheEntry;
-import org.hibernate.cache.spi.entry.CacheEntryStructure;
-import org.hibernate.classic.Lifecycle;
 import org.hibernate.engine.internal.Versioning;
-import org.hibernate.engine.spi.CascadeStyle;
-import org.hibernate.engine.spi.CascadeStyles;
 import org.hibernate.engine.spi.EntityEntry;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.engine.spi.ValueInclusion;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.internal.FilterAliasGenerator;
 import org.hibernate.jdbc.Expectation;
@@ -36,14 +29,11 @@ import org.hibernate.jdbc.Expectations;
 import org.hibernate.jdbc.TooManyRowsAffectedException;
 import org.hibernate.loader.internal.TemplateParameterBindingContext;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
-import org.hibernate.metamodel.model.domain.RepresentationMode;
-import org.hibernate.metamodel.model.domain.internal.SingularPersistentAttributeEmbedded;
 import org.hibernate.metamodel.model.domain.spi.AbstractEntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.DiscriminatorDescriptor;
 import org.hibernate.metamodel.model.domain.spi.EntityIdentifier;
 import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
-import org.hibernate.metamodel.model.domain.spi.PluralPersistentAttribute;
 import org.hibernate.metamodel.model.domain.spi.StateArrayContributor;
 import org.hibernate.metamodel.model.domain.spi.TenantDiscrimination;
 import org.hibernate.metamodel.model.relational.spi.Column;
@@ -56,8 +46,8 @@ import org.hibernate.query.spi.ComparisonOperator;
 import org.hibernate.query.spi.QueryOptions;
 import org.hibernate.query.sqm.produce.spi.SqmCreationState;
 import org.hibernate.query.sqm.tree.domain.SqmBasicValuedSimplePath;
-import org.hibernate.query.sqm.tree.domain.SqmPath;
 import org.hibernate.query.sqm.tree.domain.SqmNavigableReference;
+import org.hibernate.query.sqm.tree.domain.SqmPath;
 import org.hibernate.sql.SqlExpressableType;
 import org.hibernate.sql.ast.Clause;
 import org.hibernate.sql.ast.consume.spi.InsertToJdbcInsertConverter;
@@ -87,10 +77,7 @@ import org.hibernate.sql.exec.spi.JdbcUpdate;
  * @author Steve Ebersole
  */
 public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescriptor<T> {
-	private Boolean hasCollections;
 	private final boolean isJpaCacheComplianceEnabled;
-	private final boolean lifecycleImplementor;
-
 
 	public SingleTableEntityTypeDescriptor(
 			EntityMappingImplementor bootMapping,
@@ -101,12 +88,6 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 				.getSessionFactoryOptions()
 				.getJpaCompliance()
 				.isJpaCacheComplianceEnabled();
-		if ( getRepresentationStrategy().getMode() == RepresentationMode.MAP ) {
-			lifecycleImplementor = false;
-		}
-		else {
-			lifecycleImplementor = Lifecycle.class.isAssignableFrom( bootMapping.getMappedClass() );
-		}
 	}
 
 
@@ -818,176 +799,9 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 	}
 
 	@Override
-	public ValueInclusion[] getPropertyInsertGenerationInclusions() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-
-	}
-
-	@Override
-	public ValueInclusion[] getPropertyUpdateGenerationInclusions() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public boolean[] getPropertyUpdateability() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public boolean[] getPropertyVersionability() {
-		boolean[] propertyVersionability = new boolean[getStateArrayContributors().size()];
-		visitStateArrayContributors(
-				contributor -> {
-					final int position = contributor.getStateArrayPosition();
-					propertyVersionability[position] = contributor.isIncludedInOptimisticLocking();
-				}
-		);
-		return propertyVersionability;
-	}
-
-	@Override
-	public boolean[] getPropertyLaziness() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public CascadeStyle[] getPropertyCascadeStyles() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public boolean hasCascades() {
-		for ( StateArrayContributor contributor : getStateArrayContributors() ) {
-			CascadeStyle cascadeStyle = contributor.getCascadeStyle();
-			if ( CascadeStyles.NONE != cascadeStyle ) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	@Override
-	public String getIdentifierPropertyName() {
-		return getHierarchy().getIdentifierDescriptor().getNavigableName();
-	}
-
-	@Override
-	public boolean isCacheInvalidationRequired() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public boolean isLazyPropertiesCacheable() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public CacheEntryStructure getCacheEntryStructure() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public CacheEntry buildCacheEntry(
-			Object entity, Object[] state, Object version, SharedSessionContractImplementor session) {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
 	public Serializable getIdByUniqueKey(
 			Serializable key, String uniquePropertyName, SharedSessionContractImplementor session) {
 		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public Object getCurrentVersion(Object id, SharedSessionContractImplementor session)
-			throws HibernateException {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public Object forceVersionIncrement(
-			Object id, Object currentVersion, SharedSessionContractImplementor session)
-			throws HibernateException {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public boolean isInstrumented() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public Boolean isTransient(Object object, SharedSessionContractImplementor session) throws HibernateException {
-		final Object id = getHierarchy().getIdentifierDescriptor().extractIdentifier( object );
-
-		// we *always* assume an instance with a null
-		// identifier or no identifier property is unsaved.
-		if ( id == null ) {
-			return Boolean.TRUE;
-		}
-
-		// check the version unsaved-value, if appropriate
-		final Object version = getVersion( object );
-		if ( getHierarchy().getVersionDescriptor() != null ) {
-			// let this take precedence if defined, since it works for assigned identifiers
-			// todo (6.0) - this may require some more work to handle proper comparisons.
-			return getHierarchy().getVersionDescriptor().getUnsavedValue() == version;
-		}
-
-		// check the id unsaved-value
-		Boolean result = getHierarchy().getIdentifierDescriptor().getUnsavedValue().isUnsaved( id );
-		if ( result != null ) {
-			return result;
-		}
-
-		// check to see if it is in the second-level cache
-		if ( session.getCacheMode().isGetEnabled() && canReadFromCache() ) {
-			// todo (6.0) - support reading from the cache
-			throw new NotYetImplementedFor6Exception( getClass() );
-		}
-
-		return null;
-	}
-
-	@Override
-	public Object[] getPropertyValuesToInsert(
-			Object object,
-			Map mergeMap,
-			SharedSessionContractImplementor session) throws HibernateException {
-		final Object[] stateArray = new Object[ getStateArrayContributors().size() ];
-		visitStateArrayContributors(
-				contributor -> {
-					stateArray[ contributor.getStateArrayPosition() ] = contributor.getPropertyAccess().getGetter().getForInsert(
-							object,
-							mergeMap,
-							session
-					);
-				}
-		);
-
-		return stateArray;
-	}
-
-	@Override
-	public void processInsertGeneratedProperties(
-			Object id, Object entity, Object[] state, SharedSessionContractImplementor session) {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public void processUpdateGeneratedProperties(
-			Object id, Object entity, Object[] state, SharedSessionContractImplementor session) {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public Class getMappedClass() {
-		return getJavaTypeDescriptor().getJavaType();
-	}
-
-	@Override
-	public boolean implementsLifecycle() {
-		return lifecycleImplementor;
 	}
 
 	@Override
@@ -1004,52 +818,6 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 	@Override
 	public FilterAliasGenerator getFilterAliasGenerator(String rootAlias) {
 		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public int[] resolveAttributeIndexes(String[] attributeNames) {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public boolean canUseReferenceCacheEntries() {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public void registerAffectingFetchProfile(String fetchProfileName) {
-		throw new NotYetImplementedFor6Exception( getClass() );
-	}
-
-	@Override
-	public boolean hasCollections() {
-		// todo (6.0) : do this init up front?
-		if ( hasCollections == null ) {
-			hasCollections = false;
-			controlledVisitAttributes(
-					attr -> {
-						if ( attr instanceof PluralPersistentAttribute ) {
-							hasCollections = true;
-							return false;
-						}
-						else if ( attr instanceof SingularPersistentAttributeEmbedded ) {
-							( (SingularPersistentAttributeEmbedded) attr ).getEmbeddedDescriptor().controlledVisitAttributes(
-									embeddedAttribute -> {
-										if ( embeddedAttribute instanceof PluralPersistentAttribute ) {
-											hasCollections = true;
-											return false;
-										}
-										return true;
-									}
-							);
-						}
-
-						return true;
-					}
-			);
-		}
-
-		return hasCollections;
 	}
 
 	private static class RowToUpdateChecker {
