@@ -156,8 +156,16 @@ public class Column implements Selectable, Serializable, Cloneable {
 	}
 
 	@Override
-	public boolean equals(Object object) {
-		return object instanceof Column && equals( (Column) object );
+	public boolean equals(Object o) {
+		if ( this == o ) {
+			return true;
+		}
+		if ( o == null || getClass() != o.getClass() ) {
+			return false;
+		}
+		Column column = (Column) o;
+		return tableName.equals( column.tableName ) &&
+				name.equals( column.name );
 	}
 
 	@SuppressWarnings("SimplifiableIfStatement")
