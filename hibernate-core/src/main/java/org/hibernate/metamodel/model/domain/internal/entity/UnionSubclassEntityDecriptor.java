@@ -20,7 +20,7 @@ import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
 /**
  * @author Andrea Boriero
  */
-public class UnionSubclassEntityDecriptor extends AbstractEntityTypeDescriptor {
+public class UnionSubclassEntityDecriptor<J> extends AbstractEntityTypeDescriptor<J> {
 
 	public UnionSubclassEntityDecriptor(
 			EntityMappingImplementor bootMapping,

@@ -71,8 +71,8 @@ public class TablePerClassTest extends SessionFactoryBasedFunctionalTest {
 
 		inTransaction(
 				session -> {
-					DebitAccount account = session.get(
-							DebitAccount.class,
+					MappedSuperclassTest.DebitAccount account = session.get(
+							MappedSuperclassTest.DebitAccount.class,
 							debitAccount.getId()
 					);
 					assertThat( account, notNullValue() );
@@ -81,8 +81,8 @@ public class TablePerClassTest extends SessionFactoryBasedFunctionalTest {
 
 		inTransaction(
 				session -> {
-					CreditAccount account = session.get(
-							CreditAccount.class,
+					MappedSuperclassTest.CreditAccount account = session.get(
+							MappedSuperclassTest.CreditAccount.class,
 							creditAccount.getId()
 					);
 					assertThat( account, notNullValue() );
