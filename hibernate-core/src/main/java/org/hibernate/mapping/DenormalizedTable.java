@@ -15,13 +15,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.hibernate.boot.model.relational.DenormalizedMappedTable;
+import org.hibernate.boot.model.relational.MappedColumn;
 import org.hibernate.boot.model.relational.MappedForeignKey;
 import org.hibernate.boot.model.relational.MappedIndex;
 import org.hibernate.boot.model.relational.MappedNamespace;
 import org.hibernate.boot.model.relational.MappedPrimaryKey;
 import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.boot.model.relational.MappedUniqueKey;
-import org.hibernate.internal.util.JavaTypeHelper;
 import org.hibernate.naming.Identifier;
 
 /**
@@ -30,6 +30,8 @@ import org.hibernate.naming.Identifier;
 @SuppressWarnings("unchecked")
 public class DenormalizedTable extends Table implements DenormalizedMappedTable<Column> {
 	private final MappedTable<Column> includedTable;
+	private MappedPrimaryKey normalizedPrimaryKey;
+	private Set<Column> normalizedColumns;
 
 	public DenormalizedTable(
 			MappedNamespace namespace,
@@ -109,10 +111,12 @@ public class DenormalizedTable extends Table implements DenormalizedMappedTable<
 
 	@Override
 	public Set<Column> getMappedColumns() {
-		Set<Column> mappedColumns = new HashSet<>();
-		mappedColumns.addAll( includedTable.getMappedColumns() );
-		mappedColumns.addAll( super.getMappedColumns() );
-		return Collections.unmodifiableSet( mappedColumns );
+		if ( normalizedColumns == null ) {
+			normalizedColumns = new HashSet<>();
+			normalizedColumns.addAll( normalizeColumns( includedTable.getMappedColumns() ) );
+			normalizedColumns.addAll( super.getMappedColumns() );
+		}
+		return Collections.unmodifiableSet( normalizedColumns );
 	}
 
 	@Override
@@ -122,7 +126,14 @@ public class DenormalizedTable extends Table implements DenormalizedMappedTable<
 
 	@Override
 	public MappedPrimaryKey getPrimaryKey() {
-		return includedTable.getPrimaryKey();
+		if ( normalizedPrimaryKey == null ) {
+			MappedPrimaryKey primaryKey = includedTable.getPrimaryKey();
+			normalizedPrimaryKey = new PrimaryKey( this );
+			normalizedPrimaryKey.addColumns( normalizeColumns( primaryKey.getColumns() ) );
+			normalizedPrimaryKey.setName( primaryKey.getName() );
+			normalizedPrimaryKey.setMappedTable( this );
+		}
+		return normalizedPrimaryKey;
 	}
 
 	@Override
@@ -132,7 +143,9 @@ public class DenormalizedTable extends Table implements DenormalizedMappedTable<
 
 	@Override
 	public Collection<MappedUniqueKey> getUniqueKeys() {
-		includedTable.getUniqueKeys().forEach( uniqueKey -> createUniqueKey( JavaTypeHelper.cast( uniqueKey.getColumns() ) ) );
+		includedTable.getUniqueKeys().forEach( uniqueKey -> {
+			createUniqueKey( normalizeColumns( uniqueKey.getColumns() ) );
+		} );
 		return super.getUniqueKeys();
 	}
 
@@ -143,21 +156,43 @@ public class DenormalizedTable extends Table implements DenormalizedMappedTable<
 
 	@Override
 	public Collection<MappedIndex> getIndexes() {
-		final List<MappedIndex> indexes = new ArrayList<>(  );
-		indexes.addAll(includedTable.getIndexes()  );
+		final List<MappedIndex> indexes = new ArrayList<>();
+		indexes.addAll( includedTable.getIndexes() );
 		indexes.addAll( super.getIndexes() );
 		return indexes;
 	}
 
-	/**
-	 * @deprecated since 6.0, use {@link #getIncludedMappedTable()}.
-	 */
-	@Deprecated
+	@Override
 	public Table getIncludedTable() {
 		return (Table) getIncludedMappedTable();
 	}
 
+	@Override
 	public MappedTable getIncludedMappedTable() {
 		return includedTable;
+	}
+
+	private List<Column> normalizeColumns(List<MappedColumn> columns) {
+		List<Column> normalizedColumns = new ArrayList<>();
+		columns.forEach( column -> {
+			Column clonedColumn = normalizeColumn( (Column) column );
+			normalizedColumns.add( clonedColumn );
+		} );
+		return normalizedColumns;
+	}
+
+	private List<Column> normalizeColumns(Set<Column> columns) {
+		List<Column> normalizedColumns = new ArrayList<>();
+		columns.forEach( column -> {
+			Column clonedColumn = normalizeColumn( column );
+			normalizedColumns.add( clonedColumn );
+		} );
+		return normalizedColumns;
+	}
+
+	private Column normalizeColumn(Column column) {
+		Column clonedColumn = column.clone();
+		clonedColumn.setTableName( getNameIdentifier() );
+		return clonedColumn;
 	}
 }

@@ -487,7 +487,7 @@ public class Table implements MappedTable<Column>, Serializable {
 		List<MappedColumn> columns = JavaTypeHelper.cast( keyColumns );
 		String keyName = Constraint.generateName( "UK_", this, columns );
 		MappedUniqueKey uk = getOrCreateUniqueKey( keyName );
-		uk.addColumns( keyColumns );
+		uk.addColumns( columns );
 		return uk;
 	}
 

@@ -52,15 +52,15 @@ public abstract class AbstractManagedType<J> implements InheritanceCapable<J> {
 
 	private ManagedTypeRepresentationStrategy representationStrategy;
 
-	private List<NonIdPersistentAttribute> declaredAttributes;
-	private List<NonIdPersistentAttribute> attributes;
+	protected List<NonIdPersistentAttribute> declaredAttributes;
+	protected List<NonIdPersistentAttribute> attributes;
 
-	private List<StateArrayContributor<?>> stateArrayContributors;
+	protected List<StateArrayContributor<?>> stateArrayContributors;
 
 	// a cache to more easily find the PersistentAttribute by name
-	private Map<String, NonIdPersistentAttribute> declaredAttributesByName;
+	protected Map<String, NonIdPersistentAttribute> declaredAttributesByName;
 
-	private transient InFlightAccess<J> inFlightAccess;
+	protected transient InFlightAccess<J> inFlightAccess;
 
 	@SuppressWarnings("WeakerAccess")
 	public AbstractManagedType(
@@ -100,7 +100,7 @@ public abstract class AbstractManagedType<J> implements InheritanceCapable<J> {
 		return true;
 	}
 
-	private void tryFinishInitialization(
+	protected boolean tryFinishInitialization(
 			ManagedTypeMappingImplementor bootDescriptor,
 			RuntimeModelCreationContext creationContext) {
 		final int declaredAttributeCount = bootDescriptor.getDeclaredPersistentAttributes().size();
@@ -129,6 +129,7 @@ public abstract class AbstractManagedType<J> implements InheritanceCapable<J> {
 		}
 
 		inFlightAccess.finishUp();
+		return true;
 	}
 
 	@SuppressWarnings("WeakerAccess")
@@ -609,7 +610,7 @@ public abstract class AbstractManagedType<J> implements InheritanceCapable<J> {
 		return stateArrayContributors;
 	}
 
-	private void addJoinDeclaredAttributes(
+	protected void addJoinDeclaredAttributes(
 			IdentifiableTypeMapping bootDescriptor,
 			RuntimeModelCreationContext creationContext) {
 		final List<PersistentAttributeMapping> declaredPersistentAttributes = new ArrayList<>();

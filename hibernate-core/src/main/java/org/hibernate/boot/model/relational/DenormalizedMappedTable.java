@@ -10,5 +10,12 @@ package org.hibernate.boot.model.relational;
  * @author Steve Ebersole
  */
 public interface DenormalizedMappedTable<T extends MappedColumn> extends MappedTable<T> {
+
+	/**
+	 * @deprecated since 6.0, use {@link #getIncludedMappedTable()}.
+	 */
+	@Deprecated
 	MappedTable getIncludedTable();
+
+	MappedTable getIncludedMappedTable();
 }

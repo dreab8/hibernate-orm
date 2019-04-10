@@ -31,8 +31,8 @@ import org.hibernate.dialect.Dialect;
 public abstract class Constraint implements MappedConstraint, Serializable {
 
 	private String name;
-	private final List<MappedColumn> columns = new ArrayList<>();
 	private MappedTable table;
+	private final List<MappedColumn> columns = new ArrayList<>();
 
 	private boolean creationEnabled = true;
 

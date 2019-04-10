@@ -24,7 +24,7 @@ public class PrimaryKey extends Constraint implements MappedPrimaryKey {
 	private static final Logger log = Logger.getLogger( PrimaryKey.class );
 
 	public PrimaryKey(MappedTable table){
-		setTable( table );
+		setMappedTable( table );
 	}
 
 	@Override
