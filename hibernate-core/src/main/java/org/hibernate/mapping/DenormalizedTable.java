@@ -181,6 +181,7 @@ public class DenormalizedTable extends Table implements DenormalizedMappedTable<
 		return normalizedColumns;
 	}
 
+	// todo (6.0) : find a better solution
 	private List<Column> normalizeColumns(Set<Column> columns) {
 		List<Column> normalizedColumns = new ArrayList<>();
 		columns.forEach( column -> {

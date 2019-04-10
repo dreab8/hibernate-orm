@@ -93,14 +93,14 @@ public abstract class AbstractManagedType<J> implements InheritanceCapable<J> {
 			ManagedTypeMappingImplementor bootDescriptor,
 			RuntimeModelCreationContext creationContext) {
 		if ( !fullyInitialized ) {
-			tryFinishInitialization( bootDescriptor, creationContext );
+			initializeAttributes( bootDescriptor, creationContext );
 			fullyInitialized = true;
 		}
 
 		return true;
 	}
 
-	protected boolean tryFinishInitialization(
+	protected void initializeAttributes(
 			ManagedTypeMappingImplementor bootDescriptor,
 			RuntimeModelCreationContext creationContext) {
 		final int declaredAttributeCount = bootDescriptor.getDeclaredPersistentAttributes().size();
@@ -129,7 +129,6 @@ public abstract class AbstractManagedType<J> implements InheritanceCapable<J> {
 		}
 
 		inFlightAccess.finishUp();
-		return true;
 	}
 
 	@SuppressWarnings("WeakerAccess")

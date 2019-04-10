@@ -15,6 +15,7 @@ import org.hibernate.LockMode;
 import org.hibernate.boot.model.domain.BasicValueMapping;
 import org.hibernate.boot.model.domain.PersistentAttributeMapping;
 import org.hibernate.boot.model.domain.ValueMapping;
+import org.hibernate.boot.model.relational.MappedColumn;
 import org.hibernate.engine.FetchStrategy;
 import org.hibernate.engine.FetchStyle;
 import org.hibernate.engine.FetchTiming;
@@ -22,6 +23,7 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.mapping.DependantValue;
 import org.hibernate.metamodel.model.convert.spi.BasicValueConverter;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
+import org.hibernate.metamodel.model.domain.internal.entity.UnionSubclassEntityDecriptor;
 import org.hibernate.metamodel.model.domain.spi.AbstractNonIdSingularPersistentAttribute;
 import org.hibernate.metamodel.model.domain.spi.BasicTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.BasicValueMapper;
@@ -31,6 +33,7 @@ import org.hibernate.metamodel.model.domain.spi.ManagedTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.NavigableVisitationStrategy;
 import org.hibernate.metamodel.model.domain.spi.SimpleTypeDescriptor;
 import org.hibernate.metamodel.model.relational.spi.Column;
+import org.hibernate.metamodel.model.relational.spi.PhysicalColumn;
 import org.hibernate.property.access.spi.PropertyAccess;
 import org.hibernate.sql.SqlExpressableType;
 import org.hibernate.sql.ast.Clause;
@@ -56,7 +59,7 @@ public class SingularPersistentAttributeBasic<O, J>
 		implements BasicValuedNavigable<J>, ConvertibleNavigable<J>, Fetchable<J> {
 	private static final Logger log = Logger.getLogger( SingularPersistentAttributeBasic.class );
 
-	private final Column boundColumn;
+	private Column boundColumn;
 
 	private final BasicValueMapper<J> valueMapper;
 
@@ -88,9 +91,19 @@ public class SingularPersistentAttributeBasic<O, J>
 		}
 		else {
 			bootMapping = (BasicValueMapping) valueMapping;
-			this.boundColumn = context.getDatabaseObjectResolver().resolveColumn( bootMapping.getMappedColumn() );
+			MappedColumn mappedColumn = bootMapping.getMappedColumn();
+			if ( mappedColumn instanceof org.hibernate.mapping.Column
+					&& runtimeContainer instanceof UnionSubclassEntityDecriptor ) {
+				// todo (6.0) : find a better solution
+				org.hibernate.mapping.Column clonedColumn = ( (org.hibernate.mapping.Column) mappedColumn ).clone();
+				clonedColumn.setTableName(
+						context.getDatabaseObjectResolver()
+								.resolveMappedTable( ( (UnionSubclassEntityDecriptor<O>) runtimeContainer ).getPrimaryTable() )
+								.getNameIdentifier() );
+				mappedColumn = clonedColumn;
+			}
+			this.boundColumn = context.getDatabaseObjectResolver().resolveColumn( mappedColumn );
 		}
-
 		this.valueMapper = bootMapping.getResolution().getValueMapper();
 
 		if ( valueMapper.getValueConverter() != null ) {

@@ -88,7 +88,7 @@ public class UnionSubclassEntityDecriptor<J> extends AbstractEntityTypeDescripto
 	}
 
 	@Override
-	protected boolean tryFinishInitialization(
+	protected void initializeAttributes(
 			ManagedTypeMappingImplementor bootDescriptor,
 			RuntimeModelCreationContext creationContext) {
 		List<PersistentAttributeMapping> persistentAttributes = bootDescriptor.getPersistentAttributes();
@@ -108,7 +108,6 @@ public class UnionSubclassEntityDecriptor<J> extends AbstractEntityTypeDescripto
 		}
 
 		inFlightAccess.finishUp();
-		return true;
 	}
 
 	protected void createAttributes(

@@ -22,6 +22,8 @@ import org.hibernate.metamodel.model.relational.spi.Table;
 public interface DatabaseObjectResolver {
 	Table resolveTable(MappedTable mappedTable);
 
+	MappedTable resolveMappedTable(Table table);
+
 	Column resolveColumn(MappedColumn mappedColumn);
 
 	ForeignKey.ColumnMappings resolveColumnMappings(List<Selectable> columns, List<Selectable> otherColumns);

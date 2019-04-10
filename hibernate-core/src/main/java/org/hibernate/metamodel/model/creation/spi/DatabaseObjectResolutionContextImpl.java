@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.boot.model.relational.MappedColumn;
 import org.hibernate.boot.model.relational.MappedForeignKey;
@@ -53,6 +54,16 @@ public class DatabaseObjectResolutionContextImpl
 	@Override
 	public Table resolveTable(MappedTable mappedTable) {
 		return runtimeTableByBootTable.get( mappedTable );
+	}
+
+	@Override
+	public MappedTable resolveMappedTable(Table table) {
+		for ( Map.Entry<MappedTable, Table> entries : runtimeTableByBootTable.entrySet() ) {
+			if ( entries.getValue().equals( table ) ) {
+				return entries.getKey();
+			}
+		}
+		return null;
 	}
 
 	@Override

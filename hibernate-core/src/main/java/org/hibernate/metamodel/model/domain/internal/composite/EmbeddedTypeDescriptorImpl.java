@@ -135,8 +135,7 @@ public class EmbeddedTypeDescriptorImpl<J>
 		return true;
 	}
 
-	@Override
-	protected boolean tryFinishInitialization(
+	private boolean tryFinishInitialization(
 			ManagedTypeMappingImplementor bootDescriptor,
 			RuntimeModelCreationContext creationContext) {
 		final boolean superDone = super.finishInitialization( bootDescriptor, creationContext );
