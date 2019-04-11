@@ -16,6 +16,6 @@ public class SelectByEntityIdentifierBuilder extends AbstractMetamodelSelectBuil
 	public SelectByEntityIdentifierBuilder(
 			SessionFactoryImplementor sessionFactory,
 			EntityTypeDescriptor entityDescriptor) {
-		super( sessionFactory, entityDescriptor, entityDescriptor.getHierarchy().getIdentifierDescriptor() );
+		super( sessionFactory, entityDescriptor, entityDescriptor.getIdentifierDescriptor() );
 	}
 }

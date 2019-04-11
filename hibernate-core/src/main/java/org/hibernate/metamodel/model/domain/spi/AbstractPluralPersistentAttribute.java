@@ -359,7 +359,7 @@ public abstract class AbstractPluralPersistentAttribute<O,C,E> extends AbstractP
 		// for now we hack it in such a way that will work for all simple identifiers
 
 		final IdentifiableTypeDescriptor ownerDescriptor = (IdentifiableTypeDescriptor) getContainer();
-		final EntityIdentifierSimple identifierDescriptor = (EntityIdentifierSimple) ownerDescriptor.getHierarchy().getIdentifierDescriptor();
+		final EntityIdentifierSimple identifierDescriptor = (EntityIdentifierSimple) ownerDescriptor.getIdentifierDescriptor();
 
 		final Object key = identifierDescriptor.asAttribute( identifierDescriptor.getJavaType() ).getPropertyAccess().getGetter().get( containerInstance );
 

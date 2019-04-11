@@ -76,7 +76,7 @@ public class StandardMultiIdEntityLoader<J>
 
 		final JdbcParameterBindings jdbcParameterBindings = new JdbcParameterBindingsImpl();
 		for ( Object id : ids ) {
-			entityDescriptor.getHierarchy().getIdentifierDescriptor().dehydrate(
+			entityDescriptor.getIdentifierDescriptor().dehydrate(
 					id,
 					(jdbcValue, type, boundColumn) -> jdbcParameterBindings.addBinding(
 							new StandardJdbcParameterImpl(

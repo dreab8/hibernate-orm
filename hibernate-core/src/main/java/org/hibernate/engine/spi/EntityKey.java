@@ -104,7 +104,7 @@ public final class EntityKey implements EntityKeyCommon, Serializable {
 	}
 
 	private boolean sameIdentifier(final EntityKey otherKey) {
-		return entityDescriptor.getHierarchy().getIdentifierDescriptor().areEqual(
+		return entityDescriptor.getIdentifierDescriptor().areEqual(
 				otherKey.identifier,
 				this.identifier
 		);

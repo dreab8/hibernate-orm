@@ -27,6 +27,7 @@ import org.hibernate.event.spi.LoadEventListener;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.loader.entity.CacheEntityLoaderHelper;
+import org.hibernate.metamodel.model.domain.spi.EntityIdentifier;
 import org.hibernate.metamodel.model.domain.spi.EntityIdentifierComposite;
 import org.hibernate.metamodel.model.domain.spi.EntityIdentifierCompositeNonAggregated;
 import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
@@ -63,7 +64,7 @@ public class DefaultLoadEventListener implements LoadEventListener {
 			throw new HibernateException( "Unable to locate entityDescriptor: " + event.getEntityClassName() );
 		}
 
-		final Class idClass = entityDescriptor.getHierarchy().getIdentifierDescriptor().getJavaType();
+		final Class idClass = entityDescriptor.getIdentifierDescriptor().getJavaType();
 		if ( idClass != null &&
 				!idClass.isInstance( event.getEntityId() ) &&
 				!DelayedPostInsertIdentifier.class.isInstance( event.getEntityId() ) ) {
@@ -123,8 +124,9 @@ public class DefaultLoadEventListener implements LoadEventListener {
 		// we may have the kooky jpa requirement of allowing find-by-id where
 		// "id" is the "simple pk value" of a dependent objects parent.  This
 		// is part of its generally goofy "derived identity" "feature"
-		if ( entityDescriptor.getHierarchy().getIdentifierDescriptor() instanceof EntityIdentifierCompositeNonAggregated ) {
-			final EntityIdentifierCompositeNonAggregated dependantIdDescriptor = (EntityIdentifierCompositeNonAggregated) entityDescriptor.getHierarchy().getIdentifierDescriptor();
+		EntityIdentifier identifierDescriptor = entityDescriptor.getIdentifierDescriptor();
+		if ( identifierDescriptor instanceof EntityIdentifierCompositeNonAggregated ) {
+			final EntityIdentifierCompositeNonAggregated dependantIdDescriptor = (EntityIdentifierCompositeNonAggregated) identifierDescriptor;
 			final Set attributes = dependantIdDescriptor.getEmbeddedDescriptor().getAttributes();
 			if ( attributes.size() == 1 ) {
 				final PersistentAttributeDescriptor attribute = (PersistentAttributeDescriptor) attributes.iterator().next();
@@ -197,7 +199,7 @@ public class DefaultLoadEventListener implements LoadEventListener {
 				);
 			}
 
-			entityDescriptor.getHierarchy().getIdentifierDescriptor().injectIdentifier(
+			entityDescriptor.getIdentifierDescriptor().injectIdentifier(
 					event.getInstanceToLoad(),
 					event.getEntityId(),
 					event.getSession()

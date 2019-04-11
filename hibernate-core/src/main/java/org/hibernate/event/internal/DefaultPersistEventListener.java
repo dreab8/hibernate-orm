@@ -108,7 +108,7 @@ public class DefaultPersistEventListener extends AbstractSaveEventListener imple
 
 			// NOTE: entityEntry must be null to get here, so we cannot use any of its values
 			EntityTypeDescriptor descriptor = source.getFactory().getEntityPersister( entityName );
-			if ( ForeignGenerator.class.isInstance( descriptor.getHierarchy().getIdentifierDescriptor().getIdentifierValueGenerator() ) ) {
+			if ( ForeignGenerator.class.isInstance( descriptor.getIdentifierDescriptor().getIdentifierValueGenerator() ) ) {
 				if ( LOG.isDebugEnabled() && descriptor.getIdentifier( entity ) != null ) {
 					LOG.debug( "Resetting entity id attribute to null for foreign generator" );
 				}

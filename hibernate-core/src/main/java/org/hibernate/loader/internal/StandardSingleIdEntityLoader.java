@@ -115,9 +115,9 @@ public class StandardSingleIdEntityLoader<T> implements SingleIdEntityLoader<T> 
 		);
 
 		final JdbcParameterBindings jdbcParameterBindings = new JdbcParameterBindingsImpl();
-		entityDescriptor.getHierarchy().getIdentifierDescriptor().dehydrate(
-				entityDescriptor.getHierarchy().getIdentifierDescriptor().unresolve( id, session ),
-//				id,
+		final EntityIdentifier identifierDescriptor = entityDescriptor.getIdentifierDescriptor();
+		identifierDescriptor.dehydrate(
+				identifierDescriptor.unresolve( id, session ),
 				new ExpressableType.JdbcValueCollector() {
 					private int count = 0;
 
@@ -267,7 +267,7 @@ public class StandardSingleIdEntityLoader<T> implements SingleIdEntityLoader<T> 
 		);
 
 		final JdbcParameterBindings jdbcParameterBindings = new JdbcParameterBindingsImpl();
-		entityDescriptor.getHierarchy().getIdentifierDescriptor().dehydrate(
+		entityDescriptor.getIdentifierDescriptor().dehydrate(
 				id,
 				(jdbcValue, type, boundColumn) -> jdbcParameterBindings.addBinding(
 						idParameter,
@@ -426,8 +426,7 @@ public class StandardSingleIdEntityLoader<T> implements SingleIdEntityLoader<T> 
 
 		final List<DomainResult> domainResults = new ArrayList<>();
 
-		EntityIdentifier<Object, Object> identifierDescriptor = entityDescriptor.getHierarchy()
-				.getIdentifierDescriptor();
+		EntityIdentifier<Object, Object> identifierDescriptor = entityDescriptor.getIdentifierDescriptor();
 
 		final List<ColumnReference> columnReferences = new ArrayList();
 		final Position position = new Position();

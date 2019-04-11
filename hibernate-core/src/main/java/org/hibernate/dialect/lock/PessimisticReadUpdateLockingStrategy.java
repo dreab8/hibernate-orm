@@ -110,7 +110,7 @@ public class PessimisticReadUpdateLockingStrategy implements LockingStrategy {
 						session
 				);
 
-				final EntityIdentifier<Object, Object> identifierDescriptor = lockable.getHierarchy().getIdentifierDescriptor();
+				final EntityIdentifier<Object, Object> identifierDescriptor = lockable.getIdentifierDescriptor();
 				identifierDescriptor.dehydrate(
 						identifierDescriptor.unresolve( id, session ),
 						(jdbcValue, type, boundColumn) -> {

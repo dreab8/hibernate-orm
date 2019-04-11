@@ -37,7 +37,7 @@ public class SelectByNaturalIdBuilder extends AbstractMetamodelSelectBuilder {
 			LockOptions lockOptions) {
 		return generateSelectStatement(
 				numberOfKeysToLoad,
-				Collections.singletonList( getRootNavigableContainer().getHierarchy().getIdentifierDescriptor() ),
+				Collections.singletonList( getRootNavigableContainer().getIdentifierDescriptor() ),
 				loadQueryInfluencers,
 				lockOptions
 		);

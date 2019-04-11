@@ -667,7 +667,7 @@ public class ValidityAuditStrategy implements AuditStrategy {
 			Object id,
 			Number revisionNumber) {
 
-		final EntityIdentifier productionIdentifier = entityDescriptor.getHierarchy().getIdentifierDescriptor();
+		final EntityIdentifier productionIdentifier = entityDescriptor.getIdentifierDescriptor();
 
 		// WHERE (entity_id) = ?
 		Junction identifierJunction = new Junction( Junction.Nature.CONJUNCTION );

@@ -72,7 +72,7 @@ public class PessimisticReadSelectLockingStrategy extends AbstractSelectLockingS
 				try {
 					final AtomicInteger count = new AtomicInteger();
 
-					final EntityIdentifier<Object, Object> identifierDescriptor = getLockable().getHierarchy().getIdentifierDescriptor();
+					final EntityIdentifier<Object, Object> identifierDescriptor = getLockable().getIdentifierDescriptor();
 					identifierDescriptor.dehydrate(
 							identifierDescriptor.unresolve( id, session ),
 							(jdbcValue, type, boundColumn) -> {

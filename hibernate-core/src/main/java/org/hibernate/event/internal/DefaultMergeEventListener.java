@@ -199,7 +199,7 @@ public class DefaultMergeEventListener extends AbstractSaveEventListener impleme
 		final String entityName = event.getEntityName();
 		final EntityTypeDescriptor entityDescriptor = source.getEntityDescriptor( entityName, entity );
 
-		final Object id = EntityIdentifierSimple.class.isInstance( entityDescriptor.getHierarchy().getIdentifierDescriptor() ) ?
+		final Object id = EntityIdentifierSimple.class.isInstance( entityDescriptor.getIdentifierDescriptor() ) ?
 				entityDescriptor.getIdentifier( entity ) :
 				null;
 		if ( copyCache.containsKey( entity ) ) {
@@ -260,7 +260,7 @@ public class DefaultMergeEventListener extends AbstractSaveEventListener impleme
 		else {
 			// check that entity id = requestedId
 			Object entityId = entityDescriptor.getIdentifier( entity );
-			if ( !entityDescriptor.getHierarchy().getIdentifierDescriptor().getJavaTypeDescriptor().areEqual( id, entityId ) ) {
+			if ( !entityDescriptor.getIdentifierDescriptor().getJavaTypeDescriptor().areEqual( id, entityId ) ) {
 				throw new HibernateException( "merge requested with id not matching id of passed entity" );
 			}
 		}

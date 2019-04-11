@@ -63,7 +63,7 @@ public class DefaultReplicateEventListener extends AbstractSaveEventListener imp
 		}
 
 		final EntityTypeDescriptor entityDescriptor = source.getEntityDescriptor( event.getEntityName(), entity );
-		final EntityIdentifier idDescriptor = entityDescriptor.getHierarchy().getIdentifierDescriptor();
+		final EntityIdentifier idDescriptor = entityDescriptor.getIdentifierDescriptor();
 		final VersionDescriptor versionDescriptor = entityDescriptor.getHierarchy().getVersionDescriptor();
 
 		// todo (6.0) : move methods like `#getIdentifier`, `#getCurrentVersion`, etc from `EntityDescriptor` to `EntityIdentifier`, `VersionDescriptor`, etc

@@ -14,6 +14,7 @@ import org.hibernate.boot.model.domain.spi.EntityMappingImplementor;
 import org.hibernate.boot.model.domain.spi.ManagedTypeMappingImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.FilterAliasGenerator;
+import org.hibernate.loader.internal.StandardSingleIdEntityLoader;
 import org.hibernate.mapping.JoinedSubclass;
 import org.hibernate.mapping.RootClass;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
@@ -64,6 +65,10 @@ public class JoinedEntityTypeDescriptor<J> extends AbstractEntityTypeDescriptor<
 		}
 
 		return true;
+	}
+
+	@Override
+	public void postInitialization(RuntimeModelCreationContext creationContext) {
 	}
 
 

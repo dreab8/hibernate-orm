@@ -134,7 +134,7 @@ public class StatelessSessionImpl extends AbstractSharedSessionContract implemen
 	public void update(String entityName, Object entity) {
 		checkOpen();
 		EntityTypeDescriptor entityDescriptor = getEntityDescriptor( entityName, entity );
-		Object id = entityDescriptor.getHierarchy().getIdentifierDescriptor().extractIdentifier( entity );
+		Object id = entityDescriptor.getIdentifierDescriptor().extractIdentifier( entity );
 		Object[] state = entityDescriptor.getPropertyValues( entity );
 		Object oldVersion;
 		final VersionDescriptor<Object, Object> versionDescriptor = entityDescriptor.getHierarchy().getVersionDescriptor();

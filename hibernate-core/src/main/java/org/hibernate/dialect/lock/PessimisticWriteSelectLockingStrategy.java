@@ -71,7 +71,7 @@ public class PessimisticWriteSelectLockingStrategy extends AbstractSelectLocking
 				try {
 					final AtomicInteger count = new AtomicInteger();
 
-					final EntityIdentifier identifierDescriptor = getLockable().getHierarchy().getIdentifierDescriptor();
+					final EntityIdentifier identifierDescriptor = getLockable().getIdentifierDescriptor();
 					identifierDescriptor.dehydrate(
 //							identifierDescriptor.unresolve( id, session ),
 							id,

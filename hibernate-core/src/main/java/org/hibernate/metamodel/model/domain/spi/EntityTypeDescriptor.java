@@ -122,28 +122,6 @@ public interface EntityTypeDescriptor<T>
 	boolean canWriteToCache();
 
 	/**
-	 * Access to information about the entity identifier, specifically relative to this
-	 * entity (in terms of Java parameterized type signature in regards to all "id attributes").
-	 * Generally this delegates to {@link EntityHierarchy#getIdentifierDescriptor()} via
-	 * {@link #getHierarchy()}.  We'd want to override the value coming from
-	 * {@link EntityHierarchy#getIdentifierDescriptor()} in cases where we have a
-	 * MappedSuperclass to the root entity and that MappedSuperclass defines the identifier
-	 * (or any attributes really) using a parameterized type signature where the attribute
-	 * type has not been concretely bound and is instead bound on the root entity.
-	 *
-	 * @todo (6.0) : we should consider doing the same for normal attributes (and version?) as well
-	 * in terms of cases where generic type parameters for an entity hierarchy have not
-	 * been bound as of the root entity
-	 * @todo (6.0) : how should we handle the attribute as defined on the MappedSuperclass and the attribute defined on the subclass (with the conretely bound parameter type)?
-	 * I mean specifically.. do we mark the MappedSuperclass attributes (somehow) as having an "unbound" attribute type and
-	 * mark the subclass attribute as being a "bridged" attribute?
-	 * @since 6.0
-	 */
-	default EntityIdentifier getIdentifierDescriptor() {
-		return getHierarchy().getIdentifierDescriptor();
-	}
-
-	/**
 	 * Get the EntityEntryFactory indicated for the entity mapped by this descriptor.
 	 */
 	EntityEntryFactory getEntityEntryFactory();
@@ -535,7 +513,7 @@ public interface EntityTypeDescriptor<T>
 	 */
 	@Remove
 	default Object getIdentifier(Object entity) {
-		return getHierarchy().getIdentifierDescriptor().extractIdentifier( entity );
+		return getIdentifierDescriptor().extractIdentifier( entity );
 	}
 
 	/**
@@ -547,7 +525,7 @@ public interface EntityTypeDescriptor<T>
 	 */
 	@Remove
 	default void setIdentifier(Object entity, Object id, SharedSessionContractImplementor session) {
-		getHierarchy().getIdentifierDescriptor().injectIdentifier( entity, id, session );
+		getIdentifierDescriptor().injectIdentifier( entity, id, session );
 	}
 
 	/**

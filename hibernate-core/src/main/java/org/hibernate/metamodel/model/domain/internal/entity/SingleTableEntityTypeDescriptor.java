@@ -106,7 +106,6 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 		return String.format( "SingleTableEntityDescriptor<%s>", getEntityName() );
 	}
 
-
 	@Override
 	public void delete(
 			Object id,
@@ -118,7 +117,7 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 		// todo (6.0) - initial basic pass at entity deletes
 		// todo (6.0) - take into account version
 
-		final Object unresolvedId = getHierarchy().getIdentifierDescriptor().unresolve( id, session );
+		final Object unresolvedId = getIdentifierDescriptor().unresolve( id, session );
 		final ExecutionContext executionContext = getExecutionContext( session );
 
 		delete( unresolvedId, executionContext, session );
@@ -140,7 +139,7 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 		final TableReference tableReference = new TableReference( getPrimaryTable(), null, false );
 
 		final Junction identifierJunction = new Junction( Junction.Nature.CONJUNCTION );
-		getHierarchy().getIdentifierDescriptor().dehydrate(
+		getIdentifierDescriptor().dehydrate(
 				unresolvedId,
 				(jdbcValue, type, boundColumn) ->
 						identifierJunction.add(
@@ -173,7 +172,7 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 					secondaryTable.isOptional()
 			);
 			final Junction identifierJunction = new Junction( Junction.Nature.CONJUNCTION );
-			getHierarchy().getIdentifierDescriptor().dehydrate(
+			getIdentifierDescriptor().dehydrate(
 					unresolvedId,
 					(jdbcValue, type, boundColumn) -> {
 						final Column referringColumn = secondaryTable.getJoinForeignKey()
@@ -237,7 +236,7 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 		if ( entry == null && !getJavaTypeDescriptor().getMutabilityPlan().isMutable() ) {
 			throw new IllegalStateException( "Updating immutable entity that is not in session yet!" );
 		}
-		final Object unresolvedId = getHierarchy().getIdentifierDescriptor().unresolve( id, session );
+		final Object unresolvedId = getIdentifierDescriptor().unresolve( id, session );
 		final ExecutionContext executionContext = getExecutionContext( session );
 
 		Table primaryTable = getPrimaryTable();
@@ -416,7 +415,7 @@ public class SingleTableEntityTypeDescriptor<T> extends AbstractEntityTypeDescri
 
 		if ( anyFieldToUpdate ) {
 			Junction identifierJunction = new Junction( Junction.Nature.CONJUNCTION );
-			getHierarchy().getIdentifierDescriptor().dehydrate(
+			getIdentifierDescriptor().dehydrate(
 					unresolvedId,
 					(jdbcValue, type, boundColumn) ->
 							identifierJunction.add(

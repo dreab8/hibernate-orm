@@ -53,7 +53,7 @@ public abstract class AbstractIdentifiableType<T> extends AbstractManagedType<T>
 
 	@Override
 	public void visitDeclaredNavigables(NavigableVisitationStrategy visitor) {
-		getHierarchy().getIdentifierDescriptor().visitNavigable( visitor );
+		getIdentifierDescriptor().visitNavigable( visitor );
 		super.visitDeclaredNavigables( visitor );
 	}
 
@@ -84,8 +84,9 @@ public abstract class AbstractIdentifiableType<T> extends AbstractManagedType<T>
 
 	@Override
 	public void visitKeyFetchables(Consumer<Fetchable> fetchableConsumer) {
-		if ( getHierarchy().getIdentifierDescriptor() instanceof NavigableContainer ) {
-			( (NavigableContainer<?>) getHierarchy().getIdentifierDescriptor() ).visitFetchables( fetchableConsumer );
+		final EntityIdentifier<Object, Object> identifierDescriptor = getHierarchy().getIdentifierDescriptor();
+		if ( identifierDescriptor instanceof NavigableContainer ) {
+			( (NavigableContainer<?>) identifierDescriptor ).visitFetchables( fetchableConsumer );
 		}
 	}
 

@@ -268,9 +268,13 @@ public class RuntimeModelCreationProcess implements ResolutionContext {
 			}
 		}
 
-		for ( Map.Entry<EntityMappingHierarchy, IdentifiableTypeDescriptor> entry : runtimeRootByBootHierarchy.entrySet() ) {
-			final EntityTypeDescriptor runtimeRootEntity = runtimeRootEntityByBootHierarchy.get( entry.getKey() );
-			runtimeRootEntity.postInitialization( creationContext );
+//		for ( Map.Entry<EntityMappingHierarchy, IdentifiableTypeDescriptor> entry : runtimeRootByBootHierarchy.entrySet() ) {
+//			final EntityTypeDescriptor runtimeRootEntity = runtimeRootEntityByBootHierarchy.get( entry.getKey() );
+//			runtimeRootEntity.postInitialization( creationContext );
+//		}
+
+		for ( Map.Entry<IdentifiableTypeMappingImplementor, IdentifiableTypeDescriptor> entry : runtimeByBoot.entrySet() ) {
+			entry.getValue().postInitialization( creationContext );
 		}
 
 		descriptorFactory.finishUp( creationContext );

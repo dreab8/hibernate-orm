@@ -37,7 +37,7 @@ public class MonotonicRevisionNumberTest extends EnversSessionFactoryBasedFuncti
 	public void testOracleSequenceOrder() {
 		final EntityTypeDescriptor entityDescriptor = getMetamodel().getEntityDescriptor( SequenceIdRevisionEntity.class );
 
-		IdentifierGenerator generator = entityDescriptor.getHierarchy().getIdentifierDescriptor().getIdentifierValueGenerator();
+		IdentifierGenerator generator = entityDescriptor.getIdentifierDescriptor().getIdentifierValueGenerator();
 		assertThat( generator, instanceOf( OrderedSequenceGenerator.class ) );
 
 		OrderedSequenceGenerator seqGenerator = (OrderedSequenceGenerator) generator;

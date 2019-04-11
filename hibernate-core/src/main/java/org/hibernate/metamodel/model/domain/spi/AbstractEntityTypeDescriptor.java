@@ -80,7 +80,6 @@ import org.hibernate.metamodel.model.domain.internal.SqlAliasStemHelper;
 import org.hibernate.metamodel.model.domain.internal.entity.EntityHierarchyImpl;
 import org.hibernate.metamodel.model.domain.internal.entity.EntityIdentifierCompositeAggregatedImpl;
 import org.hibernate.metamodel.model.domain.internal.entity.EntityIdentifierSimpleImpl;
-import org.hibernate.metamodel.model.domain.internal.entity.SingleTableEntityTypeDescriptor;
 import org.hibernate.metamodel.model.relational.spi.Column;
 import org.hibernate.metamodel.model.relational.spi.ForeignKey;
 import org.hibernate.metamodel.model.relational.spi.JoinedTableBinding;
@@ -623,13 +622,13 @@ public abstract class AbstractEntityTypeDescriptor<J>
 	@Override
 	@SuppressWarnings("unchecked")
 	public <Y> SingularAttribute<? super J, Y> getId(Class<Y> type) {
-		return getHierarchy().getIdentifierDescriptor().asAttribute( type );
+		return getIdentifierDescriptor().asAttribute( type );
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <Y> SingularAttribute<J, Y> getDeclaredId(Class<Y> type) {
-		return (SingularAttribute<J, Y>) getHierarchy().getIdentifierDescriptor().asAttribute( type );
+		return (SingularAttribute<J, Y>) getIdentifierDescriptor().asAttribute( type );
 	}
 
 	@Override
@@ -660,7 +659,7 @@ public abstract class AbstractEntityTypeDescriptor<J>
 
 	@Override
 	public SimpleTypeDescriptor<?> getIdType() {
-		return getHierarchy().getIdentifierDescriptor().getNavigableType();
+		return getIdentifierDescriptor().getNavigableType();
 	}
 
 	@Override
@@ -1023,7 +1022,8 @@ public abstract class AbstractEntityTypeDescriptor<J>
 
 	@Override
 	public Boolean isTransient(Object object, SharedSessionContractImplementor session) throws HibernateException {
-		final Object id = getHierarchy().getIdentifierDescriptor().extractIdentifier( object );
+		final EntityIdentifier identifierDescriptor = getIdentifierDescriptor();
+		final Object id = identifierDescriptor.extractIdentifier( object );
 
 		// we *always* assume an instance with a null
 		// identifier or no identifier property is unsaved.
@@ -1040,7 +1040,7 @@ public abstract class AbstractEntityTypeDescriptor<J>
 		}
 
 		// check the id unsaved-value
-		Boolean result = getHierarchy().getIdentifierDescriptor().getUnsavedValue().isUnsaved( id );
+		Boolean result = identifierDescriptor.getUnsavedValue().isUnsaved( id );
 		if ( result != null ) {
 			return result;
 		}
@@ -1123,22 +1123,24 @@ public abstract class AbstractEntityTypeDescriptor<J>
 			Object currentId,
 			Object currentVersion,
 			SharedSessionContractImplementor session) {
-		if ( getHierarchy().getIdentifierDescriptor().getIdentifierValueGenerator() instanceof Assigned ) {
+		final EntityIdentifier<Object, Object> identifierDescriptor = getIdentifierDescriptor();
+		if ( identifierDescriptor.getIdentifierValueGenerator() instanceof Assigned ) {
 		}
 		else {
 			// reset the id
 			setIdentifier(
 					entity,
-					getHierarchy().getIdentifierDescriptor().getUnsavedValue().getDefaultValue( currentId ),
+					identifierDescriptor.getUnsavedValue().getDefaultValue( currentId ),
 					session
 			);
 			//reset the version
 
-			if ( getHierarchy().getVersionDescriptor() != null ) {
-				getHierarchy().getVersionDescriptor().getUnsavedValue();
-				getHierarchy().getVersionDescriptor().getPropertyAccess().getSetter().set(
+			final VersionDescriptor<Object, Object> versionDescriptor = getHierarchy().getVersionDescriptor();
+			if ( versionDescriptor != null ) {
+				versionDescriptor.getUnsavedValue();
+				versionDescriptor.getPropertyAccess().getSetter().set(
 						entity,
-						getHierarchy().getVersionDescriptor().getUnsavedValue(),
+						versionDescriptor.getUnsavedValue(),
 						session.getFactory()
 				);
 			}
@@ -1180,7 +1182,7 @@ public abstract class AbstractEntityTypeDescriptor<J>
 			SharedSessionContractImplementor session) {
 		// generate id if needed
 		if ( id == null ) {
-			final IdentifierGenerator generator = getHierarchy().getIdentifierDescriptor().getIdentifierValueGenerator();
+			final IdentifierGenerator generator = getIdentifierDescriptor().getIdentifierValueGenerator();
 			if ( generator != null ) {
 				id = generator.generate( session, object );
 			}
@@ -1255,11 +1257,12 @@ public abstract class AbstractEntityTypeDescriptor<J>
 			return;
 		}
 
-		getHierarchy().getIdentifierDescriptor().dehydrate(
+		final EntityIdentifier<Object, Object> identifierDescriptor = getIdentifierDescriptor();
+		identifierDescriptor.dehydrate(
 				// NOTE : at least according to the argument name (`unresolvedId`), the
 				// 		incoming id value should already be unresolved - so do not
 				// 		unresolve it again
-				getHierarchy().getIdentifierDescriptor().unresolve( unresolvedId, session ),
+				identifierDescriptor.unresolve( unresolvedId, session ),
 				//unresolvedId,
 				(jdbcValue, type, boundColumn) -> {
 					final Column referringColumn = tableBindings.getJoinForeignKey()
@@ -1302,7 +1305,7 @@ public abstract class AbstractEntityTypeDescriptor<J>
 		// todo (6.0) : account for non-generated identifiers
 		// todo (6.0) : account for post-insert generated identifiers
 
-		final EntityIdentifier<Object, Object> identifierDescriptor = getHierarchy().getIdentifierDescriptor();
+		final EntityIdentifier<Object, Object> identifierDescriptor = getIdentifierDescriptor();
 		identifierDescriptor.dehydrate(
 				// NOTE : at least according to the argument name (`unresolvedId`), the
 				// 		incoming id value should already be unresolved - so do not
@@ -1498,7 +1501,7 @@ public abstract class AbstractEntityTypeDescriptor<J>
 			return x == y;
 		}
 
-		if ( getHierarchy().getIdentifierDescriptor() == null ) {
+		if ( getIdentifierDescriptor() == null ) {
 			return super.areEqual( x, y );
 		}
 
@@ -1536,7 +1539,7 @@ public abstract class AbstractEntityTypeDescriptor<J>
 
 	@Override
 	public int extractHashCode(J o) {
-		if ( getHierarchy().getIdentifierDescriptor() == null ) {
+		if ( getIdentifierDescriptor() == null ) {
 			return super.extractHashCode(o );
 		}
 
@@ -1616,12 +1619,12 @@ public abstract class AbstractEntityTypeDescriptor<J>
 
 	@Override
 	public Type getIdentifierType() {
-		return getHierarchy().getIdentifierDescriptor().getNavigableType();
+		return getIdentifierDescriptor().getNavigableType();
 	}
 
 	@Override
 	public String getIdentifierPropertyName() {
-		return getHierarchy().getIdentifierDescriptor().getNavigableName();
+		return getIdentifierDescriptor().getNavigableName();
 	}
 
 	@Override
