@@ -402,6 +402,8 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 		}
 
 		this.elementDescriptor = resolveElementDescriptor( this, bootCollectionDescriptor, separateCollectionTable, creationContext );
+		this.dmlTargetTable = resolveDmlTargetTable( separateCollectionTable, bootCollectionDescriptor, creationContext );
+		elementDescriptor.finishInitialization( bootCollectionDescriptor, creationContext );
 
 		if ( !isOneToMany() ) {
 			this.isRowDeleteEnabled = true;
@@ -417,7 +419,6 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 
 		this.collectionLoader = resolveCollectionLoader( bootCollectionDescriptor, creationContext );
 
-		this.dmlTargetTable = resolveDmlTargetTable( separateCollectionTable, bootCollectionDescriptor, creationContext );
 	}
 
 	@SuppressWarnings("unchecked")

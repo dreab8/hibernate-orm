@@ -38,7 +38,7 @@ public class BasicCollectionElementImpl<J>
 		implements BasicCollectionElement<J>, ConvertibleNavigable<J> {
 	private static final Logger log = Logger.getLogger( BasicCollectionElementImpl.class );
 
-	private final Column column;
+	private Column column;
 	private final BasicValueMapper<J> valueMapper;
 	private final boolean nullable;
 
@@ -48,10 +48,6 @@ public class BasicCollectionElementImpl<J>
 			Collection bootCollectionMapping,
 			RuntimeModelCreationContext creationContext) {
 		super( descriptor );
-
-		final BasicValueMapping simpleElementValueMapping = (BasicValueMapping) bootCollectionMapping.getElement();
-
-		this.column = creationContext.getDatabaseObjectResolver().resolveColumn( simpleElementValueMapping.getMappedColumn() );
 
 		this.valueMapper = ( (BasicValueMapping) bootCollectionMapping.getElement() ).getResolution().getValueMapper();
 
@@ -64,6 +60,18 @@ public class BasicCollectionElementImpl<J>
 		}
 
 		this.nullable = bootCollectionMapping.getElement().isNullable();
+	}
+
+	@Override
+	public boolean finishInitialization(
+			Object bootReference, RuntimeModelCreationContext creationContext) {
+		final BasicValueMapping simpleElementValueMapping = (BasicValueMapping) ( (Collection) bootReference ).getElement();
+
+		this.column = getContainer().getColumn(
+						creationContext.getDatabaseObjectResolver()
+								.resolvePhysicalColumnName( simpleElementValueMapping.getMappedColumn() )
+				);
+		return true;
 	}
 
 	@Override
