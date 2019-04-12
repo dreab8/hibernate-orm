@@ -235,7 +235,7 @@ public class Column implements Selectable, Serializable, Cloneable {
 
 	@Override
 	public String getText() {
-		return name.getText();
+		return name.render();
 	}
 
 	@Override

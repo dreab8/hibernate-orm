@@ -24,6 +24,7 @@ import org.hibernate.boot.model.domain.EntityMappingHierarchy;
 import org.hibernate.boot.model.domain.IdentifiableTypeMapping;
 import org.hibernate.boot.model.domain.MappedJoin;
 import org.hibernate.boot.model.domain.internal.AbstractIdentifiableTypeMapping;
+import org.hibernate.boot.model.domain.spi.EmbeddedValueMappingImplementor;
 import org.hibernate.boot.model.domain.spi.EntityMappingHierarchyImplementor;
 import org.hibernate.boot.model.domain.spi.EntityMappingImplementor;
 import org.hibernate.boot.model.relational.MappedColumn;
@@ -40,7 +41,15 @@ import org.hibernate.internal.util.collections.JoinedIterator;
 import org.hibernate.internal.util.collections.SingletonIterator;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.RepresentationMode;
+import org.hibernate.metamodel.model.domain.internal.entity.EntityHierarchyImpl;
+import org.hibernate.metamodel.model.domain.internal.entity.EntityIdentifierCompositeAggregatedImpl;
+import org.hibernate.metamodel.model.domain.internal.entity.EntityIdentifierCompositeNonAggregatedImpl;
+import org.hibernate.metamodel.model.domain.internal.entity.EntityIdentifierSimpleImpl;
+import org.hibernate.metamodel.model.domain.spi.EntityHierarchy;
+import org.hibernate.metamodel.model.domain.spi.EntityIdentifier;
+import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
+import org.hibernate.metamodel.model.domain.spi.SingularPersistentAttribute;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.sql.Alias;
 
@@ -1192,6 +1201,54 @@ public abstract class PersistentClass
 				? ExecuteUpdateResultCheckStyle.determineDefault( sql, callable )
 				: getCustomSQLUpdateCheckStyle();
 		return checkStyle;
+	}
+
+	@Override
+	public EntityIdentifier makeRuntimeIdentifierDescriptor(
+			EntityHierarchy runtimeModelHierarchy,
+			EntityTypeDescriptor runtimeModelEntity,
+			RuntimeModelCreationContext creationContext) {
+		if ( getEntityMappingHierarchy().getIdentifierEmbeddedValueMapping() != null ) {
+
+			// should mean we have a "non-aggregated composite-id" (what we
+			// 		historically called an "embedded composite id")
+			return new EntityIdentifierCompositeNonAggregatedImpl(
+					runtimeModelEntity,
+					( (EmbeddedValueMappingImplementor) getIdentifier() ).makeRuntimeDescriptor(
+							runtimeModelEntity,
+							getEntityMappingHierarchy().getIdentifierEmbeddedValueMapping().getName(),
+							SingularPersistentAttribute.Disposition.ID,
+							creationContext
+					),
+					getEntityMappingHierarchy().getIdentifierEmbeddedValueMapping()
+			);
+		}
+		else if ( getIdentifier() instanceof EmbeddedValueMappingImplementor ) {
+			// indicates we have an aggregated composite identifier (should)
+			assert !getIdentifierAttributeMapping().isOptional();
+
+			return new EntityIdentifierCompositeAggregatedImpl(
+					runtimeModelEntity,
+					this,
+					( (EmbeddedValueMappingImplementor) getIdentifier() ).makeRuntimeDescriptor(
+							runtimeModelHierarchy.getRootEntityType(),
+							getIdentifierAttributeMapping().getName(),
+							SingularPersistentAttribute.Disposition.ID,
+							creationContext
+					),
+					creationContext
+			);
+		}
+		else {
+			// should indicate a simple identifier
+			assert !getIdentifierAttributeMapping().isOptional();
+
+			return new EntityIdentifierSimpleImpl(
+					runtimeModelEntity,
+					this,
+					creationContext
+			);
+		}
 	}
 
 }

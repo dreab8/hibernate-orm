@@ -9,6 +9,7 @@ package org.hibernate.mapping;
 import java.util.Iterator;
 
 import org.hibernate.MappingException;
+import org.hibernate.boot.model.domain.PersistentAttributeMapping;
 import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.engine.spi.ExecuteUpdateResultCheckStyle;
@@ -87,4 +88,5 @@ public class UnionSubclass extends Subclass implements TableOwner {
 				: getCustomSQLUpdateCheckStyle();
 		return checkStyle;
 	}
+
 }

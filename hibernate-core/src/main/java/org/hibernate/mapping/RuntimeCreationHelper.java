@@ -42,8 +42,14 @@ public class RuntimeCreationHelper {
 
 			final MappedColumn bootTargetColumn = bootTargetColumnItr.next();
 			runtimeFkBuilder.addColumnMapping(
-					creationContext.getDatabaseObjectResolver().resolveColumn( bootReferencedColumn ),
-					creationContext.getDatabaseObjectResolver().resolveColumn( bootTargetColumn )
+					runtimeReferencingTable.getColumn(
+							creationContext.getDatabaseObjectResolver()
+									.resolvePhysicalColumnName( bootReferencedColumn )
+					),
+					runtimeTargetTable.getColumn(
+							creationContext.getDatabaseObjectResolver()
+									.resolvePhysicalColumnName( bootTargetColumn )
+					)
 			);
 		}
 

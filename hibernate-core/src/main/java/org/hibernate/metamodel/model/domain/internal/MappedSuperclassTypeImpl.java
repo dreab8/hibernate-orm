@@ -19,12 +19,12 @@ import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.metamodel.model.domain.spi.AbstractIdentifiableType;
 import org.hibernate.metamodel.model.domain.spi.DiscriminatorDescriptor;
 import org.hibernate.metamodel.model.domain.spi.EntityHierarchy;
-import org.hibernate.metamodel.model.domain.spi.EntityIdentifier;
 import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.MappedSuperclassTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.NavigableContainer;
 import org.hibernate.metamodel.model.domain.spi.NavigableVisitationStrategy;
 import org.hibernate.metamodel.model.domain.spi.SimpleTypeDescriptor;
+import org.hibernate.metamodel.model.relational.spi.Column;
 import org.hibernate.query.NavigablePath;
 import org.hibernate.query.sqm.produce.spi.SqmCreationState;
 import org.hibernate.query.sqm.tree.domain.SqmBasicValuedSimplePath;
@@ -159,6 +159,11 @@ public class MappedSuperclassTypeImpl<J>
 
 	@Override
 	public IdentifiableTypeDescriptor<? super J> getSupertype() {
-		throw new NotYetImplementedFor6Exception(  );
+		return getSuperclassType();
+	}
+
+	@Override
+	public Column getColumn(String name) {
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 }

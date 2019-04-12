@@ -60,6 +60,7 @@ import org.hibernate.metamodel.model.domain.spi.PersistentAttributeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.SimpleTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.StateArrayContributor;
 import org.hibernate.metamodel.model.domain.spi.TableReferenceJoinCollector;
+import org.hibernate.metamodel.model.relational.spi.Column;
 import org.hibernate.metamodel.model.relational.spi.JoinedTableBinding;
 import org.hibernate.metamodel.model.relational.spi.Table;
 import org.hibernate.query.NavigablePath;
@@ -427,6 +428,11 @@ public class SqmPolymorphicRootDescriptor<T> implements EntityTypeDescriptor<T> 
 	@Override
 	public Table getPrimaryTable() {
 		throw new UnsupportedOperationException(  );
+	}
+
+	@Override
+	public Column getColumn(String name) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

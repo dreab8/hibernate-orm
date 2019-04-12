@@ -19,7 +19,6 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.mapping.PersistentClass;
-import org.hibernate.mapping.RootClass;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.RepresentationMode;
 import org.hibernate.metamodel.model.domain.spi.AbstractSingularPersistentAttribute;
@@ -27,6 +26,7 @@ import org.hibernate.metamodel.model.domain.spi.BasicTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.BasicValueMapper;
 import org.hibernate.metamodel.model.domain.spi.BasicValuedNavigable;
 import org.hibernate.metamodel.model.domain.spi.EntityIdentifierSimple;
+import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.NavigableVisitationStrategy;
 import org.hibernate.metamodel.model.domain.spi.SimpleTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.SingularPersistentAttribute;
@@ -52,35 +52,37 @@ public class EntityIdentifierSimpleImpl<O, J>
 
 	@SuppressWarnings({ "unchecked", "WeakerAccess" })
 	public EntityIdentifierSimpleImpl(
-			EntityHierarchyImpl runtimeModelHierarchy,
-			RootClass bootModelRootEntity,
+			EntityTypeDescriptor entityTypeDescriptor,
+			PersistentClass bootModelEntity,
 			RuntimeModelCreationContext creationContext) {
 		super(
-				runtimeModelHierarchy.getRootEntityType(),
-				bootModelRootEntity.getIdentifierAttributeMapping(),
-				runtimeModelHierarchy.getRootEntityType().getRepresentationStrategy().generatePropertyAccess(
-						bootModelRootEntity,
-						bootModelRootEntity.getIdentifierAttributeMapping(),
-						runtimeModelHierarchy.getRootEntityType(),
+				entityTypeDescriptor,
+				bootModelEntity.getIdentifierAttributeMapping(),
+				entityTypeDescriptor.getRepresentationStrategy().generatePropertyAccess(
+						bootModelEntity,
+						bootModelEntity.getIdentifierAttributeMapping(),
+						entityTypeDescriptor,
 						creationContext.getSessionFactory().getSessionFactoryOptions().getBytecodeProvider()
 				),
 				Disposition.ID
 		);
 
-		this.name = bootModelRootEntity.getIdentifierAttributeMapping().getName();
+		this.name = bootModelEntity.getIdentifierAttributeMapping().getName();
 
-		final BasicValueMapping<J> basicValueMapping = (BasicValueMapping<J>) bootModelRootEntity.getIdentifierAttributeMapping()
-				.getValueMapping();
-		this.column = creationContext.getDatabaseObjectResolver().resolveColumn( basicValueMapping.getMappedColumn() );
+		final BasicValueMapping<J> basicValueMapping = (BasicValueMapping<J>) bootModelEntity
+				.getIdentifierAttributeMapping().getValueMapping();
+		this.column = entityTypeDescriptor.getColumn( creationContext.getDatabaseObjectResolver()
+															  .resolvePhysicalColumnName( basicValueMapping.getMappedColumn() ) );
+
 		this.valueMapper = basicValueMapping.getResolution().getValueMapper();
 		this.identifierGenerator = creationContext.getSessionFactory()
-				.getIdentifierGenerator( bootModelRootEntity.getEntityName() );
+				.getIdentifierGenerator( bootModelEntity.getEntityName() );
 
 		unsavedValue = UnsavedValueFactory.getUnsavedIdentifierValue(
-				bootModelRootEntity.getIdentifier().getNullValue(),
+				bootModelEntity.getIdentifier().getNullValue(),
 				getPropertyAccess().getGetter(),
 				basicValueMapping.getJavaTypeMapping().getJavaTypeDescriptor(),
-				getConstructor( bootModelRootEntity )
+				getConstructor( bootModelEntity )
 		);
 	}
 

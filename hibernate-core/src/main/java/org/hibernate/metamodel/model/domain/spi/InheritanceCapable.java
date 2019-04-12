@@ -9,6 +9,8 @@ package org.hibernate.metamodel.model.domain.spi;
 import java.util.Collection;
 import java.util.function.Consumer;
 
+import org.hibernate.metamodel.model.relational.spi.Table;
+
 /**
  * Specialization of ManagedTypeImplementor for types for which
  * we support *mapped* inheritance.
@@ -51,4 +53,5 @@ public interface InheritanceCapable<T> extends ManagedTypeDescriptor<T> {
 	 * of the type described by this descriptor
 	 */
 	boolean isSubclassTypeName(String name);
+
 }

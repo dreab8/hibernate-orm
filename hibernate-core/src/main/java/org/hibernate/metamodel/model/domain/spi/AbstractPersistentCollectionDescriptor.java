@@ -1306,6 +1306,11 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 	}
 
 	@Override
+	public Column getColumn(String name) {
+		return dmlTargetTable.getColumn( name );
+	}
+
+	@Override
 	public boolean isCascadeDeleteEnabled() {
 		return cascadeDeleteEnabled;
 	}

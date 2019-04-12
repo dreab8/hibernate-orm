@@ -24,6 +24,7 @@ import org.hibernate.internal.FilterAliasGenerator;
 import org.hibernate.internal.util.collections.CollectionHelper;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.spi.AbstractEntityTypeDescriptor;
+import org.hibernate.metamodel.model.domain.spi.EntityIdentifier;
 import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.NonIdPersistentAttribute;
 import org.hibernate.metamodel.model.domain.spi.PersistentAttributeDescriptor;
@@ -35,12 +36,29 @@ import org.hibernate.metamodel.model.relational.spi.Table;
  */
 public class UnionSubclassEntityDecriptor<J> extends AbstractEntityTypeDescriptor<J> {
 
+	private EntityIdentifier identifierDescriptor;
+
 	public UnionSubclassEntityDecriptor(
 			EntityMappingImplementor bootMapping,
 			IdentifiableTypeDescriptor superTypeDescriptor,
 			RuntimeModelCreationContext creationContext)
 			throws HibernateException {
 		super( bootMapping, superTypeDescriptor, creationContext );
+		identifierDescriptor = bootMapping.makeRuntimeIdentifierDescriptor(
+				getHierarchy(),
+				this,
+				creationContext
+		);
+	}
+
+	@Override
+	public void afterInitialize(Object entity, SharedSessionContractImplementor session) {
+		super.afterInitialize( entity, session );
+	}
+
+	@Override
+	public EntityIdentifier getIdentifierDescriptor() {
+		return identifierDescriptor;
 	}
 
 	@Override

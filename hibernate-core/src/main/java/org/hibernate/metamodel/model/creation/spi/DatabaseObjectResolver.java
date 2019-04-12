@@ -29,4 +29,6 @@ public interface DatabaseObjectResolver {
 	ForeignKey.ColumnMappings resolveColumnMappings(List<Selectable> columns, List<Selectable> otherColumns);
 
 	ForeignKey resolveForeignKey(MappedForeignKey bootForeignKey);
+
+	String resolvePhysicalColumnName(MappedColumn mappedColumn);
 }

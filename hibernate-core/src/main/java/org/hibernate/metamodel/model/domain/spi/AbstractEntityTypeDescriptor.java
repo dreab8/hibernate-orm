@@ -180,11 +180,12 @@ public abstract class AbstractEntityTypeDescriptor<J>
 
 		this.navigableRole = new NavigableRole( bootMapping.getEntityName() );
 
+		this.rootTable = resolveRootTable( bootMapping, creationContext );
+		this.secondaryTableBindings = resolveSecondaryTableBindings( bootMapping, creationContext );
+
 		this.hierarchy = resolveEntityHierarchy( bootMapping, superTypeDescriptor, creationContext );
 
-		this.rootTable = resolveRootTable( bootMapping, creationContext );
 		rootUpdateResultCheckStyle = bootMapping.getUpdateResultCheckStyle();
-		this.secondaryTableBindings = resolveSecondaryTableBindings( bootMapping, creationContext );
 
 		final RepresentationMode representation = getRepresentationStrategy().getMode();
 		if ( representation == RepresentationMode.POJO ) {
@@ -722,6 +723,20 @@ public abstract class AbstractEntityTypeDescriptor<J>
 		}
 
 		return new SubGraphImpl( this, true, getTypeConfiguration().getSessionFactory() );
+	}
+
+	@Override
+	public Column getColumn(String name) {
+		Column column = rootTable.getColumn( name );
+		if ( column == null ) {
+			for ( JoinedTableBinding table : secondaryTableBindings ) {
+				column = table.getReferringTable().getColumn( name );
+				if ( column != null ) {
+					return column;
+				}
+			}
+		}
+		return column;
 	}
 
 	@Override

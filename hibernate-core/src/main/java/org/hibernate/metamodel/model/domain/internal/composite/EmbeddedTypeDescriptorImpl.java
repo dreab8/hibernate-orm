@@ -259,6 +259,11 @@ public class EmbeddedTypeDescriptorImpl<J>
 	}
 
 	@Override
+	public Column getColumn(String name) {
+		return container.getColumn(name);
+	}
+
+	@Override
 	public SqmNavigableReference createSqmExpression(SqmPath lhs, SqmCreationState creationState) {
 		final NavigablePath navigablePath = lhs.getNavigablePath().append( getNavigableName() );
 		final SqmPathRegistry pathRegistry = creationState.getProcessingStateStack().getCurrent().getPathRegistry();

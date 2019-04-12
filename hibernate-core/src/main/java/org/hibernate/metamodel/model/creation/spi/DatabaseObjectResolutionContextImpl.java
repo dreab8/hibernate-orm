@@ -21,6 +21,7 @@ import org.hibernate.metamodel.model.relational.spi.Column;
 import org.hibernate.metamodel.model.relational.spi.ForeignKey;
 import org.hibernate.metamodel.model.relational.spi.RuntimeDatabaseModelProducer;
 import org.hibernate.metamodel.model.relational.spi.Table;
+import org.hibernate.naming.Identifier;
 
 /**
  * @author Steve Ebersole
@@ -30,6 +31,7 @@ public class DatabaseObjectResolutionContextImpl
 
 	private final Map<MappedTable, Table> runtimeTableByBootTable = new HashMap<>();
 	private final Map<MappedColumn, Column> columnMap = new HashMap<>();
+	private final Map<String, String> mappedNamePhysicalName = new HashMap<>();
 
 	private final Map<MappedForeignKey, ForeignKey> foreignKeyMap = new IdentityHashMap<>();
 	// Product.vendor
@@ -44,6 +46,7 @@ public class DatabaseObjectResolutionContextImpl
 	@Override
 	public void columnBuilt(MappedColumn mappedColumn, Column column) {
 		columnMap.put( mappedColumn, column );
+		mappedNamePhysicalName.put( mappedColumn.getText(), column.getExpression() );
 	}
 
 	@Override
@@ -77,6 +80,11 @@ public class DatabaseObjectResolutionContextImpl
 	}
 
 	@Override
+	public String resolvePhysicalColumnName(MappedColumn mappedColumn) {
+		return mappedNamePhysicalName.get( mappedColumn.getText() );
+	}
+
+	@Override
 	public ForeignKey.ColumnMappings resolveColumnMappings(
 			List<Selectable> columns,
 			List<Selectable> otherColumns) {
@@ -102,8 +110,8 @@ public class DatabaseObjectResolutionContextImpl
 			final MappedColumn bootReferencingColumn = columns.get( i );
 			final MappedColumn bootTargetColumn = otherColumns.get( i );
 
-			final Column referencingColumn = resolveColumn( bootReferencingColumn );
-			final Column targetColumn = resolveColumn( bootTargetColumn );
+			final Column referencingColumn = referencingTable.getColumn( resolvePhysicalColumnName( bootReferencingColumn ));
+			final Column targetColumn = targetTable.getColumn( resolvePhysicalColumnName( bootTargetColumn) );
 
 			if ( referencingTable == null ) {
 				assert targetTable == null;

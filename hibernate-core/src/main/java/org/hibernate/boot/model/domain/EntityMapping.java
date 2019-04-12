@@ -11,6 +11,10 @@ import javax.persistence.metamodel.Type.PersistenceType;
 import org.hibernate.boot.model.relational.MappedTable;
 import org.hibernate.engine.spi.ExecuteUpdateResultCheckStyle;
 import org.hibernate.mapping.Filterable;
+import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
+import org.hibernate.metamodel.model.domain.spi.EntityHierarchy;
+import org.hibernate.metamodel.model.domain.spi.EntityIdentifier;
+import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
 
 /**
  * @author Steve Ebersole
@@ -42,4 +46,9 @@ public interface EntityMapping extends IdentifiableTypeMapping, Filterable {
 	Class getMappedClass();
 
 	int getBatchSize();
+
+	EntityIdentifier makeRuntimeIdentifierDescriptor(
+			EntityHierarchy runtimeModelHierarchy,
+			EntityTypeDescriptor runtimeModelRootEntity,
+			RuntimeModelCreationContext creationContext);
 }

@@ -17,9 +17,12 @@ import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.metamodel.model.domain.DomainType;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.metamodel.model.domain.RepresentationMode;
+import org.hibernate.metamodel.model.domain.spi.EmbeddedContainer;
 import org.hibernate.metamodel.model.domain.spi.EmbeddedTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.EntityHierarchy;
 import org.hibernate.metamodel.model.domain.spi.EntityIdentifierCompositeNonAggregated;
+import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
+import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.Navigable;
 import org.hibernate.metamodel.model.domain.spi.NavigableVisitationStrategy;
 import org.hibernate.metamodel.model.domain.spi.SimpleTypeDescriptor;
@@ -50,16 +53,16 @@ public class EntityIdentifierCompositeNonAggregatedImpl<O,J>
 		implements EntityIdentifierCompositeNonAggregated<O,J> {
 	// todo : IdClass handling eventually
 
-	private final EntityHierarchy runtimeModelHierarchy;
+	private final EntityTypeDescriptor entityTypeDescriptor;
 	private final EmbeddedTypeDescriptor<J> embeddedDescriptor;
 	private final PropertyAccess propertyAccess;
 
 	@SuppressWarnings("WeakerAccess")
 	public EntityIdentifierCompositeNonAggregatedImpl(
-			EntityHierarchy runtimeModelHierarchy,
+			EntityTypeDescriptor entityTypeDescriptor,
 			EmbeddedTypeDescriptor<J> embeddedDescriptor,
 			@SuppressWarnings("unused") EmbeddedValueMapping bootMapping) {
-		this.runtimeModelHierarchy = runtimeModelHierarchy;
+		this.entityTypeDescriptor = entityTypeDescriptor;
 		this.embeddedDescriptor = embeddedDescriptor;
 
 		if ( embeddedDescriptor.getRepresentationStrategy() instanceof PropertyAccessStrategyMapImpl ) {
@@ -85,7 +88,7 @@ public class EntityIdentifierCompositeNonAggregatedImpl<O,J>
 	@Override
 	public EmbeddedTypeDescriptor<O> getContainer() {
 		//noinspection unchecked
-		return (EmbeddedTypeDescriptor<O>) runtimeModelHierarchy.getRootEntityType();
+		return embeddedDescriptor.getContainer();
 	}
 
 	@Override

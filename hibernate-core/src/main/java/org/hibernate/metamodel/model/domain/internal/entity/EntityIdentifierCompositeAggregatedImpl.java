@@ -21,13 +21,13 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.mapping.PersistentClass;
-import org.hibernate.mapping.RootClass;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.metamodel.model.domain.RepresentationMode;
 import org.hibernate.metamodel.model.domain.spi.AbstractSingularPersistentAttribute;
 import org.hibernate.metamodel.model.domain.spi.EmbeddedTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.EntityIdentifierCompositeAggregated;
+import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.ManagedTypeDescriptor;
 import org.hibernate.metamodel.model.domain.spi.Navigable;
 import org.hibernate.metamodel.model.domain.spi.NavigableVisitationStrategy;
@@ -64,16 +64,16 @@ public class EntityIdentifierCompositeAggregatedImpl<O,J>
 
 	@SuppressWarnings("unchecked")
 	public EntityIdentifierCompositeAggregatedImpl(
-			EntityHierarchyImpl runtimeModelHierarchy,
-			RootClass bootModelRootEntity,
+			EntityTypeDescriptor entityTypeDescriptor,
+			PersistentClass bootModelRootEntity,
 			EmbeddedTypeDescriptor embeddedDescriptor,
 			RuntimeModelCreationContext creationContext) {
 		super(
-				runtimeModelHierarchy.getRootEntityType(),
-				bootModelRootEntity.getIdentifierProperty(),
+				entityTypeDescriptor,
+				bootModelRootEntity.getIdentifierAttributeMapping(),
 				embeddedDescriptor.getRepresentationStrategy().generatePropertyAccess(
 						bootModelRootEntity,
-						bootModelRootEntity.getIdentifierProperty(),
+						bootModelRootEntity.getIdentifierAttributeMapping(),
 						(ManagedTypeDescriptor<?>) embeddedDescriptor.getContainer(),
 						creationContext.getSessionFactory().getSessionFactoryOptions().getBytecodeProvider()
 				),

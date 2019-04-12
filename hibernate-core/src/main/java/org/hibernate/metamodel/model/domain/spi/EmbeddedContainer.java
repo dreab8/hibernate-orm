@@ -6,6 +6,9 @@
  */
 package org.hibernate.metamodel.model.domain.spi;
 
+import org.hibernate.metamodel.model.relational.spi.Column;
+import org.hibernate.metamodel.model.relational.spi.Table;
+
 /**
  * Contract for things that can contain composites.
  *
@@ -23,4 +26,6 @@ public interface EmbeddedContainer<T> extends NavigableContainer<T> {
 	 * otherwise.
 	 */
 	boolean canCompositeContainCollections();
+
+	Column getColumn(String name);
 }
