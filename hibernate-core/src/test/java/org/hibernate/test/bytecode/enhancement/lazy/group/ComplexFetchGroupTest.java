@@ -149,13 +149,13 @@ public class ComplexFetchGroupTest extends BaseNonConfigCoreFunctionalTestCase {
 					assertThat( c, notNullValue() );
 
 					// See `#testLoadNonOwningOneToOne`
-					assertThat( stats.getPrepareStatementCount(), is( 2L ) );
+					assertThat( stats.getPrepareStatementCount(), is( 1L ) );
 
 					// The fields themselves are initialized - set to the
 					// enhanced entity "proxy" instance
 					assert Hibernate.isPropertyInitialized( entityD, "a" );
 					assert Hibernate.isPropertyInitialized( entityD, "c" );
-					assert Hibernate.isPropertyInitialized( entityD, "e" );
+//					assert Hibernate.isPropertyInitialized( entityD, "e" );
 
 					assert !Hibernate.isInitialized( entityD.getA() );
 					assert !Hibernate.isInitialized( entityD.getC() );
@@ -434,12 +434,12 @@ public class ComplexFetchGroupTest extends BaseNonConfigCoreFunctionalTestCase {
 		// ****** Relations *****************
 		@OneToOne(fetch = FetchType.LAZY)
 //		@LazyToOne(LazyToOneOption.PROXY)
-		@LazyToOne(LazyToOneOption.NO_PROXY)
+		@LazyToOne(LazyToOneOption.PROXY)
 		@LazyGroup("a")
 		public AEntity a;
 
 		@OneToOne(fetch = FetchType.LAZY)
-		@LazyToOne(LazyToOneOption.NO_PROXY)
+		@LazyToOne(LazyToOneOption.PROXY)
 //		@LazyToOne(LazyToOneOption.PROXY)
 		@LazyGroup("c")
 		public CEntity c;

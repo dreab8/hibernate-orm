@@ -77,7 +77,8 @@ public class LazyLoadingIntegrationTest extends BaseCoreFunctionalTestCase {
             loadedChild.name = "Barrabas";
             checkDirtyTracking( loadedChild, "name" );
 
-            Parent loadedParent = loadedChild.parent;
+            Parent loadedParent = loadedChild.getParent();
+            List<Child> children = loadedParent.getChildren();
             checkDirtyTracking( loadedChild, "name" );
             checkDirtyTracking( loadedParent );
 
@@ -106,6 +107,10 @@ public class LazyLoadingIntegrationTest extends BaseCoreFunctionalTestCase {
         void setChildren(List<Child> children) {
             this.children = children;
         }
+
+        public List<Child> getChildren() {
+            return children;
+        }
     }
 
     @Entity
@@ -127,6 +132,10 @@ public class LazyLoadingIntegrationTest extends BaseCoreFunctionalTestCase {
 
         Child(String name) {
             this.name = name;
+        }
+
+        public Parent getParent() {
+            return parent;
         }
     }
 }

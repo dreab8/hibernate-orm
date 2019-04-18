@@ -4706,7 +4706,7 @@ public abstract class AbstractEntityPersister
 
 	public boolean hasProxy() {
 		// skip proxy instantiation if entity is bytecode enhanced
-		return entityMetamodel.isLazy() && !entityMetamodel.getBytecodeEnhancementMetadata().isEnhancedForLazyLoading();
+		return entityMetamodel.isLazy();
 	}
 
 	public IdentifierGenerator getIdentifierGenerator() throws HibernateException {
