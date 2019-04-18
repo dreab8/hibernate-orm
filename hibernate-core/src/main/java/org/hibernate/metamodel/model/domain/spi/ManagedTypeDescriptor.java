@@ -252,4 +252,5 @@ public interface ManagedTypeDescriptor<T>
 
 	@Override
 	CollectionAttribute<T, ?> getDeclaredCollection(String name);
+
 }

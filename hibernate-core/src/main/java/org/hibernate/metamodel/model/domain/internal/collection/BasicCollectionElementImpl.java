@@ -64,13 +64,14 @@ public class BasicCollectionElementImpl<J>
 
 	@Override
 	public boolean finishInitialization(
-			Object bootReference, RuntimeModelCreationContext creationContext) {
+			Object bootReference,
+			RuntimeModelCreationContext creationContext) {
 		final BasicValueMapping simpleElementValueMapping = (BasicValueMapping) ( (Collection) bootReference ).getElement();
 
 		this.column = getContainer().getColumn(
-						creationContext.getDatabaseObjectResolver()
-								.resolvePhysicalColumnName( simpleElementValueMapping.getMappedColumn() )
-				);
+				creationContext.getDatabaseObjectResolver()
+						.resolvePhysicalColumnName( simpleElementValueMapping.getMappedColumn() )
+		);
 		return true;
 	}
 

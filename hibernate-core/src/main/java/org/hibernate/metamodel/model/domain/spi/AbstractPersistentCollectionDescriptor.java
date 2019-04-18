@@ -401,10 +401,22 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 			separateCollectionTable = resolveCollectionTable( bootCollectionDescriptor, creationContext );
 		}
 
-		this.elementDescriptor = resolveElementDescriptor( this, bootCollectionDescriptor, separateCollectionTable, creationContext );
-		this.dmlTargetTable = resolveDmlTargetTable( separateCollectionTable, bootCollectionDescriptor, creationContext );
-		elementDescriptor.finishInitialization( bootCollectionDescriptor, creationContext );
+		this.elementDescriptor = resolveElementDescriptor(
+				this,
+				bootCollectionDescriptor,
+				separateCollectionTable,
+				creationContext
+		);
+		this.dmlTargetTable = resolveDmlTargetTable(
+				separateCollectionTable,
+				bootCollectionDescriptor,
+				creationContext
+		);
 
+		elementDescriptor.finishInitialization( bootCollectionDescriptor, creationContext );
+		if ( indexDescriptor != null ) {
+			indexDescriptor.finishInitialization( bootCollectionDescriptor, creationContext );
+		}
 		if ( !isOneToMany() ) {
 			this.isRowDeleteEnabled = true;
 			this.isRowInsertEnabled = true;

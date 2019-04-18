@@ -260,7 +260,7 @@ public class EmbeddedTypeDescriptorImpl<J>
 
 	@Override
 	public Column getColumn(String name) {
-		return container.getColumn(name);
+		return container.getColumn( name );
 	}
 
 	@Override

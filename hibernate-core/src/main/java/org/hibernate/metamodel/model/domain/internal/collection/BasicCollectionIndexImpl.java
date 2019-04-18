@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.hibernate.boot.model.domain.BasicValueMapping;
 import org.hibernate.boot.model.relational.MappedColumn;
+import org.hibernate.mapping.Formula;
 import org.hibernate.mapping.IndexedCollection;
 import org.hibernate.metamodel.model.convert.spi.BasicValueConverter;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
@@ -38,7 +39,7 @@ public class BasicCollectionIndexImpl<J>
 		implements BasicCollectionIndex<J>, ConvertibleNavigable<J> {
 	private static final Logger log = Logger.getLogger( BasicCollectionIndexImpl.class );
 
-	private final Column column;
+	private Column column;
 	private final BasicValueMapper<J> valueMapper;
 	private final boolean nullable;
 
@@ -50,15 +51,6 @@ public class BasicCollectionIndexImpl<J>
 		super( descriptor, bootCollectionMapping );
 
 		final BasicValueMapping valueMapping = (BasicValueMapping) bootCollectionMapping.getIndex();
-		MappedColumn mappedColumn = valueMapping.getMappedColumn();
-		Column resolvedColumn = creationContext.getDatabaseObjectResolver().resolveColumn( mappedColumn );
-
-		if ( resolvedColumn != null ) {
-			this.column = resolvedColumn.clone( mappedColumn.isInsertable(), mappedColumn.isUpdatable() );
-		}
-		else {
-			this.column = resolvedColumn;
-		}
 
 		this.valueMapper = valueMapping.getResolution().getValueMapper();
 
@@ -71,6 +63,25 @@ public class BasicCollectionIndexImpl<J>
 		}
 
 		this.nullable = bootCollectionMapping.getIndex().isNullable();
+	}
+
+	@Override
+	public boolean finishInitialization(
+			Object bootReference,
+			RuntimeModelCreationContext creationContext) {
+		final BasicValueMapping valueMapping = (BasicValueMapping) ( (IndexedCollection) bootReference ).getIndex();
+
+		MappedColumn mappedColumn = valueMapping.getMappedColumn();
+		if( mappedColumn instanceof Formula ){
+			this.column = creationContext.getDatabaseObjectResolver().resolveColumn( mappedColumn );
+		}
+		else {
+			this.column = getContainer().getColumn(
+					creationContext.getDatabaseObjectResolver()
+							.resolvePhysicalColumnName( mappedColumn )).clone( mappedColumn.isInsertable(), mappedColumn.isUpdatable() );
+		}
+
+		return true;
 	}
 
 	@Override
