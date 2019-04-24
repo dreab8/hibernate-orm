@@ -829,6 +829,7 @@ public class Table implements MappedTable<Column>, Serializable {
 							typeConfiguration
 					);
 					callback.columnBuilt( formula, column );
+					runtimeTable.addColumn( column );
 				} );
 	}
 

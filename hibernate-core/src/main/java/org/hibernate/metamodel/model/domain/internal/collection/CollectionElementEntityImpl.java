@@ -398,9 +398,15 @@ public class CollectionElementEntityImpl<J>
 
 	private List<Column> getElementColumns(Collection bootDescriptor, DatabaseObjectResolver databaseObjectResolver) {
 		List<Column> elementColumns = new ArrayList<>();
-		bootDescriptor.getElement().getMappedColumns().forEach( column -> {
-			elementColumns.add( databaseObjectResolver.resolveColumn( column ) );
-		} );
+		bootDescriptor.getElement().getMappedColumns()
+				.forEach(
+						column ->
+								elementColumns.add(
+										getContainer().getColumn(
+												databaseObjectResolver.resolvePhysicalColumnName( column )
+										)
+								)
+		);
 		return elementColumns;
 	}
 

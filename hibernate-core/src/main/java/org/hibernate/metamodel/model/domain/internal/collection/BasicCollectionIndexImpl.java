@@ -69,17 +69,11 @@ public class BasicCollectionIndexImpl<J>
 	public boolean finishInitialization(
 			Object bootReference,
 			RuntimeModelCreationContext creationContext) {
-		final BasicValueMapping valueMapping = (BasicValueMapping) ( (IndexedCollection) bootReference ).getIndex();
 
-		MappedColumn mappedColumn = valueMapping.getMappedColumn();
-		if( mappedColumn instanceof Formula ){
-			this.column = creationContext.getDatabaseObjectResolver().resolveColumn( mappedColumn );
-		}
-		else {
-			this.column = getContainer().getColumn(
-					creationContext.getDatabaseObjectResolver()
-							.resolvePhysicalColumnName( mappedColumn )).clone( mappedColumn.isInsertable(), mappedColumn.isUpdatable() );
-		}
+		final MappedColumn mappedColumn = ( (BasicValueMapping) ( (IndexedCollection) bootReference ).getIndex() ).getMappedColumn();
+		this.column = getContainer()
+				.getColumn( creationContext.getDatabaseObjectResolver().resolvePhysicalColumnName( mappedColumn ) )
+				.clone( mappedColumn.isInsertable(), mappedColumn.isUpdatable() );
 
 		return true;
 	}

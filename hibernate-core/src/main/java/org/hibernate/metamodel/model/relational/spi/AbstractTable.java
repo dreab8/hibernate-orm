@@ -52,7 +52,9 @@ public abstract class AbstractTable implements InflightTable {
 
 	@Override
 	public void addColumn(Column column) {
-		columnMap.put( column.getExpression(), column );
+		if(!columnMap.containsKey( column.getExpression() )){
+			columnMap.put( column.getExpression(), column );
+		}
 	}
 
 	@Override
