@@ -198,14 +198,21 @@ public class RuntimeDatabaseModelProducer {
 						assertSameNumberOfFkColumns( bootReferringColumns, bootTargetColumns );
 
 						for ( int i = 0, end = bootReferringColumns.size(); i < end; i++ ) {
-							Column runtimeReferringColumn = resolveRuntimeColumn( bootReferringColumns.get( i ) );
+							Column runtimeReferringColumn = resolveRuntimeColumn(
+									runtimeReferringTable,
+									bootReferringColumns.get( i )
+							);
 							if ( runtimeReferringColumn == null ) {
 								runtimeReferringColumn = runtimeReferringTable.getPrimaryKey().getColumns().get( i );
 							}
 
 							assert runtimeReferringColumn != null;
 
-							Column runtimeTargetColumn = resolveRuntimeColumn( bootTargetColumns.get( i ) );
+							Column runtimeTargetColumn = resolveRuntimeColumn(
+									runtimeTargetTable,
+									bootTargetColumns.get( i )
+							);
+
 							if ( runtimeTargetColumn == null ) {
 								final PrimaryKey targetPk = runtimeTargetTable.getPrimaryKey();
 								assert  targetPk != null;
@@ -281,8 +288,9 @@ public class RuntimeDatabaseModelProducer {
 			}
 		}
 
-		private Column resolveRuntimeColumn(MappedColumn bootColumn) {
-			return dbObjectResolver.resolveColumn( bootColumn );
+		private Column resolveRuntimeColumn(Table table, MappedColumn bootColumn) {
+			String name = dbObjectResolver.resolvePhysicalColumnName( bootColumn );
+			return table.getColumn( name );
 		}
 
 		private void assertSameNumberOfFkColumns(List referringColumns, List targetColumns) {

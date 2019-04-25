@@ -7,6 +7,7 @@
 
 package org.hibernate.metamodel.model.domain.internal.entity;
 
+import org.hibernate.boot.model.domain.BasicValueMapping;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.NavigableRole;
@@ -18,7 +19,6 @@ import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
 import org.hibernate.metamodel.model.relational.spi.Column;
 import org.hibernate.sql.SqlExpressableType;
 import org.hibernate.type.descriptor.java.spi.BasicJavaDescriptor;
-import org.hibernate.type.spi.BasicType;
 
 /**
  * @author Steve Ebersole
@@ -27,25 +27,32 @@ public class DiscriminatorDescriptorImpl<O,J> implements DiscriminatorDescriptor
 	public static final String NAVIGABLE_NAME = "{discriminator}";
 
 	private final EntityHierarchy hierarchy;
-	private final BasicType basicType;
 	private final BasicValueMapper<J> valueMapper;
-	private final Column column;
+	private Column column;
 
 	private final NavigableRole navigableRole;
 
 	@SuppressWarnings("WeakerAccess")
 	public DiscriminatorDescriptorImpl(
 			EntityHierarchy hierarchy,
-			org.hibernate.boot.model.domain.BasicValueMapping<J> valueMapping,
+			BasicValueMapping<J> valueMapping,
 			RuntimeModelCreationContext creationContext) {
 		this.hierarchy = hierarchy;
 
-		this.basicType = valueMapping.getResolution().getBasicType();
 		this.valueMapper = valueMapping.getResolution().getValueMapper();
 
-		this.column = creationContext.getDatabaseObjectResolver().resolveColumn( valueMapping.getMappedColumn() );
-
 		this.navigableRole = hierarchy.getRootEntityType().getNavigableRole().append( NAVIGABLE_NAME );
+	}
+
+	@Override
+	public boolean finishInitialization(Object bootReference, RuntimeModelCreationContext creationContext) {
+		this.column = getContainer().getColumn(
+				creationContext.getDatabaseObjectResolver().resolvePhysicalColumnName(
+						( (BasicValueMapping<J>) bootReference ).getMappedColumn()
+				)
+		);
+
+		return true;
 	}
 
 	@Override

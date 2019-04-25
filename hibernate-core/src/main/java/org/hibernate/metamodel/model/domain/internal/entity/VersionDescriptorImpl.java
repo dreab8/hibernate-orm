@@ -35,10 +35,10 @@ public class VersionDescriptorImpl<O,J>
 		extends AbstractNonIdSingularPersistentAttribute<O,J>
 		implements VersionDescriptor<O,J>, BasicValuedExpressableType<J> {
 
-	private final Column column;
 	private final BasicValueMapper<J> valueMapper;
 	private final VersionSupport<J> versionSupport;
 	private final String unsavedValue;
+	private Column column;
 
 
 	@SuppressWarnings({"unchecked", "WeakerAccess"})
@@ -59,8 +59,6 @@ public class VersionDescriptorImpl<O,J>
 		);
 
 		final BasicValueMapping<J> basicValueMapping = (BasicValueMapping<J>) bootModelRootEntity.getVersionAttributeMapping().getValueMapping();
-
-		this.column = creationContext.getDatabaseObjectResolver().resolveColumn( basicValueMapping.getMappedColumn() );
 		this.valueMapper = basicValueMapping.getResolution().getValueMapper();
 		this.unsavedValue =( (KeyValue) basicValueMapping ).getNullValue();
 
@@ -74,6 +72,18 @@ public class VersionDescriptorImpl<O,J>
 		}
 
 		instantiationComplete( bootModelRootEntity.getVersionAttributeMapping(), creationContext );
+	}
+
+	@Override
+	public boolean finishInitialization(Object bootReference, RuntimeModelCreationContext creationContext) {
+		final BasicValueMapping<J> basicValueMapping = (BasicValueMapping<J>) ( (RootClass) bootReference ).getVersionAttributeMapping()
+				.getValueMapping();
+
+		this.column = getContainer().getColumn(
+				creationContext.getDatabaseObjectResolver()
+						.resolvePhysicalColumnName( basicValueMapping.getMappedColumn() )
+		);
+		return true;
 	}
 
 	@Override

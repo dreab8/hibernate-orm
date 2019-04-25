@@ -264,6 +264,14 @@ public class EntityHierarchyImpl implements EntityHierarchy {
 				creationContext.getSessionFactory().getSessionFactoryOptions(),
 				creationContext.getSessionFactory().getServiceRegistry()
 		);
+
+		if ( this.discriminatorDescriptor != null ) {
+			this.discriminatorDescriptor.finishInitialization( mappingType.getDiscriminator(), creationContext );
+		}
+
+		if ( this.versionDescriptor != null ) {
+			this.versionDescriptor.finishInitialization( mappingType, creationContext );
+		}
 	}
 
 	@Override

@@ -21,6 +21,7 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.mapping.PersistentClass;
+import org.hibernate.metamodel.model.creation.spi.DatabaseObjectResolver;
 import org.hibernate.metamodel.model.creation.spi.RuntimeModelCreationContext;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.metamodel.model.domain.RepresentationMode;
@@ -84,8 +85,12 @@ public class EntityIdentifierCompositeAggregatedImpl<O,J>
 		this.identifierGenerator = creationContext.getSessionFactory().getIdentifierGenerator( bootModelRootEntity.getEntityName() );
 
 		final ValueMapping<?> valueMapping = bootModelRootEntity.getIdentifierAttributeMapping().getValueMapping();
+		final DatabaseObjectResolver databaseObjectResolver = creationContext.getDatabaseObjectResolver();
+		ManagedTypeDescriptor<O> container = getContainer();
 		this.columns = valueMapping.getMappedColumns().stream()
-				.map( creationContext.getDatabaseObjectResolver()::resolveColumn )
+				.map( mappedColumn ->
+							  container.getColumn( databaseObjectResolver.resolvePhysicalColumnName( mappedColumn ) )
+				)
 				.collect( Collectors.toList() );
 
 		unsavedValue = UnsavedValueFactory.getUnsavedIdentifierValue(

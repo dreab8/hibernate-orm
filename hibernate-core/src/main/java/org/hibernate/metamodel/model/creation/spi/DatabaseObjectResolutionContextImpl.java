@@ -31,7 +31,7 @@ public class DatabaseObjectResolutionContextImpl
 
 	private final Map<MappedTable, Table> runtimeTableByBootTable = new HashMap<>();
 	private final Map<MappedColumn, Column> columnMap = new HashMap<>();
-	private final Map<String, String> mappedNamePhysicalName = new HashMap<>();
+	private final Map<Identifier, String> mappedNamePhysicalName = new HashMap<>();
 
 	private final Map<MappedForeignKey, ForeignKey> foreignKeyMap = new IdentityHashMap<>();
 	// Product.vendor
@@ -46,7 +46,25 @@ public class DatabaseObjectResolutionContextImpl
 	@Override
 	public void columnBuilt(MappedColumn mappedColumn, Column column) {
 		columnMap.put( mappedColumn, column );
-		mappedNamePhysicalName.put( mappedColumn.getText(), column.getExpression() );
+		if ( mappedColumn instanceof org.hibernate.mapping.Column ) {
+			mappedNamePhysicalName.put(
+					( (org.hibernate.mapping.Column) mappedColumn ).getName(),
+					column.getExpression()
+			);
+		}
+		else {
+			mappedNamePhysicalName.put( new Identifier( mappedColumn.getText(), false ), column.getExpression() );
+		}
+	}
+
+	@Override
+	public String resolvePhysicalColumnName(MappedColumn mappedColumn) {
+		if ( mappedColumn instanceof org.hibernate.mapping.Column ) {
+			return mappedNamePhysicalName.get( ( (org.hibernate.mapping.Column) mappedColumn ).getName() );
+		}
+		else {
+			return mappedNamePhysicalName.get( ( new Identifier( mappedColumn.getText(), false ) ) );
+		}
 	}
 
 	@Override
@@ -77,11 +95,6 @@ public class DatabaseObjectResolutionContextImpl
 	@Override
 	public ForeignKey resolveForeignKey(MappedForeignKey bootForeignKey) {
 		return foreignKeyMap.get( bootForeignKey );
-	}
-
-	@Override
-	public String resolvePhysicalColumnName(MappedColumn mappedColumn) {
-		return mappedNamePhysicalName.get( mappedColumn.getText() );
 	}
 
 	@Override

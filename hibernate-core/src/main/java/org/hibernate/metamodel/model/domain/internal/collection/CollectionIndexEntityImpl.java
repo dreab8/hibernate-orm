@@ -58,7 +58,7 @@ public class CollectionIndexEntityImpl<J>
 		implements CollectionIndexEntity<J> {
 	private final EntityTypeDescriptor<J> entityDescriptor;
 	private final NavigableRole navigableRole;
-	private final List<Column> columns;
+	private List<Column> columns;
 
 	public CollectionIndexEntityImpl(
 			PersistentCollectionDescriptor descriptor,
@@ -69,7 +69,13 @@ public class CollectionIndexEntityImpl<J>
 		this.entityDescriptor = resolveEntityDescriptor( bootCollectionMapping, creationContext );
 		this.navigableRole = descriptor.getNavigableRole().append( NAVIGABLE_NAME );
 
-		this.columns = resolveIndexColumns( bootCollectionMapping, creationContext );
+	}
+
+	@Override
+	public boolean finishInitialization(
+			Object bootReference, RuntimeModelCreationContext creationContext) {
+		this.columns = resolveIndexColumns( (IndexedCollection) bootReference, creationContext );
+		return true;
 	}
 
 	@Override
@@ -273,13 +279,18 @@ public class CollectionIndexEntityImpl<J>
 		}
 	}
 
-	private static List<Column> resolveIndexColumns(
+	private List<Column> resolveIndexColumns(
 			IndexedCollection bootCollectionMapping,
 			RuntimeModelCreationContext creationContext) {
 		List<Column> columns = new ArrayList<>();
+
 		for ( Object indexColumn : bootCollectionMapping.getIndex().getMappedColumns() ) {
 			final MappedColumn mappedColumn = (MappedColumn) indexColumn;
-			columns.add( creationContext.getDatabaseObjectResolver().resolveColumn( mappedColumn ) );
+			String name = creationContext.getDatabaseObjectResolver()
+					.resolvePhysicalColumnName( mappedColumn );
+			columns.add(
+					getContainer().getColumn( name )
+			);
 		}
 		return columns;
 	}

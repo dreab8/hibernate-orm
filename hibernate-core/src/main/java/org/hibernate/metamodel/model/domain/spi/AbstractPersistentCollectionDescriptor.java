@@ -360,12 +360,34 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 		final Identifier defaultSchemaName = defaultNamespace.getName().getSchema();
 		final String defaultSchemaNameString = defaultSchemaName == null ? null : defaultNamespace.getName().getSchema().render( dialect );
 
+		// todo (6.0) : this is technically not the `separateCollectionTable` as for one-to-many it returns the element entity's table.
+		//		need to decide how we want to model tables for collections.
+		//
+		//	^^ the better option seems to be exposing through `#createRootTableGroup` and `#createTableGroupJoin`
+		if ( !( bootCollectionDescriptor.getElement() instanceof OneToMany ) ) {
+			separateCollectionTable = resolveCollectionTable( bootCollectionDescriptor, creationContext );
+		}
+
+		this.elementDescriptor = resolveElementDescriptor(
+				this,
+				bootCollectionDescriptor,
+				separateCollectionTable,
+				creationContext
+		);
+		this.dmlTargetTable = resolveDmlTargetTable(
+				separateCollectionTable,
+				bootCollectionDescriptor,
+				creationContext
+		);
+
 		if ( bootCollectionDescriptor instanceof IdentifierCollection ) {
 			final IdentifierCollection identifierCollection = (IdentifierCollection) bootCollectionDescriptor;
 
 			assert identifierCollection.getIdentifier().getColumnSpan() == 1;
-			final Column idColumn = creationContext.getDatabaseObjectResolver().resolveColumn(
-					(MappedColumn) identifierCollection.getIdentifier().getMappedColumns().get( 0 )
+			final MappedColumn mappedColumn = (MappedColumn) identifierCollection.getIdentifier()
+					.getMappedColumns().get( 0 );
+			final Column idColumn = dmlTargetTable.getColumn(
+					creationContext.getDatabaseObjectResolver().resolvePhysicalColumnName( mappedColumn )
 			);
 
 			final IdentifierGenerator identifierGenerator = (identifierCollection).getIdentifier().createIdentifierGenerator(
@@ -392,26 +414,6 @@ public abstract class AbstractPersistentCollectionDescriptor<O, C, E>
 		else {
 			this.indexDescriptor = null;
 		}
-
-		// todo (6.0) : this is technically not the `separateCollectionTable` as for one-to-many it returns the element entity's table.
-		//		need to decide how we want to model tables for collections.
-		//
-		//	^^ the better option seems to be exposing through `#createRootTableGroup` and `#createTableGroupJoin`
-		if ( !( bootCollectionDescriptor.getElement() instanceof OneToMany ) ) {
-			separateCollectionTable = resolveCollectionTable( bootCollectionDescriptor, creationContext );
-		}
-
-		this.elementDescriptor = resolveElementDescriptor(
-				this,
-				bootCollectionDescriptor,
-				separateCollectionTable,
-				creationContext
-		);
-		this.dmlTargetTable = resolveDmlTargetTable(
-				separateCollectionTable,
-				bootCollectionDescriptor,
-				creationContext
-		);
 
 		elementDescriptor.finishInitialization( bootCollectionDescriptor, creationContext );
 		if ( indexDescriptor != null ) {
