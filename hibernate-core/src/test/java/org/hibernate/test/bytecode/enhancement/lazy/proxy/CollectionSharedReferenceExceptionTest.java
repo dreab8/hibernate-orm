@@ -16,6 +16,7 @@ package org.hibernate.test.bytecode.enhancement.lazy.proxy;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.persistence.Entity;
@@ -26,6 +27,7 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -33,6 +35,9 @@ import javax.persistence.Table;
 import org.hibernate.HibernateException;
 import org.hibernate.annotations.CollectionType;
 import org.hibernate.annotations.LazyGroup;
+import org.hibernate.annotations.LazyToOne;
+import org.hibernate.annotations.LazyToOneOption;
+import org.hibernate.annotations.TypeDef;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.SessionFactoryBuilder;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -40,6 +45,7 @@ import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.query.spi.QueryImplementor;
 import org.hibernate.usertype.UserCollectionType;
 
 import org.hibernate.testing.TestForIssue;
@@ -47,6 +53,7 @@ import org.hibernate.testing.bytecode.enhancement.BytecodeEnhancerRunner;
 import org.hibernate.testing.bytecode.enhancement.EnhancementOptions;
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
 import org.hibernate.test.annotations.persister.CollectionPersister;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -57,6 +64,115 @@ import org.junit.runner.RunWith;
 @EnhancementOptions(lazyLoading = true)
 public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFunctionalTestCase {
 
+	@Test
+	public void testIt() {
+		inTransaction(
+				session -> {
+					CodeItemEntity codeItemEntity1 = new CodeItemEntity();
+					codeItemEntity1.setOid( 1L );
+					CodeItemEntity codeItemEntity2 = new CodeItemEntity();
+					codeItemEntity2.setOid( 4L );
+
+					CodeTableViewEntity tableViewEntity1 = new CodeTableViewEntity();
+					tableViewEntity1.setOid( 2L );
+					CodeTableViewEntity tableViewEntity2 = new CodeTableViewEntity();
+					tableViewEntity2.setOid( 3L );
+
+					tableViewEntity1.addBidirectionalHierarchyItems( codeItemEntity1 );
+					tableViewEntity1.addBidirectionalHierarchyItems( codeItemEntity2 );
+
+					tableViewEntity2.addBidirectionalHierarchyItems( codeItemEntity1 );
+					tableViewEntity2.addBidirectionalHierarchyItems( codeItemEntity2 );
+
+					codeItemEntity2.addAllowedFor(tableViewEntity1);
+					codeItemEntity2.addBidirectionalDefaultItem( tableViewEntity1 );
+					codeItemEntity2.addBidirectionalDefaultItem( tableViewEntity2 );
+
+					codeItemEntity1.addAllowedFor( tableViewEntity1 );
+					codeItemEntity1.addBidirectionalDefaultItem( tableViewEntity1 );
+					codeItemEntity1.addBidirectionalDefaultItem( tableViewEntity2 );
+
+					session.save( codeItemEntity1 );
+					session.save( codeItemEntity2 );
+					session.save( tableViewEntity1 );
+					session.save( tableViewEntity2 );
+
+					session.flush();
+				}
+		);
+
+		inTransaction(
+				session -> {
+					CodeItemEntity codeItemEntity1 = session.load( CodeItemEntity.class, 1L );
+					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
+					CodeTableViewEntity next = allowedFor.iterator().next();
+					Set dependentView = next.getDefaultItem().getDependentView();
+					next.getHierarchyItems().iterator().next().getAllowedFor().iterator().next();
+					CodeItemEntity codeItemEntity2 = session.load( CodeItemEntity.class, 4L );
+
+//					codeItemEntity1.getAllowedFor().remove( next );
+
+					CodeItemEntity codeItemEntity3 = new CodeItemEntity();
+					codeItemEntity3.setOid( 5L );
+					codeItemEntity3.setDependentView( dependentView );
+					codeItemEntity3.addBidirectionalDefaultItem( next );
+					next.addBidirectionalHierarchyItems( codeItemEntity3 );
+
+//					codeItemEntity2.getAllowedFor();
+					session.save( codeItemEntity3 );
+					session.save( codeItemEntity2 );
+					session.save( next );
+					session.flush();
+				}
+		);
+
+		inTransaction(
+				session -> {
+					CodeItemEntity codeItemEntity1 = session.get( CodeItemEntity.class, 1L );
+					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
+					allowedFor.iterator().next().getDefaultItem().getDependentView();
+					allowedFor.iterator().next().getHierarchyItems().iterator().next().getAllowedFor();
+					CodeItemEntity codeItemEntity2 = session.load( CodeItemEntity.class, 4L );
+
+					session.save( codeItemEntity1 );
+					session.flush();
+				}
+		);
+
+		inTransaction(
+				session -> {
+					QueryImplementor<CodeItemEntity> query = session.createQuery( "from CodeItemEntity",
+																								CodeItemEntity.class );
+					List<CodeItemEntity> codeItemEntities = query.list();
+					CodeItemEntity codeItemEntity1 = codeItemEntities.get( 0 );
+					CodeItemEntity codeItemEntity2 = codeItemEntities.get( 1 );
+
+					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
+					allowedFor.iterator().next().getHierarchyItems().iterator().next().getAllowedFor();
+//					session.save( codeItemEntity1 );
+//					session.save( codeItemEntity2 );
+					session.flush();
+				}
+		);
+
+		inTransaction(
+				session -> {
+					QueryImplementor<CodeItemEntity> query = session.createQuery( "from CodeItemEntity",
+																				  CodeItemEntity.class );
+					List<CodeItemEntity> codeItemEntities = query.list();
+					CodeItemEntity codeItemEntity1 = codeItemEntities.get( 0 );
+					CodeItemEntity codeItemEntity2 = codeItemEntities.get( 1 );
+					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
+					allowedFor.iterator().next().getHierarchyItems().iterator().next().getAllowedFor();
+
+					Iterator<CodeTableViewEntity> iterator = allowedFor.iterator();
+					iterator.next().getDefaultItem();
+//					session.save( codeItemEntity1 );
+//					session.save( codeItemEntity2 );
+					session.flush();
+				}
+		);
+	}
 
 	@Override
 	protected void configureStandardServiceRegistryBuilder(StandardServiceRegistryBuilder ssrb) {
@@ -81,6 +197,7 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 	}
 
 	@MappedSuperclass
+	@TypeDef( name = "SetCollectionType",typeClass = SetCollectionType.class)
 	public static abstract class ModelEntity {
 		@Id
 		private long oid;
@@ -115,12 +232,12 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 				inverseJoinColumns = @JoinColumn(name = "DepView_CodeView_Id")
 
 		)
-		@CollectionType(type = "baseutil.technology.hibernate.IskvLinkedSetCollectionType")
+		@CollectionType(type = "SetCollectionType")
 		protected Set<CodeTableViewEntity> DependentView = null;
 
 		@OneToMany(targetEntity = CodeTableViewEntity.class, mappedBy = "DefaultItem", fetch = FetchType.LAZY)
 		@LazyGroup("framework_business_codetable_CodeTableViewEntity_DefaultItem")
-		@CollectionType(type = "org.hibernate.test.bytecode.enhancement.lazy.proxy")
+		@CollectionType(type = "SetCollectionType")
 		protected Set<CodeTableViewEntity> frameworkBusinessCodetableCodeTableViewEntityDefaultItem = null;
 
 		@ManyToMany(targetEntity = CodeTableViewEntity.class, fetch = FetchType.LAZY)
@@ -129,7 +246,7 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 				joinColumns = @JoinColumn(name = "AllowedItems_CodeItem_Id"),
 				inverseJoinColumns = @JoinColumn(name = "AllowedFor_CodeView_Id")
 		)
-		@CollectionType(type = "org.hibernate.test.bytecode.enhancement.lazy.proxy")
+		@CollectionType(type = "SetCollectionType")
 		protected Set<CodeTableViewEntity> AllowedFor = null;
 
 		public Set getDependentView() {
@@ -140,6 +257,13 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 			DependentView = dependentView;
 		}
 
+		void addDependentView(CodeTableViewEntity view) {
+			if ( DependentView == null ) {
+				this.DependentView = new LinkedHashSet<>();
+			}
+			DependentView.add( view );
+		}
+
 		public Set getFrameworkBusinessCodetableCodeTableViewEntityDefaultItem() {
 			return frameworkBusinessCodetableCodeTableViewEntityDefaultItem;
 		}
@@ -148,12 +272,27 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 			this.frameworkBusinessCodetableCodeTableViewEntityDefaultItem = frameworkBusinessCodetableCodeTableViewEntityDefaultItem;
 		}
 
-		public Set getAllowedFor() {
+		public void addBidirectionalDefaultItem(CodeTableViewEntity item){
+			if(frameworkBusinessCodetableCodeTableViewEntityDefaultItem == null){
+				frameworkBusinessCodetableCodeTableViewEntityDefaultItem = new LinkedHashSet<>(  );
+			}
+			frameworkBusinessCodetableCodeTableViewEntityDefaultItem.add( item );
+			item.setDefaultItem( this );
+		}
+
+		public Set<CodeTableViewEntity> getAllowedFor() {
 			return AllowedFor;
 		}
 
 		public void setAllowedFor(Set allowedFor) {
 			AllowedFor = allowedFor;
+		}
+
+		public void addAllowedFor(CodeTableViewEntity viewEntity){
+			if(AllowedFor == null){
+				AllowedFor = new LinkedHashSet<>(  );
+			}
+			AllowedFor.add( viewEntity );
 		}
 	}
 
@@ -164,8 +303,38 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 
 		@ManyToMany(targetEntity = CodeItemEntity.class, fetch = FetchType.LAZY, mappedBy = "DependentView")
 		@LazyGroup("HierarchyItems")
-		@CollectionType(type = "org.hibernate.test.bytecode.enhancement.lazy.proxy.SetCollectionType")
-		protected Set HierarchyItems = null;
+		@CollectionType(type = "SetCollectionType")
+		protected Set<CodeItemEntity> HierarchyItems = null;
+
+		@ManyToOne(fetch = FetchType.LAZY)
+		@LazyToOne( LazyToOneOption.NO_PROXY )
+		@LazyGroup("code")
+		protected CodeItemEntity DefaultItem;
+
+
+		public Set<CodeItemEntity> getHierarchyItems() {
+			return HierarchyItems;
+		}
+
+		public void setHierarchyItems(Set<CodeItemEntity> hierarchyItems) {
+			HierarchyItems = hierarchyItems;
+		}
+
+		public void addBidirectionalHierarchyItems(CodeItemEntity item){
+			if(HierarchyItems == null){
+				HierarchyItems = new LinkedHashSet<>(  );
+			}
+			HierarchyItems.add( item );
+			item.addDependentView( this );
+		}
+
+		public CodeItemEntity getDefaultItem() {
+			return DefaultItem;
+		}
+
+		public void setDefaultItem(CodeItemEntity defaultItem) {
+			DefaultItem = defaultItem;
+		}
 	}
 
 	public static class SetCollectionType implements UserCollectionType {
