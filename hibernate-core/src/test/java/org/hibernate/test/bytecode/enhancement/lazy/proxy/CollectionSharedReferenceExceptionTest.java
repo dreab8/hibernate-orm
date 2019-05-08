@@ -14,6 +14,7 @@
 package org.hibernate.test.bytecode.enhancement.lazy.proxy;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -30,6 +31,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.hibernate.HibernateException;
@@ -65,7 +67,7 @@ import org.junit.runner.RunWith;
 public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFunctionalTestCase {
 
 	@Test
-	public void testIt() {
+	public void testIt2() {
 		inTransaction(
 				session -> {
 					CodeItemEntity codeItemEntity1 = new CodeItemEntity();
@@ -78,19 +80,25 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 					CodeTableViewEntity tableViewEntity2 = new CodeTableViewEntity();
 					tableViewEntity2.setOid( 3L );
 
-					tableViewEntity1.addBidirectionalHierarchyItems( codeItemEntity1 );
-					tableViewEntity1.addBidirectionalHierarchyItems( codeItemEntity2 );
+					Set<CodeTableViewEntity> hierarchyItems = new LinkedHashSet<>();
+					hierarchyItems.add( tableViewEntity1 );
 
-					tableViewEntity2.addBidirectionalHierarchyItems( codeItemEntity1 );
-					tableViewEntity2.addBidirectionalHierarchyItems( codeItemEntity2 );
+					Set<CodeItemEntity> itemEntities = new LinkedHashSet<>();
+					itemEntities.add( codeItemEntity1 );
 
-					codeItemEntity2.addAllowedFor(tableViewEntity1);
-					codeItemEntity2.addBidirectionalDefaultItem( tableViewEntity1 );
-					codeItemEntity2.addBidirectionalDefaultItem( tableViewEntity2 );
+					tableViewEntity1.setHierarchyItems( itemEntities );
 
-					codeItemEntity1.addAllowedFor( tableViewEntity1 );
-					codeItemEntity1.addBidirectionalDefaultItem( tableViewEntity1 );
-					codeItemEntity1.addBidirectionalDefaultItem( tableViewEntity2 );
+					codeItemEntity1.setFrameworkBusinessCodetableCodeTableViewEntityDefaultItem( hierarchyItems );
+
+					codeItemEntity1.setAllowedFor( hierarchyItems );
+
+					codeItemEntity1.setDependentView( hierarchyItems );
+					tableViewEntity1.setDefaultItem( codeItemEntity1 );
+
+					codeItemEntity2.setAllowedFor( hierarchyItems );
+					codeItemEntity2.setDependentView( hierarchyItems );
+					tableViewEntity1.setDefaultItem( codeItemEntity2 );
+					hierarchyItems.add( tableViewEntity2 );
 
 					session.save( codeItemEntity1 );
 					session.save( codeItemEntity2 );
@@ -98,6 +106,7 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 					session.save( tableViewEntity2 );
 
 					session.flush();
+
 				}
 		);
 
@@ -105,73 +114,184 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 				session -> {
 					CodeItemEntity codeItemEntity1 = session.load( CodeItemEntity.class, 1L );
 					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
-					CodeTableViewEntity next = allowedFor.iterator().next();
-					Set dependentView = next.getDefaultItem().getDependentView();
-					next.getHierarchyItems().iterator().next().getAllowedFor().iterator().next();
-					CodeItemEntity codeItemEntity2 = session.load( CodeItemEntity.class, 4L );
-
-//					codeItemEntity1.getAllowedFor().remove( next );
-
-					CodeItemEntity codeItemEntity3 = new CodeItemEntity();
-					codeItemEntity3.setOid( 5L );
-					codeItemEntity3.setDependentView( dependentView );
-					codeItemEntity3.addBidirectionalDefaultItem( next );
-					next.addBidirectionalHierarchyItems( codeItemEntity3 );
-
-//					codeItemEntity2.getAllowedFor();
-					session.save( codeItemEntity3 );
-					session.save( codeItemEntity2 );
-					session.save( next );
+					Iterator<CodeItemEntity> iterator = allowedFor.iterator().next().getHierarchyItems().iterator();
+					iterator.next();
+					iterator.next();
 					session.flush();
+
+
 				}
 		);
 
 		inTransaction(
 				session -> {
-					CodeItemEntity codeItemEntity1 = session.get( CodeItemEntity.class, 1L );
-					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
-					allowedFor.iterator().next().getDefaultItem().getDependentView();
-					allowedFor.iterator().next().getHierarchyItems().iterator().next().getAllowedFor();
-					CodeItemEntity codeItemEntity2 = session.load( CodeItemEntity.class, 4L );
+					CodeTableViewEntity codeItemEntity1 = session.load( CodeTableViewEntity.class, 2L );
+					Set<CodeItemEntity> hierarchyItems = codeItemEntity1.getHierarchyItems();
+
 
 					session.save( codeItemEntity1 );
+
+				}
+		);
+	}
+
+	@Test
+	public void testIt() {
+		List<CodeItemEntity> codeItemEntities = new ArrayList<>(  );
+		inTransaction(
+				session -> {
+					CodeEntity codeEntity = new CodeEntity();
+					codeEntity.setOid( 1L );
+
+					CodeEntity codeEntity2 = new CodeEntity();
+					codeEntity2.setOid( 2L );
+
+					CodeItemEntity codeItemEntity1 = new CodeItemEntity();
+					codeItemEntity1.setOid( 1L );
+					CodeItemEntity codeItemEntity2 = new CodeItemEntity();
+					codeItemEntity2.setOid( 4L );
+
+					codeItemEntities.add( codeItemEntity1 );
+
+					CodeTableViewEntity tableViewEntity1 = new CodeTableViewEntity();
+					tableViewEntity1.setOid( 2L );
+					CodeTableViewEntity tableViewEntity2 = new CodeTableViewEntity();
+					tableViewEntity2.setOid( 3L );
+
+					tableViewEntity1.addBidirectionalHierarchyItems( codeItemEntity1 );
+					tableViewEntity1.addBidirectionalHierarchyItems( codeItemEntity2 );
+
+					tableViewEntity2.addBidirectionalHierarchyItems( codeItemEntity1 );
+					tableViewEntity2.addBidirectionalHierarchyItems( codeItemEntity2 );
+
+					codeItemEntity2.addAllowedFor( tableViewEntity1 );
+					codeItemEntity2.addBidirectionalDefaultItem( tableViewEntity1 );
+					codeItemEntity2.addBidirectionalDefaultItem( tableViewEntity2 );
+
+					codeItemEntity1.addAllowedFor( tableViewEntity1 );
+					codeItemEntity1.addBidirectionalDefaultItem( tableViewEntity1 );
+					codeItemEntity1.addBidirectionalDefaultItem( tableViewEntity2 );
+
+					codeEntity.setItemEntity( codeItemEntity1 );
+					codeEntity2.setItemEntity( codeItemEntity1 );
+
+					session.save( codeEntity );
+					session.save( codeEntity2 );
+
+					session.save( codeItemEntity1 );
+					session.save( codeItemEntity2 );
+					session.save( tableViewEntity1 );
+					session.save( tableViewEntity2 );
+
+
 					session.flush();
 				}
 		);
 
 		inTransaction(
 				session -> {
-					QueryImplementor<CodeItemEntity> query = session.createQuery( "from CodeItemEntity",
-																								CodeItemEntity.class );
-					List<CodeItemEntity> codeItemEntities = query.list();
-					CodeItemEntity codeItemEntity1 = codeItemEntities.get( 0 );
-					CodeItemEntity codeItemEntity2 = codeItemEntities.get( 1 );
+					List<CodeEntity> codeEntities = session.createQuery( "from CodeEntity", CodeEntity.class).list();
 
-					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
-					allowedFor.iterator().next().getHierarchyItems().iterator().next().getAllowedFor();
-//					session.save( codeItemEntity1 );
-//					session.save( codeItemEntity2 );
+					List<CodeItemEntity> codeItemEntities2 = session.createQuery( "from CodeItemEntity", CodeItemEntity.class).list();
+
+					codeItemEntities2.get( 0 ).getDependentView();
+
+					CodeEntity codeEntity = codeEntities.get( 0 );
+//					CodeItemEntity itemEntity = codeEntity.getItemEntity();
+//					itemEntity.setVersion( new Short( "6" ) );
+//					itemEntity.getDependentView().iterator();
+//					codeEntities.get( 1 ).getItemEntity().getDependentView();
+					session.save( codeEntity );
 					session.flush();
 				}
 		);
 
 		inTransaction(
 				session -> {
-					QueryImplementor<CodeItemEntity> query = session.createQuery( "from CodeItemEntity",
-																				  CodeItemEntity.class );
-					List<CodeItemEntity> codeItemEntities = query.list();
-					CodeItemEntity codeItemEntity1 = codeItemEntities.get( 0 );
-					CodeItemEntity codeItemEntity2 = codeItemEntities.get( 1 );
-					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
-					allowedFor.iterator().next().getHierarchyItems().iterator().next().getAllowedFor();
 
-					Iterator<CodeTableViewEntity> iterator = allowedFor.iterator();
-					iterator.next().getDefaultItem();
-//					session.save( codeItemEntity1 );
-//					session.save( codeItemEntity2 );
+					CodeItemEntity codeItemEntity1 = session.load( CodeItemEntity.class, 1L );
+					codeItemEntity1.setVersion( new Short( "2" ) );
+					codeItemEntity1.getDependentView().iterator();
 					session.flush();
 				}
 		);
+
+
+//		inTransaction(
+//				session -> {
+//					CodeItemEntity codeItemEntity1 = session.load( CodeItemEntity.class, 1L );
+//					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
+//					CodeTableViewEntity next = allowedFor.iterator().next();
+//					Set dependentView = next.getDefaultItem().getDependentView();
+//					next.getHierarchyItems().iterator().next().getAllowedFor().iterator().next();
+//					CodeItemEntity codeItemEntity2 = session.load( CodeItemEntity.class, 4L );
+//
+////					codeItemEntity1.getAllowedFor().remove( next );
+//
+//					CodeItemEntity codeItemEntity3 = new CodeItemEntity();
+//					codeItemEntity3.setOid( 5L );
+//					codeItemEntity3.setDependentView( dependentView );
+//					codeItemEntity3.addBidirectionalDefaultItem( next );
+//					next.addBidirectionalHierarchyItems( codeItemEntity3 );
+//
+////					codeItemEntity2.getAllowedFor();
+//					session.save( codeItemEntity3 );
+//					session.save( codeItemEntity2 );
+//					session.save( next );
+//					session.flush();
+//				}
+//		);
+//
+//		inTransaction(
+//				session -> {
+//					CodeItemEntity codeItemEntity1 = session.get( CodeItemEntity.class, 1L );
+//					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
+//					allowedFor.iterator().next().getDefaultItem().getDependentView();
+//					allowedFor.iterator().next().getHierarchyItems().iterator().next().getAllowedFor();
+//					CodeItemEntity codeItemEntity2 = session.load( CodeItemEntity.class, 4L );
+//
+//					session.save( codeItemEntity1 );
+//					session.flush();
+//				}
+//		);
+//
+//		inTransaction(
+//				session -> {
+//					QueryImplementor<CodeItemEntity> query = session.createQuery(
+//							"from CodeItemEntity",
+//							CodeItemEntity.class
+//					);
+//					List<CodeItemEntity> codeItemEntities = query.list();
+//					CodeItemEntity codeItemEntity1 = codeItemEntities.get( 0 );
+//					CodeItemEntity codeItemEntity2 = codeItemEntities.get( 1 );
+//
+//					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
+//					allowedFor.iterator().next().getHierarchyItems().iterator().next().getAllowedFor();
+////					session.save( codeItemEntity1 );
+////					session.save( codeItemEntity2 );
+//					session.flush();
+//				}
+//		);
+//
+//		inTransaction(
+//				session -> {
+//					QueryImplementor<CodeItemEntity> query = session.createQuery(
+//							"from CodeItemEntity",
+//							CodeItemEntity.class
+//					);
+//					List<CodeItemEntity> codeItemEntities = query.list();
+//					CodeItemEntity codeItemEntity1 = codeItemEntities.get( 0 );
+//					CodeItemEntity codeItemEntity2 = codeItemEntities.get( 1 );
+//					Set<CodeTableViewEntity> allowedFor = codeItemEntity1.getAllowedFor();
+//					allowedFor.iterator().next().getHierarchyItems().iterator().next().getAllowedFor();
+//
+//					Iterator<CodeTableViewEntity> iterator = allowedFor.iterator();
+//					iterator.next().getDefaultItem();
+////					session.save( codeItemEntity1 );
+////					session.save( codeItemEntity2 );
+//					session.flush();
+//				}
+//		);
 	}
 
 	@Override
@@ -194,10 +314,11 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 		super.applyMetadataSources( sources );
 		sources.addAnnotatedClass( CodeItemEntity.class );
 		sources.addAnnotatedClass( CodeTableViewEntity.class );
+		sources.addAnnotatedClass( CodeEntity.class );
 	}
 
 	@MappedSuperclass
-	@TypeDef( name = "SetCollectionType",typeClass = SetCollectionType.class)
+	@TypeDef(name = "SetCollectionType", typeClass = SetCollectionType.class)
 	public static abstract class ModelEntity {
 		@Id
 		private long oid;
@@ -219,6 +340,23 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 			this.version = version;
 		}
 	}
+
+	@Entity(name = "CodeEntity")
+	public static class CodeEntity extends ModelEntity implements Serializable {
+
+		@OneToOne(fetch = FetchType.LAZY)
+		@LazyToOne(LazyToOneOption.NO_PROXY)
+		protected CodeItemEntity itemEntity;
+
+		public CodeItemEntity getItemEntity() {
+			return itemEntity;
+		}
+
+		public void setItemEntity(CodeItemEntity itemEntity) {
+			this.itemEntity = itemEntity;
+		}
+	}
+
 
 	@Entity(name = "CodeItemEntity")
 	@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
@@ -272,9 +410,9 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 			this.frameworkBusinessCodetableCodeTableViewEntityDefaultItem = frameworkBusinessCodetableCodeTableViewEntityDefaultItem;
 		}
 
-		public void addBidirectionalDefaultItem(CodeTableViewEntity item){
-			if(frameworkBusinessCodetableCodeTableViewEntityDefaultItem == null){
-				frameworkBusinessCodetableCodeTableViewEntityDefaultItem = new LinkedHashSet<>(  );
+		public void addBidirectionalDefaultItem(CodeTableViewEntity item) {
+			if ( frameworkBusinessCodetableCodeTableViewEntityDefaultItem == null ) {
+				frameworkBusinessCodetableCodeTableViewEntityDefaultItem = new LinkedHashSet<>();
 			}
 			frameworkBusinessCodetableCodeTableViewEntityDefaultItem.add( item );
 			item.setDefaultItem( this );
@@ -288,9 +426,9 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 			AllowedFor = allowedFor;
 		}
 
-		public void addAllowedFor(CodeTableViewEntity viewEntity){
-			if(AllowedFor == null){
-				AllowedFor = new LinkedHashSet<>(  );
+		public void addAllowedFor(CodeTableViewEntity viewEntity) {
+			if ( AllowedFor == null ) {
+				AllowedFor = new LinkedHashSet<>();
 			}
 			AllowedFor.add( viewEntity );
 		}
@@ -307,7 +445,7 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 		protected Set<CodeItemEntity> HierarchyItems = null;
 
 		@ManyToOne(fetch = FetchType.LAZY)
-		@LazyToOne( LazyToOneOption.NO_PROXY )
+		@LazyToOne(LazyToOneOption.NO_PROXY)
 		@LazyGroup("code")
 		protected CodeItemEntity DefaultItem;
 
@@ -320,9 +458,9 @@ public class CollectionSharedReferenceExceptionTest extends BaseNonConfigCoreFun
 			HierarchyItems = hierarchyItems;
 		}
 
-		public void addBidirectionalHierarchyItems(CodeItemEntity item){
-			if(HierarchyItems == null){
-				HierarchyItems = new LinkedHashSet<>(  );
+		public void addBidirectionalHierarchyItems(CodeItemEntity item) {
+			if ( HierarchyItems == null ) {
+				HierarchyItems = new LinkedHashSet<>();
 			}
 			HierarchyItems.add( item );
 			item.addDependentView( this );
