@@ -75,6 +75,67 @@ public class LazyGroupWithInheritanceAllowProxyTest extends BaseNonConfigCoreFun
 		);
 	}
 
+	@Test
+	public void theRealTest() {
+		final Session session = em.unwrap(Session.class);
+		boolean failed = false;
+
+		final Statistics stats = session.getSessionFactory().getStatistics();
+		stats.clear();
+
+		final AtomicInteger expectedQueryCount = new AtomicInteger(0);
+		final List<Order> orders = session.createQuery("select o from Order o", Order.class).list();
+
+		expectedQueryCount.set(1);
+
+		if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+			throw new RuntimeException("Failed assertions " + stats.getPrepareStatementCount());
+		}
+
+		int iterazione = 0;
+		for (Order order : orders) {
+			iterazione++;
+			// accessing the many-to-one's id should not trigger a load
+			order.getCustomer().getOid();
+
+			if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+				throw new RuntimeException("Failed assertions " + stats.getPrepareStatementCount() + " Iterazione: " + iterazione);
+			}
+			// accessing the one-to-many should trigger a load
+			final Set<Payment> orderPayments = order.getPayments();
+			expectedQueryCount.getAndIncrement();
+
+			if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+				throw new RuntimeException("Failed assertions");
+			}
+			// access the non-inverse, logical 1-1
+			order.getSupplemental();
+
+			if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+				throw new RuntimeException("Failed assertions");
+			}
+			if (order.getSupplemental() != null) {
+				if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+					throw new RuntimeException("Failed assertions");
+				}
+			}
+
+			// access the inverse, logical 1-1
+			order.getSupplemental2();
+			expectedQueryCount.getAndIncrement();
+
+			if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+				throw new RuntimeException("Failed assertions");
+			}
+
+			if (order.getSupplemental2() != null) {
+				if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+					throw new RuntimeException("Failed assertions");
+				}
+			}
+		}
+	}
+
 
 	@Test
 	public void queryEntityWithAssociationToAbstract() {
