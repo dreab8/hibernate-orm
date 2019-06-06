@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.hibernate.Session;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.bytecode.enhance.spi.interceptor.EnhancementAsProxyLazinessInterceptor;
@@ -77,64 +78,70 @@ public class LazyGroupWithInheritanceAllowProxyTest extends BaseNonConfigCoreFun
 
 	@Test
 	public void theRealTest() {
-		final Session session = em.unwrap(Session.class);
-		boolean failed = false;
+		inTransaction(
+				session -> {
+					boolean failed = false;
 
-		final Statistics stats = session.getSessionFactory().getStatistics();
-		stats.clear();
+					final Statistics stats = session.getSessionFactory().getStatistics();
+					stats.clear();
 
-		final AtomicInteger expectedQueryCount = new AtomicInteger(0);
-		final List<Order> orders = session.createQuery("select o from Order o", Order.class).list();
+					final AtomicInteger expectedQueryCount = new AtomicInteger(0);
 
-		expectedQueryCount.set(1);
+					final List<Order> orders = session.createQuery("select o from Order o", Order.class).list();
 
-		if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
-			throw new RuntimeException("Failed assertions " + stats.getPrepareStatementCount());
-		}
+					expectedQueryCount.set(1);
 
-		int iterazione = 0;
-		for (Order order : orders) {
-			iterazione++;
-			// accessing the many-to-one's id should not trigger a load
-			order.getCustomer().getOid();
+					if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+						throw new RuntimeException("Failed assertions " + stats.getPrepareStatementCount());
+					}
 
-			if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
-				throw new RuntimeException("Failed assertions " + stats.getPrepareStatementCount() + " Iterazione: " + iterazione);
-			}
-			// accessing the one-to-many should trigger a load
-			final Set<Payment> orderPayments = order.getPayments();
-			expectedQueryCount.getAndIncrement();
+					int iterazione = 0;
+					for (Order order : orders) {
+						iterazione++;
+						// accessing the many-to-one's id should not trigger a load
+						order.getCustomer().getOid();
 
-			if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
-				throw new RuntimeException("Failed assertions");
-			}
-			// access the non-inverse, logical 1-1
-			order.getSupplemental();
+						if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+							throw new RuntimeException("Failed assertions " + stats.getPrepareStatementCount() + " Iterazione: " + iterazione);
+						}
+						// accessing the one-to-many should trigger a load
+						final Set<Payment> orderPayments = order.getPayments();
+						orderPayments.size();
+						expectedQueryCount.getAndIncrement();
 
-			if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
-				throw new RuntimeException("Failed assertions");
-			}
-			if (order.getSupplemental() != null) {
-				if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
-					throw new RuntimeException("Failed assertions");
+						if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+							throw new RuntimeException("Failed assertions expected: " + expectedQueryCount.get() + " stats " + stats.getPrepareStatementCount());
+						}
+						// access the non-inverse, logical 1-1
+						order.getSupplemental();
+
+						if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+							throw new RuntimeException("Failed assertions");
+						}
+						if (order.getSupplemental() != null) {
+							if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+								throw new RuntimeException("Failed assertions");
+							}
+						}
+
+						// access the inverse, logical 1-1
+						order.getSupplemental2();
+						expectedQueryCount.getAndIncrement();
+
+						if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+							throw new RuntimeException("Failed assertions");
+						}
+
+						if (order.getSupplemental2() != null) {
+							if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
+								throw new RuntimeException("Failed assertions");
+							}
+						}
+					}
+
 				}
+		);
 			}
-
-			// access the inverse, logical 1-1
-			order.getSupplemental2();
-			expectedQueryCount.getAndIncrement();
-
-			if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
-				throw new RuntimeException("Failed assertions");
-			}
-
-			if (order.getSupplemental2() != null) {
-				if (expectedQueryCount.get() != stats.getPrepareStatementCount()) {
-					throw new RuntimeException("Failed assertions");
-				}
-			}
-		}
-	}
 
 
 	@Test
