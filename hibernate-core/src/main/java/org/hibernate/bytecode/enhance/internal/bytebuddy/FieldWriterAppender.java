@@ -49,27 +49,25 @@ abstract class FieldWriterAppender implements ByteCodeAppender {
 		TypeDescription dispatcherType = persistentFieldAsDefined.getType().isPrimitive()
 				? persistentFieldAsDefined.getType().asErasure()
 				: TypeDescription.OBJECT;
-		// if ( this.$$_hibernate_getInterceptor() != null )
+		// if ( this.$$_hibernate_attributeInterceptor != null )
 		methodVisitor.visitVarInsn( Opcodes.ALOAD, 0 );
-		methodVisitor.visitMethodInsn(
-				Opcodes.INVOKEVIRTUAL,
+		methodVisitor.visitFieldInsn(
+				Opcodes.GETFIELD,
 				managedCtClass.getInternalName(),
-				EnhancerConstants.INTERCEPTOR_GETTER_NAME,
-				Type.getMethodDescriptor( Type.getType( PersistentAttributeInterceptor.class ) ),
-				false
+				EnhancerConstants.INTERCEPTOR_FIELD_NAME,
+				Type.getDescriptor( PersistentAttributeInterceptor.class )
 		);
 		Label noInterceptor = new Label();
 		methodVisitor.visitJumpInsn( Opcodes.IFNULL, noInterceptor );
 		// this (for field write)
 		methodVisitor.visitVarInsn( Opcodes.ALOAD, 0 );
-		// this.$$_hibernate_getInterceptor();
+		// this.$$_hibernate_attributeInterceptor;
 		methodVisitor.visitVarInsn( Opcodes.ALOAD, 0 );
-		methodVisitor.visitMethodInsn(
-				Opcodes.INVOKEVIRTUAL,
+		methodVisitor.visitFieldInsn(
+				Opcodes.GETFIELD,
 				managedCtClass.getInternalName(),
-				EnhancerConstants.INTERCEPTOR_GETTER_NAME,
-				Type.getMethodDescriptor( Type.getType( PersistentAttributeInterceptor.class ) ),
-				false
+				EnhancerConstants.INTERCEPTOR_FIELD_NAME,
+				Type.getDescriptor( PersistentAttributeInterceptor.class )
 		);
 		// .writeXXX( self, fieldName, field, arg1 );
 		methodVisitor.visitVarInsn( Opcodes.ALOAD, 0 );
