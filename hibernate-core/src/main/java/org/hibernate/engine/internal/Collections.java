@@ -168,10 +168,12 @@ public final class Collections {
 		if ( isBytecodeEnhanced && !collection.wasInitialized() ) {
 			// the class of the collection owner is enhanced for lazy loading and we found an un-initialized PersistentCollection
 			// 		- skip it
-			LOG.debugf(
+			if ( LOG.isDebugEnabled() ) {
+				LOG.debugf(
 					"Skipping uninitialized bytecode-lazy collection: %s",
-					MessageHelper.collectionInfoString( persister, collection, ce.getCurrentKey(), session )
-			);
+					MessageHelper.collectionInfoString(persister, collection, ce.getCurrentKey(), session)
+				);
+			}
 			ce.setReached( true );
 			ce.setProcessed( true );
 			return;
