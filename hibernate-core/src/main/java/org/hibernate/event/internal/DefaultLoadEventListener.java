@@ -271,7 +271,7 @@ public class DefaultLoadEventListener implements LoadEventListener {
 				final Object proxy = persistenceContext.getProxy( keyToLoad );
 
 				if ( proxy != null ) {
-					if ( traceEnabled ) {
+					if ( LOG.isTraceEnabled() ) {
 						LOG.trace( "Entity proxy found in session cache" );
 					}
 
