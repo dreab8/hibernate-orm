@@ -20,11 +20,8 @@ import org.hibernate.stat.Statistics;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.bytecode.enhancement.BytecodeEnhancerRunner;
-import org.hibernate.testing.bytecode.enhancement.CustomEnhancementContext;
 import org.hibernate.testing.bytecode.enhancement.EnhancementOptions;
-import org.hibernate.testing.bytecode.enhancement.EnhancerTestContext;
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
-import org.hibernate.test.bytecode.enhancement.lazy.group.BidirectionalLazyGroupsInEmbeddableTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -195,7 +192,7 @@ public class LazyGroupWithInheritanceAllowProxyTest extends BaseNonConfigCoreFun
 		super.configureStandardServiceRegistryBuilder( ssrb );
 
 		// todo : this is the only difference between this test and LazyGroupWithInheritanceTest
-		ssrb.applySetting( AvailableSettings.ALLOW_ENHANCEMENT_AS_PPROXY, "true" );
+		ssrb.applySetting( AvailableSettings.ALLOW_ENHANCEMENT_AS_PROXY, "true" );
 
 		ssrb.applySetting( AvailableSettings.GENERATE_STATISTICS, "true" );
 		ssrb.applySetting( AvailableSettings.USE_SECOND_LEVEL_CACHE, "false" );

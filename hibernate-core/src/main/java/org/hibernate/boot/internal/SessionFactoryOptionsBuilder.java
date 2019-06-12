@@ -65,7 +65,7 @@ import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.tuple.entity.EntityTuplizerFactory;
 
 import static org.hibernate.cfg.AvailableSettings.ACQUIRE_CONNECTIONS;
-import static org.hibernate.cfg.AvailableSettings.ALLOW_ENHANCEMENT_AS_PPROXY;
+import static org.hibernate.cfg.AvailableSettings.ALLOW_ENHANCEMENT_AS_PROXY;
 import static org.hibernate.cfg.AvailableSettings.ALLOW_JTA_TRANSACTION_ACCESS;
 import static org.hibernate.cfg.AvailableSettings.ALLOW_REFRESH_DETACHED_ENTITY;
 import static org.hibernate.cfg.AvailableSettings.ALLOW_UPDATE_OUTSIDE_TRANSACTION;
@@ -348,7 +348,7 @@ public class SessionFactoryOptionsBuilder implements SessionFactoryOptions {
 		this.defaultNullPrecedence = NullPrecedence.parse( defaultNullPrecedence );
 		this.orderUpdatesEnabled = ConfigurationHelper.getBoolean( ORDER_UPDATES, configurationSettings );
 		this.orderInsertsEnabled = ConfigurationHelper.getBoolean( ORDER_INSERTS, configurationSettings );
-		this.enhancementAsProxyEnabled = ConfigurationHelper.getBoolean( ALLOW_ENHANCEMENT_AS_PPROXY, configurationSettings );
+		this.enhancementAsProxyEnabled = ConfigurationHelper.getBoolean( ALLOW_ENHANCEMENT_AS_PROXY, configurationSettings );
 
 		this.callbacksEnabled = ConfigurationHelper.getBoolean( JPA_CALLBACKS_ENABLED, configurationSettings, true );
 

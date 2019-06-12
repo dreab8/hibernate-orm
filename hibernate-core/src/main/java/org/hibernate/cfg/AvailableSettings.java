@@ -886,7 +886,7 @@ public interface AvailableSettings extends org.hibernate.jpa.AvailableSettings {
 	 *
 	 * @implSpec See {@link org.hibernate.bytecode.enhance.spi.interceptor.EnhancementAsProxyLazinessInterceptor}
 	 */
-	String ALLOW_ENHANCEMENT_AS_PPROXY = "hibernate.bytecode.allow_enhancement_as_proxy";
+	String ALLOW_ENHANCEMENT_AS_PROXY = "hibernate.bytecode.allow_enhancement_as_proxy";
 
 	/**
 	 * The classname of the HQL query parser factory

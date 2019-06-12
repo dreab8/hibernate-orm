@@ -249,7 +249,7 @@ public class Property implements Serializable, MetaAttributable {
 	 * @apiNote This form reports whether the property is considered part of the
 	 * base fetch group based solely on the mapping information.  However,
 	 * {@link EnhancementHelper#includeInBaseFetchGroup} is used internally to make that
-	 * decision to account for {@link org.hibernate.cfg.AvailableSettings#ALLOW_ENHANCEMENT_AS_PPROXY}
+	 * decision to account for {@link org.hibernate.cfg.AvailableSettings#ALLOW_ENHANCEMENT_AS_PROXY}
 	 */
 	public boolean isLazy() {
 		if ( value instanceof ToOne ) {

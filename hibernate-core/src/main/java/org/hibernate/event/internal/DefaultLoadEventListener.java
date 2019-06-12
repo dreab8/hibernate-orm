@@ -309,7 +309,7 @@ public class DefaultLoadEventListener implements LoadEventListener {
 			persistenceContext.addEntity(
 					entity,
 					Status.MANAGED,
-					ArrayHelper.filledArray( LazyPropertyInitializer.UNFETCHED_PROPERTY, Object.class, persister.getPropertyTypes().length ),
+					new Object[ persister.getPropertyTypes().length ],
 					keyToLoad,
 					null,
 					LockMode.NONE,

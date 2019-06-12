@@ -18,13 +18,20 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.LazyToOne;
 import org.hibernate.annotations.LazyToOneOption;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.bytecode.enhance.spi.LazyPropertyInitializer;
 import org.hibernate.bytecode.enhance.spi.interceptor.EnhancementAsProxyLazinessInterceptor;
 import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.collection.spi.PersistentCollection;
+import org.hibernate.engine.spi.CollectionKey;
+import org.hibernate.engine.spi.EntityEntry;
 import org.hibernate.engine.spi.PersistentAttributeInterceptable;
 import org.hibernate.engine.spi.PersistentAttributeInterceptor;
+import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.stat.Statistics;
 
 import org.hibernate.testing.TestForIssue;
@@ -39,10 +46,12 @@ import org.junit.runner.RunWith;
 import org.hamcrest.MatcherAssert;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.core.Is.is;
 import static org.hibernate.testing.transaction.TransactionUtil.doInHibernate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Andrea Boriero
@@ -55,7 +64,7 @@ public class SimpleUpdateTestWithLazyLoading extends BaseNonConfigCoreFunctional
 	@Override
 	protected void configureStandardServiceRegistryBuilder(StandardServiceRegistryBuilder ssrb) {
 		super.configureStandardServiceRegistryBuilder( ssrb );
-		ssrb.applySetting( AvailableSettings.ALLOW_ENHANCEMENT_AS_PPROXY, "true" );
+		ssrb.applySetting( AvailableSettings.ALLOW_ENHANCEMENT_AS_PROXY, "true" );
 		ssrb.applySetting( AvailableSettings.FORMAT_SQL, "false" );
 		ssrb.applySetting( AvailableSettings.USE_SECOND_LEVEL_CACHE, "false" );
 		ssrb.applySetting( AvailableSettings.ENABLE_LAZY_LOAD_NO_TRANS, "true" );
@@ -105,25 +114,66 @@ public class SimpleUpdateTestWithLazyLoading extends BaseNonConfigCoreFunctional
 	public void updateSimpleField() {
 		final Statistics stats = sessionFactory().getStatistics();
 		stats.clear();
-		String updatedName = "Barrabas_";
-		doInHibernate( this::sessionFactory, s -> {
-			stats.clear();
-			Child loadedChild = s.load( Child.class, lastChildID );
 
-			final PersistentAttributeInterceptable interceptable = (PersistentAttributeInterceptable) loadedChild;
-			final PersistentAttributeInterceptor interceptor = interceptable.$$_hibernate_getInterceptor();
-			MatcherAssert.assertThat( interceptor, instanceOf( EnhancementAsProxyLazinessInterceptor.class ) );
+		final String updatedName = "Barrabas_";
 
-			loadedChild.setName( updatedName );
-			assertEquals( 1, stats.getPrepareStatementCount() );
-			assertThat( loadedChild.getName(), is( updatedName ) );
-			assertEquals( 1, stats.getPrepareStatementCount() );
-		} );
+		final EntityPersister childPersister = sessionFactory().getMetamodel().entityPersister( Child.class.getName() );
 
-		doInHibernate( this::sessionFactory, s -> {
-			Child loadedChild = s.load( Child.class, lastChildID );
-			assertThat( loadedChild.getName(), is( updatedName ) );
-		} );
+		final int relativesAttributeIndex = childPersister.getEntityMetamodel().getPropertyIndex( "relatives" );
+
+		inTransaction(
+				session -> {
+					stats.clear();
+					Child loadedChild = session.load( Child.class, lastChildID );
+
+					final PersistentAttributeInterceptable interceptable = (PersistentAttributeInterceptable) loadedChild;
+					final PersistentAttributeInterceptor interceptor = interceptable.$$_hibernate_getInterceptor();
+					MatcherAssert.assertThat( interceptor, instanceOf( EnhancementAsProxyLazinessInterceptor.class ) );
+					final EnhancementAsProxyLazinessInterceptor proxyInterceptor = (EnhancementAsProxyLazinessInterceptor) interceptor;
+
+					loadedChild.setName( updatedName );
+
+					// ^ should have triggered "base fetch group" initialization which would mean a SQL select
+					assertEquals( 1, stats.getPrepareStatementCount() );
+
+					// check that the `#setName` "persisted"
+					assertThat( loadedChild.getName(), is( updatedName ) );
+					assertEquals( 1, stats.getPrepareStatementCount() );
+
+					final EntityEntry entry = session.getPersistenceContext().getEntry( loadedChild );
+					assertThat(
+							entry.getLoadedState()[ relativesAttributeIndex ],
+							is( LazyPropertyInitializer.UNFETCHED_PROPERTY )
+					);
+
+					// force a flush - the relatives collection should still be UNFETCHED_PROPERTY afterwards
+					session.flush();
+
+					final EntityEntry updatedEntry = session.getPersistenceContext().getEntry( loadedChild );
+					assertThat( updatedEntry, sameInstance( entry ) );
+
+					assertThat(
+							entry.getLoadedState()[ relativesAttributeIndex ],
+							is( LazyPropertyInitializer.UNFETCHED_PROPERTY )
+					);
+
+					session.getEventListenerManager();
+				}
+		);
+
+		inTransaction(
+				session -> {
+					Child loadedChild = session.load( Child.class, lastChildID );
+					assertThat( loadedChild.getName(), is( updatedName ) );
+
+					final EntityEntry entry = session.getPersistenceContext().getEntry( loadedChild );
+					assertThat(
+							entry.getLoadedState()[ relativesAttributeIndex ],
+							is( LazyPropertyInitializer.UNFETCHED_PROPERTY )
+					);
+				}
+		);
+
 	}
 
 	@Test
