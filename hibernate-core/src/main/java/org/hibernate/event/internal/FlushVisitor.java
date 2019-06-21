@@ -40,7 +40,8 @@ public class FlushVisitor extends AbstractVisitor {
 				coll = getSession().getPersistenceContext().getCollectionHolder(collection);
 			}
 			else if ( collection == LazyPropertyInitializer.UNFETCHED_PROPERTY ) {
-				coll = (PersistentCollection) type.resolve( collection, getSession(), owner );
+					Collections.processUnfetchedReachableCollection( type, owner, getSession() );
+				return null;
 			}
 			else {
 				coll = (PersistentCollection) collection;
