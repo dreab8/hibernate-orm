@@ -13,6 +13,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.action.internal.DelayedPostInsertIdentifier;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.CollectionEntry;
+import org.hibernate.engine.spi.CollectionKey;
 import org.hibernate.engine.spi.EntityEntry;
 import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.engine.spi.PersistenceContext;
@@ -133,7 +134,40 @@ public final class Collections {
 
 	}
 
-    /**
+	public static void processUnfetchedReachableCollection(
+			CollectionType type,
+			Object entity,
+			SessionImplementor session) {
+		final Serializable keyOfOwner = type.getKeyOfOwner( entity, session );
+		final PersistenceContext persistenceContext = session.getPersistenceContext();
+
+		final CollectionPersister persister = session.getFactory().getMetamodel().collectionPersister( type.getRole() );
+
+		final CollectionKey collectionKey = new CollectionKey( persister, keyOfOwner );
+		final PersistentCollection collection = persistenceContext.getCollection( collectionKey );
+
+		if ( collection != null ) {
+			final CollectionEntry ce = persistenceContext.getCollectionEntry( collection );
+
+			ce.setCurrentPersister( persister );
+			//TODO: better to pass the id in as an argument?
+			ce.setCurrentKey( keyOfOwner );
+
+			// the class of the collection owner is enhanced for lazy loading and we found an un-initialized PersistentCollection
+			// 		- skip it
+			if ( LOG.isDebugEnabled() ) {
+				LOG.debugf(
+						"Skipping uninitialized bytecode-lazy collection: %s",
+						MessageHelper.collectionInfoString( persister, collection, ce.getCurrentKey(), session )
+				);
+			}
+			ce.setReached( true );
+			ce.setProcessed( true );
+		}
+	}
+
+
+	/**
      * Initialize the role of the collection.
      *
      * @param collection The collection to be updated by reachability.
