@@ -144,26 +144,26 @@ public final class Collections {
 		final CollectionPersister persister = session.getFactory().getMetamodel().collectionPersister( type.getRole() );
 
 		final CollectionKey collectionKey = new CollectionKey( persister, keyOfOwner );
+
+		// The unfetched collection has been put in the persistenceContext during the TwoPhaseLoad#doInitializeEntity()
 		final PersistentCollection collection = persistenceContext.getCollection( collectionKey );
 
-		if ( collection != null ) {
-			final CollectionEntry ce = persistenceContext.getCollectionEntry( collection );
+		final CollectionEntry ce = persistenceContext.getCollectionEntry( collection );
 
-			ce.setCurrentPersister( persister );
-			//TODO: better to pass the id in as an argument?
-			ce.setCurrentKey( keyOfOwner );
+		ce.setCurrentPersister( persister );
+		//TODO: better to pass the id in as an argument?
+		ce.setCurrentKey( keyOfOwner );
 
-			// the class of the collection owner is enhanced for lazy loading and we found an un-initialized PersistentCollection
-			// 		- skip it
-			if ( LOG.isDebugEnabled() ) {
-				LOG.debugf(
-						"Skipping uninitialized bytecode-lazy collection: %s",
-						MessageHelper.collectionInfoString( persister, collection, ce.getCurrentKey(), session )
-				);
-			}
-			ce.setReached( true );
-			ce.setProcessed( true );
+		// the class of the collection owner is enhanced for lazy loading and we found an un-initialized PersistentCollection
+		// 		- skip it
+		if ( LOG.isDebugEnabled() ) {
+			LOG.debugf(
+					"Skipping uninitialized bytecode-lazy collection: %s",
+					MessageHelper.collectionInfoString( persister, collection, ce.getCurrentKey(), session )
+			);
 		}
+		ce.setReached( true );
+		ce.setProcessed( true );
 	}
 
 
