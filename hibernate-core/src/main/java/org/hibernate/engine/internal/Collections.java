@@ -144,11 +144,18 @@ public final class Collections {
 		final CollectionPersister persister = session.getFactory().getMetamodel().collectionPersister( type.getRole() );
 
 		final CollectionKey collectionKey = new CollectionKey( persister, keyOfOwner );
-
 		// The unfetched collection has been put in the persistenceContext during the TwoPhaseLoad#doInitializeEntity()
 		final PersistentCollection collection = persistenceContext.getCollection( collectionKey );
 
 		final CollectionEntry ce = persistenceContext.getCollectionEntry( collection );
+
+		if ( ce == null ) {
+			// refer to comment in StatefulPersistenceContext.addCollection()
+			throw new HibernateException(
+					"Found two representations of same collection: " +
+							type.getRole()
+			);
+		}
 
 		ce.setCurrentPersister( persister );
 		//TODO: better to pass the id in as an argument?
