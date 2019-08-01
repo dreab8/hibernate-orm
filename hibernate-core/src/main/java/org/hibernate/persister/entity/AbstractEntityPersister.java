@@ -94,6 +94,7 @@ import org.hibernate.jdbc.TooManyRowsAffectedException;
 import org.hibernate.loader.custom.sql.SQLQueryParser;
 import org.hibernate.loader.entity.BatchingEntityLoaderBuilder;
 import org.hibernate.loader.entity.CascadeEntityLoader;
+import org.hibernate.loader.entity.DynamicBatchingEntityLoaderBuilder;
 import org.hibernate.loader.entity.EntityLoader;
 import org.hibernate.loader.entity.UniqueEntityLoader;
 import org.hibernate.loader.internal.MultiIdEntityLoaderStandardImpl;
@@ -289,6 +290,8 @@ public abstract class AbstractEntityPersister
 	private InsertGeneratedIdentifierDelegate identityDelegate;
 
 	private boolean[] tableHasColumns;
+
+	private UniqueEntityLoader queryLoader;
 
 	private final Map subclassPropertyAliases = new HashMap();
 	private final Map subclassPropertyColumnNames = new HashMap();
@@ -4317,12 +4320,18 @@ public abstract class AbstractEntityPersister
 			LOG.tracev( "Fetching entity: {0}", MessageHelper.infoString( this, id, getFactory() ) );
 		}
 
-		return singleIdEntityLoader.load( id, lockOptions, session );
+		final UniqueEntityLoader loader = getAppropriateLoader( lockOptions, session );
+		return loader.load( id, optionalObject, session, lockOptions );
 	}
 
 	@Override
 	public List multiLoad(Serializable[] ids, SharedSessionContractImplementor session, MultiLoadOptions loadOptions) {
-		return multiIdEntityLoader.load( ids, loadOptions, session );
+		return DynamicBatchingEntityLoaderBuilder.INSTANCE.multiLoad(
+				this,
+				ids,
+				session,
+				loadOptions
+		);
 	}
 
 	public void registerAffectingFetchProfile(String fetchProfileName) {
@@ -4348,6 +4357,44 @@ public abstract class AbstractEntityPersister
 	public boolean isAffectedByEnabledFilters(LoadQueryInfluencers loadQueryInfluencers) {
 		return loadQueryInfluencers.hasEnabledFilters()
 				&& filterHelper.isAffectedBy( loadQueryInfluencers.getEnabledFilters() );
+	}
+
+	protected UniqueEntityLoader getAppropriateLoader(LockOptions lockOptions, SharedSessionContractImplementor session) {
+		if ( queryLoader != null ) {
+			// if the user specified a custom query loader we need to that
+			// regardless of any other consideration
+			return queryLoader;
+		}
+		else {
+			final LoadQueryInfluencers loadQueryInfluencers = session.getLoadQueryInfluencers();
+			if ( isAffectedByEnabledFilters( loadQueryInfluencers ) ) {
+				// because filters affect the rows returned (because they add
+				// restrictions) these need to be next in precedence
+				return createEntityLoader( lockOptions, loadQueryInfluencers );
+			}
+			else if ( loadQueryInfluencers.getInternalFetchProfile() != null && LockMode.UPGRADE.greaterThan(
+					lockOptions.getLockMode()
+			) ) {
+				// Next, we consider whether an 'internal' fetch profile has been set.
+				// This indicates a special fetch profile Hibernate needs applied
+				// (for its merge loading process e.g.).
+				return loaders.get( loadQueryInfluencers.getInternalFetchProfile() );
+			}
+			else if ( isAffectedByEnabledFetchProfiles( loadQueryInfluencers ) ) {
+				// If the session has associated influencers we need to adjust the
+				// SQL query used for loading based on those influencers
+				return createEntityLoader( lockOptions, loadQueryInfluencers );
+			}
+			else if ( isAffectedByEntityGraph( loadQueryInfluencers ) ) {
+				return createEntityLoader( lockOptions, loadQueryInfluencers );
+			}
+			else if ( lockOptions.getTimeOut() != LockOptions.WAIT_FOREVER ) {
+				return createEntityLoader( lockOptions, loadQueryInfluencers );
+			}
+			else {
+				return getLoaderByLockMode( lockOptions.getLockMode() );
+			}
+		}
 	}
 
 	protected final boolean isAllNull(Object[] array, int tableNumber) {
