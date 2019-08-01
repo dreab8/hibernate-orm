@@ -71,6 +71,8 @@ public class StringHelperTest extends BaseUnitTestCase {
 		unchanged( new String[] { "a", "b" } );
 		helperEquals( new String[] { "a", "b", "c" }, new String[] { "a", "b", "`c`" } );
 		helperEquals( new String[] { "a", "b", "c" }, new String[] { "a", "\"b\"", "c" } );
+		helperEquals( new String[] { "\"a", "b\"", "`c", "d`" }, new String[] { "\"a", "b\"", "`c", "d`" } );
+		helperEquals( new String[] { "\"a`", "`b\"", "`c\"", "\"d`" }, new String[] { "\"a`", "`b\"", "`c\"", "\"d`" } );
 	}
 
 	private static void unchanged(String[] input) {
