@@ -142,6 +142,7 @@ public class FetchGraphTest extends BaseNonConfigCoreFunctionalTestCase {
 					while ( scrollableResults.next() ) {
 						System.out.println( "Got entity : " + scrollableResults.get( 0 ) );
 					}
+					scrollableResults.close();
 				}
 		);
 
@@ -158,6 +159,7 @@ public class FetchGraphTest extends BaseNonConfigCoreFunctionalTestCase {
 					while ( scrollableResults.next() ) {
 						System.out.println( "Got entity : " + scrollableResults.get( 0 ) );
 					}
+					scrollableResults.close();
 				}
 		);
 
@@ -169,6 +171,7 @@ public class FetchGraphTest extends BaseNonConfigCoreFunctionalTestCase {
 					while ( scrollableResults.next() ) {
 						System.out.println( "Got entity : " + scrollableResults.get( 0 ) );
 					}
+					scrollableResults.close();
 				}
 		);
 	}

@@ -92,6 +92,7 @@ public class SessionCreateQueryFromCriteriaTest extends BaseCoreFunctionalTestCa
 			);
 			final Stream<TestEntity> stream = session.createQuery( query ).stream();
 			assertThat( stream.count(), is( 1L ) );
+			stream.close();
 		}
 	}
 

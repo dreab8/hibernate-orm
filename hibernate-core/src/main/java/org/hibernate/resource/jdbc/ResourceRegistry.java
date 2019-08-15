@@ -27,6 +27,8 @@ public interface ResourceRegistry {
 
 	void releaseResources();
 
+	void checkAllResultsetAreClosed();
+
 	/**
 	 * Register a JDBC statement.
 	 *
@@ -42,26 +44,12 @@ public interface ResourceRegistry {
 	 * @param statement The statement to release.
 	 */
 	void release(Statement statement);
-
 	/**
-	 * Register a JDBC result set.
-	 * <p/>
-	 * Implementation note: Second parameter has been introduced to prevent
-	 * multiple registrations of the same statement in case {@link java.sql.ResultSet#getStatement()}
-	 * does not return original {@link java.sql.Statement} object.
-	 *
-	 * @param resultSet The result set to register.
-	 * @param statement Statement from which {@link java.sql.ResultSet} has been generated.
-	 */
-	void register(ResultSet resultSet, Statement statement);
-
-	/**
-	 * Release a previously registered result set.
+	 * Release a result set.
 	 *
 	 * @param resultSet The result set to release.
-	 * @param statement Statement from which {@link java.sql.ResultSet} has been generated.
 	 */
-	void release(ResultSet resultSet, Statement statement);
+	void release(ResultSet resultSet);
 
 	void register(Blob blob);
 	void release(Blob blob);

@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -55,6 +56,11 @@ public class BasicConnectionTest extends BaseCoreFunctionalTestCase {
 		SessionImplementor sessionImpl = (SessionImplementor) session;
 		JdbcCoordinator jdbcCoord = sessionImpl.getJdbcCoordinator();
 
+		final ResourceRegistry resourceRegistry = getResourceRegistry( jdbcCoord );
+		PreparedStatement ps1 = null;
+		PreparedStatement ps2 = null;
+		ResultSet firstResultSet = null;
+		ResultSet seconResultSet = null;
 		try {
 			Statement statement = jdbcCoord.getStatementPreparer().createStatement();
 			String dropSql = getDialect().getDropTableString( "SANDBOX_JDBC_TST" );
@@ -66,22 +72,22 @@ public class BasicConnectionTest extends BaseCoreFunctionalTestCase {
 			}
 			jdbcCoord.getResultSetReturn().execute( statement,
 					"create table SANDBOX_JDBC_TST ( ID integer, NAME varchar(100) )" );
-			assertTrue( getResourceRegistry( jdbcCoord ).hasRegisteredResources() );
+			assertTrue( resourceRegistry.hasRegisteredResources() );
 			assertTrue( jdbcCoord.getLogicalConnection().isPhysicallyConnected() );
-			getResourceRegistry( jdbcCoord ).release( statement );
-			assertFalse( getResourceRegistry( jdbcCoord ).hasRegisteredResources() );
+			resourceRegistry.release( statement );
+			assertFalse( resourceRegistry.hasRegisteredResources() );
 			assertTrue( jdbcCoord.getLogicalConnection().isPhysicallyConnected() ); // after_transaction specified
 
-			PreparedStatement ps = jdbcCoord.getStatementPreparer().prepareStatement(
+			ps1 = jdbcCoord.getStatementPreparer().prepareStatement(
 					"insert into SANDBOX_JDBC_TST( ID, NAME ) values ( ?, ? )" );
-			ps.setLong( 1, 1 );
-			ps.setString( 2, "name" );
-			jdbcCoord.getResultSetReturn().execute( ps );
+			ps1.setLong( 1, 1 );
+			ps1.setString( 2, "name" );
+			firstResultSet = jdbcCoord.getResultSetReturn().execute( ps1 );
 
-			ps = jdbcCoord.getStatementPreparer().prepareStatement( "select * from SANDBOX_JDBC_TST" );
-			jdbcCoord.getResultSetReturn().extract( ps );
+			ps2 = jdbcCoord.getStatementPreparer().prepareStatement( "select * from SANDBOX_JDBC_TST" );
+			seconResultSet = jdbcCoord.getResultSetReturn().extract( ps2 );
 
-			assertTrue( getResourceRegistry( jdbcCoord ).hasRegisteredResources() );
+			assertTrue( resourceRegistry.hasRegisteredResources() );
 		}
 		catch ( SQLException e ) {
 			fail( "incorrect exception type : sqlexception" );
@@ -89,17 +95,38 @@ public class BasicConnectionTest extends BaseCoreFunctionalTestCase {
 		finally {
 			try {
 				session.doWork( connection -> {
-					final Statement stmnt = connection.createStatement();
-
-					stmnt.execute( getDialect().getDropTableString( "SANDBOX_JDBC_TST" ) );
+					try(Statement stmnt = connection.createStatement()){
+						stmnt.execute( getDialect().getDropTableString( "SANDBOX_JDBC_TST" ) );
+					}
 				} );
 			}
 			finally {
+				if(firstResultSet != null){
+					resourceRegistry.release( firstResultSet );
+				}
+				if(seconResultSet != null){
+					resourceRegistry.release( seconResultSet );
+				}
+				if(ps1 != null){
+					try {
+						ps1.close();
+					}
+					catch (SQLException e) {
+					}
+				}
+				if(ps2 != null){
+					try {
+						ps2.close();
+					}
+					catch (SQLException e) {
+					}
+				}
+				resourceRegistry.releaseResources();
 				session.close();
 			}
 		}
 
-		assertFalse( getResourceRegistry( jdbcCoord ).hasRegisteredResources() );
+		assertFalse( resourceRegistry.hasRegisteredResources() );
 	}
 
 	private ResourceRegistry getResourceRegistry(JdbcCoordinator jdbcCoord) {

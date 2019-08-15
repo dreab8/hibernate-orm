@@ -22,6 +22,7 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGeneratorHelper;
 import org.hibernate.id.IntegralDataTypeHolder;
 import org.hibernate.internal.CoreMessageLogger;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 
 import org.jboss.logging.Logger;
 
@@ -90,6 +91,9 @@ public class SequenceStructure implements DatabaseStructure {
 			public IntegralDataTypeHolder getNextValue() {
 				accessCounter++;
 				try {
+					final ResourceRegistry resourceRegistry = session.getJdbcCoordinator()
+							.getLogicalConnection()
+							.getResourceRegistry();
 					final PreparedStatement st = session.getJdbcCoordinator().getStatementPreparer().prepareStatement( sql );
 					try {
 						final ResultSet rs = session.getJdbcCoordinator().getResultSetReturn().extract( st );
@@ -104,7 +108,7 @@ public class SequenceStructure implements DatabaseStructure {
 						}
 						finally {
 							try {
-								session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( rs, st );
+								resourceRegistry.release( rs );
 							}
 							catch( Throwable ignore ) {
 								// intentionally empty
@@ -112,7 +116,7 @@ public class SequenceStructure implements DatabaseStructure {
 						}
 					}
 					finally {
-						session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( st );
+						resourceRegistry.release( st );
 						session.getJdbcCoordinator().afterStatementExecution();
 					}
 

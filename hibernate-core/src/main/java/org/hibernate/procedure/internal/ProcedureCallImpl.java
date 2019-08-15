@@ -715,12 +715,18 @@ public class ProcedureCallImpl<R>
 			return Collections.EMPTY_LIST;
 		}
 		try {
-			final Output rtn = outputs().getCurrent();
-			if ( ! ResultSetOutput.class.isInstance( rtn ) ) {
-				throw new IllegalStateException( "Current CallableStatement ou was not a ResultSet, but getResultList was called" );
-			}
+			ProcedureOutputs outputs = outputs();
+			try {
+				final Output rtn = outputs.getCurrent();
+				if ( !ResultSetOutput.class.isInstance( rtn ) ) {
+					throw new IllegalStateException(
+							"Current CallableStatement ou was not a ResultSet, but getResultList was called" );
+				}
 
-			return ( (ResultSetOutput) rtn ).getResultList();
+				return ( (ResultSetOutput) rtn ).getResultList();
+			}finally {
+				outputs.release();
+			}
 		}
 		catch (NoMoreReturnsException e) {
 			// todo : the spec is completely silent on these type of edge-case scenarios.

@@ -165,6 +165,7 @@ public class JdbcCoordinatorImpl implements JdbcCoordinator {
 	public Connection close() {
 		LOG.tracev( "Closing JDBC container [{0}]", this );
 		Connection connection;
+		getResourceRegistry().checkAllResultsetAreClosed();
 		try {
 			if ( currentBatch != null ) {
 				LOG.closingUnreleasedBatch();

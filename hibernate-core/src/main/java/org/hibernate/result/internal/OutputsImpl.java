@@ -118,12 +118,7 @@ public class OutputsImpl implements Outputs {
 
 	@Override
 	public void release() {
-		try {
-			jdbcStatement.close();
-		}
-		catch (SQLException e) {
-			log.debug( "Unable to close PreparedStatement", e );
-		}
+		context.getSession().getJdbcCoordinator().getResourceRegistry().release( jdbcStatement );
 	}
 
 	private List extractCurrentResults() {
@@ -141,6 +136,9 @@ public class OutputsImpl implements Outputs {
 		}
 		catch (SQLException e) {
 			throw convert( e, "Error extracting results from CallableStatement" );
+		}
+		finally {
+			context.getSession().getJdbcCoordinator().getResourceRegistry().release( resultSet );
 		}
 	}
 

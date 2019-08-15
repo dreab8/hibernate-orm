@@ -63,6 +63,7 @@ public class HQLScrollFetchTest extends BaseCoreFunctionalTestCase {
 		ScrollableResults results = s.createQuery( QUERY + " order by p.name asc" ).scroll();
 		results.next();
 		Parent p = (Parent) results.get( 0 );
+		results.close();
 		assertResultFromOneUser( p );
 		s.getTransaction().commit();
 		s.close();
@@ -80,6 +81,7 @@ public class HQLScrollFetchTest extends BaseCoreFunctionalTestCase {
 		results.next();
 		p = (Parent) results.get( 0 );
 		assertResultFromOneUser( p );
+		results.close();
 		s.getTransaction().commit();
 		s.close();
 	}
@@ -92,6 +94,7 @@ public class HQLScrollFetchTest extends BaseCoreFunctionalTestCase {
 		results.next();
 		Parent p = (Parent) results.get( 0 );
 		assertResultFromOneUser( p );
+		results.close();
 		tx.commit();
 		s.close();
 	}
@@ -108,6 +111,7 @@ public class HQLScrollFetchTest extends BaseCoreFunctionalTestCase {
 		results.next();
 		p = (Parent) results.get( 0 );
 		assertResultFromOneUser( p );
+		results.close();
 		tx.commit();
 		s.close();
 	}
@@ -279,6 +283,7 @@ public class HQLScrollFetchTest extends BaseCoreFunctionalTestCase {
 			// expected
 		}
 		finally {
+			results.close();
 			s.close();
 		}
 	}

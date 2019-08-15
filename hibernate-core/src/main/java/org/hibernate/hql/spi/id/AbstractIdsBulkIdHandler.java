@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.hibernate.JDBCException;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.jdbc.spi.JdbcCoordinator;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.spi.QueryParameters;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
@@ -76,7 +77,9 @@ public abstract class AbstractIdsBulkIdHandler
 			QueryParameters queryParameters) {
 		List<Object[]> ids = new ArrayList<>();
 		try {
-			try (PreparedStatement ps = session.getJdbcCoordinator()
+			final JdbcCoordinator jdbcCoordinator = session
+					.getJdbcCoordinator();
+			try (PreparedStatement ps = jdbcCoordinator
 					.getStatementPreparer()
 					.prepareStatement( idSelect, false )) {
 				int position = 1;
@@ -86,18 +89,20 @@ public abstract class AbstractIdsBulkIdHandler
 
 				Dialect dialect = session.getFactory().getServiceRegistry().getService( JdbcServices.class ).getDialect();
 
-				ResultSet rs = session
-						.getJdbcCoordinator()
-						.getResultSetReturn()
-						.extract( ps );
-				while ( rs.next() ) {
-					Object[] result = new Object[targetedPersister.getIdentifierColumnNames().length];
-					for ( String columnName : targetedPersister.getIdentifierColumnNames() ) {
-						int columnIndex = rs.findColumn( StringHelper.unquote( columnName, dialect ) );
-						Object column = rs.getObject(columnIndex);
-						result[columnIndex - 1] = column;
+				ResultSet rs = jdbcCoordinator.getResultSetReturn().extract( ps );
+				try {
+					while ( rs.next() ) {
+						Object[] result = new Object[targetedPersister.getIdentifierColumnNames().length];
+						for ( String columnName : targetedPersister.getIdentifierColumnNames() ) {
+							int columnIndex = rs.findColumn( StringHelper.unquote( columnName, dialect ) );
+							Object column = rs.getObject( columnIndex );
+							result[columnIndex - 1] = column;
+						}
+						ids.add( result );
 					}
-					ids.add( result );
+				}
+				finally {
+					jdbcCoordinator.getLogicalConnection().getResourceRegistry().release( rs );
 				}
 			}
 		}

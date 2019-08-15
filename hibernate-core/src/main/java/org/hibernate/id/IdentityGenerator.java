@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import org.hibernate.AssertionFailure;
 import org.hibernate.HibernateException;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.jdbc.spi.JdbcCoordinator;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.insert.AbstractReturningDelegate;
 import org.hibernate.id.insert.AbstractSelectingDelegate;
@@ -84,7 +85,8 @@ public class IdentityGenerator extends AbstractPostInsertGenerator {
 		@Override
 		public Serializable executeAndExtract(PreparedStatement insert, SharedSessionContractImplementor session)
 				throws SQLException {
-			ResultSet rs = session.getJdbcCoordinator().getResultSetReturn().execute( insert );
+			final JdbcCoordinator jdbcCoordinator = session.getJdbcCoordinator();
+			ResultSet rs = jdbcCoordinator.getResultSetReturn().execute( insert );
 			try {
 				return IdentifierGeneratorHelper.getGeneratedIdentity(
 						rs,
@@ -94,7 +96,7 @@ public class IdentityGenerator extends AbstractPostInsertGenerator {
 				);
 			}
 			finally {
-				session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( rs, insert );
+				jdbcCoordinator.getLogicalConnection().getResourceRegistry().release( rs );
 			}
 		}
 

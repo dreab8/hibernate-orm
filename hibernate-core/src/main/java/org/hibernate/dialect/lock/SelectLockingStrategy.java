@@ -20,6 +20,7 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.persister.entity.Lockable;
 import org.hibernate.pretty.MessageHelper;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 import org.hibernate.sql.SimpleSelect;
 import org.hibernate.stat.spi.StatisticsImplementor;
 
@@ -58,6 +59,7 @@ public class SelectLockingStrategy extends AbstractSelectLockingStrategy {
 		final Lockable lockable = getLockable();
 		try {
 			final JdbcCoordinator jdbcCoordinator = session.getJdbcCoordinator();
+			final ResourceRegistry resourceRegistry = jdbcCoordinator.getLogicalConnection().getResourceRegistry();
 			final PreparedStatement st = jdbcCoordinator.getStatementPreparer().prepareStatement( sql );
 			try {
 				lockable.getIdentifierType().nullSafeSet( st, id, 1, session );
@@ -81,11 +83,11 @@ public class SelectLockingStrategy extends AbstractSelectLockingStrategy {
 					}
 				}
 				finally {
-					jdbcCoordinator.getLogicalConnection().getResourceRegistry().release( rs, st );
+					resourceRegistry.release( rs );
 				}
 			}
 			finally {
-				jdbcCoordinator.getLogicalConnection().getResourceRegistry().release( st );
+				resourceRegistry.release( st );
 				jdbcCoordinator.afterStatementExecution();
 			}
 

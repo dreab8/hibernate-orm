@@ -25,6 +25,7 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.log.DeprecationLogger;
 import org.hibernate.internal.util.config.ConfigurationHelper;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.Type;
 
@@ -111,6 +112,9 @@ public class SequenceGenerator
 
 	protected IntegralDataTypeHolder generateHolder(SharedSessionContractImplementor session) {
 		try {
+			final ResourceRegistry resourceRegistry = session.getJdbcCoordinator()
+					.getLogicalConnection()
+					.getResourceRegistry();
 			PreparedStatement st = session.getJdbcCoordinator().getStatementPreparer().prepareStatement( sql );
 			try {
 				ResultSet rs = session.getJdbcCoordinator().getResultSetReturn().extract( st );
@@ -122,11 +126,11 @@ public class SequenceGenerator
 					return result;
 				}
 				finally {
-					session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( rs, st );
+					resourceRegistry.release( rs );
 				}
 			}
 			finally {
-				session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( st );
+				resourceRegistry.release( st );
 				session.getJdbcCoordinator().afterStatementExecution();
 			}
 

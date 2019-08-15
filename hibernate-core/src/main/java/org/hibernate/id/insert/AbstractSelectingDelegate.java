@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.PostInsertIdentityPersister;
 import org.hibernate.pretty.MessageHelper;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 
 /**
  * Abstract InsertGeneratedIdentifierDelegate implementation where the
@@ -34,6 +35,7 @@ public abstract class AbstractSelectingDelegate implements InsertGeneratedIdenti
 			String insertSQL,
 			SharedSessionContractImplementor session,
 			Binder binder) {
+		final ResourceRegistry resourceRegistry = session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry();
 		try {
 			// prepare and execute the insert
 			PreparedStatement insert = session
@@ -45,7 +47,7 @@ public abstract class AbstractSelectingDelegate implements InsertGeneratedIdenti
 				session.getJdbcCoordinator().getResultSetReturn().executeUpdate( insert );
 			}
 			finally {
-				session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( insert );
+				resourceRegistry.release( insert );
 				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
@@ -72,11 +74,11 @@ public abstract class AbstractSelectingDelegate implements InsertGeneratedIdenti
 					return getResult( session, rs, binder.getEntity() );
 				}
 				finally {
-					session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( rs, idSelect );
+					resourceRegistry.release( rs );
 				}
 			}
 			finally {
-				session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( idSelect );
+				resourceRegistry.release( idSelect );
 				session.getJdbcCoordinator().afterStatementExecution();
 			}
 

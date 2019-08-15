@@ -25,6 +25,8 @@ import org.hibernate.testing.DialectCheck;
 import org.hibernate.testing.DialectChecks;
 import org.hibernate.testing.RequiresDialectFeature;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
+
+import org.hibernate.resource.jdbc.ResourceRegistry;
 import org.hibernate.type.descriptor.JdbcTypeNameMapper;
 
 import static org.junit.Assert.assertEquals;
@@ -112,16 +114,22 @@ public class BasicOperationsTest extends BaseCoreFunctionalTestCase {
 			String tableNamePattern = generateFinalNamePattern( meta, SOME_ENTITY_TABLE_NAME );
 			String columnNamePattern = generateFinalNamePattern( meta, columnName );
 
+			ResourceRegistry resourceRegistry = s.getJdbcCoordinator().getResourceRegistry();
 			ResultSet columnInfo = meta.getColumns( null, null, tableNamePattern, columnNamePattern );
-			s.getJdbcCoordinator().getResourceRegistry().register(columnInfo, columnInfo.getStatement());
-			assertTrue( columnInfo.next() );
-			int dataType = columnInfo.getInt( "DATA_TYPE" );
-			s.getJdbcCoordinator().getResourceRegistry().release( columnInfo, columnInfo.getStatement() );
-			assertEquals(
-					columnName,
-					JdbcTypeNameMapper.getTypeName( expectedJdbcTypeCode ),
-					JdbcTypeNameMapper.getTypeName( dataType )
-			);
+			try {
+				assertTrue( columnInfo.next() );
+				int dataType = columnInfo.getInt( "DATA_TYPE" );
+				assertEquals(
+						columnName,
+						JdbcTypeNameMapper.getTypeName( expectedJdbcTypeCode ),
+						JdbcTypeNameMapper.getTypeName( dataType )
+				);
+			}
+			finally {
+				Statement statement = columnInfo.getStatement();
+				resourceRegistry.release( columnInfo );
+				resourceRegistry.release( statement );
+			}
 		}
 
 		private String generateFinalNamePattern(DatabaseMetaData meta, String name) throws SQLException {
@@ -148,12 +156,26 @@ public class BasicOperationsTest extends BaseCoreFunctionalTestCase {
 		}
 
 		public void execute(Connection connection) throws SQLException {
+			ResourceRegistry resourceRegistry = s.getJdbcCoordinator().getResourceRegistry();
 			Statement st = s.getJdbcCoordinator().getStatementPreparer().createStatement();
-			s.getJdbcCoordinator().getResultSetReturn().extract( st, "SELECT COUNT(*) FROM " + table );
-			ResultSet result = s.getJdbcCoordinator().getResultSetReturn().extract( st, "SELECT COUNT(*) FROM " + table );
-			result.next();
-			int rowCount = result.getInt( 1 );
-			assertEquals( "Unexpected row count", expectedRowCount, rowCount );
+			try {
+				ResultSet result = s.getJdbcCoordinator().getResultSetReturn().extract(
+						st,
+						"SELECT COUNT(*) FROM " + table
+				);
+				try {
+					result.next();
+					int rowCount = result.getInt( 1 );
+					assertEquals( "Unexpected row count", expectedRowCount, rowCount );
+				}
+				finally {
+					resourceRegistry.release( result );
+				}
+			}
+			finally {
+				resourceRegistry.release( st );
+
+			}
 		}
 	}
 }

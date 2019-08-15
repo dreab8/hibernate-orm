@@ -60,7 +60,6 @@ public class ResultSetReturnImpl implements ResultSetReturn {
 				jdbcExecuteStatementEnd();
 				sqlStatementLogger.logSlowQuery( statement, executeStart );
 			}
-			postExtract( rs, statement );
 			return rs;
 		}
 		catch (SQLException e) {
@@ -93,7 +92,6 @@ public class ResultSetReturnImpl implements ResultSetReturn {
 				jdbcExecuteStatementEnd();
 				sqlStatementLogger.logSlowQuery( callableStatement, executeStart );
 			}
-			postExtract( rs, callableStatement );
 			return rs;
 		}
 		catch (SQLException e) {
@@ -118,7 +116,6 @@ public class ResultSetReturnImpl implements ResultSetReturn {
 				jdbcExecuteStatementEnd();
 				sqlStatementLogger.logSlowQuery( sql, executeStart );
 			}
-			postExtract( rs, statement );
 			return rs;
 		}
 		catch (SQLException e) {
@@ -148,7 +145,6 @@ public class ResultSetReturnImpl implements ResultSetReturn {
 				jdbcExecuteStatementEnd();
 				sqlStatementLogger.logSlowQuery( statement, executeStart );
 			}
-			postExtract( rs, statement );
 			return rs;
 		}
 		catch (SQLException e) {
@@ -178,7 +174,6 @@ public class ResultSetReturnImpl implements ResultSetReturn {
 				jdbcExecuteStatementEnd();
 				sqlStatementLogger.logSlowQuery( statement, executeStart );
 			}
-			postExtract( rs, statement );
 			return rs;
 		}
 		catch (SQLException e) {
@@ -224,11 +219,4 @@ public class ResultSetReturnImpl implements ResultSetReturn {
 			sqlStatementLogger.logSlowQuery( statement, executeStart );
 		}
 	}
-
-	private void postExtract(ResultSet rs, Statement st) {
-		if ( rs != null ) {
-			jdbcCoordinator.getResourceRegistry().register( rs, st );
-		}
-	}
-
 }

@@ -20,6 +20,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.jdbc.Work;
 import org.hibernate.loader.custom.NonUniqueDiscoveredSqlAliasException;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 import org.junit.Assert;
@@ -137,8 +138,10 @@ public class AutoDiscoveryTest extends BaseCoreFunctionalTestCase {
 							Assert.assertFalse( "bad dialect.getColumnAliasExtractor impl", column1Alias.equals( column2Alias ) );
 						}
 						finally {
-							sessionImplementor.getJdbcCoordinator().getResourceRegistry().release( rs, ps );
-							sessionImplementor.getJdbcCoordinator().getResourceRegistry().release( ps );
+							ResourceRegistry resourceRegistry = sessionImplementor.getJdbcCoordinator()
+									.getResourceRegistry();
+							resourceRegistry.release( rs);
+							resourceRegistry.release( ps );
 						}
 					}
 				}

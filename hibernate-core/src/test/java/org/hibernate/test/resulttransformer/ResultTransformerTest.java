@@ -89,6 +89,7 @@ public class ResultTransformerTest extends BaseCoreFunctionalTestCase {
 		assertTrue(obj instanceof PartnerA);
 		PartnerA obj2 = (PartnerA) obj;
 		assertEquals("Partner A", obj2.getName());
+		sr.close();
 		s.close();
 	}
 }

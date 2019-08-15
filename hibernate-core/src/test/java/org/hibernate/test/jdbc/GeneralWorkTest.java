@@ -17,6 +17,8 @@ import org.hibernate.Session;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.jdbc.ReturningWork;
 import org.hibernate.jdbc.Work;
+import org.hibernate.resource.jdbc.ResourceRegistry;
+
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
 
 import static org.junit.Assert.assertEquals;
@@ -133,6 +135,7 @@ public class GeneralWorkTest extends BaseCoreFunctionalTestCase {
 						}
 						finally {
 							releaseQuietly( ((SessionImplementor)session2), statement );
+							statement.close();
 						}
 						return personCount;
 					}
@@ -166,7 +169,8 @@ public class GeneralWorkTest extends BaseCoreFunctionalTestCase {
 			return;
 		}
 		try {
-			s.getJdbcCoordinator().getResourceRegistry().release( resultSet, statement );
+			ResourceRegistry resourceRegistry = s.getJdbcCoordinator().getResourceRegistry();
+			resourceRegistry.release( resultSet );
 		}
 		catch (Exception e) {
 			// ignore

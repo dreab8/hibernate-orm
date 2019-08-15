@@ -127,6 +127,7 @@ public class H2StoreProcedureTest extends BaseEntityManagerFunctionalTestCase {
 			query.setParameter( 1, 1L );
 
 			final List resultList = query.getResultList();
+			query.getSingleResult();
 			assertThat( resultList.size(), is( 1 ) );
 
 			final Set<Parameter<?>> parameters = query.getParameters();

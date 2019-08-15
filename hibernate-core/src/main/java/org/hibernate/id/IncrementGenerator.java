@@ -16,11 +16,13 @@ import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
 import org.hibernate.boot.model.naming.ObjectNameNormalizer;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
+import org.hibernate.engine.jdbc.spi.JdbcCoordinator;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.mapping.Table;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.Type;
 
@@ -107,9 +109,13 @@ public class IncrementGenerator implements IdentifierGenerator, Configurable {
 			LOG.debugf( "Fetching initial value: %s", sql );
 		}
 		try {
-			PreparedStatement st = session.getJdbcCoordinator().getStatementPreparer().prepareStatement( sql );
+			final JdbcCoordinator jdbcCoordinator = session.getJdbcCoordinator();
+			final ResourceRegistry resourceRegistry = jdbcCoordinator
+					.getLogicalConnection()
+					.getResourceRegistry();
+			PreparedStatement st = jdbcCoordinator.getStatementPreparer().prepareStatement( sql );
 			try {
-				ResultSet rs = session.getJdbcCoordinator().getResultSetReturn().extract( st );
+				ResultSet rs = jdbcCoordinator.getResultSetReturn().extract( st );
 				try {
 					if ( rs.next() ) {
 						previousValueHolder.initialize( rs, 0L ).increment();
@@ -117,18 +123,18 @@ public class IncrementGenerator implements IdentifierGenerator, Configurable {
 					else {
 						previousValueHolder.initialize( 1L );
 					}
-					sql = null;
-					if ( LOG.isDebugEnabled() ) {
-						LOG.debugf( "First free id: %s", previousValueHolder.makeValue() );
-					}
 				}
 				finally {
-					session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( rs, st );
+					resourceRegistry.release( rs );
+				}
+				sql = null;
+				if ( LOG.isDebugEnabled() ) {
+					LOG.debugf( "First free id: %s", previousValueHolder.makeValue() );
 				}
 			}
 			finally {
-				session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( st );
-				session.getJdbcCoordinator().afterStatementExecution();
+				resourceRegistry.release( st );
+				jdbcCoordinator.afterStatementExecution();
 			}
 		}
 		catch (SQLException sqle) {

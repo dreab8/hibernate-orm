@@ -6,6 +6,7 @@
  */
 package org.hibernate.test.connections;
 
+import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.internal.util.SerializationHelper;
@@ -75,11 +76,11 @@ public abstract class ConnectionManagementTestCase extends BaseNonConfigCoreFunc
 	 */
 	protected void release(Session session) {
 		if ( session != null && session.isOpen() ) {
-			try {
+//			try {
 				session.close();
-			}
-			catch( Throwable ignore ) {
-			}
+//			}
+//			catch( Throwable ignore ) {
+//			}
 		}
 	}
 
@@ -126,7 +127,7 @@ public abstract class ConnectionManagementTestCase extends BaseNonConfigCoreFunc
 		Session sessionUnderTest = getSessionUnderTest();
 
 		// force the connection to be retained
-		sessionUnderTest.createQuery( "from Silly" ).scroll();
+		ScrollableResults scroll = sessionUnderTest.createQuery( "from Silly" ).scroll();
 
 		try {
 			SerializationHelper.serialize( sessionUnderTest );
@@ -137,6 +138,7 @@ public abstract class ConnectionManagementTestCase extends BaseNonConfigCoreFunc
 			// expected behaviour
 		}
 		finally {
+			scroll.close();
 			release( sessionUnderTest );
 			done();
 		}

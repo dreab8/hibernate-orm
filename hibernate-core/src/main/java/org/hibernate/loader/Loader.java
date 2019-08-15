@@ -86,6 +86,7 @@ import org.hibernate.persister.entity.UniqueKeyLoadable;
 import org.hibernate.pretty.MessageHelper;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.query.spi.ScrollableResultsImplementor;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 import org.hibernate.stat.spi.StatisticsImplementor;
 import org.hibernate.transform.CacheableResultTransformer;
 import org.hibernate.transform.ResultTransformer;
@@ -2283,13 +2284,20 @@ public abstract class Loader {
 			final LimitHandler limitHandler,
 			final boolean autodiscovertypes,
 			final SharedSessionContractImplementor session) throws SQLException, HibernateException {
+		ResultSet rs = null;
+		final ResourceRegistry resourceRegistry = session.getJdbcCoordinator()
+				.getLogicalConnection()
+				.getResourceRegistry();
 		try {
-			ResultSet rs = session.getJdbcCoordinator().getResultSetReturn().extract( st );
+			rs = session.getJdbcCoordinator().getResultSetReturn().extract( st );
 
 			return processResultSet(rs, selection, limitHandler, autodiscovertypes, session);
 		}
 		catch (SQLException | HibernateException e) {
-			session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( st );
+			if ( rs != null ) {
+				resourceRegistry.release( rs );
+			}
+			resourceRegistry.release( st );
 			session.getJdbcCoordinator().afterStatementExecution();
 			throw e;
 		}

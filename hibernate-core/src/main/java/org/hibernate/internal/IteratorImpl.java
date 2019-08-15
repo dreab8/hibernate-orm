@@ -17,6 +17,7 @@ import org.hibernate.engine.HibernateIterator;
 import org.hibernate.engine.jdbc.spi.JdbcCoordinator;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.hql.internal.HolderInstantiator;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
 
@@ -65,7 +66,9 @@ public final class IteratorImpl implements HibernateIterator {
 		if ( ps != null ) {
 			LOG.debug( "Closing iterator" );
 			final JdbcCoordinator jdbcCoordinator = session.getJdbcCoordinator();
-			jdbcCoordinator.getResourceRegistry().release( ps );
+			final ResourceRegistry resourceRegistry = jdbcCoordinator.getResourceRegistry();
+			resourceRegistry.release( ps );
+			resourceRegistry.release( rs );
 			try {
 				session.getPersistenceContext().getLoadContexts().cleanup( rs );
 			}

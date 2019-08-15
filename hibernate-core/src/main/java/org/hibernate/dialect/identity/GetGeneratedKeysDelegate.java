@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.jdbc.spi.JdbcCoordinator;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGeneratorHelper;
 import org.hibernate.id.PostInsertIdentityPersister;
@@ -54,7 +55,8 @@ public class GetGeneratedKeysDelegate
 	@Override
 	public Serializable executeAndExtract(PreparedStatement insert, SharedSessionContractImplementor session)
 			throws SQLException {
-		session.getJdbcCoordinator().getResultSetReturn().executeUpdate( insert );
+		final JdbcCoordinator jdbcCoordinator = session.getJdbcCoordinator();
+		jdbcCoordinator.getResultSetReturn().executeUpdate( insert );
 		ResultSet rs = null;
 		try {
 			rs = insert.getGeneratedKeys();
@@ -67,7 +69,7 @@ public class GetGeneratedKeysDelegate
 		}
 		finally {
 			if ( rs != null ) {
-				session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( rs, insert );
+				jdbcCoordinator.getResourceRegistry().release( rs );
 			}
 		}
 	}

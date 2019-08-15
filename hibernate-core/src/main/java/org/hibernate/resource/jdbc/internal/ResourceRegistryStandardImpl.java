@@ -14,14 +14,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import org.hibernate.HibernateException;
 import org.hibernate.JDBCException;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
@@ -36,12 +32,11 @@ public class ResourceRegistryStandardImpl implements ResourceRegistry {
 
 	private final JdbcObserver jdbcObserver;
 
-	private final Map<Statement, Set<ResultSet>> xref = new HashMap<Statement, Set<ResultSet>>();
-	private final Set<ResultSet> unassociatedResultSets = new HashSet<ResultSet>();
-
 	private List<Blob> blobs;
 	private List<Clob> clobs;
 	private List<NClob> nclobs;
+
+	private HashSet<Statement> statements = new HashSet<>(  );
 
 	private Statement lastQuery;
 
@@ -55,22 +50,23 @@ public class ResourceRegistryStandardImpl implements ResourceRegistry {
 
 	@Override
 	public boolean hasRegisteredResources() {
-		return hasRegistered( xref )
-				|| hasRegistered( unassociatedResultSets )
+		return  hasRegistered( statements )
 				|| hasRegistered( blobs )
 				|| hasRegistered( clobs )
 				|| hasRegistered( nclobs );
+	}
+
+	public void checkAllResultsetAreClosed() {
+		if ( !statements.isEmpty() ) {
+			throw new RuntimeException( "Leaked statement" );
+		}
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public void register(Statement statement, boolean cancelable) {
 		log.tracef( "Registering statement [%s]", statement );
-
-		Set<ResultSet> previousValue = xref.putIfAbsent( statement, Collections.EMPTY_SET );
-		if ( previousValue != null ) {
-			throw new HibernateException( "JDBC Statement already registered" );
-		}
+		statements.add( statement );
 
 		if ( cancelable ) {
 			lastQuery = statement;
@@ -81,15 +77,7 @@ public class ResourceRegistryStandardImpl implements ResourceRegistry {
 	public void release(Statement statement) {
 		log.tracev( "Releasing statement [{0}]", statement );
 
-		final Set<ResultSet> resultSets = xref.remove( statement );
-		if ( resultSets != null ) {
-			closeAll( resultSets );
-		}
-		else {
-			// Keep this at DEBUG level, rather than warn.  Numerous connection pool implementations can return a
-			// proxy/wrapper around the JDBC Statement, causing excessive logging here.  See HHH-8210.
-			log.unregisteredStatement();
-		}
+		statements.remove( statement );
 
 		close( statement );
 
@@ -98,52 +86,27 @@ public class ResourceRegistryStandardImpl implements ResourceRegistry {
 		}
 	}
 
-	@Override
-	public void release(ResultSet resultSet, Statement statement) {
-		log.tracef( "Releasing result set [%s]", resultSet );
-
-		if ( statement == null ) {
+	protected void closeAllStatements() {
+		statements.forEach( statement -> {
 			try {
-				statement = resultSet.getStatement();
+				statement.close();
 			}
 			catch (SQLException e) {
-				throw convert( e, "unable to access Statement from ResultSet" );
+				log.debugf( "Unable to release JDBC statement [%s]", e.getMessage() );
 			}
-		}
-		if ( statement != null ) {
-			final Set<ResultSet> resultSets = xref.get( statement );
-			if ( resultSets == null ) {
-				log.unregisteredStatement();
-			}
-			else {
-				resultSets.remove( resultSet );
-				if ( resultSets.isEmpty() ) {
-					xref.remove( statement );
-				}
-			}
-		}
-		else {
-			final boolean removed = unassociatedResultSets.remove( resultSet );
-			if ( !removed ) {
-				log.unregisteredResultSetWithoutStatement();
-			}
-
-		}
-		close( resultSet );
-	}
-
-	protected void closeAll(Set<ResultSet> resultSets) {
-		for ( ResultSet resultSet : resultSets ) {
-			close( resultSet );
-		}
-		resultSets.clear();
+		} );
+		statements.clear();
 	}
 
 	@SuppressWarnings({"unchecked"})
-	public static void close(ResultSet resultSet) {
+	public void release(ResultSet resultSet) {
+
 		log.tracef( "Closing result set [%s]", resultSet );
 
 		try {
+			if ( resultSet.isClosed() ) {
+				return;
+			}
 			resultSet.close();
 		}
 		catch (SQLException e) {
@@ -189,37 +152,37 @@ public class ResourceRegistryStandardImpl implements ResourceRegistry {
 		}
 	}
 
-	@Override
-	public void register(ResultSet resultSet, Statement statement) {
-		log.tracef( "Registering result set [%s]", resultSet );
-
-		if ( statement == null ) {
-			try {
-				statement = resultSet.getStatement();
-			}
-			catch (SQLException e) {
-				throw convert( e, "unable to access Statement from ResultSet" );
-			}
-		}
-		if ( statement != null ) {
-			Set<ResultSet> resultSets = xref.get( statement );
-
-			// Keep this at DEBUG level, rather than warn.  Numerous connection pool implementations can return a
-			// proxy/wrapper around the JDBC Statement, causing excessive logging here.  See HHH-8210.
-			if ( resultSets == null ) {
-				log.debug( "ResultSet statement was not registered (on register)" );
-			}
-
-			if ( resultSets == null || resultSets == Collections.EMPTY_SET ) {
-				resultSets = new HashSet<ResultSet>();
-				xref.put( statement, resultSets );
-			}
-			resultSets.add( resultSet );
-		}
-		else {
-			unassociatedResultSets.add( resultSet );
-		}
-	}
+//	@Override
+//	public void register(ResultSet resultSet, Statement statement) {
+//		log.tracef( "Registering result set [%s]", resultSet );
+//
+//		if ( statement == null ) {
+//			try {
+//				statement = resultSet.getStatement();
+//			}
+//			catch (SQLException e) {
+//				throw convert( e, "unable to access Statement from ResultSet" );
+//			}
+//		}
+//		if ( statement != null ) {
+//			Set<ResultSet> resultSets = xref.get( statement );
+//
+//			// Keep this at DEBUG level, rather than warn.  Numerous connection pool implementations can return a
+//			// proxy/wrapper around the JDBC Statement, causing excessive logging here.  See HHH-8210.
+//			if ( resultSets == null ) {
+//				log.debug( "ResultSet statement was not registered (on register)" );
+//			}
+//
+//			if ( resultSets == null || resultSets == Collections.EMPTY_SET ) {
+//				resultSets = new HashSet<ResultSet>();
+//				xref.put( statement, resultSets );
+//			}
+//			resultSets.add( resultSet );
+//		}
+//		else {
+//			unassociatedResultSets.add( resultSet );
+//		}
+//	}
 
 	private JDBCException convert(SQLException e, String s) {
 		// todo : implement
@@ -303,15 +266,8 @@ public class ResourceRegistryStandardImpl implements ResourceRegistry {
 			jdbcObserver.jdbcReleaseRegistryResourcesStart();
 		}
 
-		for ( Map.Entry<Statement, Set<ResultSet>> entry : xref.entrySet() ) {
-			if ( entry.getValue() != null ) {
-				closeAll( entry.getValue() );
-			}
-			close( entry.getKey() );
-		}
-		xref.clear();
 
-		closeAll( unassociatedResultSets );
+		closeAllStatements();
 
 		if ( blobs != null ) {
 			for ( Blob blob : blobs ) {

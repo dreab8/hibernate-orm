@@ -16,6 +16,7 @@ import java.util.Date;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.CoreMessageLogger;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 
 import org.jboss.logging.Logger;
 
@@ -74,12 +75,13 @@ public class DbTimestampType extends TimestampType {
 
 	private Timestamp usePreparedStatement(String timestampSelectString, SharedSessionContractImplementor session) {
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			ps = session
 					.getJdbcCoordinator()
 					.getStatementPreparer()
 					.prepareStatement( timestampSelectString, false );
-			ResultSet rs = session.getJdbcCoordinator().getResultSetReturn().extract( ps );
+			rs = session.getJdbcCoordinator().getResultSetReturn().extract( ps );
 			rs.next();
 			Timestamp ts = rs.getTimestamp( 1 );
 			if ( LOG.isTraceEnabled() ) {
@@ -101,7 +103,11 @@ public class DbTimestampType extends TimestampType {
 		}
 		finally {
 			if ( ps != null ) {
-				session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( ps );
+				final ResourceRegistry resourceRegistry = session.getJdbcCoordinator()
+						.getLogicalConnection()
+						.getResourceRegistry();
+				resourceRegistry.release( rs );
+				resourceRegistry.release( ps );
 				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}

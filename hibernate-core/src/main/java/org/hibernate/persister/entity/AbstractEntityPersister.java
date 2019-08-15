@@ -119,6 +119,7 @@ import org.hibernate.persister.walking.spi.AttributeDefinition;
 import org.hibernate.persister.walking.spi.EntityIdentifierDefinition;
 import org.hibernate.pretty.MessageHelper;
 import org.hibernate.property.access.internal.PropertyAccessStrategyBackRefImpl;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 import org.hibernate.sql.Alias;
 import org.hibernate.sql.Delete;
 import org.hibernate.sql.Insert;
@@ -1195,7 +1196,9 @@ public abstract class AbstractEntityPersister
 		final Set<String> initializedLazyAttributeNames = interceptor.getInitializedLazyAttributeNames();
 
 		final String lazySelect = getSQLLazySelectString( fetchGroup );
-
+		final ResourceRegistry resourceRegistry = session.getJdbcCoordinator()
+				.getLogicalConnection()
+				.getResourceRegistry();
 		try {
 			Object result = null;
 			PreparedStatement ps = null;
@@ -1256,13 +1259,14 @@ public abstract class AbstractEntityPersister
 				}
 				finally {
 					if ( rs != null ) {
-						session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( rs, ps );
+						resourceRegistry.release( rs );
 					}
 				}
 			}
 			finally {
 				if ( ps != null ) {
-					session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( ps );
+
+					resourceRegistry.release( ps );
 					session.getJdbcCoordinator().afterStatementExecution();
 				}
 			}
@@ -1507,6 +1511,9 @@ public abstract class AbstractEntityPersister
 		}
 
 		try {
+			final ResourceRegistry resourceRegistry = session.getJdbcCoordinator()
+					.getLogicalConnection()
+					.getResourceRegistry();
 			PreparedStatement ps = session
 					.getJdbcCoordinator()
 					.getStatementPreparer()
@@ -1537,11 +1544,11 @@ public abstract class AbstractEntityPersister
 					return values;
 				}
 				finally {
-					session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( rs, ps );
+					resourceRegistry.release( rs );
 				}
 			}
 			finally {
-				session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( ps );
+				resourceRegistry.release( ps );
 				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
@@ -1575,6 +1582,9 @@ public abstract class AbstractEntityPersister
 		Type propertyType = getSubclassPropertyType( propertyIndex );
 
 		try {
+			final ResourceRegistry resourceRegistry = session.getJdbcCoordinator()
+					.getLogicalConnection()
+					.getResourceRegistry();
 			PreparedStatement ps = session
 					.getJdbcCoordinator()
 					.getStatementPreparer()
@@ -1590,11 +1600,11 @@ public abstract class AbstractEntityPersister
 					return (Serializable) getIdentifierType().nullSafeGet( rs, getIdentifierAliases(), session, null );
 				}
 				finally {
-					session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( rs, ps );
+					resourceRegistry.release( rs );
 				}
 			}
 			finally {
-				session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( ps );
+				resourceRegistry.release( ps );
 				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
@@ -1891,6 +1901,9 @@ public abstract class AbstractEntityPersister
 		}
 
 		try {
+			final ResourceRegistry resourceRegistry = session.getJdbcCoordinator()
+					.getLogicalConnection()
+					.getResourceRegistry();
 			PreparedStatement st = session
 					.getJdbcCoordinator()
 					.getStatementPreparer()
@@ -1908,11 +1921,11 @@ public abstract class AbstractEntityPersister
 					return getVersionType().nullSafeGet( rs, getVersionColumnName(), session, null );
 				}
 				finally {
-					session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( rs, st );
+					resourceRegistry.release( rs );
 				}
 			}
 			finally {
-				session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( st );
+				resourceRegistry.release( st );
 				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
@@ -2983,6 +2996,7 @@ public abstract class AbstractEntityPersister
 		PreparedStatement sequentialSelect = null;
 		ResultSet sequentialResultSet = null;
 		boolean sequentialSelectEmpty = false;
+		final ResourceRegistry resourceRegistry = session.getJdbcCoordinator().getResourceRegistry();
 		try {
 
 			if ( hasDeferred ) {
@@ -3053,7 +3067,7 @@ public abstract class AbstractEntityPersister
 			}
 
 			if ( sequentialResultSet != null ) {
-				session.getJdbcCoordinator().getResourceRegistry().release( sequentialResultSet, sequentialSelect );
+				resourceRegistry.release( sequentialResultSet );
 			}
 
 			return values;
@@ -3061,7 +3075,7 @@ public abstract class AbstractEntityPersister
 		}
 		finally {
 			if ( sequentialSelect != null ) {
-				session.getJdbcCoordinator().getResourceRegistry().release( sequentialSelect );
+				resourceRegistry.release( sequentialSelect );
 				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
@@ -5150,6 +5164,7 @@ public abstract class AbstractEntityPersister
 		session.getJdbcCoordinator().executeBatch();
 
 		try {
+			final ResourceRegistry resourceRegistry = session.getJdbcCoordinator().getResourceRegistry();
 			PreparedStatement ps = session
 					.getJdbcCoordinator()
 					.getStatementPreparer()
@@ -5189,12 +5204,12 @@ public abstract class AbstractEntityPersister
 				}
 				finally {
 					if ( rs != null ) {
-						session.getJdbcCoordinator().getResourceRegistry().release( rs, ps );
+						resourceRegistry.release( rs );
 					}
 				}
 			}
 			finally {
-				session.getJdbcCoordinator().getResourceRegistry().release( ps );
+				resourceRegistry.release( ps );
 				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}
@@ -5309,6 +5324,7 @@ public abstract class AbstractEntityPersister
 		Object[] snapshot = new Object[naturalIdPropertyCount];
 		try {
 			final JdbcCoordinator jdbcCoordinator = session.getJdbcCoordinator();
+			final ResourceRegistry resourceRegistry = jdbcCoordinator.getResourceRegistry();
 			PreparedStatement ps = jdbcCoordinator
 					.getStatementPreparer()
 					.prepareStatement( sql );
@@ -5336,11 +5352,11 @@ public abstract class AbstractEntityPersister
 					return snapshot;
 				}
 				finally {
-					jdbcCoordinator.getResourceRegistry().release( rs, ps );
+					resourceRegistry.release( rs );
 				}
 			}
 			finally {
-				jdbcCoordinator.getResourceRegistry().release( ps );
+				resourceRegistry.release( ps );
 				jdbcCoordinator.afterStatementExecution();
 			}
 		}
@@ -5370,6 +5386,7 @@ public abstract class AbstractEntityPersister
 		final String sqlEntityIdByNaturalIdString = determinePkByNaturalIdQuery( valueNullness );
 
 		try {
+			final ResourceRegistry resourceRegistry = session.getJdbcCoordinator().getResourceRegistry();
 			PreparedStatement ps = session
 					.getJdbcCoordinator()
 					.getStatementPreparer()
@@ -5396,11 +5413,11 @@ public abstract class AbstractEntityPersister
 					return (Serializable) getIdentifierType().resolve( hydratedId, session, null );
 				}
 				finally {
-					session.getJdbcCoordinator().getResourceRegistry().release( rs, ps );
+					resourceRegistry.release( rs );
 				}
 			}
 			finally {
-				session.getJdbcCoordinator().getResourceRegistry().release( ps );
+				resourceRegistry.release( ps );
 				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}

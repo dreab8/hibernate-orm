@@ -15,6 +15,7 @@ import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 
 /**
  * Generates <tt>string</tt> values using the SQL Server NEWID() function.
@@ -36,6 +37,9 @@ public class GUIDGenerator implements IdentifierGenerator {
 	public Serializable generate(SharedSessionContractImplementor session, Object obj) throws HibernateException {
 		final String sql = session.getJdbcServices().getJdbcEnvironment().getDialect().getSelectGUIDString();
 		try {
+			final ResourceRegistry resourceRegistry = session.getJdbcCoordinator()
+					.getLogicalConnection()
+					.getResourceRegistry();
 			PreparedStatement st = session.getJdbcCoordinator().getStatementPreparer().prepareStatement( sql );
 			try {
 				ResultSet rs = session.getJdbcCoordinator().getResultSetReturn().extract( st );
@@ -47,13 +51,13 @@ public class GUIDGenerator implements IdentifierGenerator {
 					result = rs.getString( 1 );
 				}
 				finally {
-					session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( rs, st );
+					resourceRegistry.release( rs );
 				}
 				LOG.guidGenerated( result );
 				return result;
 			}
 			finally {
-				session.getJdbcCoordinator().getLogicalConnection().getResourceRegistry().release( st );
+				resourceRegistry.release( st );
 				session.getJdbcCoordinator().afterStatementExecution();
 			}
 		}

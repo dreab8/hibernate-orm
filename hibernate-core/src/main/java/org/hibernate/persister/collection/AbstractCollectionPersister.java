@@ -80,6 +80,7 @@ import org.hibernate.persister.walking.spi.CompositeCollectionElementDefinition;
 import org.hibernate.persister.walking.spi.CompositionDefinition;
 import org.hibernate.persister.walking.spi.EntityDefinition;
 import org.hibernate.pretty.MessageHelper;
+import org.hibernate.resource.jdbc.ResourceRegistry;
 import org.hibernate.sql.Alias;
 import org.hibernate.sql.SelectFragment;
 import org.hibernate.sql.SimpleSelect;
@@ -1957,6 +1958,7 @@ public abstract class AbstractCollectionPersister
 	public int getSize(Serializable key, SharedSessionContractImplementor session) {
 		try {
 			final JdbcCoordinator jdbcCoordinator = session.getJdbcCoordinator();
+			final ResourceRegistry resourceRegistry = jdbcCoordinator.getResourceRegistry();
 			PreparedStatement st = jdbcCoordinator
 					.getStatementPreparer()
 					.prepareStatement( sqlSelectSizeString );
@@ -1967,11 +1969,11 @@ public abstract class AbstractCollectionPersister
 					return rs.next() ? rs.getInt( 1 ) - baseIndex : 0;
 				}
 				finally {
-					jdbcCoordinator.getResourceRegistry().release( rs, st );
+					resourceRegistry.release( rs);
 				}
 			}
 			finally {
-				jdbcCoordinator.getResourceRegistry().release( st );
+				resourceRegistry.release( st );
 				jdbcCoordinator.afterStatementExecution();
 			}
 		}
@@ -1998,6 +2000,7 @@ public abstract class AbstractCollectionPersister
 	private boolean exists(Serializable key, Object indexOrElement, Type indexOrElementType, String sql, SharedSessionContractImplementor session) {
 		try {
 			final JdbcCoordinator jdbcCoordinator = session.getJdbcCoordinator();
+			final ResourceRegistry resourceRegistry = jdbcCoordinator.getResourceRegistry();
 			PreparedStatement st = jdbcCoordinator
 					.getStatementPreparer()
 					.prepareStatement( sql );
@@ -2009,14 +2012,14 @@ public abstract class AbstractCollectionPersister
 					return rs.next();
 				}
 				finally {
-					jdbcCoordinator.getResourceRegistry().release( rs, st );
+					resourceRegistry.release( rs);
 				}
 			}
 			catch ( TransientObjectException e ) {
 				return false;
 			}
 			finally {
-				jdbcCoordinator.getResourceRegistry().release( st );
+				resourceRegistry.release( st );
 				jdbcCoordinator.afterStatementExecution();
 			}
 		}
@@ -2034,6 +2037,7 @@ public abstract class AbstractCollectionPersister
 	public Object getElementByIndex(Serializable key, Object index, SharedSessionContractImplementor session, Object owner) {
 		try {
 			final JdbcCoordinator jdbcCoordinator = session.getJdbcCoordinator();
+			final ResourceRegistry resourceRegistry = jdbcCoordinator.getResourceRegistry();
 			PreparedStatement st = jdbcCoordinator
 					.getStatementPreparer()
 					.prepareStatement( sqlSelectRowByIndexString );
@@ -2050,11 +2054,11 @@ public abstract class AbstractCollectionPersister
 					}
 				}
 				finally {
-					jdbcCoordinator.getResourceRegistry().release( rs, st );
+					resourceRegistry.release( rs );
 				}
 			}
 			finally {
-				jdbcCoordinator.getResourceRegistry().release( st );
+				resourceRegistry.release( st );
 				jdbcCoordinator.afterStatementExecution();
 			}
 		}
