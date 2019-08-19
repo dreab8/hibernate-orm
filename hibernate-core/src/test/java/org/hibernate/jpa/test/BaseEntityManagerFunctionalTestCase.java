@@ -29,6 +29,8 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.spi.Bootstrap;
 import org.hibernate.jpa.boot.spi.PersistenceUnitDescriptor;
+
+import org.hibernate.testing.jdbc.leak.StatementAndResultSetLeakDetectionConnectionProvider;
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.After;
 import org.junit.Before;
@@ -65,11 +67,11 @@ public abstract class BaseEntityManagerFunctionalTestCase extends BaseUnitTestCa
 	}
 
 	@Before
-	@SuppressWarnings( {"UnusedDeclaration"})
+	@SuppressWarnings({ "UnusedDeclaration" })
 	public void buildEntityManagerFactory() {
 		log.trace( "Building EntityManagerFactory" );
 
-		entityManagerFactory =  Bootstrap.getEntityManagerFactoryBuilder(
+		entityManagerFactory = Bootstrap.getEntityManagerFactoryBuilder(
 				buildPersistenceUnitDescriptor(),
 				buildSettings()
 		).build().unwrap( SessionFactoryImplementor.class );
@@ -178,7 +180,14 @@ public abstract class BaseEntityManagerFunctionalTestCase extends BaseUnitTestCa
 
 	@SuppressWarnings("unchecked")
 	protected Map buildSettings() {
+
 		Map settings = getConfig();
+		if ( enableStatementAndResultSetLeakDetection && !settings.containsKey( AvailableSettings.CONNECTION_PROVIDER ) ) {
+			settings.put(
+					AvailableSettings.CONNECTION_PROVIDER,
+					StatementAndResultSetLeakDetectionConnectionProvider.class.getName()
+			);
+		}
 		addMappings( settings );
 
 		if ( createSchema() ) {
@@ -186,6 +195,7 @@ public abstract class BaseEntityManagerFunctionalTestCase extends BaseUnitTestCa
 		}
 		settings.put( org.hibernate.cfg.AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS, "true" );
 		settings.put( org.hibernate.cfg.AvailableSettings.DIALECT, getDialect().getClass().getName() );
+
 		return settings;
 	}
 
@@ -245,7 +255,7 @@ public abstract class BaseEntityManagerFunctionalTestCase extends BaseUnitTestCa
 	}
 
 	public String[] getEjb3DD() {
-		return new String[] { };
+		return new String[] {};
 	}
 
 	protected void afterEntityManagerFactoryBuilt() {
@@ -257,13 +267,13 @@ public abstract class BaseEntityManagerFunctionalTestCase extends BaseUnitTestCa
 
 
 	@After
-	@SuppressWarnings( {"UnusedDeclaration"})
+	@SuppressWarnings({ "UnusedDeclaration" })
 	public void releaseResources() {
 		try {
 			releaseUnclosedEntityManagers();
 		}
 		finally {
-			if ( entityManagerFactory != null && entityManagerFactory.isOpen()) {
+			if ( entityManagerFactory != null && entityManagerFactory.isOpen() ) {
 				entityManagerFactory.close();
 			}
 		}
@@ -288,13 +298,13 @@ public abstract class BaseEntityManagerFunctionalTestCase extends BaseUnitTestCa
 
 		if ( em.getTransaction().isActive() ) {
 			em.getTransaction().rollback();
-            log.warn("You left an open transaction! Fix your test case. For now, we are closing it for you.");
+			log.warn( "You left an open transaction! Fix your test case. For now, we are closing it for you." );
 		}
 		if ( em.isOpen() ) {
 			// as we open an EM before the test runs, it will still be open if the test uses a custom EM.
 			// or, the person may have forgotten to close. So, do not raise a "fail", but log the fact.
 			em.close();
-            log.warn("The EntityManager is not closed. Closing it.");
+			log.warn( "The EntityManager is not closed. Closing it." );
 		}
 	}
 
@@ -312,7 +322,7 @@ public abstract class BaseEntityManagerFunctionalTestCase extends BaseUnitTestCa
 	}
 
 	protected EntityManager createIsolatedEntityManager(Map props) {
-		EntityManager isolatedEm = entityManagerFactory.createEntityManager(props);
+		EntityManager isolatedEm = entityManagerFactory.createEntityManager( props );
 		isolatedEms.add( isolatedEm );
 		return isolatedEm;
 	}
