@@ -57,6 +57,7 @@ import org.hibernate.testing.BeforeClassOnce;
 import org.hibernate.testing.OnExpectedFailure;
 import org.hibernate.testing.OnFailure;
 import org.hibernate.testing.cache.CachingRegionFactory;
+import org.hibernate.testing.jdbc.leak.StatementAndResultSetLeakDetectionConnectionProvider;
 import org.hibernate.testing.transaction.TransactionUtil2;
 import org.junit.After;
 import org.junit.Before;
@@ -177,8 +178,12 @@ public class BaseNonConfigCoreFunctionalTestCase extends BaseUnitTestCase {
 		addSettings( settings );
 
 		final StandardServiceRegistryBuilder ssrb = new StandardServiceRegistryBuilder( bsr );
+		if ( enableStatementAndResultSetLeakDetection ) {
+			ssrb.applySetting( AvailableSettings.CONNECTION_PROVIDER, new StatementAndResultSetLeakDetectionConnectionProvider() );
+		}
 		initialize( ssrb );
 		ssrb.applySettings( settings );
+
 		configureStandardServiceRegistryBuilder( ssrb );
 		return ssrb;
 	}

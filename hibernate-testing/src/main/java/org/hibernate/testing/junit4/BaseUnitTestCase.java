@@ -39,6 +39,9 @@ public abstract class BaseUnitTestCase {
 	private static boolean enableConnectionLeakDetection = Boolean.TRUE.toString()
 			.equals( System.getenv( "HIBERNATE_CONNECTION_LEAK_DETECTION" ) );
 
+	public static boolean enableStatementAndResultSetLeakDetection = Boolean.TRUE.toString()
+			.equals( System.getenv( "HIBERNATE_STATEMENT_LEAK_DETECTION" ) );
+
 	private ConnectionLeakUtil connectionLeakUtil;
 
 	protected final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -47,6 +50,9 @@ public abstract class BaseUnitTestCase {
 	public TestRule globalTimeout = Timeout.millis( TimeUnit.MINUTES.toMillis( 30 ) ); // no test should run longer than 30 minutes
 
 	public BaseUnitTestCase() {
+		if ( enableStatementAndResultSetLeakDetection ) {
+			log.info( "Using StatementAndResultSetLeakDetectionConnectionProvider for testing" );
+		}
 		if ( enableConnectionLeakDetection ) {
 			connectionLeakUtil = new ConnectionLeakUtil();
 		}

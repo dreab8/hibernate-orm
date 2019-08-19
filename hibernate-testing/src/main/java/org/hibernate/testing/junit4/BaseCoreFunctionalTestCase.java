@@ -46,6 +46,7 @@ import org.hibernate.testing.OnExpectedFailure;
 import org.hibernate.testing.OnFailure;
 import org.hibernate.testing.SkipLog;
 import org.hibernate.testing.cache.CachingRegionFactory;
+import org.hibernate.testing.jdbc.leak.StatementAndResultSetLeakDetectionConnectionProvider;
 import org.hibernate.testing.transaction.TransactionUtil2;
 import org.junit.After;
 import org.junit.Before;
@@ -162,6 +163,7 @@ public abstract class BaseCoreFunctionalTestCase extends BaseUnitTestCase {
 		Configuration configuration = new Configuration();
 		configuration.setProperty( AvailableSettings.CACHE_REGION_FACTORY, CachingRegionFactory.class.getName() );
 		configuration.setProperty( AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS, "true" );
+
 		if ( createSchema() ) {
 			configuration.setProperty( Environment.HBM2DDL_AUTO, "create-drop" );
 			final String secondSchemaName = createSecondSchema();
@@ -270,6 +272,12 @@ public abstract class BaseCoreFunctionalTestCase extends BaseUnitTestCase {
 		ConfigurationHelper.resolvePlaceHolders( properties );
 
 		StandardServiceRegistryBuilder cfgRegistryBuilder = configuration.getStandardServiceRegistryBuilder();
+		if ( enableStatementAndResultSetLeakDetection ) {
+			cfgRegistryBuilder.applySetting(
+					AvailableSettings.CONNECTION_PROVIDER,
+					new StatementAndResultSetLeakDetectionConnectionProvider()
+			);
+		}
 
 		StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder( bootRegistry, cfgRegistryBuilder.getAggregatedCfgXml() )
 				.applySettings( properties );
