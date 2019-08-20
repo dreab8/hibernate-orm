@@ -56,6 +56,10 @@ public class ConnectionWrapper implements Connection {
 		}
 	}
 
+	public Connection getConnection(){
+		return connection;
+	}
+
 	@Override
 	public Statement createStatement() throws SQLException {
 		return createStatementWrapper( connection.createStatement() );

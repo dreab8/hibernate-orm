@@ -66,13 +66,16 @@ public class StatementAndResultSetLeakDetectionConnectionProvider implements
 
 	@Override
 	public Connection getConnection() throws SQLException {
-		return new ConnectionWrapper( connectionProvider.getConnection() );
+		Connection connection = connectionProvider.getConnection();
+		return new ConnectionWrapper( connection );
 	}
 
 	@Override
 	public void closeConnection(Connection conn) throws SQLException {
-		connectionProvider.closeConnection( conn );
-		( (ConnectionWrapper) conn ).checkStamentsAndResultSetsAreClosed();
+		ConnectionWrapper connectionWrapper = (ConnectionWrapper) conn;
+		Connection connection = connectionWrapper.getConnection();
+		connectionProvider.closeConnection( connection );
+		connectionWrapper.checkStamentsAndResultSetsAreClosed();
 	}
 
 	@Override

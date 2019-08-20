@@ -50,8 +50,8 @@ public class StatementWrapper implements Statement {
 
 	@Override
 	public void close() throws SQLException {
-		statementInfo.close( statement );
 		statement.close();
+		statementInfo.close( statement );
 	}
 
 	@Override
