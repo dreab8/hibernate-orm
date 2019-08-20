@@ -161,6 +161,14 @@ public class SchemaDropperImpl implements SchemaDropper {
 			dropFromScript( sourceDescriptor.getScriptSourceInput(), commandExtractor, formatter, options, targets );
 			dropFromMetadata( metadata, options, dialect, formatter, targets );
 		}
+		for ( GenerationTarget target : targets ) {
+			try {
+				target.release();
+			}
+			catch (Exception e) {
+				log.debugf( e, "Error releasing GenerationTarget [%s]", target );
+			}
+		}
 	}
 
 	private void dropFromScript(
@@ -545,6 +553,7 @@ public class SchemaDropperImpl implements SchemaDropper {
 			}
 			finally {
 				target.release();
+
 			}
 		}
 

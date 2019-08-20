@@ -35,5 +35,5 @@ public interface GenerationTarget {
 	 *
 	 * @throws SchemaManagementException If there is a problem releasing the target.
 	 */
-	void release();
+	void release() throws Exception;
 }

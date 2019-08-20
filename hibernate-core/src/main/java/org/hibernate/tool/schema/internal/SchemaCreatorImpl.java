@@ -178,6 +178,14 @@ public class SchemaCreatorImpl implements SchemaCreator {
 		}
 
 		applyImportSources( options, commandExtractor, format, targets );
+		for ( GenerationTarget target : targets ) {
+			try {
+				target.release();
+			}
+			catch (Exception e) {
+				log.debugf( e, "Error releasing GenerationTarget [%s]", target );
+			}
+		}
 	}
 
 	public void createFromScript(
@@ -433,14 +441,15 @@ public class SchemaCreatorImpl implements SchemaCreator {
 			return;
 		}
 
-		try {
-			String sqlStringFormatted = formatter.format( sqlString );
-			for ( GenerationTarget target : targets ) {
+		String sqlStringFormatted = formatter.format( sqlString );
+
+		for ( GenerationTarget target : targets ) {
+			try {
 				target.accept( sqlStringFormatted );
 			}
-		}
-		catch (CommandAcceptanceException e) {
-			options.getExceptionHandler().handleException( e );
+			catch (CommandAcceptanceException e) {
+				options.getExceptionHandler().handleException( e );
+			}
 		}
 	}
 
