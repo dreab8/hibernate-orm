@@ -3173,9 +3173,9 @@ public abstract class AbstractEntityPersister
 		}
 		final boolean callable = isInsertCallable( j );
 
+		final PreparedStatement insert;
 		try {
 			// Render the SQL query
-			final PreparedStatement insert;
 			if ( useBatch ) {
 				insert = session
 						.getJdbcCoordinator()

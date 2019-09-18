@@ -41,6 +41,7 @@ public class LogicalConnectionManagedImpl extends AbstractLogicalConnectionImple
 	private final transient PhysicalConnectionHandlingMode connectionHandlingMode;
 
 	private transient Connection physicalConnection;
+	private transient boolean isReleaseConnectionInProgress;
 	private boolean closed;
 
 	private boolean providerDisablesAutoCommit;
@@ -181,14 +182,16 @@ public class LogicalConnectionManagedImpl extends AbstractLogicalConnectionImple
 	}
 
 	private void releaseConnection() {
-		if ( physicalConnection == null ) {
+		if ( isReleaseConnectionInProgress == true || physicalConnection == null ) {
 			return;
 		}
+		isReleaseConnectionInProgress = true;
 
 		try {
 			if ( !physicalConnection.isClosed() ) {
 				sqlExceptionHelper.logAndClearWarnings( physicalConnection );
 			}
+			getResourceRegistry().releaseResources();
 			jdbcConnectionAccess.releaseConnection( physicalConnection );
 		}
 		catch (SQLException e) {
@@ -197,7 +200,7 @@ public class LogicalConnectionManagedImpl extends AbstractLogicalConnectionImple
 		finally {
 			observer.jdbcConnectionReleaseEnd();
 			physicalConnection = null;
-			getResourceRegistry().releaseResources();
+			isReleaseConnectionInProgress = false;
 		}
 	}
 
