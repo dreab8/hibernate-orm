@@ -18,6 +18,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Date;
 import java.util.List;
 
@@ -82,7 +83,8 @@ public class StoredProcedureResultSetMappingTest extends BaseEntityManagerFuncti
 				new Work() {
 					@Override
 					public void execute(Connection connection) throws SQLException {
-						connection.createStatement().execute(
+						Statement statement = connection.createStatement();
+						statement.execute(
 								"CREATE ALIAS allEmployeeNames AS $$\n" +
 										"import org.h2.tools.SimpleResultSet;\n" +
 										"import java.sql.*;\n" +
@@ -99,6 +101,7 @@ public class StoredProcedureResultSetMappingTest extends BaseEntityManagerFuncti
 										"}\n" +
 										"$$"
 						);
+						statement.close();
 					}
 				}
 		);
@@ -112,7 +115,9 @@ public class StoredProcedureResultSetMappingTest extends BaseEntityManagerFuncti
 				new Work() {
 					@Override
 					public void execute(Connection connection) throws SQLException {
-						connection.createStatement().execute( "DROP ALIAS allEmployeeNames IF EXISTS" );
+						Statement statement = connection.createStatement();
+						statement.execute( "DROP ALIAS allEmployeeNames IF EXISTS" );
+						statement.close();
 					}
 				}
 		);

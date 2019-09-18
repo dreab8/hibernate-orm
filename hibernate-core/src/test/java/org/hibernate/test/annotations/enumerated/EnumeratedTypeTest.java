@@ -384,6 +384,7 @@ public class EnumeratedTypeTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		statement.execute( "delete from EntityEnum" );
 
+		statement.close();
         s.getTransaction().commit();
         s.close();
 	}
@@ -405,7 +406,7 @@ public class EnumeratedTypeTest extends BaseNonConfigCoreFunctionalTestCase {
 		assertEquals( resultList.get(0).getFormula(), Trimmed.A );
 
 		statement.execute( "delete from EntityEnum" );
-
+		statement.close();
 		s.getTransaction().commit();
 		s.close();
 	}

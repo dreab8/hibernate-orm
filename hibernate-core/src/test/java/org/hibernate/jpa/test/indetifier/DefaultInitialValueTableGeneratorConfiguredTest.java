@@ -9,6 +9,7 @@ package org.hibernate.jpa.test.indetifier;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -68,10 +69,13 @@ public class DefaultInitialValueTableGeneratorConfiguredTest extends BaseEntityM
 		session.doWork( new Work() {
 			@Override
 			public void execute(Connection connection) throws SQLException {
-				ResultSet resultSet = connection.createStatement().executeQuery(
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(
 						"select product_id from table_identifier" );
 				resultSet.next();
 				int productIdValue = resultSet.getInt( 1 );
+				resultSet.close();
+				statement.close();
 				assertThat( productIdValue, is(10) );
 			}
 		} );
