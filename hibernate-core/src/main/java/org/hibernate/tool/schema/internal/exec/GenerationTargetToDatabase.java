@@ -55,11 +55,12 @@ public class GenerationTargetToDatabase implements GenerationTarget {
 
 			try {
 				SQLWarning warnings = jdbcStatement.getWarnings();
-				if ( warnings != null) {
-					ddlTransactionIsolator.getJdbcContext().getSqlExceptionHelper().logAndClearWarnings( jdbcStatement );
+				if ( warnings != null ) {
+					ddlTransactionIsolator.getJdbcContext().getSqlExceptionHelper().logAndClearWarnings(
+							jdbcStatement );
 				}
 			}
-			catch( SQLException e ) {
+			catch (SQLException e) {
 				log.unableToLogSqlWarnings( e );
 			}
 		}
@@ -77,7 +78,10 @@ public class GenerationTargetToDatabase implements GenerationTarget {
 				this.jdbcStatement = ddlTransactionIsolator.getIsolatedConnection().createStatement();
 			}
 			catch (SQLException e) {
-				throw ddlTransactionIsolator.getJdbcContext().getSqlExceptionHelper().convert( e, "Unable to create JDBC Statement for DDL execution" );
+				throw ddlTransactionIsolator.getJdbcContext().getSqlExceptionHelper().convert(
+						e,
+						"Unable to create JDBC Statement for DDL execution"
+				);
 			}
 		}
 
@@ -86,8 +90,19 @@ public class GenerationTargetToDatabase implements GenerationTarget {
 
 	@Override
 	public void release() {
+		if ( jdbcStatement != null ) {
+			try {
+				if ( !jdbcStatement.isClosed() ) {
+					jdbcStatement.close();
+				}
+			}
+			catch (SQLException e) {
+				log.debugf( e, "Error closing statement" );
+			}
+		}
 		if ( releaseAfterUse ) {
 			ddlTransactionIsolator.release();
 		}
+		jdbcStatement = null;
 	}
 }
