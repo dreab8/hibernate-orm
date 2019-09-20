@@ -7,12 +7,14 @@
 package org.hibernate.test.legacy;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import org.hibernate.EntityMode;
 import org.hibernate.HibernateException;
@@ -31,6 +33,7 @@ import org.hibernate.engine.internal.MutableEntityEntryFactory;
 import org.hibernate.engine.internal.TwoPhaseLoad;
 import org.hibernate.engine.spi.CascadeStyle;
 import org.hibernate.engine.spi.EntityEntryFactory;
+import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.engine.spi.ValueInclusion;
@@ -43,7 +46,14 @@ import org.hibernate.internal.FilterAliasGenerator;
 import org.hibernate.internal.StaticFilterAliasGenerator;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.metamodel.mapping.AttributeMapping;
+import org.hibernate.metamodel.mapping.EntityIdentifierMapping;
+import org.hibernate.metamodel.mapping.EntityMappingType;
+import org.hibernate.metamodel.mapping.EntityVersionMapping;
+import org.hibernate.metamodel.mapping.NaturalIdMapping;
+import org.hibernate.metamodel.mapping.internal.MappingModelCreationProcess;
 import org.hibernate.metamodel.model.domain.NavigableRole;
+import org.hibernate.metamodel.spi.EntityRepresentationStrategy;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.MultiLoadOptions;
 import org.hibernate.persister.spi.PersisterCreationContext;
@@ -55,6 +65,7 @@ import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.Type;
 import org.hibernate.type.VersionType;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 public class CustomPersister implements EntityPersister {
 
@@ -721,6 +732,31 @@ public class CustomPersister implements EntityPersister {
 	}
 
 	@Override
+	public EntityIdentifierMapping getIdentifierMapping() {
+		return null;
+	}
+
+	@Override
+	public EntityVersionMapping getVersionMapping() {
+		return null;
+	}
+
+	@Override
+	public NaturalIdMapping getNaturalIdMapping() {
+		return null;
+	}
+
+	@Override
+	public boolean isTypeOrSuperType(EntityMappingType targetType) {
+		return targetType == this;
+	}
+
+	@Override
+	public EntityRepresentationStrategy getRepresentationStrategy() {
+		return null;
+	}
+
+	@Override
 	public EntityIdentifierDefinition getEntityKeyDefinition() {
 		throw new NotYetImplementedException();
 	}
@@ -738,5 +774,45 @@ public class CustomPersister implements EntityPersister {
 	@Override
 	public boolean canUseReferenceCacheEntries() {
 		return false;  //To change body of implemented methods use File | Settings | File Templates.
+	}
+
+	@Override
+	public boolean isAffectedByEntityGraph(LoadQueryInfluencers loadQueryInfluencers) {
+		return loadQueryInfluencers.getEffectiveEntityGraph().getGraph() != null;
+	}
+
+	@Override
+	public boolean isAffectedByEnabledFetchProfiles(LoadQueryInfluencers loadQueryInfluencers) {
+		return false;
+	}
+
+	@Override
+	public boolean isAffectedByEnabledFilters(LoadQueryInfluencers loadQueryInfluencers) {
+		return false;
+	}
+
+	@Override
+	public void linkWithSuperType(MappingModelCreationProcess creationProcess) {
+
+	}
+
+	@Override
+	public void prepareMappingModel(MappingModelCreationProcess creationProcess) {
+
+	}
+
+	@Override
+	public Collection<AttributeMapping> getAttributeMappings() {
+		return null;
+	}
+
+	@Override
+	public void visitAttributeMappings(Consumer<AttributeMapping> action) {
+
+	}
+
+	@Override
+	public JavaTypeDescriptor getMappedJavaTypeDescriptor() {
+		return null;
 	}
 }

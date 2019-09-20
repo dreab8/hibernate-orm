@@ -7,18 +7,19 @@
 package org.hibernate.test.annotations.join;
 
 import javax.persistence.PersistenceException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.mapping.Join;
 
@@ -36,7 +37,7 @@ import static org.junit.Assert.fail;
  */
 public class JoinTest extends BaseNonConfigCoreFunctionalTestCase {
 	@Test
-	public void testDefaultValue() throws Exception {
+	public void testDefaultValue() {
 		Join join = (Join) metadata().getEntityBinding( Life.class.getName() ).getJoinClosureIterator().next();
 		assertEquals( "ExtendedLife", join.getTable().getName() );
 		org.hibernate.mapping.Column owner = new org.hibernate.mapping.Column();
@@ -127,9 +128,17 @@ public class JoinTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		s = openSession();
 		tx = s.beginTransaction();
-		Criteria crit = s.createCriteria( Life.class );
-		crit.createCriteria( "owner" ).add( Restrictions.eq( "name", "kitty" ) );
-		life = (Life) crit.uniqueResult();
+
+		CriteriaBuilder criteriaBuilder = s.getCriteriaBuilder();
+		CriteriaQuery<Life> criteria = criteriaBuilder.createQuery( Life.class );
+		Root<Life> root = criteria.from( Life.class );
+		javax.persistence.criteria.Join<Object, Object> owner = root.join( "owner", JoinType.INNER );
+		criteria.where( criteriaBuilder.equal( owner.get( "name" ), "kitty" ) );
+		life = s.createQuery( criteria ).uniqueResult();
+
+//		Criteria crit = s.createCriteria( Life.class );
+//		crit.createCriteria( "owner" ).add( Restrictions.eq( "name", "kitty" ) );
+//		life = (Life) crit.uniqueResult();
 		assertEquals( "Long long description", life.fullDescription );
 		s.delete( life.owner );
 		s.delete( life );
@@ -138,7 +147,7 @@ public class JoinTest extends BaseNonConfigCoreFunctionalTestCase {
 	}
 	
 	@Test
-	public void testReferenceColumnWithBacktics() throws Exception {
+	public void testReferenceColumnWithBacktics() {
 		Session s=openSession();
 		s.beginTransaction();
 		SysGroupsOrm g=new SysGroupsOrm();

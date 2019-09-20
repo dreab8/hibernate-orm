@@ -7,13 +7,16 @@
 package org.hibernate.metamodel.model.domain.internal;
 
 import java.io.Serializable;
+import java.util.Map;
 
-import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.graph.internal.SubGraphImpl;
 import org.hibernate.graph.spi.SubGraphImplementor;
-import org.hibernate.metamodel.model.domain.spi.EmbeddedTypeDescriptor;
-import org.hibernate.metamodel.model.domain.spi.ManagedTypeDescriptor;
-import org.hibernate.type.ComponentType;
+import org.hibernate.metamodel.model.domain.AbstractManagedType;
+import org.hibernate.metamodel.model.domain.EmbeddableDomainType;
+import org.hibernate.metamodel.model.domain.JpaMetamodel;
+import org.hibernate.metamodel.spi.ManagedTypeRepresentationStrategy;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 /**
  * Standard Hibernate implementation of JPA's {@link javax.persistence.metamodel.EmbeddableType}
@@ -24,19 +27,38 @@ import org.hibernate.type.ComponentType;
  */
 public class EmbeddableTypeImpl<J>
 		extends AbstractManagedType<J>
-		implements EmbeddedTypeDescriptor<J>, Serializable {
+		implements EmbeddableDomainType<J>, Serializable {
 
-	private final ManagedTypeDescriptor<?> parent;
-	private final ComponentType hibernateType;
+	private final ManagedTypeRepresentationStrategy representationStrategy;
 
 	public EmbeddableTypeImpl(
-			Class<J> javaType,
-			ManagedTypeDescriptor<?> parent,
-			ComponentType hibernateType,
-			SessionFactoryImplementor sessionFactory) {
-		super( javaType, null, null, sessionFactory );
-		this.parent = parent;
-		this.hibernateType = hibernateType;
+			JavaTypeDescriptor<J> javaTypeDescriptor,
+			ManagedTypeRepresentationStrategy representationStrategy,
+			JpaMetamodel domainMetamodel) {
+		super( javaTypeDescriptor.getJavaType().getName(), javaTypeDescriptor, null, domainMetamodel );
+		this.representationStrategy = representationStrategy;
+	}
+
+	public EmbeddableTypeImpl(
+			String name,
+			JpaMetamodel domainMetamodel) {
+		//noinspection unchecked
+		super(
+				name,
+				(JavaTypeDescriptor) domainMetamodel.getTypeConfiguration()
+						.getJavaTypeDescriptorRegistry()
+						.getDescriptor( Map.class ),
+				null,
+				domainMetamodel
+		);
+
+		// todo (6.0) : need ManagedTypeRepresentationStrategy impls
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public ManagedTypeRepresentationStrategy getRepresentationStrategy() {
+		return representationStrategy;
 	}
 
 	@Override
@@ -44,17 +66,9 @@ public class EmbeddableTypeImpl<J>
 		return PersistenceType.EMBEDDABLE;
 	}
 
-	public ManagedTypeDescriptor<?> getParent() {
-		return parent;
-	}
-
-	public ComponentType getHibernateType() {
-		return hibernateType;
-	}
-
 	@Override
 	@SuppressWarnings("unchecked")
 	public <S extends J> SubGraphImplementor<S> makeSubGraph(Class<S> subType) {
-		return new SubGraphImpl( this, true, sessionFactory() );
+		return new SubGraphImpl( this, true, jpaMetamodel() );
 	}
 }

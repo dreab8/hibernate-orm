@@ -12,7 +12,10 @@ import org.hibernate.sql.SelectFragment;
  * operations required by the Hibernate Query Language
  *
  * @author Gavin King
+ *
+ * @deprecated See {@link org.hibernate.metamodel.mapping.Queryable}
  */
+@Deprecated
 public interface Queryable extends Loadable, PropertyMapping, Joinable {
 
 	/**
@@ -54,7 +57,10 @@ public interface Queryable extends Loadable, PropertyMapping, Joinable {
 	 * multiple tables?
 	 *
 	 * @return True if the inheritance hierarchy is spread across multiple tables; false otherwise.
+	 *
+	 * @deprecated (since 6.0) Use {@link EntityPersister#getSqmMultiTableMutationStrategy} instead
 	 */
+	@Deprecated
 	public boolean isMultiTable();
 
 	/**

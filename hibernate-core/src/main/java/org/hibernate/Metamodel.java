@@ -8,9 +8,17 @@ package org.hibernate;
 
 import javax.persistence.metamodel.EntityType;
 
+import org.hibernate.metamodel.model.domain.EntityDomainType;
+import org.hibernate.metamodel.model.domain.JpaMetamodel;
+
 /**
  * @author Steve Ebersole
+ *
+ * @deprecated (since 6.0) Prefer {@link JpaMetamodel}
+ *
+ * @see JpaMetamodel
  */
+@Deprecated
 public interface Metamodel extends javax.persistence.metamodel.Metamodel {
 	/**
 	 * Access to the SessionFactory that this Metamodel instance is bound to.
@@ -34,7 +42,7 @@ public interface Metamodel extends javax.persistence.metamodel.Metamodel {
 	 *
 	 * @return The entity descriptor
 	 */
-	<X> EntityType<X> entity(String entityName);
+	<X> EntityDomainType<X> entity(String entityName);
 
 	String getImportedClassName(String className);
 

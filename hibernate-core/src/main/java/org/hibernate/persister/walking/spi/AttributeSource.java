@@ -10,5 +10,5 @@ package org.hibernate.persister.walking.spi;
 * @author Steve Ebersole
 */
 public interface AttributeSource {
-	public Iterable<AttributeDefinition> getAttributes();
+	Iterable<AttributeDefinition> getAttributes();
 }

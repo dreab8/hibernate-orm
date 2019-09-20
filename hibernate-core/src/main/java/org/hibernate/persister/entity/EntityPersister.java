@@ -17,7 +17,7 @@ import org.hibernate.LockOptions;
 import org.hibernate.MappingException;
 import org.hibernate.bytecode.enhance.spi.interceptor.EnhancementAsProxyLazinessInterceptor;
 import org.hibernate.bytecode.spi.BytecodeEnhancementMetadata;
-import org.hibernate.bytecode.spi.NotInstrumentedException;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.cache.spi.access.EntityDataAccess;
 import org.hibernate.cache.spi.access.NaturalIdDataAccess;
 import org.hibernate.cache.spi.entry.CacheEntry;
@@ -29,9 +29,24 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.engine.spi.ValueInclusion;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.internal.FilterAliasGenerator;
+import org.hibernate.loader.spi.Loadable;
 import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.metamodel.mapping.EntityMappingType;
+import org.hibernate.metamodel.mapping.EntityValuedModelPart;
+import org.hibernate.metamodel.mapping.internal.InFlightEntityMappingType;
+import org.hibernate.metamodel.model.domain.EntityDomainType;
 import org.hibernate.metamodel.model.domain.NavigableRole;
+import org.hibernate.metamodel.spi.EntityRepresentationStrategy;
 import org.hibernate.persister.walking.spi.EntityDefinition;
+import org.hibernate.query.NavigablePath;
+import org.hibernate.query.sqm.SqmPathSource;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
+import org.hibernate.query.sqm.sql.SqlAstCreationState;
+import org.hibernate.query.sqm.tree.domain.SqmPath;
+import org.hibernate.sql.ast.spi.FromClauseAccess;
+import org.hibernate.sql.ast.spi.SqlAliasStemHelper;
+import org.hibernate.sql.ast.tree.from.RootTableGroupProducer;
+import org.hibernate.sql.ast.tree.from.TableGroup;
 import org.hibernate.tuple.entity.EntityMetamodel;
 import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.type.Type;
@@ -68,7 +83,7 @@ import org.hibernate.type.VersionType;
  * @see org.hibernate.persister.spi.PersisterFactory
  * @see org.hibernate.persister.spi.PersisterClassResolver
  */
-public interface EntityPersister extends EntityDefinition {
+public interface EntityPersister extends EntityDefinition, EntityValuedModelPart, InFlightEntityMappingType, Loadable, RootTableGroupProducer {
 
 	/**
 	 * The property name of the "special" identifier property in HQL
@@ -78,11 +93,15 @@ public interface EntityPersister extends EntityDefinition {
 	/**
 	 * Generate the entity definition for this object. This must be done for all
 	 * entity persisters before calling {@link #postInstantiate()}.
+	 *
+	 * @deprecated The legacy "walking model" is deprecated in favor of the newer "mapping model".
+	 * This method is no longer called by Hibernate.  See {@link #prepareMappingModel} instead
 	 */
+	@Deprecated
 	void generateEntityDefinition();
 
 	/**
-	 * Finish the initialization of this object. {@link #generateEntityDefinition()}
+	 * Finish the initialization of this object. {@link #prepareMappingModel}
 	 * must be called for all entity persisters before calling this method.
 	 * <p/>
 	 * Called only once per {@link org.hibernate.SessionFactory} lifecycle,
@@ -100,6 +119,11 @@ public interface EntityPersister extends EntityDefinition {
 	SessionFactoryImplementor getFactory();
 
 	NavigableRole getNavigableRole();
+
+	@Override
+	default String getSqlAliasStem() {
+		return SqlAliasStemHelper.INSTANCE.generateStemFromEntityName( getEntityName() );
+	}
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // stuff that is persister-centric and/or EntityInfo-centric ~~~~~~~~~~~~~~
@@ -126,6 +150,15 @@ public interface EntityPersister extends EntityDefinition {
 	 * @return The name of the entity which this persister maps.
 	 */
 	String getEntityName();
+
+	/**
+	 * The strategy to use for SQM mutation statements where the target entity
+	 * has multiple tables.  Returns {@code null} to indicate that the entity
+	 * does not define multiple tables
+	 */
+	default SqmMultiTableMutationStrategy getSqmMultiTableMutationStrategy(){
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
 
 	/**
 	 * Retrieve the underlying entity metamodel instance...
@@ -181,6 +214,19 @@ public interface EntityPersister extends EntityDefinition {
 	 * @return The query spaces.
 	 */
 	Serializable[] getQuerySpaces();
+
+	/**
+	 * Returns an array of objects that identify spaces in which properties of
+	 * this entity are persisted, for instances of this class and its subclasses.
+	 * <p/>
+	 * Much like {@link #getPropertySpaces()}, except that here we include subclass
+	 * entity spaces.
+	 *
+	 * @return The query spaces.
+	 */
+	default String[] getSynchronizedQuerySpaces() {
+		return (String[]) getQuerySpaces();
+	}
 
 	/**
 	 * Determine whether this entity supports dynamic proxies.
@@ -810,7 +856,23 @@ public interface EntityPersister extends EntityDefinition {
 	 */
 	EntityPersister getSubclassEntityPersister(Object instance, SessionFactoryImplementor factory);
 
+	EntityRepresentationStrategy getRepresentationStrategy();
+
+	@Override
+	default EntityMappingType getEntityMappingType() {
+		return this;
+	}
+
+	/**
+	 * @deprecated Use {@link #getRepresentationStrategy()}
+	 */
+	@Deprecated
 	EntityMode getEntityMode();
+
+	/**
+	 * @deprecated Use {@link #getRepresentationStrategy()}
+	 */
+	@Deprecated
 	EntityTuplizer getEntityTuplizer();
 
 	BytecodeEnhancementMetadata getInstrumentationMetadata();
@@ -838,5 +900,28 @@ public interface EntityPersister extends EntityDefinition {
 	@Deprecated
 	default boolean canIdentityInsertBeDelayed() {
 		return false;
+	}
+
+
+	@Override
+	default TableGroup prepareAsLhs(
+			NavigablePath navigablePath,
+			SqlAstCreationState creationState) {
+		final NavigablePath lhsPath = navigablePath.getParent();
+
+		return creationState.getFromClauseAccess().resolveTableGroup(
+				lhsPath,
+				np -> {
+					// getting here means that LHS has not yet been processed into a TableGroup
+					// 		- that should mean that the LHS reference is not a root
+					assert np.getParent() != null;
+
+					// however, that means the preparation should have been handled on
+					// the entity-valued sub-part
+					throw new UnsupportedOperationException(
+							"EntityPersister does not support preparation as LHS for non-root paths"
+					);
+				}
+		);
 	}
 }

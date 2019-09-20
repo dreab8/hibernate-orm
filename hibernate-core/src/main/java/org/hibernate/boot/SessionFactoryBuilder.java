@@ -21,7 +21,6 @@ import org.hibernate.SessionFactoryObserver;
 import org.hibernate.cache.spi.TimestampsCacheFactory;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.dialect.function.SQLFunction;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
 import org.hibernate.jpa.spi.JpaCompliance;
 import org.hibernate.loader.BatchFetchStyle;
 import org.hibernate.proxy.EntityNotFoundDelegate;
@@ -278,17 +277,6 @@ public interface SessionFactoryBuilder {
 	SessionFactoryBuilder applyEntityTuplizer(
 			EntityMode entityMode,
 			Class<? extends EntityTuplizer> tuplizerClass);
-
-	/**
-	 * How should updates and deletes that span multiple tables be handled?
-	 *
-	 * @param strategy The strategy for handling multi-table updates and deletes.
-	 *
-	 * @return {@code this}, for method chaining
-	 *
-	 * @see org.hibernate.cfg.AvailableSettings#HQL_BULK_ID_STRATEGY
-	 */
-	SessionFactoryBuilder applyMultiTableBulkIdStrategy(MultiTableBulkIdStrategy strategy);
 
 	SessionFactoryBuilder applyTempTableDdlTransactionHandling(TempTableDdlTransactionHandling handling);
 
@@ -751,7 +739,6 @@ public interface SessionFactoryBuilder {
 	 * @see JpaCompliance#isJpaClosedComplianceEnabled()
 	 */
 	SessionFactoryBuilder enableJpaClosedCompliance(boolean enabled);
-
 
 	/**
 	 * Allows unwrapping this builder as another, more specific type.

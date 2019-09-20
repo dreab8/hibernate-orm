@@ -9,8 +9,17 @@ package org.hibernate.metamodel.model.domain.internal;
 import java.io.Serializable;
 import java.util.Collection;
 
-import org.hibernate.metamodel.model.domain.spi.PluralPersistentAttribute;
-import org.hibernate.metamodel.model.domain.spi.SimpleTypeDescriptor;
+import org.hibernate.metamodel.CollectionClassification;
+import org.hibernate.metamodel.internal.MetadataContext;
+import org.hibernate.metamodel.model.domain.PluralPersistentAttribute;
+import org.hibernate.metamodel.model.domain.SimpleDomainType;
+import org.hibernate.query.NavigablePath;
+import org.hibernate.query.sqm.SqmPathSource;
+import org.hibernate.query.hql.spi.SqmCreationState;
+import org.hibernate.query.sqm.internal.SqmMappingModelHelper;
+import org.hibernate.query.sqm.tree.domain.SqmPath;
+import org.hibernate.query.sqm.tree.domain.SqmPluralValuedSimplePath;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 /**
  * @param <D> The (D)eclaring type
@@ -20,45 +29,79 @@ import org.hibernate.metamodel.model.domain.spi.SimpleTypeDescriptor;
  * @author Emmanuel Bernard
  * @author Steve Ebersole
  */
-public abstract class AbstractPluralAttribute<D, C, E>
-		extends AbstractAttribute<D,C>
+public abstract class AbstractPluralAttribute<D,C,E>
+		extends AbstractAttribute<D,C,E>
 		implements PluralPersistentAttribute<D,C,E>, Serializable {
 
-	private final Class<C> collectionClass;
+	private final CollectionClassification classification;
+	private final SqmPathSource<E> elementPathSource;
 
-	protected AbstractPluralAttribute(PluralAttributeBuilder<D,C,E,?> builder) {
+	@SuppressWarnings("WeakerAccess")
+	protected AbstractPluralAttribute(
+			PluralAttributeBuilder<D,C,E,?> builder,
+			MetadataContext metadataContext) {
 		super(
 				builder.getDeclaringType(),
 				builder.getProperty().getName(),
-				builder.getAttributeNature(),
+				builder.getCollectionJavaTypeDescriptor(),
+				builder.getAttributeClassification(),
 				builder.getValueType(),
-				builder.getMember()
+				builder.getMember(),
+				metadataContext
 		);
 
-		this.collectionClass = builder.getCollectionClass();
-	}
+		this.classification = builder.getCollectionClassification();
 
-	public static <X,C,E,K> PluralAttributeBuilder<X,C,E,K> create(
-			AbstractManagedType<X> ownerType,
-			SimpleTypeDescriptor<E> attrType,
-			Class<C> collectionClass,
-			SimpleTypeDescriptor<K> keyType) {
-		return new PluralAttributeBuilder<>( ownerType, attrType, collectionClass, keyType );
+		this.elementPathSource = SqmMappingModelHelper.resolveSqmPathSource(
+				getName(),
+				builder.getValueType(),
+				BindableType.PLURAL_ATTRIBUTE
+		);
 	}
 
 	@Override
-	public SimpleTypeDescriptor<E> getElementType() {
+	public String getPathName() {
+		return getName();
+	}
+
+	@Override
+	public CollectionClassification getCollectionClassification() {
+		return classification;
+	}
+
+	@Override
+	public SqmPathSource<E> getElementPathSource() {
+		return elementPathSource;
+	}
+
+	@Override
+	public SqmPathSource<?> findSubPathSource(String name) {
+		return elementPathSource.findSubPathSource( name );
+	}
+
+	@Override
+	public CollectionType getCollectionType() {
+		return getCollectionClassification().toJpaClassification();
+	}
+
+	@Override
+	public JavaTypeDescriptor<E> getExpressableJavaTypeDescriptor() {
+		return getElementType().getExpressableJavaTypeDescriptor();
+	}
+
+	@Override
+	public SimpleDomainType<E> getElementType() {
 		return getValueGraphType();
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public SimpleTypeDescriptor<E> getValueGraphType() {
-		return (SimpleTypeDescriptor<E>) super.getValueGraphType();
+	public SimpleDomainType<E> getValueGraphType() {
+		return (SimpleDomainType<E>) super.getValueGraphType();
 	}
 
 	@Override
-	public SimpleTypeDescriptor<?> getKeyGraphType() {
+	public SimpleDomainType getKeyGraphType() {
 		return null;
 	}
 
@@ -83,10 +126,15 @@ public abstract class AbstractPluralAttribute<D, C, E>
 		return getElementType().getJavaType();
 	}
 
-
 	@Override
-	public Class<C> getJavaType() {
-		return collectionClass;
+	public SqmPath<E> createSqmPath(SqmPath<?> lhs, SqmCreationState creationState) {
+		final NavigablePath navigablePath = lhs.getNavigablePath().append( getPathName() );
+		//noinspection unchecked
+		return new SqmPluralValuedSimplePath(
+				navigablePath,
+				this,
+				lhs,
+				creationState.getCreationContext().getNodeBuilder()
+		);
 	}
-
 }

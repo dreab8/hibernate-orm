@@ -15,23 +15,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hibernate.boot.AttributeConverterInfo;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.jaxb.spi.Binding;
+import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.boot.model.process.spi.ManagedResources;
 import org.hibernate.boot.spi.BootstrapContext;
-import org.hibernate.boot.spi.MetadataBuildingOptions;
-import org.hibernate.cfg.AttributeConverterDefinition;
 
 /**
  * @author Steve Ebersole
  */
 public class ManagedResourcesImpl implements ManagedResources {
-	private Map<Class, AttributeConverterInfo> attributeConverterInfoMap = new HashMap<>();
-	private Set<Class> annotatedClassReferences = new LinkedHashSet<Class>();
-	private Set<String> annotatedClassNames = new LinkedHashSet<String>();
-	private Set<String> annotatedPackageNames = new LinkedHashSet<String>();
-	private List<Binding> mappingFileBindings = new ArrayList<Binding>();
+	private Map<Class, ConverterDescriptor> attributeConverterDescriptorMap = new HashMap<>();
+	private Set<Class> annotatedClassReferences = new LinkedHashSet<>();
+	private Set<String> annotatedClassNames = new LinkedHashSet<>();
+	private Set<String> annotatedPackageNames = new LinkedHashSet<>();
+	private List<Binding> mappingFileBindings = new ArrayList<>();
+	private Map<String, Class<?>> extraQueryImports;
 
 	public static ManagedResourcesImpl baseline(MetadataSources sources, BootstrapContext bootstrapContext) {
 		final ManagedResourcesImpl impl = new ManagedResourcesImpl();
@@ -40,6 +39,7 @@ public class ManagedResourcesImpl implements ManagedResources {
 		impl.annotatedClassNames.addAll( sources.getAnnotatedClassNames() );
 		impl.annotatedPackageNames.addAll( sources.getAnnotatedPackages() );
 		impl.mappingFileBindings.addAll( sources.getXmlBindings() );
+		impl.extraQueryImports = sources.getExtraQueryImports();
 		return impl;
 	}
 
@@ -47,8 +47,8 @@ public class ManagedResourcesImpl implements ManagedResources {
 	}
 
 	@Override
-	public Collection<AttributeConverterInfo> getAttributeConverterDefinitions() {
-		return Collections.unmodifiableCollection( attributeConverterInfoMap.values() );
+	public Collection<ConverterDescriptor> getAttributeConverterDescriptors() {
+		return Collections.unmodifiableCollection( attributeConverterDescriptorMap.values() );
 	}
 
 	@Override
@@ -71,12 +71,17 @@ public class ManagedResourcesImpl implements ManagedResources {
 		return Collections.unmodifiableList( mappingFileBindings );
 	}
 
+	@Override
+	public Map<String, Class<?>> getExtraQueryImports() {
+		return extraQueryImports;
+	}
+
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// package private
 
-	void addAttributeConverterDefinition(AttributeConverterInfo converterInfo) {
-		attributeConverterInfoMap.put( converterInfo.getConverterClass(), converterInfo );
+	void addAttributeConverterDefinition(ConverterDescriptor descriptor) {
+		attributeConverterDescriptorMap.put( descriptor.getAttributeConverterClass(), descriptor );
 	}
 
 	void addAnnotatedClassReference(Class annotatedClassReference) {

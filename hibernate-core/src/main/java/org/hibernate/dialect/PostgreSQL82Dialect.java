@@ -6,11 +6,10 @@
  */
 package org.hibernate.dialect;
 
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.boot.model.TypeContributions;
-import org.hibernate.hql.spi.id.IdTableSupportStandardImpl;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.local.AfterUseAction;
-import org.hibernate.hql.spi.id.local.LocalTemporaryTableBulkIdStrategy;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.PostgresUUIDType;
 
@@ -34,22 +33,24 @@ public class PostgreSQL82Dialect extends PostgreSQL81Dialect {
 	}
 
 	@Override
-	public MultiTableBulkIdStrategy getDefaultMultiTableBulkIdStrategy() {
-		return new LocalTemporaryTableBulkIdStrategy(
-				new IdTableSupportStandardImpl() {
-					@Override
-					public String getCreateIdTableCommand() {
-						return "create temporary  table";
-					}
+	public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityPersister runtimeRootEntityDescriptor) {
+		throw new NotYetImplementedFor6Exception( getClass() );
 
-					@Override
-					public String getDropIdTableCommand() {
-						return "drop table";
-					}
-				},
-				AfterUseAction.DROP,
-				null
-		);
+//		return new LocalTemporaryTableBulkIdStrategy(
+//				new IdTableSupportStandardImpl() {
+//					@Override
+//					public String getCreateIdTableCommand() {
+//						return "create temporary  table";
+//					}
+//
+//					@Override
+//					public String getDropIdTableCommand() {
+//						return "drop table";
+//					}
+//				},
+//				AfterUseAction.DROP,
+//				null
+//		);
 	}
 
 	@Override

@@ -8,19 +8,20 @@ package org.hibernate.boot;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.model.IdentifierGeneratorDefinition;
 import org.hibernate.boot.model.TypeDefinition;
 import org.hibernate.boot.model.relational.Database;
+import org.hibernate.boot.spi.NamedHqlQueryDefinition;
+import org.hibernate.boot.spi.NamedNativeQueryDefinition;
+import org.hibernate.boot.spi.NamedProcedureCallDefinition;
+import org.hibernate.boot.spi.NamedResultSetMappingDefinition;
 import org.hibernate.cfg.annotations.NamedEntityGraphDefinition;
-import org.hibernate.cfg.annotations.NamedProcedureCallDefinition;
 import org.hibernate.dialect.function.SQLFunction;
-import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.engine.spi.FilterDefinition;
 import org.hibernate.engine.spi.Mapping;
-import org.hibernate.engine.spi.NamedQueryDefinition;
-import org.hibernate.engine.spi.NamedSQLQueryDefinition;
 import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.FetchProfile;
 import org.hibernate.mapping.PersistentClass;
@@ -113,26 +114,31 @@ public interface Metadata extends Mapping {
 	/**
 	 * Retrieve named query metadata by name.
 	 *
-	 * @param name The query name
-	 *
 	 * @return The named query metadata, or {@code null}.
 	 */
-	NamedQueryDefinition getNamedQueryDefinition(String name);
+	NamedHqlQueryDefinition getNamedHqlQueryMapping(String name);
 
-	java.util.Collection<NamedQueryDefinition> getNamedQueryDefinitions();
+	/**
+	 * Visit all named HQL query definitions
+	 */
+	void visitNamedHqlQueryDefinitions(Consumer<NamedHqlQueryDefinition> definitionConsumer);
 
 	/**
 	 * Retrieve named SQL query metadata.
 	 *
-	 * @param name The SQL query name.
-	 *
 	 * @return The named query metadata, or {@code null}
 	 */
-	NamedSQLQueryDefinition getNamedNativeQueryDefinition(String name);
+	NamedNativeQueryDefinition getNamedNativeQueryMapping(String name);
 
-	java.util.Collection<NamedSQLQueryDefinition> getNamedNativeQueryDefinitions();
+	/**
+	 * Visit all named native query definitions
+	 */
+	void visitNamedNativeQueryDefinitions(Consumer<NamedNativeQueryDefinition> definitionConsumer);
 
-	java.util.Collection<NamedProcedureCallDefinition> getNamedProcedureCallDefinitions();
+	/**
+	 * Visit all named callable query definitions
+	 */
+	void visitNamedProcedureCallDefinition(Consumer<NamedProcedureCallDefinition> definitionConsumer);
 
 	/**
 	 * Retrieve the metadata for a named SQL result set mapping.
@@ -141,14 +147,15 @@ public interface Metadata extends Mapping {
 	 *
 	 * @return The named result set mapping metadata, or {@code null} if none found.
 	 */
-	ResultSetMappingDefinition getResultSetMapping(String name);
+	NamedResultSetMappingDefinition getResultSetMapping(String name);
 
-	Map<String, ResultSetMappingDefinition> getResultSetMappingDefinitions();
+	/**
+	 * Visit all named SQL result set mapping definitions
+	 */
+	void visitNamedResultSetMappingDefinition(Consumer<NamedResultSetMappingDefinition> definitionConsumer);
 
 	/**
 	 * Retrieve a type definition by name.
-	 *
-	 * @param typeName The name of the type definition to retrieve.
 	 *
 	 * @return The named type definition, or {@code null}
 	 */

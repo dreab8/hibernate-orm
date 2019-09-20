@@ -11,7 +11,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.function.Supplier;
 
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.engine.config.spi.ConfigurationService;
+import org.hibernate.engine.config.spi.StandardConverters;
+import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.internal.util.collections.ArrayHelper;
 
@@ -319,6 +325,18 @@ public final class ConfigurationHelper {
 		return value;
 	}
 
+	public static String extractValue(
+			String name,
+			Map values,
+			Supplier<String> fallbackValueFactory) {
+		final String value = extractPropertyValue( name, values );
+		if ( value != null ) {
+			return value;
+		}
+
+		return fallbackValueFactory.get();
+	}
+
 	/**
 	 * Constructs a map from a property value.
 	 * <p/>
@@ -477,4 +495,21 @@ public final class ConfigurationHelper {
 			return null;
 		}
 	}
+
+	public static synchronized int getPreferredSqlTypeCodeForBoolean(StandardServiceRegistry serviceRegistry) {
+		final Integer typeCode = serviceRegistry.getService( ConfigurationService.class ).getSetting(
+				AvailableSettings.PREFERRED_BOOLEAN_JDBC_TYPE_CODE,
+				StandardConverters.INTEGER
+		);
+		if ( typeCode != null ) {
+			return typeCode;
+		}
+
+		// default to the Dialect answer
+		return serviceRegistry.getService( JdbcServices.class )
+				.getJdbcEnvironment()
+				.getDialect()
+				.getPreferredSqlTypeCodeForBoolean();
+	}
+
 }

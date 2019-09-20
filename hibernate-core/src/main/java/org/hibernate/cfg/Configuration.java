@@ -29,7 +29,11 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.SessionFactoryBuilder;
+import org.hibernate.boot.internal.ClassmateContext;
 import org.hibernate.boot.model.TypeContributor;
+import org.hibernate.boot.model.convert.internal.ClassBasedConverterDescriptor;
+import org.hibernate.boot.model.convert.internal.InstanceBasedConverterDescriptor;
+import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategy;
 import org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategy;
@@ -39,13 +43,13 @@ import org.hibernate.boot.registry.BootstrapServiceRegistry;
 import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.boot.spi.NamedHqlQueryDefinition;
+import org.hibernate.boot.spi.NamedNativeQueryDefinition;
+import org.hibernate.boot.spi.NamedProcedureCallDefinition;
+import org.hibernate.boot.spi.NamedResultSetMappingDefinition;
 import org.hibernate.cfg.annotations.NamedEntityGraphDefinition;
-import org.hibernate.cfg.annotations.NamedProcedureCallDefinition;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.dialect.function.SQLFunction;
-import org.hibernate.engine.ResultSetMappingDefinition;
-import org.hibernate.engine.spi.NamedQueryDefinition;
-import org.hibernate.engine.spi.NamedSQLQueryDefinition;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.xml.XmlDocument;
@@ -53,10 +57,7 @@ import org.hibernate.proxy.EntityNotFoundDelegate;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.tuple.entity.EntityTuplizerFactory;
 import org.hibernate.type.BasicType;
-import org.hibernate.type.CompositeCustomType;
-import org.hibernate.type.CustomType;
 import org.hibernate.type.SerializationException;
-import org.hibernate.usertype.CompositeUserType;
 import org.hibernate.usertype.UserType;
 
 /**
@@ -88,21 +89,23 @@ public class Configuration {
 
 	private final BootstrapServiceRegistry bootstrapServiceRegistry;
 	private final MetadataSources metadataSources;
+	private final ClassmateContext classmateContext;
 
 	// used during processing mappings
 	private ImplicitNamingStrategy implicitNamingStrategy;
 	private PhysicalNamingStrategy physicalNamingStrategy;
-	private List<BasicType> basicTypes = new ArrayList<BasicType>();
-	private List<TypeContributor> typeContributorRegistrations = new ArrayList<TypeContributor>();
-	private Map<String, NamedQueryDefinition> namedQueries;
-	private Map<String, NamedSQLQueryDefinition> namedSqlQueries;
+	private List<BasicType> basicTypes = new ArrayList<>();
+	private List<UserTypeRegistration> userTypeRegistrations;
+	private List<TypeContributor> typeContributorRegistrations = new ArrayList<>();
+	private Map<String, NamedHqlQueryDefinition> namedQueries;
+	private Map<String, NamedNativeQueryDefinition> namedSqlQueries;
 	private Map<String, NamedProcedureCallDefinition> namedProcedureCallMap;
-	private Map<String, ResultSetMappingDefinition> sqlResultSetMappings;
+	private Map<String, NamedResultSetMappingDefinition> sqlResultSetMappings;
 	private Map<String, NamedEntityGraphDefinition> namedEntityGraphMap;
 
 	private Map<String, SQLFunction> sqlFunctions;
 	private List<AuxiliaryDatabaseObject> auxiliaryDatabaseObjectList;
-	private HashMap<Class,AttributeConverterDefinition> attributeConverterDefinitionsByClass;
+	private HashMap<Class, ConverterDescriptor> attributeConverterDescriptorsByClass;
 
 	// used to build SF
 	private StandardServiceRegistryBuilder standardServiceRegistryBuilder;
@@ -121,20 +124,22 @@ public class Configuration {
 	public Configuration(BootstrapServiceRegistry serviceRegistry) {
 		this.bootstrapServiceRegistry = serviceRegistry;
 		this.metadataSources = new MetadataSources( serviceRegistry );
+		this.classmateContext = new ClassmateContext();
 		reset();
 	}
 
 	public Configuration(MetadataSources metadataSources) {
 		this.bootstrapServiceRegistry = getBootstrapRegistry( metadataSources.getServiceRegistry() );
 		this.metadataSources = metadataSources;
+		this.classmateContext = new ClassmateContext();
 		reset();
 	}
 
 	private static BootstrapServiceRegistry getBootstrapRegistry(ServiceRegistry serviceRegistry) {
-		if ( BootstrapServiceRegistry.class.isInstance( serviceRegistry ) ) {
+		if ( serviceRegistry instanceof BootstrapServiceRegistry ) {
 			return (BootstrapServiceRegistry) serviceRegistry;
 		}
-		else if ( StandardServiceRegistry.class.isInstance( serviceRegistry ) ) {
+		else if ( serviceRegistry instanceof StandardServiceRegistry ) {
 			final StandardServiceRegistry ssr = (StandardServiceRegistry) serviceRegistry;
 			return (BootstrapServiceRegistry) ssr.getParentServiceRegistry();
 		}
@@ -149,11 +154,11 @@ public class Configuration {
 	protected void reset() {
 		implicitNamingStrategy = ImplicitNamingStrategyJpaCompliantImpl.INSTANCE;
 		physicalNamingStrategy = PhysicalNamingStrategyStandardImpl.INSTANCE;
-		namedQueries = new HashMap<String,NamedQueryDefinition>();
-		namedSqlQueries = new HashMap<String,NamedSQLQueryDefinition>();
-		sqlResultSetMappings = new HashMap<String, ResultSetMappingDefinition>();
-		namedEntityGraphMap = new HashMap<String, NamedEntityGraphDefinition>();
-		namedProcedureCallMap = new HashMap<String, NamedProcedureCallDefinition>(  );
+		namedQueries = new HashMap<>();
+		namedSqlQueries = new HashMap<>();
+		sqlResultSetMappings = new HashMap<>();
+		namedEntityGraphMap = new HashMap<>();
+		namedProcedureCallMap = new HashMap<>();
 
 		standardServiceRegistryBuilder = new StandardServiceRegistryBuilder( bootstrapServiceRegistry );
 		entityTuplizerFactory = new EntityTuplizerFactory();
@@ -328,14 +333,17 @@ public class Configuration {
 		return this;
 	}
 
-
-	public Configuration registerTypeOverride(UserType type, String[] keys) {
-		basicTypes.add( new CustomType( type, keys ) );
-		return this;
+	private interface UserTypeRegistration {
+		void registerType(MetadataBuilder metadataBuilder);
 	}
 
-	public Configuration registerTypeOverride(CompositeUserType type, String[] keys) {
-		basicTypes.add( new CompositeCustomType( type, keys ) );
+	public Configuration registerTypeOverride(UserType type, String[] keys) {
+		if ( userTypeRegistrations == null ) {
+			userTypeRegistrations = new ArrayList<>();
+		}
+		userTypeRegistrations.add(
+				metadataBuilder -> metadataBuilder.applyBasicType( type, keys )
+		);
 		return this;
 	}
 
@@ -651,56 +659,70 @@ public class Configuration {
 	public SessionFactory buildSessionFactory(ServiceRegistry serviceRegistry) throws HibernateException {
 		log.debug( "Building session factory using provided StandardServiceRegistry" );
 		final MetadataBuilder metadataBuilder = metadataSources.getMetadataBuilder( (StandardServiceRegistry) serviceRegistry );
+
 		if ( implicitNamingStrategy != null ) {
 			metadataBuilder.applyImplicitNamingStrategy( implicitNamingStrategy );
 		}
+
 		if ( physicalNamingStrategy != null ) {
 			metadataBuilder.applyPhysicalNamingStrategy( physicalNamingStrategy );
 		}
+
 		if ( sharedCacheMode != null ) {
 			metadataBuilder.applySharedCacheMode( sharedCacheMode );
 		}
+
 		if ( !typeContributorRegistrations.isEmpty() ) {
 			for ( TypeContributor typeContributor : typeContributorRegistrations ) {
 				metadataBuilder.applyTypes( typeContributor );
 			}
 		}
+
+		if ( userTypeRegistrations != null ) {
+			userTypeRegistrations.forEach( registration ->  registration.registerType( metadataBuilder ) );
+		}
+
 		if ( !basicTypes.isEmpty() ) {
 			for ( BasicType basicType : basicTypes ) {
 				metadataBuilder.applyBasicType( basicType );
 			}
 		}
+
 		if ( sqlFunctions != null ) {
 			for ( Map.Entry<String, SQLFunction> entry : sqlFunctions.entrySet() ) {
 				metadataBuilder.applySqlFunction( entry.getKey(), entry.getValue() );
 			}
 		}
+
 		if ( auxiliaryDatabaseObjectList != null ) {
 			for ( AuxiliaryDatabaseObject auxiliaryDatabaseObject : auxiliaryDatabaseObjectList ) {
 				metadataBuilder.applyAuxiliaryDatabaseObject( auxiliaryDatabaseObject );
 			}
 		}
-		if ( attributeConverterDefinitionsByClass != null ) {
-			for ( AttributeConverterDefinition attributeConverterDefinition : attributeConverterDefinitionsByClass.values() ) {
-				metadataBuilder.applyAttributeConverter( attributeConverterDefinition );
-			}
+
+		if ( attributeConverterDescriptorsByClass != null ) {
+			attributeConverterDescriptorsByClass.values().forEach( metadataBuilder::applyAttributeConverter );
 		}
 
 		final Metadata metadata = metadataBuilder.build();
-
 		final SessionFactoryBuilder sessionFactoryBuilder = metadata.getSessionFactoryBuilder();
+
 		if ( interceptor != null && interceptor != EmptyInterceptor.INSTANCE ) {
 			sessionFactoryBuilder.applyInterceptor( interceptor );
 		}
+
 		if ( getSessionFactoryObserver() != null ) {
 			sessionFactoryBuilder.addSessionFactoryObservers( getSessionFactoryObserver() );
 		}
+
 		if ( getEntityNotFoundDelegate() != null ) {
 			sessionFactoryBuilder.applyEntityNotFoundDelegate( getEntityNotFoundDelegate() );
 		}
+
 		if ( getEntityTuplizerFactory() != null ) {
 			sessionFactoryBuilder.applyEntityTuplizerFactory( getEntityTuplizerFactory() );
 		}
+
 		if ( getCurrentTenantIdentifierResolver() != null ) {
 			sessionFactoryBuilder.applyCurrentTenantIdentifierResolver( getCurrentTenantIdentifierResolver() );
 		}
@@ -752,7 +774,7 @@ public class Configuration {
 	 * by its "entity attribute" parameterized type?
 	 */
 	public void addAttributeConverter(Class<? extends AttributeConverter> attributeConverterClass, boolean autoApply) {
-		addAttributeConverter( AttributeConverterDefinition.from( attributeConverterClass, autoApply ) );
+		addAttributeConverter( new ClassBasedConverterDescriptor( attributeConverterClass, autoApply, classmateContext ) );
 	}
 
 	/**
@@ -760,8 +782,8 @@ public class Configuration {
 	 *
 	 * @param attributeConverterClass The AttributeConverter class.
 	 */
-	public void addAttributeConverter(Class<? extends AttributeConverter> attributeConverterClass) {
-		addAttributeConverter( AttributeConverterDefinition.from( attributeConverterClass ) );
+	public void addAttributeConverter(Class<? extends AttributeConverter<?,?>> attributeConverterClass) {
+		addAttributeConverter( new ClassBasedConverterDescriptor( attributeConverterClass, classmateContext ) );
 	}
 
 	/**
@@ -771,8 +793,8 @@ public class Configuration {
 	 *
 	 * @param attributeConverter The AttributeConverter instance.
 	 */
-	public void addAttributeConverter(AttributeConverter attributeConverter) {
-		addAttributeConverter( AttributeConverterDefinition.from( attributeConverter ) );
+	public void addAttributeConverter(AttributeConverter<?,?> attributeConverter) {
+		addAttributeConverter( new InstanceBasedConverterDescriptor( attributeConverter, classmateContext ) );
 	}
 
 	/**
@@ -784,15 +806,15 @@ public class Configuration {
 	 * @param autoApply Should the AttributeConverter be auto applied to property types as specified
 	 * by its "entity attribute" parameterized type?
 	 */
-	public void addAttributeConverter(AttributeConverter attributeConverter, boolean autoApply) {
-		addAttributeConverter( AttributeConverterDefinition.from( attributeConverter, autoApply ) );
+	public void addAttributeConverter(AttributeConverter<?,?> attributeConverter, boolean autoApply) {
+		addAttributeConverter( new InstanceBasedConverterDescriptor( attributeConverter, autoApply, classmateContext ) );
 	}
 
-	public void addAttributeConverter(AttributeConverterDefinition definition) {
-		if ( attributeConverterDefinitionsByClass == null ) {
-			attributeConverterDefinitionsByClass = new HashMap<Class, AttributeConverterDefinition>();
+	public void addAttributeConverter(ConverterDescriptor converterDescriptor) {
+		if ( attributeConverterDescriptorsByClass == null ) {
+			attributeConverterDescriptorsByClass = new HashMap<>();
 		}
-		attributeConverterDefinitionsByClass.put( definition.getAttributeConverter().getClass(), definition );
+		attributeConverterDescriptorsByClass.put( converterDescriptor.getAttributeConverterClass(), converterDescriptor );
 	}
 
 	/**
@@ -826,7 +848,7 @@ public class Configuration {
 	}
 
 
-	public Map<String, NamedQueryDefinition> getNamedQueries() {
+	public Map<String, NamedHqlQueryDefinition> getNamedQueries() {
 		return namedQueries;
 	}
 

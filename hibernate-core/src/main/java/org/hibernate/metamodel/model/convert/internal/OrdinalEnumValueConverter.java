@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
@@ -19,7 +18,8 @@ import org.hibernate.metamodel.model.convert.spi.EnumValueConverter;
 import org.hibernate.type.descriptor.ValueBinder;
 import org.hibernate.type.descriptor.ValueExtractor;
 import org.hibernate.type.descriptor.java.EnumJavaTypeDescriptor;
-import org.hibernate.type.descriptor.sql.IntegerTypeDescriptor;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 /**
  * BasicValueConverter handling the conversion of an enum based on
@@ -30,15 +30,22 @@ import org.hibernate.type.descriptor.sql.IntegerTypeDescriptor;
 public class OrdinalEnumValueConverter<E extends Enum> implements EnumValueConverter<E,Integer>, Serializable {
 
 	private final EnumJavaTypeDescriptor<E> enumJavaDescriptor;
+	private final SqlTypeDescriptor sqlTypeDescriptor;
+	private final JavaTypeDescriptor<Integer> relationalJavaDescriptor;
 
-	private transient ValueExtractor<E> valueExtractor;
-
+	private transient ValueExtractor<Integer> valueExtractor;
 	private transient ValueBinder<Integer> valueBinder;
 
-	public OrdinalEnumValueConverter(EnumJavaTypeDescriptor<E> enumJavaDescriptor) {
+	public OrdinalEnumValueConverter(
+			EnumJavaTypeDescriptor<E> enumJavaDescriptor,
+			SqlTypeDescriptor sqlTypeDescriptor,
+			JavaTypeDescriptor<Integer> relationalJavaDescriptor) {
 		this.enumJavaDescriptor = enumJavaDescriptor;
-		this.valueExtractor = createValueExtractor( enumJavaDescriptor );
-		this.valueBinder = createValueBinder();
+		this.sqlTypeDescriptor = sqlTypeDescriptor;
+		this.relationalJavaDescriptor = relationalJavaDescriptor;
+
+		this.valueExtractor = sqlTypeDescriptor.getExtractor( relationalJavaDescriptor );
+		this.valueBinder = sqlTypeDescriptor.getBinder( relationalJavaDescriptor );
 	}
 
 	@Override
@@ -57,20 +64,13 @@ public class OrdinalEnumValueConverter<E extends Enum> implements EnumValueConve
 	}
 
 	@Override
-	public EnumJavaTypeDescriptor<E> getJavaDescriptor() {
+	public EnumJavaTypeDescriptor<E> getDomainJavaDescriptor() {
 		return enumJavaDescriptor;
 	}
 
 	@Override
-	public E readValue(ResultSet resultSet, String name, SharedSessionContractImplementor session) throws SQLException {
-		return valueExtractor.extract( resultSet, name, session );
-	}
-
-	@Override
-	public void writeValue(PreparedStatement statement, E value, int position, SharedSessionContractImplementor session) throws SQLException {
-		final Integer jdbcValue = value == null ? null : toRelationalValue( value );
-
-		valueBinder.bind( statement, jdbcValue, position, session );
+	public JavaTypeDescriptor<Integer> getRelationalJavaDescriptor() {
+		return relationalJavaDescriptor;
 	}
 
 	@Override
@@ -79,18 +79,18 @@ public class OrdinalEnumValueConverter<E extends Enum> implements EnumValueConve
 		return Integer.toString( ( (E) value ).ordinal() );
 	}
 
-	private static <T extends Enum> ValueExtractor<T> createValueExtractor(EnumJavaTypeDescriptor<T> enumJavaDescriptor) {
-		return IntegerTypeDescriptor.INSTANCE.getExtractor( enumJavaDescriptor );
-	}
-
-	private static ValueBinder<Integer> createValueBinder() {
-		return IntegerTypeDescriptor.INSTANCE.getBinder( org.hibernate.type.descriptor.java.IntegerTypeDescriptor.INSTANCE );
-	}
-
 	private void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
 		stream.defaultReadObject();
 
-		this.valueExtractor = createValueExtractor( enumJavaDescriptor );
-		this.valueBinder = createValueBinder();
+		this.valueExtractor = sqlTypeDescriptor.getExtractor( relationalJavaDescriptor );
+		this.valueBinder = sqlTypeDescriptor.getBinder( relationalJavaDescriptor );
+	}
+
+	@Override
+	public void writeValue(
+			PreparedStatement statement, Enum value, int position, SharedSessionContractImplementor session)
+			throws SQLException {
+		final Integer jdbcValue = value == null ? null : value.ordinal();
+		valueBinder.bind( statement, jdbcValue, position, session );
 	}
 }

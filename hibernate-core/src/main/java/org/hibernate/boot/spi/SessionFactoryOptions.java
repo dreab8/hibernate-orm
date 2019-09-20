@@ -27,12 +27,15 @@ import org.hibernate.cfg.BaselineSessionEventsListenerBuilder;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.dialect.function.SQLFunction;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
 import org.hibernate.jpa.spi.JpaCompliance;
 import org.hibernate.loader.BatchFetchStyle;
 import org.hibernate.proxy.EntityNotFoundDelegate;
 import org.hibernate.query.ImmutableEntityUpdateQueryHandlingMode;
+import org.hibernate.query.QueryLiteralRendering;
 import org.hibernate.query.criteria.LiteralHandlingMode;
+import org.hibernate.query.hql.SemanticQueryProducer;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
+import org.hibernate.query.sqm.produce.function.SqmFunctionRegistry;
 import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
 import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.hibernate.stat.Statistics;
@@ -140,6 +143,10 @@ public interface SessionFactoryOptions {
 		};
 	}
 
+	SemanticQueryProducer getHqlTranslator();
+
+	SqmMultiTableMutationStrategy getSqmMultiTableMutationStrategy();
+
 	StatementInspector getStatementInspector();
 
 	SessionFactoryObserver[] getSessionFactoryObservers();
@@ -155,8 +162,6 @@ public interface SessionFactoryOptions {
 	boolean isCheckNullability();
 
 	boolean isInitializeLazyStateOutsideTransactionsEnabled();
-
-	MultiTableBulkIdStrategy getMultiTableBulkIdStrategy();
 
 	TempTableDdlTransactionHandling getTempTableDdlTransactionHandling();
 
@@ -274,7 +279,9 @@ public interface SessionFactoryOptions {
 		return LiteralHandlingMode.AUTO;
 	}
 
-	boolean jdbcStyleParamsZeroBased();
+	default QueryLiteralRendering getQueryLiteralRenderingMode() {
+		return getCriteriaLiteralHandlingMode().getCounterpart();
+	}
 
 	JpaCompliance getJpaCompliance();
 
@@ -315,5 +322,34 @@ public interface SessionFactoryOptions {
 		return false;
 	}
 
+	SqmFunctionRegistry getSqmFunctionRegistry();
+
+	/**
+	 * Controls whether Hibernate should try to map named parameter names
+	 * specified in a {@link org.hibernate.procedure.ProcedureCall} or
+	 * {@link javax.persistence.StoredProcedureQuery} to named parameters in
+	 * the JDBC {@link java.sql.CallableStatement}.
+	 * <p/>
+	 * As JPA is defined, the use of named parameters is essentially of dubious
+	 * value since by spec the parameters have to be defined in the order they are
+	 * defined in the procedure/function declaration - we can always bind them
+	 * positionally.  The whole idea of named parameters for CallableStatement
+	 * is the ability to bind these in any order, but since we unequivocally
+	 * know the order anyway binding them via name really gains nothing.
+	 * <p/>
+	 * If this is {@code true}, we still need to make sure the Dialect supports
+	 * named binding.  Setting this to {@code false} simply circumvents that
+	 * check and always performs positional binding.
+	 *
+	 * @return {@code true} indicates we should try to use {@link java.sql.CallableStatement}
+	 * named parameters, if the Dialect says it is supported; {@code false}
+	 * indicates that we should never try to use {@link java.sql.CallableStatement}
+	 * named parameters, regardless of what the Dialect says.
+	 *
+	 * @see org.hibernate.cfg.AvailableSettings#CALLABLE_NAMED_PARAMS_ENABLED
+	 */
+	boolean isUseOfJdbcNamedParametersEnabled();
+
 	boolean isOmitJoinOfSuperclassTablesEnabled();
+
 }

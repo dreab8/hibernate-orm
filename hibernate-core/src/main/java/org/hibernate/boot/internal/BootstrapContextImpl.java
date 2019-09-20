@@ -18,13 +18,13 @@ import org.hibernate.annotations.common.reflection.ClassLoadingException;
 import org.hibernate.annotations.common.reflection.ReflectionManager;
 import org.hibernate.annotations.common.reflection.java.JavaReflectionManager;
 import org.hibernate.annotations.common.util.StandardClassLoaderDelegateImpl;
-import org.hibernate.boot.AttributeConverterInfo;
 import org.hibernate.boot.CacheRegionDefinition;
 import org.hibernate.boot.archive.scan.internal.StandardScanOptions;
 import org.hibernate.boot.archive.scan.spi.ScanEnvironment;
 import org.hibernate.boot.archive.scan.spi.ScanOptions;
 import org.hibernate.boot.archive.scan.spi.Scanner;
 import org.hibernate.boot.archive.spi.ArchiveDescriptorFactory;
+import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.boot.model.relational.AuxiliaryDatabaseObject;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
@@ -38,6 +38,8 @@ import org.hibernate.dialect.function.SQLFunction;
 import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.jpa.internal.MutableJpaComplianceImpl;
 import org.hibernate.jpa.spi.MutableJpaCompliance;
+import org.hibernate.metamodel.internal.StandardManagedTypeRepresentationResolver;
+import org.hibernate.metamodel.spi.ManagedTypeRepresentationResolver;
 import org.hibernate.type.spi.TypeConfiguration;
 
 import org.jboss.jandex.IndexView;
@@ -74,8 +76,9 @@ public class BootstrapContextImpl implements BootstrapContext {
 
 	private HashMap<String,SQLFunction> sqlFunctionMap;
 	private ArrayList<AuxiliaryDatabaseObject> auxiliaryDatabaseObjectList;
-	private HashMap<Class,AttributeConverterInfo> attributeConverterInfoMap;
+	private HashMap<Class, ConverterDescriptor> attributeConverterDescriptorMap;
 	private ArrayList<CacheRegionDefinition> cacheRegionDefinitions;
+	private ManagedTypeRepresentationResolver representationStrategySelector;
 
 	public BootstrapContextImpl(
 			StandardServiceRegistry serviceRegistry,
@@ -109,6 +112,9 @@ public class BootstrapContextImpl implements BootstrapContext {
 				ArchiveDescriptorFactory.class,
 				configService.getSettings().get( AvailableSettings.SCANNER_ARCHIVE_INTERPRETER )
 		);
+
+		this.representationStrategySelector = StandardManagedTypeRepresentationResolver.INSTANCE;
+
 		this.typeConfiguration = new TypeConfiguration();
 	}
 
@@ -198,9 +204,9 @@ public class BootstrapContextImpl implements BootstrapContext {
 	}
 
 	@Override
-	public Collection<AttributeConverterInfo> getAttributeConverters() {
-		return attributeConverterInfoMap != null
-				? new ArrayList<>( attributeConverterInfoMap.values() )
+	public Collection<ConverterDescriptor> getAttributeConverters() {
+		return attributeConverterDescriptorMap != null
+				? attributeConverterDescriptorMap.values()
 				: Collections.emptyList();
 	}
 
@@ -228,8 +234,8 @@ public class BootstrapContextImpl implements BootstrapContext {
 			auxiliaryDatabaseObjectList.clear();
 		}
 
-		if ( attributeConverterInfoMap != null ) {
-			attributeConverterInfoMap.clear();
+		if ( attributeConverterDescriptorMap != null ) {
+			attributeConverterDescriptorMap.clear();
 		}
 
 		if ( cacheRegionDefinitions != null ) {
@@ -237,22 +243,27 @@ public class BootstrapContextImpl implements BootstrapContext {
 		}
 	}
 
+	@Override
+	public ManagedTypeRepresentationResolver getRepresentationStrategySelector() {
+		return representationStrategySelector;
+	}
+
+
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// Mutations
 
-
-	public void addAttributeConverterInfo(AttributeConverterInfo info) {
-		if ( this.attributeConverterInfoMap == null ) {
-			this.attributeConverterInfoMap = new HashMap<>();
+	public void addAttributeConverterDescriptor(ConverterDescriptor descriptor) {
+		if ( this.attributeConverterDescriptorMap == null ) {
+			this.attributeConverterDescriptorMap = new HashMap<>();
 		}
 
-		final Object old = this.attributeConverterInfoMap.put( info.getConverterClass(), info );
+		final Object old = this.attributeConverterDescriptorMap.put( descriptor.getAttributeConverterClass(), descriptor );
 
 		if ( old != null ) {
 			throw new AssertionFailure(
 					String.format(
 							"AttributeConverter class [%s] registered multiple times",
-							info.getConverterClass()
+							descriptor.getAttributeConverterClass()
 					)
 			);
 		}

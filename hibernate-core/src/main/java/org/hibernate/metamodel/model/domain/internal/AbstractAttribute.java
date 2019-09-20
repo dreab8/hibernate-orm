@@ -15,9 +15,12 @@ import java.lang.reflect.Method;
 import javax.persistence.metamodel.Attribute;
 
 import org.hibernate.internal.util.ReflectHelper;
-import org.hibernate.metamodel.model.domain.spi.ManagedTypeDescriptor;
-import org.hibernate.metamodel.model.domain.spi.PersistentAttributeDescriptor;
-import org.hibernate.metamodel.model.domain.spi.SimpleTypeDescriptor;
+import org.hibernate.metamodel.AttributeClassification;
+import org.hibernate.metamodel.internal.MetadataContext;
+import org.hibernate.metamodel.model.domain.ManagedDomainType;
+import org.hibernate.metamodel.model.domain.PersistentAttribute;
+import org.hibernate.metamodel.model.domain.SimpleDomainType;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 /**
  * Models the commonality of the JPA {@link Attribute} hierarchy.
@@ -27,27 +30,29 @@ import org.hibernate.metamodel.model.domain.spi.SimpleTypeDescriptor;
  *
  * @author Steve Ebersole
  */
-public abstract class AbstractAttribute<D, J>
-		implements PersistentAttributeDescriptor<D, J>, Serializable {
-	private final ManagedTypeDescriptor<D> declaringType;
+public abstract class AbstractAttribute<D,J,B> implements PersistentAttribute<D,J>, Serializable {
+	private final ManagedDomainType<D> declaringType;
 	private final String name;
+	private final JavaTypeDescriptor<J> attributeJtd;
 
-	private final PersistentAttributeType attributeNature;
+	private final AttributeClassification attributeClassification;
 
-	private final SimpleTypeDescriptor<?> valueType;
+	private final SimpleDomainType<B> valueType;
 	private transient Member member;
-
 
 	@SuppressWarnings("WeakerAccess")
 	protected AbstractAttribute(
-			ManagedTypeDescriptor<D> declaringType,
+			ManagedDomainType<D> declaringType,
 			String name,
-			PersistentAttributeType attributeNature,
-			SimpleTypeDescriptor<?> valueType,
-			Member member) {
+			JavaTypeDescriptor<J> attributeJtd,
+			AttributeClassification attributeClassification,
+			SimpleDomainType<B> valueType,
+			Member member,
+			MetadataContext metadataContext) {
 		this.declaringType = declaringType;
 		this.name = name;
-		this.attributeNature = attributeNature;
+		this.attributeJtd = attributeJtd;
+		this.attributeClassification = attributeClassification;
 		this.valueType = valueType;
 		this.member = member;
 	}
@@ -58,7 +63,21 @@ public abstract class AbstractAttribute<D, J>
 	}
 
 	@Override
-	public ManagedTypeDescriptor<D> getDeclaringType() {
+	public Class<J> getJavaType() {
+		return attributeJtd.getJavaType();
+	}
+
+	public SimpleDomainType<B> getSqmPathType() {
+		return valueType;
+	}
+
+	@Override
+	public JavaTypeDescriptor<J> getAttributeJavaTypeDescriptor() {
+		return attributeJtd;
+	}
+
+	@Override
+	public ManagedDomainType<D> getDeclaringType() {
 		return declaringType;
 	}
 
@@ -68,18 +87,23 @@ public abstract class AbstractAttribute<D, J>
 	}
 
 	@Override
-	public PersistentAttributeType getPersistentAttributeType() {
-		return attributeNature;
+	public AttributeClassification getAttributeClassification() {
+		return attributeClassification;
 	}
 
 	@Override
-	public SimpleTypeDescriptor<?> getValueGraphType() {
+	public PersistentAttributeType getPersistentAttributeType() {
+		return getAttributeClassification().getJpaClassification();
+	}
+
+	@Override
+	public SimpleDomainType<?> getValueGraphType() {
 		return valueType;
 	}
 
 	@Override
 	public String toString() {
-		return declaringType.getName() + '#' + name + '(' + attributeNature + ')';
+		return declaringType.getTypeName() + '#' + name + '(' + attributeClassification + ')';
 	}
 
 	/**

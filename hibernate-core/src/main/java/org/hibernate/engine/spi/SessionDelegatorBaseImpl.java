@@ -8,7 +8,6 @@ package org.hibernate.engine.spi;
 
 import java.io.Serializable;
 import java.sql.Connection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,11 +22,9 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.CriteriaUpdate;
-import javax.persistence.criteria.Selection;
 import javax.persistence.metamodel.Metamodel;
 
 import org.hibernate.CacheMode;
-import org.hibernate.Criteria;
 import org.hibernate.Filter;
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
@@ -38,15 +35,12 @@ import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.MultiIdentifierLoadAccess;
 import org.hibernate.NaturalIdLoadAccess;
-import org.hibernate.Query;
 import org.hibernate.ReplicationMode;
-import org.hibernate.ScrollMode;
 import org.hibernate.Session;
 import org.hibernate.SessionEventListener;
 import org.hibernate.SharedSessionBuilder;
 import org.hibernate.SimpleNaturalIdLoadAccess;
 import org.hibernate.Transaction;
-import org.hibernate.TypeHelper;
 import org.hibernate.UnknownProfileException;
 import org.hibernate.cache.spi.CacheTransactionSynchronization;
 import org.hibernate.collection.spi.PersistentCollection;
@@ -61,9 +55,9 @@ import org.hibernate.jdbc.Work;
 import org.hibernate.loader.custom.CustomQuery;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.procedure.ProcedureCall;
-import org.hibernate.query.spi.NativeQueryImplementor;
 import org.hibernate.query.spi.QueryImplementor;
 import org.hibernate.query.spi.ScrollableResultsImplementor;
+import org.hibernate.query.sql.spi.NativeQueryImplementor;
 import org.hibernate.resource.jdbc.spi.JdbcSessionContext;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.stat.SessionStatistics;
@@ -84,27 +78,8 @@ public class SessionDelegatorBaseImpl implements SessionImplementor {
 
 	protected final SessionImplementor delegate;
 
-	/**
-	 * @deprecated (since 5.3) SessionDelegatorBaseImpl should take just one argument, the SessionImplementor.
-	 * Use the {@link #SessionDelegatorBaseImpl(SessionImplementor)} form instead
-	 */
-	@Deprecated
-	public SessionDelegatorBaseImpl(SessionImplementor delegate, Session session) {
-		if ( delegate == null ) {
-			throw new IllegalArgumentException( "Unable to create a SessionDelegatorBaseImpl from a null delegate object" );
-		}
-		if ( session == null ) {
-			throw new IllegalArgumentException( "Unable to create a SessionDelegatorBaseImpl from a null Session" );
-		}
-		if ( delegate != session ) {
-			throw new IllegalArgumentException( "Unable to create a SessionDelegatorBaseImpl from different Session/SessionImplementor references" );
-		}
-
-		this.delegate = delegate;
-	}
-
 	public SessionDelegatorBaseImpl(SessionImplementor delegate) {
-		this( delegate, delegate );
+		this.delegate = delegate;
 	}
 
 	/**
@@ -163,25 +138,6 @@ public class SessionDelegatorBaseImpl implements SessionImplementor {
 	}
 
 	@Override
-	public LockOptions getLockRequest(LockModeType lockModeType, Map<String, Object> properties) {
-		return delegate.getLockRequest( lockModeType, properties );
-	}
-
-	@Override
-	public LockOptions buildLockOptions(LockModeType lockModeType, Map<String, Object> properties) {
-		return delegate.buildLockOptions( lockModeType, properties );
-	}
-
-	@Override
-	public <T> QueryImplementor<T> createQuery(
-			String jpaqlString,
-			Class<T> resultClass,
-			Selection selection,
-			QueryOptions queryOptions) {
-		return delegate.createQuery( jpaqlString,resultClass, selection, queryOptions );
-	}
-
-	@Override
 	public void initializeCollection(PersistentCollection collection, boolean writing) throws HibernateException {
 		delegate.initializeCollection( collection, writing );
 	}
@@ -204,41 +160,6 @@ public class SessionDelegatorBaseImpl implements SessionImplementor {
 	@Override
 	public SessionFactoryImplementor getFactory() {
 		return delegate.getFactory();
-	}
-
-	@Override
-	public List list(String query, QueryParameters queryParameters) throws HibernateException {
-		return delegate.list( query, queryParameters );
-	}
-
-	@Override
-	public Iterator iterate(String query, QueryParameters queryParameters) throws HibernateException {
-		return delegate.iterate( query, queryParameters );
-	}
-
-	@Override
-	public ScrollableResultsImplementor scroll(String query, QueryParameters queryParameters) throws HibernateException {
-		return delegate.scroll( query, queryParameters );
-	}
-
-	@Override
-	public ScrollableResultsImplementor scroll(Criteria criteria, ScrollMode scrollMode) {
-		return delegate.scroll( criteria, scrollMode );
-	}
-
-	@Override
-	public List list(Criteria criteria) {
-		return delegate.list( criteria );
-	}
-
-	@Override
-	public List listFilter(Object collection, String filter, QueryParameters queryParameters) throws HibernateException {
-		return delegate.listFilter( collection, filter, queryParameters );
-	}
-
-	@Override
-	public Iterator iterateFilter(Object collection, String filter, QueryParameters queryParameters) throws HibernateException {
-		return delegate.iterateFilter( collection, filter, queryParameters );
 	}
 
 	@Override
@@ -299,16 +220,6 @@ public class SessionDelegatorBaseImpl implements SessionImplementor {
 	@Override
 	public PersistenceContext getPersistenceContext() {
 		return delegate.getPersistenceContext();
-	}
-
-	@Override
-	public int executeUpdate(String query, QueryParameters queryParameters) throws HibernateException {
-		return delegate.executeUpdate( query, queryParameters );
-	}
-
-	@Override
-	public int executeNativeUpdate(NativeSQLQuerySpecification specification, QueryParameters queryParameters) throws HibernateException {
-		return delegate.executeNativeUpdate( specification, queryParameters );
 	}
 
 	@Override
@@ -562,13 +473,13 @@ public class SessionDelegatorBaseImpl implements SessionImplementor {
 	}
 
 	@Override
-	public NativeQueryImplementor getNamedSQLQuery(String name) {
-		return delegate.getNamedSQLQuery( name );
+	public NativeQueryImplementor getNamedNativeQuery(String name) {
+		return delegate.getNamedNativeQuery( name );
 	}
 
 	@Override
-	public NativeQueryImplementor getNamedNativeQuery(String name) {
-		return delegate.getNamedNativeQuery( name );
+	public NativeQueryImplementor getNamedNativeQuery(String name, String resultSetMapping) {
+		return delegate.getNamedNativeQuery( name, resultSetMapping );
 	}
 
 	@Override
@@ -642,6 +553,11 @@ public class SessionDelegatorBaseImpl implements SessionImplementor {
 	}
 
 	@Override
+	public void prepareForQueryExecution(boolean requiresTxn) {
+		delegate.prepareForQueryExecution( requiresTxn );
+	}
+
+	@Override
 	public void joinTransaction() {
 		delegate.joinTransaction();
 	}
@@ -671,11 +587,6 @@ public class SessionDelegatorBaseImpl implements SessionImplementor {
 	}
 
 	@Override
-	public NativeQueryImplementor createSQLQuery(String queryString) {
-		return delegate.createSQLQuery( queryString );
-	}
-
-	@Override
 	public ProcedureCall getNamedProcedureCall(String name) {
 		return delegate.getNamedProcedureCall( name );
 	}
@@ -693,26 +604,6 @@ public class SessionDelegatorBaseImpl implements SessionImplementor {
 	@Override
 	public ProcedureCall createStoredProcedureCall(String procedureName, String... resultSetMappings) {
 		return delegate.createStoredProcedureCall( procedureName, resultSetMappings );
-	}
-
-	@Override
-	public Criteria createCriteria(Class persistentClass) {
-		return delegate.createCriteria( persistentClass );
-	}
-
-	@Override
-	public Criteria createCriteria(Class persistentClass, String alias) {
-		return delegate.createCriteria( persistentClass, alias );
-	}
-
-	@Override
-	public Criteria createCriteria(String entityName) {
-		return delegate.createCriteria( entityName );
-	}
-
-	@Override
-	public Criteria createCriteria(String entityName, String alias) {
-		return delegate.createCriteria( entityName, alias );
 	}
 
 	@Override
@@ -981,11 +872,6 @@ public class SessionDelegatorBaseImpl implements SessionImplementor {
 	}
 
 	@Override
-	public Query createFilter(Object collection, String queryString) {
-		return delegate.createFilter( collection, queryString );
-	}
-
-	@Override
 	public void clear() {
 		delegate.clear();
 	}
@@ -1133,11 +1019,6 @@ public class SessionDelegatorBaseImpl implements SessionImplementor {
 	@Override
 	public void disableFetchProfile(String name) throws UnknownProfileException {
 		delegate.disableFetchProfile( name );
-	}
-
-	@Override
-	public TypeHelper getTypeHelper() {
-		return delegate.getTypeHelper();
 	}
 
 	@Override

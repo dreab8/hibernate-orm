@@ -8,6 +8,11 @@ package org.hibernate;
 
 import java.io.Serializable;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.CriteriaUpdate;
+
 import org.hibernate.procedure.ProcedureCall;
 import org.hibernate.query.QueryProducer;
 
@@ -115,57 +120,6 @@ public interface SharedSessionContract extends QueryProducer, Serializable {
 	ProcedureCall createStoredProcedureCall(String procedureName, String... resultSetMappings);
 
 	/**
-	 * Create {@link Criteria} instance for the given class (entity or subclasses/implementors).
-	 *
-	 * @param persistentClass The class, which is an entity, or has entity subclasses/implementors
-	 *
-	 * @return The criteria instance for manipulation and execution
-	 *
-	 * @deprecated (since 5.2) for Session, use the JPA Criteria
-	 */
-	@Deprecated
-	Criteria createCriteria(Class persistentClass);
-
-	/**
-	 * Create {@link Criteria} instance for the given class (entity or subclasses/implementors), using a specific
-	 * alias.
-	 *
-	 * @param persistentClass The class, which is an entity, or has entity subclasses/implementors
-	 * @param alias The alias to use
-	 *
-	 * @return The criteria instance for manipulation and execution
-	 *
-	 * @deprecated (since 5.2) for Session, use the JPA Criteria
-	 */
-	@Deprecated
-	Criteria createCriteria(Class persistentClass, String alias);
-
-	/**
-	 * Create {@link Criteria} instance for the given entity name.
-	 *
-	 * @param entityName The entity name
-
-	 * @return The criteria instance for manipulation and execution
-	 *
-	 * @deprecated (since 5.2) for Session, use the JPA Criteria
-	 */
-	@Deprecated
-	Criteria createCriteria(String entityName);
-
-	/**
-	 * Create {@link Criteria} instance for the given entity name, using a specific alias.
-	 *
-	 * @param entityName The entity name
-	 * @param alias The alias to use
-	 *
-	 * @return The criteria instance for manipulation and execution
-	 *
-	 * @deprecated (since 5.2) for Session, use the JPA Criteria
-	 */
-	@Deprecated
-	Criteria createCriteria(String entityName, String alias);
-
-	/**
 	 * Get the Session-level JDBC batch size for the current Session.
 	 * Overrides the SessionFactory JDBC batch size defined by the {@code hibernate.default_batch_fetch_size} configuration property for the scope of the current {@code Session}.
 	 *
@@ -190,4 +144,23 @@ public interface SharedSessionContract extends QueryProducer, Serializable {
 	 * @see org.hibernate.boot.SessionFactoryBuilder#applyJdbcBatchSize
 	 */
 	void setJdbcBatchSize(Integer jdbcBatchSize);
+
+	/**
+	 * Return an instance of {@link CriteriaBuilder}
+	 *
+	 * @return an instance of CriteriaBuilder
+	 * @throws IllegalStateException if the StatelessSession has been closed
+	 */
+	CriteriaBuilder getCriteriaBuilder();
+
+	@Override
+	<T> org.hibernate.query.Query<T> createQuery(String queryString, Class<T> resultType);
+
+	<T> org.hibernate.query.Query<T> createQuery(CriteriaQuery<T> criteriaQuery);
+
+	org.hibernate.query.Query createQuery(CriteriaUpdate updateQuery);
+
+	org.hibernate.query.Query createQuery(CriteriaDelete deleteQuery);
+
+	<T> org.hibernate.query.Query<T> createNamedQuery(String name, Class<T> resultType);
 }

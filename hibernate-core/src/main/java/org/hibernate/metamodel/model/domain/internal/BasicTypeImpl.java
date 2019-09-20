@@ -7,31 +7,60 @@
 package org.hibernate.metamodel.model.domain.internal;
 
 import java.io.Serializable;
+import java.sql.CallableStatement;
+import java.sql.SQLException;
 
-import org.hibernate.metamodel.model.domain.spi.BasicTypeDescriptor;
+import org.hibernate.NotYetImplementedFor6Exception;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.metamodel.model.domain.BasicDomainType;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
 /**
  * @author Emmanuel Bernard
  */
-public class BasicTypeImpl<J> implements BasicTypeDescriptor<J>, Serializable {
-	private final Class<J> clazz;
-	private PersistenceType persistenceType;
+public class BasicTypeImpl<J> implements BasicDomainType<J>, Serializable {
+	private final JavaTypeDescriptor<J> javaTypeDescriptor;
+
+	public BasicTypeImpl(JavaTypeDescriptor<J> javaTypeDescriptor) {
+		this.javaTypeDescriptor = javaTypeDescriptor;
+	}
 
 	public PersistenceType getPersistenceType() {
-		return persistenceType;
-	}
-
-	public Class<J> getJavaType() {
-		return clazz;
-	}
-
-	public BasicTypeImpl(Class<J> clazz, PersistenceType persistenceType) {
-		this.clazz = clazz;
-		this.persistenceType = persistenceType;
+		return PersistenceType.BASIC;
 	}
 
 	@Override
-	public String getTypeName() {
-		return clazz.getName();
+	public JavaTypeDescriptor<J> getExpressableJavaTypeDescriptor() {
+		return javaTypeDescriptor;
 	}
+
+	public Class<J> getJavaType() {
+		return getExpressableJavaTypeDescriptor().getJavaType();
+	}
+
+	@Override
+	public boolean canDoExtraction() {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public SqlTypeDescriptor getSqlTypeDescriptor() {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public J extract(
+			CallableStatement statement, int paramIndex, SharedSessionContractImplementor session) throws SQLException {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public J extract(
+			CallableStatement statement, String paramName, SharedSessionContractImplementor session)
+			throws SQLException {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+
 }

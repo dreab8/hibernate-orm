@@ -8,6 +8,7 @@ package org.hibernate.dialect;
 
 import java.sql.Types;
 
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.function.NoArgSQLFunction;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
@@ -16,10 +17,8 @@ import org.hibernate.dialect.function.VarArgsSQLFunction;
 import org.hibernate.dialect.pagination.FirstLimitHandler;
 import org.hibernate.dialect.pagination.LegacyFirstLimitHandler;
 import org.hibernate.dialect.pagination.LimitHandler;
-import org.hibernate.hql.spi.id.IdTableSupportStandardImpl;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.global.GlobalTemporaryTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.local.AfterUseAction;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.tool.schema.extract.internal.SequenceNameExtractorImpl;
 import org.hibernate.tool.schema.extract.spi.SequenceInformationExtractor;
 import org.hibernate.type.StandardBasicTypes;
@@ -271,26 +270,28 @@ public class IngresDialect extends Dialect {
 	}
 
 	@Override
-	public MultiTableBulkIdStrategy getDefaultMultiTableBulkIdStrategy() {
-		return new GlobalTemporaryTableBulkIdStrategy(
-				new IdTableSupportStandardImpl() {
-					@Override
-					public String generateIdTableName(String baseName) {
-						return "session." + super.generateIdTableName( baseName );
-					}
+	public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityPersister runtimeRootEntityDescriptor) {
+		throw new NotYetImplementedFor6Exception( getClass() );
 
-					@Override
-					public String getCreateIdTableCommand() {
-						return "declare global temporary table";
-					}
-
-					@Override
-					public String getCreateIdTableStatementOptions() {
-						return "on commit preserve rows with norecovery";
-					}
-				},
-				AfterUseAction.CLEAN
-		);
+//		return new GlobalTemporaryTableBulkIdStrategy(
+//				new IdTableSupportStandardImpl() {
+//					@Override
+//					public String generateIdTableName(String baseName) {
+//						return "session." + super.generateIdTableName( baseName );
+//					}
+//
+//					@Override
+//					public String getCreateIdTableCommand() {
+//						return "declare global temporary table";
+//					}
+//
+//					@Override
+//					public String getCreateIdTableStatementOptions() {
+//						return "on commit preserve rows with norecovery";
+//					}
+//				},
+//				AfterUseAction.CLEAN
+//		);
 	}
 
 

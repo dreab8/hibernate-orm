@@ -18,6 +18,7 @@ import org.hibernate.MappingException;
 import org.hibernate.annotations.AnyMetaDef;
 import org.hibernate.annotations.common.reflection.XClass;
 import org.hibernate.boot.internal.ClassmateContext;
+import org.hibernate.boot.internal.NamedProcedureCallDefinitionImpl;
 import org.hibernate.boot.model.IdentifierGeneratorDefinition;
 import org.hibernate.boot.model.TypeDefinition;
 import org.hibernate.boot.model.convert.internal.InstanceBasedConverterDescriptor;
@@ -25,7 +26,6 @@ import org.hibernate.boot.model.convert.spi.ConverterAutoApplyHandler;
 import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.relational.AuxiliaryDatabaseObject;
-import org.hibernate.boot.model.relational.Database;
 import org.hibernate.boot.model.relational.QualifiedTableName;
 import org.hibernate.boot.model.source.spi.LocalMetadataBuildingContext;
 import org.hibernate.cfg.AnnotatedClassType;
@@ -35,12 +35,8 @@ import org.hibernate.cfg.PropertyData;
 import org.hibernate.cfg.SecondPass;
 import org.hibernate.cfg.UniqueConstraintHolder;
 import org.hibernate.cfg.annotations.NamedEntityGraphDefinition;
-import org.hibernate.cfg.annotations.NamedProcedureCallDefinition;
-import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.engine.spi.FilterDefinition;
 import org.hibernate.engine.spi.Mapping;
-import org.hibernate.engine.spi.NamedQueryDefinition;
-import org.hibernate.engine.spi.NamedSQLQueryDefinition;
 import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.FetchProfile;
@@ -140,33 +136,20 @@ public interface InFlightMetadataCollector extends Mapping, MetadataImplementor 
 	 *
 	 * @throws DuplicateMappingException If a query already exists with that name.
 	 */
-	void addNamedQuery(NamedQueryDefinition query) throws DuplicateMappingException;
+	void addNamedQuery(NamedHqlQueryDefinition query) throws DuplicateMappingException;
 
 	/**
-	 * Adds metadata for a named SQL query to this repository.
-	 *
-	 * @param query The metadata
-	 *
-	 * @throws DuplicateMappingException If a query already exists with that name.
+	 * Adds metadata for a named SQL query to this collector.
 	 */
-	void addNamedNativeQuery(NamedSQLQueryDefinition query) throws DuplicateMappingException;
+	void addNamedNativeQuery(NamedNativeQueryDefinition query) throws DuplicateMappingException;
 
 	/**
-	 * Adds the metadata for a named SQL result set mapping to this repository.
-	 *
-	 * @param sqlResultSetMapping The metadata
-	 *
-	 * @throws DuplicateMappingException If metadata for another SQL result mapping was
-	 * already found under the given name.
+	 * Adds the metadata for a named SQL result set mapping to this collector.
 	 */
-	void addResultSetMapping(ResultSetMappingDefinition sqlResultSetMapping) throws DuplicateMappingException;
+	void addResultSetMapping(NamedResultSetMappingDefinition resultSetMappingDefinition) throws DuplicateMappingException;
 
 	/**
-	 * Adds metadata for a named stored procedure call to this repository.
-	 *
-	 * @param definition The procedure call information
-	 *
-	 * @throws DuplicateMappingException If a query already exists with that name.
+	 * Adds metadata for a named stored procedure call to this collector.
 	 */
 	void addNamedProcedureCallDefinition(NamedProcedureCallDefinition definition) throws DuplicateMappingException;
 
@@ -269,13 +252,13 @@ public interface InFlightMetadataCollector extends Mapping, MetadataImplementor 
 
 	void addDefaultIdentifierGenerator(IdentifierGeneratorDefinition generatorDefinition);
 
-	void addDefaultQuery(NamedQueryDefinition queryDefinition);
+	void addDefaultQuery(NamedHqlQueryDefinition queryDefinition);
 
-	void addDefaultNamedNativeQuery(NamedSQLQueryDefinition query);
+	void addDefaultNamedNativeQuery(NamedNativeQueryDefinition query);
 
-	void addDefaultResultSetMapping(ResultSetMappingDefinition definition);
+	void addDefaultResultSetMapping(NamedResultSetMappingDefinition definition);
 
-	void addDefaultNamedProcedureCallDefinition(NamedProcedureCallDefinition procedureCallDefinition);
+	void addDefaultNamedProcedureCall(NamedProcedureCallDefinitionImpl procedureCallDefinition);
 
 	void addAnyMetaDef(AnyMetaDef defAnn);
 	AnyMetaDef getAnyMetaDef(String anyMetaDefName);

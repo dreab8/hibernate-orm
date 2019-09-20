@@ -7,9 +7,12 @@
 package org.hibernate.boot.model.process.spi;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.boot.AttributeConverterInfo;
 import org.hibernate.boot.jaxb.spi.Binding;
+import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.cfg.AttributeConverterDefinition;
 
 /**
@@ -32,7 +35,7 @@ public interface ManagedResources {
 	 *
 	 * @return The AttributeConverter definitions.
 	 */
-	Collection<AttributeConverterInfo> getAttributeConverterDefinitions();
+	Collection<ConverterDescriptor> getAttributeConverterDescriptors();
 
 	/**
 	 * Informational access to any entity and component classes in the user domain model known by Class
@@ -65,4 +68,6 @@ public interface ManagedResources {
 	 * @return The list of bindings for all known XML mapping files.
 	 */
 	Collection<Binding> getXmlMappingBindings();
+
+	Map<String,Class<?>> getExtraQueryImports();
 }

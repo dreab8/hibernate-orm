@@ -15,6 +15,8 @@ import java.util.Map;
 import org.hibernate.engine.query.ParameterRecognitionException;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.internal.util.collections.ArrayHelper;
+import org.hibernate.query.sql.internal.ParameterParser;
+import org.hibernate.query.sql.spi.ParameterRecognizer;
 
 /**
  * Implements a parameter parser recognizer specifically for the purpose
@@ -22,7 +24,7 @@ import org.hibernate.internal.util.collections.ArrayHelper;
  *
  * @author Steve Ebersole
  */
-public class ParamLocationRecognizer implements ParameterParser.Recognizer {
+public class ParamLocationRecognizer implements ParameterRecognizer {
 
 	private Map<String, NamedParameterDescriptor> namedParameterDescriptors;
 	private Map<Integer, OrdinalParameterDescriptor> ordinalParameterDescriptors;
@@ -34,6 +36,10 @@ public class ParamLocationRecognizer implements ParameterParser.Recognizer {
 	private final int jdbcStyleOrdinalCountBase;
 	private int jdbcStyleOrdinalCount;
 
+	public ParamLocationRecognizer() {
+		this( 1 );
+	}
+
 	public ParamLocationRecognizer(int jdbcStyleOrdinalCountBase) {
 		this.jdbcStyleOrdinalCountBase = jdbcStyleOrdinalCountBase;
 		this.jdbcStyleOrdinalCount = jdbcStyleOrdinalCountBase;
@@ -42,23 +48,16 @@ public class ParamLocationRecognizer implements ParameterParser.Recognizer {
 	/**
 	 * Convenience method for creating a param location recognizer and
 	 * initiating the parse.
-	 *
-	 * @param query The query to be parsed for parameter locations.
-	 * @param sessionFactory
-	 * @return The generated recognizer, with journaled location info.
 	 */
 	public static ParamLocationRecognizer parseLocations(
 			String query,
 			SessionFactoryImplementor sessionFactory) {
-		final ParamLocationRecognizer recognizer = new ParamLocationRecognizer(
-				sessionFactory.getSessionFactoryOptions().jdbcStyleParamsZeroBased() ? 0 : 1
-		);
+		final ParamLocationRecognizer recognizer = new ParamLocationRecognizer( 1 );
 		ParameterParser.parse( query, recognizer );
 		return recognizer;
 	}
 
-	@Override
-	public void complete() {
+	public void validate() {
 		if ( inFlightNamedStateMap != null && ( inFlightOrdinalStateMap != null || inFlightJpaOrdinalStateMap != null ) ) {
 			throw mixedParamStrategy();
 		}

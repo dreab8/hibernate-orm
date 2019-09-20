@@ -15,7 +15,7 @@ import java.util.Map;
 
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
-import org.hibernate.boot.TempTableDdlTransactionHandling;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.function.CharIndexFunction;
 import org.hibernate.dialect.function.NoArgSQLFunction;
@@ -24,10 +24,8 @@ import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.dialect.function.VarArgsSQLFunction;
 import org.hibernate.dialect.identity.AbstractTransactSQLIdentityColumnSupport;
 import org.hibernate.dialect.identity.IdentityColumnSupport;
-import org.hibernate.hql.spi.id.IdTableSupportStandardImpl;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.local.AfterUseAction;
-import org.hibernate.hql.spi.id.local.LocalTemporaryTableBulkIdStrategy;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.type.StandardBasicTypes;
 
 /**
@@ -213,18 +211,20 @@ abstract class AbstractTransactSQLDialect extends Dialect {
 	}
 
 	@Override
-	public MultiTableBulkIdStrategy getDefaultMultiTableBulkIdStrategy() {
-		return new LocalTemporaryTableBulkIdStrategy(
-				new IdTableSupportStandardImpl() {
-					@Override
-					public String generateIdTableName(String baseName) {
-						return "#" + baseName;
-					}
-				},
-				// sql-server, at least needed this dropped after use; strange!
-				AfterUseAction.DROP,
-				TempTableDdlTransactionHandling.NONE
-		);
+	public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityPersister runtimeRootEntityDescriptor) {
+		throw new NotYetImplementedFor6Exception( getClass() );
+
+//		return new LocalTemporaryTableBulkIdStrategy(
+//				new IdTableSupportStandardImpl() {
+//					@Override
+//					public String generateIdTableName(String baseName) {
+//						return "#" + baseName;
+//					}
+//				},
+//				// sql-server, at least needed this dropped after use; strange!
+//				AfterUseAction.DROP,
+//				TempTableDdlTransactionHandling.NONE
+//		);
 	}
 
 	@Override

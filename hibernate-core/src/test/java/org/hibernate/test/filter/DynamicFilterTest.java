@@ -14,23 +14,24 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.cache.spi.access.CollectionDataAccess;
 import org.hibernate.cache.spi.entry.CollectionCacheEntry;
 import org.hibernate.cfg.AvailableSettings;
-import org.hibernate.criterion.DetachedCriteria;
-import org.hibernate.criterion.Property;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
 import org.hibernate.dialect.IngresDialect;
 import org.hibernate.dialect.SybaseASE15Dialect;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
+import org.hibernate.query.Query;
 import org.hibernate.transform.DistinctRootEntityResultTransformer;
 
 import org.hibernate.testing.SkipForDialect;
@@ -114,7 +115,7 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		ts = ( ( SessionImplementor ) session ).getTimestamp();
 		session.enableFilter( "fulfilledOrders" ).setParameter( "asOfDate", testData.lastMonth.getTime() );
 		sp = ( Salesperson ) session.createQuery( "from Salesperson as s where s.id = :id" )
-				.setLong( "id", testData.steveId )
+				.setParameter( "id", testData.steveId )
 				.uniqueResult();
 		assertEquals( "Filtered-collection not bypassing 2L-cache", 1, sp.getOrders().size() );
 
@@ -206,7 +207,7 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		assertTrue( "Incorrect collectionfilter count", result.getOrders().size() == 1 );
 
         log.info( "HQL against Product..." );
-		results = session.createQuery( "from Product as p where p.stockNumber = ?1" ).setInteger( 1, 124 ).list();
+		results = session.createQuery( "from Product as p where p.stockNumber = ?1" ).setParameter( 1, 124 ).list();
 		assertTrue( results.size() == 1 );
 
 		session.close();
@@ -251,16 +252,26 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		        .setParameter( "asOfDate", testData.lastMonth.getTime() );
 
         log.info("Criteria query against Salesperson...");
-		List salespersons = session.createCriteria( Salesperson.class )
-		        .setFetchMode( "orders", FetchMode.JOIN )
-		        .list();
+		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+		CriteriaQuery<Salesperson> criteria = criteriaBuilder.createQuery( Salesperson.class );
+		Root<Salesperson> from = criteria.from( Salesperson.class );
+		from.fetch( "orders", JoinType.LEFT );
+		List salespersons = session.createQuery( criteria ).list();
+//		List salespersons = session.createCriteria( Salesperson.class )
+//		        .setFetchMode( "orders", FetchMode.JOIN )
+//		        .list();
 		assertEquals( "Incorrect salesperson count", 1, salespersons.size() );
 		assertEquals( "Incorrect order count", 1, ( ( Salesperson ) salespersons.get( 0 ) ).getOrders().size() );
 
         log.info("Criteria query against Product...");
-		List products = session.createCriteria( Product.class )
-		        .add( Restrictions.eq( "stockNumber", 124 ) )
-		        .list();
+		CriteriaQuery<Product> productCriteria = criteriaBuilder.createQuery( Product.class );
+		Root<Product> productRoot = productCriteria.from( Product.class );
+		productCriteria.where( criteriaBuilder.equal( productRoot.get( "stockNumber" ), 124 ) );
+
+		List products = session.createQuery( productCriteria ).list();
+//		List products = session.createCriteria( Product.class )
+//		        .add( Restrictions.eq( "stockNumber", 124 ) )
+//		        .list();
 		assertEquals( "Incorrect product count", 1, products.size() );
 
 		session.close();
@@ -273,21 +284,32 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		testData.prepare();
 
 		// the subquery...
-		DetachedCriteria subquery = DetachedCriteria.forClass( Salesperson.class )
-				.setProjection( Property.forName( "name" ) );
+//		DetachedCriteria subquery = DetachedCriteria.forClass( Salesperson.class )
+//				.setProjection( Property.forName( "name" ) );
+		CriteriaBuilder detachedCriteriaBuilder = sessionFactory().getCriteriaBuilder();
+		CriteriaQuery<Salesperson> query = detachedCriteriaBuilder.createQuery( Salesperson.class );
+		Subquery<String> subquery = query.subquery( String.class );
+		Root<Salesperson> salespersonRoot = subquery.from( Salesperson.class );
+		subquery.select( salespersonRoot.get( "name" ) );
 
-		Session session = openSession();
-		session.beginTransaction();
-		session.enableFilter( "fulfilledOrders" ).setParameter( "asOfDate", testData.lastMonth.getTime() );
-		session.enableFilter( "regionlist" ).setParameterList( "regions", new String[] {"APAC"} );
 
-		List result = session.createCriteria( Order.class )
-				.add( Subqueries.in( "steve", subquery ) )
-				.list();
-		assertEquals( 1, result.size() );
+		inTransaction(
+				session -> {
+					session.enableFilter( "fulfilledOrders" ).setParameter( "asOfDate", testData.lastMonth.getTime() );
+					session.enableFilter( "regionlist" ).setParameterList( "regions", new String[] {"APAC"} );
 
-		session.getTransaction().commit();
-		session.close();
+					CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+					CriteriaQuery<Order> criteria = criteriaBuilder.createQuery( Order.class );
+					criteria.from( Order.class );
+					criteria.where( criteriaBuilder.in( subquery ).value( "steve" ) );
+					List result = session.createQuery( criteria ).list();
+
+//					List result = session.createCriteria( Order.class )
+//							.add( Subqueries.in( "steve", subquery ) )
+//							.list();
+					assertEquals( 1, result.size() );
+				}
+		);
 
 		testData.release();
 	}
@@ -305,12 +327,24 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		session.enableFilter("region").setParameter("region", "APAC");
 
         log.info("Criteria query against Department with a subquery on Salesperson in the APAC reqion...");
-		DetachedCriteria salespersonSubquery = DetachedCriteria.forClass(Salesperson.class)
-				.add(Restrictions.eq("name", "steve"))
-				.setProjection(Property.forName("department"));
+//		DetachedCriteria salespersonSubquery = DetachedCriteria.forClass(Salesperson.class)
+//				.add(Restrictions.eq("name", "steve"))
+//				.setProjection(Property.forName("department"));
+		CriteriaBuilder detachedCriteriaBuilder = sessionFactory().getCriteriaBuilder();
+		Subquery<Department> subquery = detachedCriteriaBuilder.createQuery( Salesperson.class ).subquery( Department.class );
+		Root<Salesperson> subqueryRoot = subquery.from( Salesperson.class );
+		subquery.where( detachedCriteriaBuilder.equal( subqueryRoot.get("name"), "steve") );
+		subquery.select( subqueryRoot.get( "department" ) );
 
-		Criteria departmentsQuery = session.createCriteria(Department.class).add(Subqueries.propertyIn("id", salespersonSubquery));
-		List departments = departmentsQuery.list();
+		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+		CriteriaQuery<Department> criteria = criteriaBuilder.createQuery( Department.class );
+		criteria.where( criteriaBuilder.in( criteria.from( Department.class ).get( "id" ) ).value( subquery ) );
+
+		Query<Department> departmentsQuery = session.createQuery( criteria );
+		List<Department> departments = departmentsQuery.list();
+
+//		Criteria departmentsQuery = session.createCriteria(Department.class).add(Subqueries.propertyIn("id", salespersonSubquery));
+//		List departments = departmentsQuery.list();
 
 		assertEquals("Incorrect department count", 1, departments.size());
 
@@ -324,16 +358,37 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
         log.info("Criteria query against Order with a subquery for line items with a subquery on product and sold by a given sales person...");
 		session.enableFilter("region").setParameter("region", "APAC");
 
-		DetachedCriteria lineItemSubquery = DetachedCriteria.forClass(LineItem.class)
-				.add( Restrictions.ge( "quantity", 1L ) )
-				.createCriteria( "product" )
-				.add( Restrictions.eq( "name", "Acme Hair Gel" ) )
-				.setProjection( Property.forName( "id" ) );
+		Subquery<LineItem> lineItemSubquery = detachedCriteriaBuilder.createQuery().subquery( LineItem.class );
+		Root<LineItem> itemRoot = lineItemSubquery.from( LineItem.class );
+		Join<Object, Object> product = itemRoot.join( "product", JoinType.INNER );
+		lineItemSubquery.where(
+				detachedCriteriaBuilder.and(
+						detachedCriteriaBuilder.ge( itemRoot.get( "quantity" ), 1L ),
+						detachedCriteriaBuilder.equal( product.get( "name" ), "Acme Hair Gel" )
+				)
+		);
+		lineItemSubquery.select( product.get( "id" ) );
+//		DetachedCriteria lineItemSubquery = DetachedCriteria.forClass(LineItem.class)
+//				.add( Restrictions.ge( "quantity", 1L ) )
+//				.createCriteria( "product" )
+//				.add( Restrictions.eq( "name", "Acme Hair Gel" ) )
+//				.setProjection( Property.forName( "id" ) );
 
-		List orders = session.createCriteria(Order.class)
-				.add(Subqueries.exists(lineItemSubquery))
-				.add(Restrictions.eq("buyer", "gavin"))
-				.list();
+		CriteriaQuery<Order> orderCriteria = criteriaBuilder.createQuery( Order.class );
+		Root<Order> orderRoot = orderCriteria.from( Order.class );
+		orderCriteria.where(
+				criteriaBuilder.and(
+						criteriaBuilder.exists( lineItemSubquery ),
+						criteriaBuilder.equal( orderRoot.get( "buyer"),"gavin" )
+				)
+		);
+
+		List<Order> orders = session.createQuery( orderCriteria ).list();
+
+//		List orders = session.createCriteria(Order.class)
+//				.add(Subqueries.exists(lineItemSubquery))
+//				.add(Restrictions.eq("buyer", "gavin"))
+//				.list();
 
 		assertEquals("Incorrect orders count", 1, orders.size());
 
@@ -341,20 +396,45 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		session.enableFilter("region").setParameter("region", "APAC");
 		session.enableFilter("effectiveDate").setParameter("asOfDate", testData.lastMonth.getTime());
 
-		DetachedCriteria productSubquery = DetachedCriteria.forClass(Product.class)
-				.add(Restrictions.eq("name", "Acme Hair Gel"))
-				.setProjection(Property.forName("id"));
+		Subquery<Product> productSubquery = detachedCriteriaBuilder.createQuery().subquery( Product.class );
+		Root<Product> productRoot = productSubquery.from( Product.class );
+		productSubquery.select( productRoot.get( "id" ) );
+		productSubquery.where( detachedCriteriaBuilder.equal( productRoot.get( "name" ), "Acme Hair Gel" ) );
+//		DetachedCriteria productSubquery = DetachedCriteria.forClass(Product.class)
+//				.add(Restrictions.eq("name", "Acme Hair Gel"))
+//				.setProjection(Property.forName("id"));
 
-		lineItemSubquery = DetachedCriteria.forClass(LineItem.class)
-				.add(Restrictions.ge("quantity", 1L ))
-				.createCriteria("product")
-				.add(Subqueries.propertyIn("id", productSubquery))
-				.setProjection(Property.forName("id"));
+		lineItemSubquery = detachedCriteriaBuilder.createQuery().subquery( LineItem.class );
+		itemRoot = lineItemSubquery.from( LineItem.class );
+		product = itemRoot.join( "product", JoinType.INNER );
+		lineItemSubquery.where(
+				detachedCriteriaBuilder.and(
+						detachedCriteriaBuilder.ge( itemRoot.get( "quantity" ), 1L ),
+						detachedCriteriaBuilder.in( product.get( "id" ) ).value( productSubquery )
+				)
+		);
+		lineItemSubquery.select( product.get( "id" ) );
 
-		orders = session.createCriteria(Order.class)
-				.add(Subqueries.exists(lineItemSubquery))
-				.add(Restrictions.eq("buyer", "gavin"))
-				.list();
+		orderCriteria = criteriaBuilder.createQuery( Order.class );
+		orderRoot = orderCriteria.from( Order.class );
+		orderCriteria.where(
+				criteriaBuilder.and(
+						criteriaBuilder.exists( lineItemSubquery ),
+						criteriaBuilder.equal( orderRoot.get( "buyer" ), "gavin" )
+				)
+		);
+
+		orders = session.createQuery( orderCriteria ).list();
+//		lineItemSubquery = DetachedCriteria.forClass(LineItem.class)
+//				.add(Restrictions.ge("quantity", 1L ))
+//				.createCriteria("product")
+//				.add(Subqueries.propertyIn("id", productSubquery))
+//				.setProjection(Property.forName("id"));
+//
+//		orders = session.createCriteria(Order.class)
+//				.add(Subqueries.exists(lineItemSubquery))
+//				.add(Restrictions.eq("buyer", "gavin"))
+//				.list();
 
 		assertEquals("Incorrect orders count", 1, orders.size());
 
@@ -363,10 +443,20 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		session.enableFilter("region").setParameter("region", "APAC");
 		session.enableFilter("effectiveDate").setParameter("asOfDate", testData.fourMonthsAgo.getTime());
 
-		orders = session.createCriteria(Order.class)
-				.add(Subqueries.exists(lineItemSubquery))
-				.add(Restrictions.eq("buyer", "gavin"))
-				.list();
+		orderCriteria = criteriaBuilder.createQuery( Order.class );
+		orderRoot = orderCriteria.from( Order.class );
+		orderCriteria.where(
+				criteriaBuilder.and(
+						criteriaBuilder.exists( lineItemSubquery ),
+						criteriaBuilder.equal( orderRoot.get( "buyer" ), "gavin" )
+				)
+		);
+
+		orders = session.createQuery( orderCriteria ).list();
+//		orders = session.createCriteria(Order.class)
+//				.add(Subqueries.exists(lineItemSubquery))
+//				.add(Restrictions.eq("buyer", "gavin"))
+//				.list();
 
 		assertEquals("Incorrect orders count", 0, orders.size());
 
@@ -390,14 +480,14 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		List departments = session.createQuery(
 				"select d from Department as d where d.id in (select s.department from Salesperson s where s.name = ?1)"
-		).setString( 1, "steve" ).list();
+		).setParameter( 1, "steve" ).list();
 
 		assertEquals("Incorrect department count", 1, departments.size());
 
         log.info("query against Department with a subquery on Salesperson in the FooBar reqion...");
 
 		session.enableFilter("region").setParameter( "region", "Foobar" );
-		departments = session.createQuery("select d from Department as d where d.id in (select s.department from Salesperson s where s.name = ?1)").setString(1, "steve").list();
+		departments = session.createQuery("select d from Department as d where d.id in (select s.department from Salesperson s where s.name = ?1)").setParameter(1, "steve").list();
 
 		assertEquals( "Incorrect department count", 0, departments.size() );
 
@@ -405,7 +495,7 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		session.enableFilter("region").setParameter( "region", "APAC" );
 
 		List orders = session.createQuery("select o from Order as o where exists (select li.id from LineItem li, Product as p where p.id = li.product and li.quantity >= ?1 and p.name = ?2) and o.buyer = ?3")
-				.setLong(1, 1L).setString(2, "Acme Hair Gel").setString(3, "gavin").list();
+				.setParameter(1, 1L).setParameter(2, "Acme Hair Gel").setParameter(3, "gavin").list();
 
 		assertEquals( "Incorrect orders count", 1, orders.size() );
 
@@ -415,7 +505,7 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		session.enableFilter("effectiveDate").setParameter( "asOfDate", testData.lastMonth.getTime() );
 
 		orders = session.createQuery("select o from Order as o where exists (select li.id from LineItem li where li.quantity >= ?1 and li.product in (select p.id from Product p where p.name = ?2)) and o.buyer = ?3")
-				.setLong(1, 1L).setString(2, "Acme Hair Gel").setString(3, "gavin").list();
+				.setParameter(1, 1L).setParameter(2, "Acme Hair Gel").setParameter(3, "gavin").list();
 
 		assertEquals( "Incorrect orders count", 1, orders.size() );
 
@@ -428,7 +518,7 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		session.enableFilter("effectiveDate").setParameter("asOfDate", testData.fourMonthsAgo.getTime());
 
 		orders = session.createQuery("select o from Order as o where exists (select li.id from LineItem li where li.quantity >= ?1 and li.product in (select p.id from Product p where p.name = ?2)) and o.buyer = ?3")
-				.setLong(1, 1L).setString(2, "Acme Hair Gel").setString(3, "gavin").list();
+				.setParameter(1, 1L).setParameter(2, "Acme Hair Gel").setParameter(3, "gavin").list();
 
 		assertEquals("Incorrect orders count", 0, orders.size());
 
@@ -438,7 +528,7 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		session.enableFilter("effectiveDate").setParameter("asOfDate", testData.lastMonth.getTime());
 
 		orders = session.createQuery("select o from Order as o where exists (select li.id from LineItem li where li.quantity >= ?1 and li.product in (select p.id from Product p where p.name = ?2)) and o.buyer = ?3")
-				.setLong(1, 1L).setString(2, "Acme Hair Gel").setString(3, "gavin").list();
+				.setParameter(1, 1L).setParameter(2, "Acme Hair Gel").setParameter(3, "gavin").list();
 
 		assertEquals("Incorrect orders count", 1, orders.size());
 
@@ -448,7 +538,7 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		session.enableFilter("effectiveDate").setParameter("asOfDate", testData.lastMonth.getTime());
 
 		orders = session.createQuery("select o from Order as o where exists (select li.id from LineItem li where li.quantity >= ?1 and li.product in (select p.id from Product p where p.name = ?2)) and o.buyer = ?3")
-				.setLong(1, 1L).setString(2, "Acme Hair Gel").setString(3, "gavin").list();
+				.setParameter(1, 1L).setParameter(2, "Acme Hair Gel").setParameter(3, "gavin").list();
 
 		assertEquals("Incorrect orders count", 1, orders.size());
 
@@ -657,10 +747,19 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 		Session session = openSession();
 		session.enableFilter( "effectiveDate" ).setParameter( "asOfDate", new Date() );
 
-		Product prod = ( Product ) session.createCriteria( Product.class )
-		        .setResultTransformer( DistinctRootEntityResultTransformer.INSTANCE )
-		        .add( Restrictions.eq( "id", testData.prod1Id ) )
-		        .uniqueResult();
+		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+		CriteriaQuery<Product> criteria = criteriaBuilder.createQuery( Product.class );
+		Root<Product> root = criteria.from( Product.class );
+		criteria.where( criteriaBuilder.equal( root.get( "id" ), testData.prod1Id ) );
+
+		Product prod = session.createQuery( criteria )
+				.setResultTransformer( DistinctRootEntityResultTransformer.INSTANCE )
+				.uniqueResult();
+
+//		Product prod = ( Product ) session.createCriteria( Product.class )
+//		        .setResultTransformer( DistinctRootEntityResultTransformer.INSTANCE )
+//		        .add( Restrictions.eq( "id", testData.prod1Id ) )
+//		        .uniqueResult();
 
 		assertNotNull( prod );
 		assertEquals( "Incorrect Product.categories count for filter", 1, prod.getCategories().size() );
@@ -722,7 +821,7 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		// Force the categories to not get initialized here
 		List result = session.createQuery( "from Product as p where p.id = :id" )
-		        .setLong( "id", testData.prod1Id )
+		        .setParameter( "id", testData.prod1Id )
 		        .list();
 		assertTrue( "No products returned from HQL", !result.isEmpty() );
 
@@ -803,11 +902,18 @@ public class DynamicFilterTest extends BaseNonConfigCoreFunctionalTestCase {
 
 		Session session = openSession();
 
-		List result = session.createCriteria( Product.class )
-		        .add( Restrictions.eq( "id", testData.prod1Id ) )
-		        .list();
+		CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+		CriteriaQuery<Product> criteria = criteriaBuilder.createQuery( Product.class );
+		Root<Product> root = criteria.from( Product.class );
+		criteria.where( criteriaBuilder.equal(root.get( "id" ),  testData.prod1Id  ) );
 
-		Product prod = ( Product ) result.get( 0 );
+		List<Product> result = session.createQuery( criteria ).list();
+
+//		List result = session.createCriteria( Product.class )
+//		        .add( Restrictions.eq( "id", testData.prod1Id ) )
+//		        .list();
+
+		Product prod = result.get( 0 );
 
 		long initLoadCount = sessionFactory().getStatistics().getCollectionLoadCount();
 		long initFetchCount = sessionFactory().getStatistics().getCollectionFetchCount();

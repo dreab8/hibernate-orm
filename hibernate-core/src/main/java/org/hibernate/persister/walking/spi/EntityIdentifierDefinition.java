@@ -20,7 +20,7 @@ public interface EntityIdentifierDefinition {
 	 * castable to {@link NonEncapsulatedEntityIdentifierDefinition}).
 	 *
 	 */
-	public boolean isEncapsulated();
+	boolean isEncapsulated();
 
-	public EntityDefinition getEntityDefinition();
+	EntityDefinition getEntityDefinition();
 }

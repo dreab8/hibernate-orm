@@ -13,13 +13,14 @@ import java.time.ZoneOffset;
 import java.util.List;
 import javax.persistence.PersistenceException;
 
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.dialect.H2Dialect;
 import org.hibernate.dialect.Oracle8iDialect;
 import org.hibernate.dialect.PostgreSQL82Dialect;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
 import org.hibernate.loader.custom.NonUniqueDiscoveredSqlAliasException;
+import org.hibernate.transform.DistinctRootEntityResultTransformer;
+import org.hibernate.transform.RootEntityResultTransformer;
 import org.hibernate.transform.Transformers;
 import org.hibernate.type.LongType;
 import org.hibernate.type.StringType;
@@ -37,8 +38,6 @@ import org.hibernate.userguide.model.WireTransferPayment;
 import org.hibernate.testing.RequiresDialect;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.jboss.logging.Logger;
 
 import static org.hibernate.testing.junit4.ExtraAssertions.assertTyping;
 import static org.hibernate.testing.transaction.TransactionUtil.doInJPA;
@@ -385,7 +384,7 @@ public class SQLTest extends BaseEntityManagerFunctionalTestCase {
 				"JOIN Person pr ON ph.person_id = pr.id" )
 			.addEntity("phone", Phone.class )
 			.addJoin( "pr", "phone.person")
-			.setResultTransformer( Criteria.ROOT_ENTITY )
+			.setResultTransformer( RootEntityResultTransformer.INSTANCE )
 			.list();
 
 			for(Person person : persons) {
@@ -428,7 +427,7 @@ public class SQLTest extends BaseEntityManagerFunctionalTestCase {
 					"JOIN phone_call c ON c.phone_id = ph.id" )
 				.addEntity("phone", Phone.class )
 				.addJoin( "c", "phone.calls")
-				.setResultTransformer( Criteria.DISTINCT_ROOT_ENTITY )
+				.setResultTransformer( DistinctRootEntityResultTransformer.INSTANCE)
 				.list();
 
 				for(Phone phone : phones) {

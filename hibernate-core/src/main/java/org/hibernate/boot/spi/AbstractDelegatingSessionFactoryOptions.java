@@ -25,12 +25,14 @@ import org.hibernate.cache.spi.TimestampsCacheFactory;
 import org.hibernate.cfg.BaselineSessionEventsListenerBuilder;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.dialect.function.SQLFunction;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
 import org.hibernate.jpa.spi.JpaCompliance;
 import org.hibernate.loader.BatchFetchStyle;
 import org.hibernate.proxy.EntityNotFoundDelegate;
 import org.hibernate.query.ImmutableEntityUpdateQueryHandlingMode;
 import org.hibernate.query.criteria.LiteralHandlingMode;
+import org.hibernate.query.hql.SemanticQueryProducer;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
+import org.hibernate.query.sqm.produce.function.SqmFunctionRegistry;
 import org.hibernate.resource.jdbc.spi.PhysicalConnectionHandlingMode;
 import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.hibernate.tuple.entity.EntityTuplizerFactory;
@@ -118,6 +120,11 @@ public class AbstractDelegatingSessionFactoryOptions implements SessionFactoryOp
 	}
 
 	@Override
+	public SqmMultiTableMutationStrategy getSqmMultiTableMutationStrategy() {
+		return delegate.getSqmMultiTableMutationStrategy();
+	}
+
+	@Override
 	public StatementInspector getStatementInspector() {
 		return delegate.getStatementInspector();
 	}
@@ -155,11 +162,6 @@ public class AbstractDelegatingSessionFactoryOptions implements SessionFactoryOp
 	@Override
 	public boolean isInitializeLazyStateOutsideTransactionsEnabled() {
 		return delegate.isInitializeLazyStateOutsideTransactionsEnabled();
-	}
-
-	@Override
-	public MultiTableBulkIdStrategy getMultiTableBulkIdStrategy() {
-		return delegate.getMultiTableBulkIdStrategy();
 	}
 
 	@Override
@@ -389,6 +391,11 @@ public class AbstractDelegatingSessionFactoryOptions implements SessionFactoryOp
 	}
 
 	@Override
+	public SemanticQueryProducer getHqlTranslator() {
+		return delegate.getHqlTranslator();
+	}
+
+	@Override
 	public TimeZone getJdbcTimeZone() {
 		return delegate.getJdbcTimeZone();
 	}
@@ -401,11 +408,6 @@ public class AbstractDelegatingSessionFactoryOptions implements SessionFactoryOp
 	@Override
 	public LiteralHandlingMode getCriteriaLiteralHandlingMode() {
 		return delegate.getCriteriaLiteralHandlingMode();
-	}
-
-	@Override
-	public boolean jdbcStyleParamsZeroBased() {
-		return delegate.jdbcStyleParamsZeroBased();
 	}
 
 	@Override
@@ -446,6 +448,16 @@ public class AbstractDelegatingSessionFactoryOptions implements SessionFactoryOp
 	@Override
 	public boolean isEnhancementAsProxyEnabled() {
 		return delegate.isEnhancementAsProxyEnabled();
+	}
+
+	@Override
+	public boolean isUseOfJdbcNamedParametersEnabled() {
+		return delegate().isUseOfJdbcNamedParametersEnabled();
+	}
+
+	@Override
+	public SqmFunctionRegistry getSqmFunctionRegistry() {
+		return delegate().getSqmFunctionRegistry();
 	}
 
 	@Override

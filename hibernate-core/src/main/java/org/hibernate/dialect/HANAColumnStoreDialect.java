@@ -6,13 +6,12 @@
  */
 package org.hibernate.dialect;
 
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.dialect.function.VarArgsSQLFunction;
-import org.hibernate.hql.spi.id.IdTableSupportStandardImpl;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.global.GlobalTemporaryTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.local.AfterUseAction;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.type.StandardBasicTypes;
 
 /**
@@ -49,19 +48,21 @@ public class HANAColumnStoreDialect extends AbstractHANADialect {
 	}
 
 	@Override
-	public MultiTableBulkIdStrategy getDefaultMultiTableBulkIdStrategy() {
-		return new GlobalTemporaryTableBulkIdStrategy( new IdTableSupportStandardImpl() {
+	public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityPersister runtimeRootEntityDescriptor) {
+		throw new NotYetImplementedFor6Exception( getClass() );
 
-			@Override
-			public String getCreateIdTableCommand() {
-				return "create global temporary column table";
-			}
-
-			@Override
-			public String getTruncateIdTableCommand() {
-				return "truncate table";
-			}
-
-		}, AfterUseAction.CLEAN );
+//		return new GlobalTemporaryTableBulkIdStrategy( new IdTableSupportStandardImpl() {
+//
+//			@Override
+//			public String getCreateIdTableCommand() {
+//				return "create global temporary column table";
+//			}
+//
+//			@Override
+//			public String getTruncateIdTableCommand() {
+//				return "truncate table";
+//			}
+//
+//		}, AfterUseAction.CLEAN );
 	}
 }

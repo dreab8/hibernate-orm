@@ -30,7 +30,7 @@ import org.hibernate.service.Service;
  * @author Steve Ebersole
  */
 @SuppressWarnings("unused")
-public interface CacheImplementor extends Service, Cache, org.hibernate.engine.spi.CacheImplementor, Serializable {
+public interface CacheImplementor extends Service, Cache, Serializable {
 	@Override
 	SessionFactoryImplementor getSessionFactory();
 
@@ -174,45 +174,6 @@ public interface CacheImplementor extends Service, Cache, org.hibernate.engine.s
 	 */
 	@Deprecated
 	CollectionDataAccess getCollectionRegionAccess(NavigableRole collectionRole);
-
-
-	/**
-	 * Get {@code UpdateTimestampsCache} instance managed by the {@code SessionFactory}.
-	 *
-	 * @deprecated Use {@link #getTimestampsCache} instead
-	 */
-	@Deprecated
-	default UpdateTimestampsCache getUpdateTimestampsCache() {
-		return getTimestampsCache();
-	}
-
-	/**
-	 * Get the default {@code QueryCache}.
-	 *
-	 * @deprecated Use {@link #getDefaultQueryResultsCache} instead.
-	 */
-	@Deprecated
-	default QueryCache getQueryCache() {
-		return getDefaultQueryResultsCache();
-	}
-
-	/**
-	 * Get the default {@code QueryCache}.
-	 *
-	 * @deprecated Use {@link #getDefaultQueryResultsCache} instead.
-	 */
-	@Deprecated
-	default QueryCache getDefaultQueryCache() {
-		return getDefaultQueryResultsCache();
-	}
-
-	/**
-	 * @deprecated Use {@link #getQueryResultsCache(String)} instead, but using unqualified name
-	 */
-	@Deprecated
-	default QueryCache getQueryCache(String regionName) throws HibernateException {
-		return getQueryResultsCache( unqualifyRegionName( regionName ) );
-	}
 
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

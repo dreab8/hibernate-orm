@@ -11,17 +11,22 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.Locale;
 
+import javax.persistence.TemporalType;
+
+import org.hibernate.QueryException;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.metamodel.model.domain.AllowableTemporalParameterType;
 import org.hibernate.type.descriptor.java.OffsetDateTimeJavaDescriptor;
 import org.hibernate.type.descriptor.sql.TimestampTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * @author Steve Ebersole
  */
 public class OffsetDateTimeType
 		extends AbstractSingleColumnStandardBasicType<OffsetDateTime>
-		implements VersionType<OffsetDateTime>, LiteralType<OffsetDateTime> {
+		implements VersionType<OffsetDateTime>, LiteralType<OffsetDateTime>, AllowableTemporalParameterType<OffsetDateTime> {
 
 	/**
 	 * Singleton access
@@ -50,7 +55,6 @@ public class OffsetDateTimeType
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public Comparator<OffsetDateTime> getComparator() {
 		return OffsetDateTime.timeLineOrder();
 	}
@@ -63,5 +67,26 @@ public class OffsetDateTimeType
 	@Override
 	protected boolean registerUnderJavaType() {
 		return true;
+	}
+
+	@Override
+	public AllowableTemporalParameterType resolveTemporalPrecision(
+			TemporalType temporalPrecision,
+			TypeConfiguration typeConfiguration) {
+		switch ( temporalPrecision ) {
+			case TIMESTAMP: {
+				return this;
+			}
+			case TIME: {
+				return OffsetTimeType.INSTANCE;
+			}
+			case DATE: {
+				return DateType.INSTANCE;
+			}
+			default: {
+				// should never happen, but switch requires this branch so...
+				throw new QueryException( "OffsetDateTime type cannot be treated using `" + temporalPrecision.name() + "` precision" );
+			}
+		}
 	}
 }

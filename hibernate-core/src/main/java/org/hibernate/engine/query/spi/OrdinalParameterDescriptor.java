@@ -7,6 +7,8 @@
 package org.hibernate.engine.query.spi;
 
 import org.hibernate.Incubating;
+import org.hibernate.NotYetImplementedFor6Exception;
+import org.hibernate.metamodel.model.domain.AllowableParameterType;
 import org.hibernate.type.Type;
 
 /**
@@ -25,7 +27,7 @@ public class OrdinalParameterDescriptor extends AbstractParameterDescriptor {
 	public OrdinalParameterDescriptor(
 			int label,
 			int valuePosition,
-			Type expectedType,
+			AllowableParameterType expectedType,
 			int[] sourceLocations) {
 		super( sourceLocations, expectedType );
 		this.label = label;
@@ -39,5 +41,10 @@ public class OrdinalParameterDescriptor extends AbstractParameterDescriptor {
 
 	public int getValuePosition() {
 		return valuePosition;
+	}
+
+	@Override
+	public boolean allowsMultiValuedBinding() {
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 }

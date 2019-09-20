@@ -9,11 +9,12 @@ package org.hibernate.persister.walking.spi;
 import org.hibernate.type.Type;
 
 /**
+ * Descriptor for
  * @author Steve Ebersole
  */
 public interface AttributeDefinition {
-	public AttributeSource getSource();
-	public String getName();
-	public Type getType();
-	public boolean isNullable();
+	AttributeSource getSource();
+	String getName();
+	Type getType();
+	boolean isNullable();
 }

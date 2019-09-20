@@ -52,6 +52,21 @@ public class TransactionUtil2 {
 		}
 	}
 
+	public static <R> R inSessionReturn(SessionFactoryImplementor sfi, Function<SessionImplementor,R> action) {
+		log.trace( "#inSession(SF,action)" );
+
+		R result = null;
+		try (SessionImplementor session = (SessionImplementor) sfi.openSession()) {
+			log.trace( "Session opened, calling action" );
+			result = action.apply( session );
+			log.trace( "called action" );
+		}
+		finally {
+			log.trace( "Session closed (AutoCloseable)" );
+		}
+		return result;
+	}
+
 
 	public static void inTransaction(SessionFactoryImplementor factory, Consumer<SessionImplementor> action) {
 		log.trace( "#inTransaction(factory, action)");

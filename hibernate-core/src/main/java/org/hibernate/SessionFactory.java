@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import javax.naming.Referenceable;
 import javax.persistence.EntityManagerFactory;
 
@@ -104,6 +106,108 @@ public interface SessionFactory extends EntityManagerFactory, HibernateEntityMan
 	StatelessSession openStatelessSession(Connection connection);
 
 	/**
+	 * Open a Session and perform a action using it
+	 */
+	default void inSession(Consumer<Session> action) {
+		try (Session session = openSession()) {
+			action.accept( session );
+		}
+	}
+
+	/**
+	 * Open a Session and perform a action using it within the bounds of a transaction
+	 */
+	default void inTransaction(Consumer<Session> action) {
+		inSession(
+				session -> {
+					final Transaction txn = session.beginTransaction();
+
+					try {
+						action.accept( session );
+
+						if ( !txn.isActive() ) {
+							throw new TransactionManagementException( "Execution of action caused managed transaction to be completed" );
+						}
+					}
+					catch (RuntimeException e) {
+						// an error happened in the action
+						if ( txn.isActive() ) {
+							try {
+								txn.rollback();
+							}
+							catch (Exception ignore) {
+							}
+						}
+
+						throw e;
+					}
+
+					// action completed with no errors - attempt to commit the transaction allowing
+					// 		any RollbackException to propagate.  Note that when we get here we know the
+					//		txn is active
+
+					txn.commit();
+				}
+		);
+	}
+
+	class TransactionManagementException extends RuntimeException {
+		TransactionManagementException(String message) {
+			super( message );
+		}
+	}
+
+	/**
+	 * Open a Session and perform a action using it
+	 */
+	default <R> R fromSession(Function<Session,R> action) {
+		try (Session session = openSession()) {
+			return action.apply( session );
+		}
+	}
+
+	/**
+	 * Open a Session and perform a action using it within the bounds of a transaction
+	 */
+	default <R> R fromTransaction(Function<Session,R> action) {
+		return fromSession(
+				session -> {
+					R result = null;
+
+					final Transaction txn = session.beginTransaction();
+
+					try {
+						result = action.apply( session );
+
+						if ( !txn.isActive() ) {
+							throw new TransactionManagementException( "Execution of action caused managed transaction to be completed" );
+						}
+					}
+					catch (RuntimeException e) {
+						// an error happened in the action
+						if ( txn.isActive() ) {
+							try {
+								txn.rollback();
+							}
+							catch (Exception ignore) {
+							}
+						}
+
+						throw e;
+					}
+
+					// action completed with no errors - attempt to commit the transaction allowing
+					// 		any RollbackException to propagate.  Note that when we get here we know the
+					//		txn is active
+
+					txn.commit();
+
+					return result;
+				}
+		);
+	}
+
+	/**
 	 * Retrieve the statistics fopr this factory.
 	 *
 	 * @return The statistics.
@@ -163,13 +267,6 @@ public interface SessionFactory extends EntityManagerFactory, HibernateEntityMan
 	 * @return True if there is such a fetch profile; false otherwise.
 	 */
 	boolean containsFetchProfileDefinition(String name);
-
-	/**
-	 * Retrieve this factory's {@link TypeHelper}.
-	 *
-	 * @return The factory's {@link TypeHelper}
-	 */
-	TypeHelper getTypeHelper();
 
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

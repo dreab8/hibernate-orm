@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.persistence.SharedCacheMode;
 
 import org.hibernate.MultiTenancyStrategy;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.annotations.common.reflection.ReflectionManager;
 import org.hibernate.boot.AttributeConverterInfo;
 import org.hibernate.boot.CacheRegionDefinition;
@@ -24,7 +25,10 @@ import org.hibernate.boot.model.relational.AuxiliaryDatabaseObject;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.cache.spi.access.AccessType;
 import org.hibernate.cfg.MetadataSourceType;
+import org.hibernate.collection.spi.CollectionSemanticsResolver;
 import org.hibernate.dialect.function.SQLFunction;
+import org.hibernate.metamodel.internal.StandardManagedTypeRepresentationResolver;
+import org.hibernate.metamodel.spi.ManagedTypeRepresentationResolver;
 
 import org.jboss.jandex.IndexView;
 
@@ -51,13 +55,21 @@ public interface MetadataBuildingOptions {
 	 */
 	MappingDefaults getMappingDefaults();
 
+	default ManagedTypeRepresentationResolver getManagedTypeRepresentationResolver() {
+		// for now always return the standard one
+		return StandardManagedTypeRepresentationResolver.INSTANCE;
+	}
+
+	default CollectionSemanticsResolver getPersistentCollectionRepresentationResolver() {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
 	/**
 	 * Access the list of BasicType registrations.  These are the BasicTypes explicitly
 	 * registered via calls to:<ul>
 	 *     <li>{@link org.hibernate.boot.MetadataBuilder#applyBasicType(org.hibernate.type.BasicType)}</li>
 	 *     <li>{@link org.hibernate.boot.MetadataBuilder#applyBasicType(org.hibernate.type.BasicType, String[])}</li>
 	 *     <li>{@link org.hibernate.boot.MetadataBuilder#applyBasicType(org.hibernate.usertype.UserType, java.lang.String[])}</li>
-	 *     <li>{@link org.hibernate.boot.MetadataBuilder#applyBasicType(org.hibernate.usertype.CompositeUserType, java.lang.String[])}</li>
 	 * </ul>
 	 *
 	 * @return The BasicType registrations
@@ -244,36 +256,4 @@ public interface MetadataBuildingOptions {
 	default boolean isXmlMappingEnabled() {
 		return true;
 	}
-
-	/**
-	 * Access to any SQL functions explicitly registered with the MetadataBuilder.  This
-	 * does not include Dialect defined functions, etc.
-	 *
-	 * @return The SQLFunctions registered through MetadataBuilder
-	 *
-	 *  @deprecated  Use {@link BootstrapContext#getSqlFunctions()} instead.
-	 */
-	@Deprecated
-	Map<String,SQLFunction> getSqlFunctions();
-
-	/**
-	 * Access to any AuxiliaryDatabaseObject explicitly registered with the MetadataBuilder.  This
-	 * does not include AuxiliaryDatabaseObject defined in mappings.
-	 *
-	 * @return The AuxiliaryDatabaseObject registered through MetadataBuilder
-	 *
-	 * @deprecated Use {@link BootstrapContext#getAuxiliaryDatabaseObjectList()} instead.
-	 */
-	@Deprecated
-	List<AuxiliaryDatabaseObject> getAuxiliaryDatabaseObjectList();
-
-	/**
-	 * Access to collected AttributeConverter definitions.
-	 *
-	 * @return The AttributeConverterInfo registered through MetadataBuilder
-	 *
-	 * @deprecated Use {@link BootstrapContext#getAttributeConverters()} instead
-	 */
-	@Deprecated
-	List<AttributeConverterInfo> getAttributeConverters();
 }

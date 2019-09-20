@@ -20,17 +20,18 @@ import org.hibernate.boot.jaxb.hbm.spi.JaxbHbmNamedNativeQueryType;
 import org.hibernate.boot.jaxb.hbm.spi.JaxbHbmNamedQueryType;
 import org.hibernate.boot.jaxb.hbm.spi.JaxbHbmTypeDefinitionType;
 import org.hibernate.boot.jaxb.hbm.spi.ResultSetMappingBindingDefinition;
+import org.hibernate.boot.model.TypeDefinitionRegistry;
 import org.hibernate.boot.model.naming.ObjectNameNormalizer;
 import org.hibernate.boot.model.source.internal.OverriddenMappingDefaults;
 import org.hibernate.boot.model.source.spi.MetadataSourceProcessor;
 import org.hibernate.boot.model.source.spi.ToolingHintContext;
 import org.hibernate.boot.spi.BootstrapContext;
 import org.hibernate.boot.spi.ClassLoaderAccess;
+import org.hibernate.boot.spi.HbmResultSetMappingDefinition;
 import org.hibernate.boot.spi.InFlightMetadataCollector;
 import org.hibernate.boot.spi.MappingDefaults;
 import org.hibernate.boot.spi.MetadataBuildingContext;
 import org.hibernate.boot.spi.MetadataBuildingOptions;
-import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.mapping.PersistentClass;
 
@@ -50,6 +51,8 @@ public class MappingDocument implements HbmLocalMetadataBuildingContext, Metadat
 	private final MappingDefaults mappingDefaults;
 
 	private final ToolingHintContext toolingHintContext;
+
+	private final TypeDefinitionRegistry typeDefinitionRegistry;
 
 
 	public MappingDocument(
@@ -74,6 +77,8 @@ public class MappingDocument implements HbmLocalMetadataBuildingContext, Metadat
 				.build();
 
 		this.toolingHintContext = Helper.collectToolingHints( null, documentRoot );
+
+		this.typeDefinitionRegistry = new TypeDefinitionRegistry( rootBuildingContext.getTypeDefinitionRegistry() );
 	}
 
 	public JaxbHbmHibernateMapping getDocumentRoot() {
@@ -151,6 +156,11 @@ public class MappingDocument implements HbmLocalMetadataBuildingContext, Metadat
 	@Override
 	public ObjectNameNormalizer getObjectNameNormalizer() {
 		return rootBuildingContext.getObjectNameNormalizer();
+	}
+
+	@Override
+	public TypeDefinitionRegistry getTypeDefinitionRegistry() {
+		return typeDefinitionRegistry;
 	}
 
 	@Override
@@ -233,7 +243,7 @@ public class MappingDocument implements HbmLocalMetadataBuildingContext, Metadat
 	@Override
 	public void processResultSetMappings() {
 		for ( ResultSetMappingBindingDefinition resultSetMappingBinding : documentRoot.getResultset() ) {
-			final ResultSetMappingDefinition binding = ResultSetMappingBinder.bind( resultSetMappingBinding, this );
+			final HbmResultSetMappingDefinition binding = ResultSetMappingBinder.bind( resultSetMappingBinding, this );
 			getMetadataCollector().addResultSetMapping( binding );
 		}
 	}

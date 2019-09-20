@@ -25,8 +25,8 @@ import javax.persistence.criteria.Root;
 
 import org.hibernate.dialect.H2Dialect;
 import org.hibernate.exception.SQLGrammarException;
-import org.hibernate.hql.internal.ast.QuerySyntaxException;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
+import org.hibernate.query.SemanticException;
 
 import org.hibernate.testing.RequiresDialect;
 import org.hibernate.testing.jdbc.SQLStatementInterceptor;
@@ -212,7 +212,7 @@ public class CriteriaLiteralsTest extends BaseEntityManagerFunctionalTestCase {
 		}
 		catch ( Exception expected ) {
 			assertEquals(
-					QuerySyntaxException.class,
+					SemanticException.class,
 					expected.getCause().getClass()
 			);
 		}

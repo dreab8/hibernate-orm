@@ -11,16 +11,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.hibernate.AssertionFailure;
 import org.hibernate.FetchMode;
 import org.hibernate.Filter;
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.QueryException;
 import org.hibernate.TransientObjectException;
 import org.hibernate.boot.model.relational.Database;
@@ -62,9 +65,10 @@ import org.hibernate.mapping.List;
 import org.hibernate.mapping.Selectable;
 import org.hibernate.mapping.Table;
 import org.hibernate.metadata.CollectionMetadata;
+import org.hibernate.metamodel.mapping.ModelPart;
+import org.hibernate.metamodel.model.domain.EmbeddableDomainType;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.persister.entity.Loadable;
 import org.hibernate.persister.entity.PropertyMapping;
 import org.hibernate.persister.entity.Queryable;
 import org.hibernate.persister.spi.PersisterCreationContext;
@@ -84,18 +88,14 @@ import org.hibernate.sql.Alias;
 import org.hibernate.sql.SelectFragment;
 import org.hibernate.sql.SimpleSelect;
 import org.hibernate.sql.Template;
-import org.hibernate.sql.ordering.antlr.ColumnMapper;
-import org.hibernate.sql.ordering.antlr.ColumnReference;
-import org.hibernate.sql.ordering.antlr.FormulaReference;
-import org.hibernate.sql.ordering.antlr.OrderByAliasResolver;
-import org.hibernate.sql.ordering.antlr.OrderByTranslation;
-import org.hibernate.sql.ordering.antlr.SqlValueReference;
 import org.hibernate.type.AnyType;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.Type;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 import org.jboss.logging.Logger;
 
@@ -131,10 +131,10 @@ public abstract class AbstractCollectionPersister
 	private final String sqlWhereStringTemplate;
 
 	private final boolean hasOrder;
-	private final OrderByTranslation orderByTranslation;
+//	private final OrderByTranslation orderByTranslation;
 
 	private final boolean hasManyToManyOrder;
-	private final OrderByTranslation manyToManyOrderByTranslation;
+//	private final OrderByTranslation manyToManyOrderByTranslation;
 
 	private final int baseIndex;
 
@@ -230,6 +230,9 @@ public abstract class AbstractCollectionPersister
 	private final Serializable[] spaces;
 
 	private Map collectionPropertyColumnAliases = new HashMap();
+
+	private final Comparator comparator;
+
 
 	public AbstractCollectionPersister(
 			Collection collectionBinding,
@@ -569,16 +572,18 @@ public abstract class AbstractCollectionPersister
 		hasOrder = collectionBinding.getOrderBy() != null;
 		if ( hasOrder ) {
 			LOG.debugf( "Translating order-by fragment [%s] for collection role : %s",  collectionBinding.getOrderBy(), getRole() );
-			orderByTranslation = Template.translateOrderBy(
-					collectionBinding.getOrderBy(),
-					new ColumnMapperImpl(),
-					factory,
-					dialect,
-					factory.getSqlFunctionRegistry()
-			);
+//			orderByTranslation = Template.translateOrderBy(
+//					collectionBinding.getOrderBy(),
+//					new ColumnMapperImpl(),
+//					factory,
+//					dialect,
+//					factory.getSqlFunctionRegistry()
+//			);
+			throw new NotYetImplementedFor6Exception( getClass() );
 		}
 		else {
-			orderByTranslation = null;
+//			orderByTranslation = null;
+
 		}
 
 		// Handle any filters applied to this collectionBinding
@@ -596,19 +601,27 @@ public abstract class AbstractCollectionPersister
 		hasManyToManyOrder = collectionBinding.getManyToManyOrdering() != null;
 		if ( hasManyToManyOrder ) {
 			LOG.debugf( "Translating many-to-many order-by fragment [%s] for collection role : %s",  collectionBinding.getOrderBy(), getRole() );
-			manyToManyOrderByTranslation = Template.translateOrderBy(
-					collectionBinding.getManyToManyOrdering(),
-					new ColumnMapperImpl(),
-					factory,
-					dialect,
-					factory.getSqlFunctionRegistry()
-			);
+//			manyToManyOrderByTranslation = Template.translateOrderBy(
+//					collectionBinding.getManyToManyOrdering(),
+//					new ColumnMapperImpl(),
+//					factory,
+//					dialect,
+//					factory.getSqlFunctionRegistry()
+//			);
+			throw new NotYetImplementedFor6Exception( getClass() );
 		}
 		else {
-			manyToManyOrderByTranslation = null;
+//			manyToManyOrderByTranslation = null;
 		}
 
+		comparator = collectionBinding.getComparator();
+
 		initCollectionPropertyMap();
+	}
+
+	@Override
+	public Comparator<?> getSortingComparator() {
+		return comparator;
 	}
 
 	protected String determineTableName(Table table, JdbcEnvironment jdbcEnvironment) {
@@ -622,50 +635,50 @@ public abstract class AbstractCollectionPersister
 		);
 	}
 
-	private class ColumnMapperImpl implements ColumnMapper {
-		@Override
-		public SqlValueReference[] map(String reference) {
-			final String[] columnNames;
-			final String[] formulaTemplates;
-
-			// handle the special "$element$" property name...
-			if ( "$element$".equals( reference ) ) {
-				columnNames = elementColumnNames;
-				formulaTemplates = elementFormulaTemplates;
-			}
-			else {
-				columnNames = elementPropertyMapping.toColumns( reference );
-				formulaTemplates = formulaTemplates( reference, columnNames.length );
-			}
-
-			final SqlValueReference[] result = new SqlValueReference[ columnNames.length ];
-			int i = 0;
-			for ( final String columnName : columnNames ) {
-				if ( columnName == null ) {
-					// if the column name is null, it indicates that this index in the property value mapping is
-					// actually represented by a formula.
-//					final int propertyIndex = elementPersister.getEntityMetamodel().getPropertyIndex( reference );
-					final String formulaTemplate = formulaTemplates[i];
-					result[i] = new FormulaReference() {
-						@Override
-						public String getFormulaFragment() {
-							return formulaTemplate;
-						}
-					};
-				}
-				else {
-					result[i] = new ColumnReference() {
-						@Override
-						public String getColumnName() {
-							return columnName;
-						}
-					};
-				}
-				i++;
-			}
-			return result;
-		}
-	}
+//	private class ColumnMapperImpl implements ColumnMapper {
+//		@Override
+//		public SqlValueReference[] map(String reference) {
+//			final String[] columnNames;
+//			final String[] formulaTemplates;
+//
+//			// handle the special "$element$" property name...
+//			if ( "$element$".equals( reference ) ) {
+//				columnNames = elementColumnNames;
+//				formulaTemplates = elementFormulaTemplates;
+//			}
+//			else {
+//				columnNames = elementPropertyMapping.toColumns( reference );
+//				formulaTemplates = formulaTemplates( reference, columnNames.length );
+//			}
+//
+//			final SqlValueReference[] result = new SqlValueReference[ columnNames.length ];
+//			int i = 0;
+//			for ( final String columnName : columnNames ) {
+//				if ( columnName == null ) {
+//					// if the column name is null, it indicates that this index in the property value mapping is
+//					// actually represented by a formula.
+////					final int propertyIndex = elementPersister.getEntityMetamodel().getPropertyIndex( reference );
+//					final String formulaTemplate = formulaTemplates[i];
+//					result[i] = new FormulaReference() {
+//						@Override
+//						public String getFormulaFragment() {
+//							return formulaTemplate;
+//						}
+//					};
+//				}
+//				else {
+//					result[i] = new ColumnReference() {
+//						@Override
+//						public String getColumnName() {
+//							return columnName;
+//						}
+//					};
+//				}
+//				i++;
+//			}
+//			return result;
+//		}
+//	}
 
 	private String[] formulaTemplates(String reference, int expectedSize) {
 		try {
@@ -786,16 +799,26 @@ public abstract class AbstractCollectionPersister
 
 	@Override
 	public String getSQLOrderByString(String alias) {
-		return hasOrdering()
-				? orderByTranslation.injectAliases( new StandardOrderByAliasResolver( alias ) )
-				: "";
+//		return hasOrdering()
+//				? orderByTranslation.injectAliases( new StandardOrderByAliasResolver( alias ) )
+//				: "";
+		if ( hasOrdering() ) {
+			throw new NotYetImplementedFor6Exception( getClass() );
+		}
+
+		return "";
 	}
 
 	@Override
 	public String getManyToManyOrderByString(String alias) {
-		return hasManyToManyOrdering()
-				? manyToManyOrderByTranslation.injectAliases( new StandardOrderByAliasResolver( alias ) )
-				: "";
+//		return hasManyToManyOrdering()
+//				? manyToManyOrderByTranslation.injectAliases( new StandardOrderByAliasResolver( alias ) )
+//				: "";
+		if ( hasManyToManyOrdering() ) {
+			throw new NotYetImplementedFor6Exception( getClass() );
+		}
+
+		return "";
 	}
 
 	@Override
@@ -1703,10 +1726,10 @@ public abstract class AbstractCollectionPersister
 		return elementPropertyMapping.toColumns( propertyName );
 	}
 
-	@Override
-	public Type getType() {
-		return elementPropertyMapping.getType(); // ==elementType ??
-	}
+//	@Override
+//	public Type getType() {
+//		return elementPropertyMapping.getType(); // ==elementType ??
+//	}
 
 	@Override
 	public String getName() {
@@ -2098,24 +2121,24 @@ public abstract class AbstractCollectionPersister
 		return mappedByProperty;
 	}
 
-	private class StandardOrderByAliasResolver implements OrderByAliasResolver {
-		private final String rootAlias;
-
-		private StandardOrderByAliasResolver(String rootAlias) {
-			this.rootAlias = rootAlias;
-		}
-
-		@Override
-		public String resolveTableAlias(String columnReference) {
-			if ( elementPersister == null ) {
-				// we have collection of non-entity elements...
-				return rootAlias;
-			}
-			else {
-				return ( (Loadable) elementPersister ).getTableAliasForColumn( columnReference, rootAlias );
-			}
-		}
-	}
+//	private class StandardOrderByAliasResolver implements OrderByAliasResolver {
+//		private final String rootAlias;
+//
+//		private StandardOrderByAliasResolver(String rootAlias) {
+//			this.rootAlias = rootAlias;
+//		}
+//
+//		@Override
+//		public String resolveTableAlias(String columnReference) {
+//			if ( elementPersister == null ) {
+//				// we have collection of non-entity elements...
+//				return rootAlias;
+//			}
+//			else {
+//				return ( (Loadable) elementPersister ).getTableAliasForColumn( columnReference, rootAlias );
+//			}
+//		}
+//	}
 
 	public abstract FilterAliasGenerator getFilterAliasGenerator(final String rootAlias);
 

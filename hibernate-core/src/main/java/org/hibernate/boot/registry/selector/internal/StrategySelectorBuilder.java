@@ -89,14 +89,11 @@ import org.hibernate.engine.transaction.jta.platform.internal.WebSphereJtaPlatfo
 import org.hibernate.engine.transaction.jta.platform.internal.WebSphereLibertyJtaPlatform;
 import org.hibernate.engine.transaction.jta.platform.internal.WeblogicJtaPlatform;
 import org.hibernate.engine.transaction.jta.platform.spi.JtaPlatform;
-import org.hibernate.event.internal.EntityCopyAllowedLoggedObserver;
-import org.hibernate.event.internal.EntityCopyAllowedObserver;
-import org.hibernate.event.internal.EntityCopyNotAllowedObserver;
-import org.hibernate.event.spi.EntityCopyObserver;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.global.GlobalTemporaryTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.local.LocalTemporaryTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.persistent.PersistentTableBulkIdStrategy;
+import org.hibernate.query.sqm.mutation.internal.cte.CteBasedMutationStrategy;
+import org.hibernate.query.sqm.mutation.internal.idtable.GlobalTemporaryTableStrategy;
+import org.hibernate.query.sqm.mutation.internal.idtable.LocalTemporaryTableStrategy;
+import org.hibernate.query.sqm.mutation.internal.idtable.PersistentTableStrategy;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorBuilderImpl;
 import org.hibernate.resource.transaction.backend.jta.internal.JtaTransactionCoordinatorBuilderImpl;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
@@ -165,7 +162,7 @@ public class StrategySelectorBuilder {
 		addDialects( strategySelector );
 		addJtaPlatforms( strategySelector );
 		addTransactionCoordinatorBuilders( strategySelector );
-		addMultiTableBulkIdStrategies( strategySelector );
+		addSqmMultiTableMutationStrategies( strategySelector );
 		addImplicitNamingStrategies( strategySelector );
 		addCacheKeysFactories( strategySelector );
 
@@ -410,21 +407,26 @@ public class StrategySelectorBuilder {
 		);
 	}
 
-	private void addMultiTableBulkIdStrategies(StrategySelectorImpl strategySelector) {
+	private void addSqmMultiTableMutationStrategies(StrategySelectorImpl strategySelector) {
 		strategySelector.registerStrategyImplementor(
-				MultiTableBulkIdStrategy.class,
-				PersistentTableBulkIdStrategy.SHORT_NAME,
-				PersistentTableBulkIdStrategy.class
+				SqmMultiTableMutationStrategy.class,
+				CteBasedMutationStrategy.SHORT_NAME,
+				CteBasedMutationStrategy.class
 		);
 		strategySelector.registerStrategyImplementor(
-				MultiTableBulkIdStrategy.class,
-				GlobalTemporaryTableBulkIdStrategy.SHORT_NAME,
-				GlobalTemporaryTableBulkIdStrategy.class
+				SqmMultiTableMutationStrategy.class,
+				GlobalTemporaryTableStrategy.SHORT_NAME,
+				GlobalTemporaryTableStrategy.class
 		);
 		strategySelector.registerStrategyImplementor(
-				MultiTableBulkIdStrategy.class,
-				LocalTemporaryTableBulkIdStrategy.SHORT_NAME,
-				LocalTemporaryTableBulkIdStrategy.class
+				SqmMultiTableMutationStrategy.class,
+				LocalTemporaryTableStrategy.SHORT_NAME,
+				LocalTemporaryTableStrategy.class
+		);
+		strategySelector.registerStrategyImplementor(
+				SqmMultiTableMutationStrategy.class,
+				PersistentTableStrategy.SHORT_NAME,
+				PersistentTableStrategy.class
 		);
 	}
 

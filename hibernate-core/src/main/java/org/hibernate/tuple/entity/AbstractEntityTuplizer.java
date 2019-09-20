@@ -36,6 +36,7 @@ import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.ProxyFactory;
 import org.hibernate.tuple.IdentifierProperty;
 import org.hibernate.tuple.Instantiator;
+import org.hibernate.tuple.NonIdentifierAttribute;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.ComponentType;
 import org.hibernate.type.CompositeType;
@@ -682,7 +683,7 @@ public abstract class AbstractEntityTuplizer implements EntityTuplizer {
 
 	@Override
 	public final Object instantiate(Serializable id, SharedSessionContractImplementor session) {
-		Object result = getInstantiator().instantiate( id );
+		Object result = getInstantiator().instantiate( session );
 		if ( id != null ) {
 			setIdentifier( result, id, session );
 		}

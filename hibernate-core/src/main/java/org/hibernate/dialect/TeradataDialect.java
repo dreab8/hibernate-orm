@@ -8,14 +8,12 @@ package org.hibernate.dialect;
 import java.sql.Types;
 
 import org.hibernate.HibernateException;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.dialect.function.VarArgsSQLFunction;
-import org.hibernate.hql.spi.id.IdTableSupport;
-import org.hibernate.hql.spi.id.IdTableSupportStandardImpl;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.global.GlobalTemporaryTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.local.AfterUseAction;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.type.StandardBasicTypes;
 
 /**
@@ -24,7 +22,7 @@ import org.hibernate.type.StandardBasicTypes;
  *
  * @author Jay Nance
  */
-public class TeradataDialect extends Dialect implements IdTableSupport {
+public class TeradataDialect extends Dialect {
 	
 	private static final int PARAM_LIST_SIZE_LIMIT = 1024;
 
@@ -121,34 +119,35 @@ public class TeradataDialect extends Dialect implements IdTableSupport {
 	}
 
 	@Override
-	public MultiTableBulkIdStrategy getDefaultMultiTableBulkIdStrategy() {
-		return new GlobalTemporaryTableBulkIdStrategy( this, AfterUseAction.CLEAN );
+	public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityPersister runtimeRootEntityDescriptor) {
+		throw new NotYetImplementedFor6Exception( getClass() );
+//		return new GlobalTemporaryTableBulkIdStrategy( this, AfterUseAction.CLEAN );
 	}
 
-	@Override
-	public String generateIdTableName(String baseName) {
-		return IdTableSupportStandardImpl.INSTANCE.generateIdTableName( baseName );
-	}
-
-	@Override
-	public String getCreateIdTableCommand() {
-		return "create global temporary table";
-	}
-
-	@Override
-	public String getCreateIdTableStatementOptions() {
-		return " on commit preserve rows";
-	}
-
-	@Override
-	public String getDropIdTableCommand() {
-		return "drop table";
-	}
-	
-	@Override
-	public String getTruncateIdTableCommand() {
-		return "delete from";
-	}
+//	@Override
+//	public String generateIdTableName(String baseName) {
+//		return IdTableSupportStandardImpl.INSTANCE.generateIdTableName( baseName );
+//	}
+//
+//	@Override
+//	public String getCreateIdTableCommand() {
+//		return "create global temporary table";
+//	}
+//
+//	@Override
+//	public String getCreateIdTableStatementOptions() {
+//		return " on commit preserve rows";
+//	}
+//
+//	@Override
+//	public String getDropIdTableCommand() {
+//		return "drop table";
+//	}
+//
+//	@Override
+//	public String getTruncateIdTableCommand() {
+//		return "delete from";
+//	}
 
 	/**
 	 * Get the name of the database type associated with the given

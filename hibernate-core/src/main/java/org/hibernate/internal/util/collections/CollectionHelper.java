@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -210,5 +211,11 @@ public final class CollectionHelper {
 
 	public static boolean isEmpty(Object[] objects) {
 		return objects == null || objects.length == 0;
+	}
+
+	public static <T> Set<T> setOf(T... values) {
+		final HashSet<T> set = new HashSet<>( determineProperSizing( values.length ) );
+		Collections.addAll( set, values );
+		return set;
 	}
 }

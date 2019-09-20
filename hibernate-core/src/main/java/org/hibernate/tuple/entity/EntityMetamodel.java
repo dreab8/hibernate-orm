@@ -23,9 +23,12 @@ import org.hibernate.bytecode.enhance.spi.interceptor.EnhancementHelper;
 import org.hibernate.bytecode.spi.BytecodeEnhancementMetadata;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.hibernate.engine.OptimisticLockStyle;
+import org.hibernate.engine.jdbc.Size;
 import org.hibernate.engine.spi.CascadeStyle;
 import org.hibernate.engine.spi.CascadeStyles;
+import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.internal.util.collections.ArrayHelper;
@@ -44,6 +47,8 @@ import org.hibernate.tuple.ValueGenerator;
 import org.hibernate.type.AssociationType;
 import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
+import org.hibernate.type.ForeignKeyDirection;
+import org.hibernate.type.ManyToOneType;
 import org.hibernate.type.Type;
 
 import static org.hibernate.internal.CoreLogging.messageLogger;
@@ -120,8 +125,6 @@ public class EntityMetamodel implements Serializable {
 	private final Set subclassEntityNames = new HashSet();
 	private final Map entityNameByInheritenceClassMap = new HashMap();
 
-	private final EntityMode entityMode;
-	private final EntityTuplizer entityTuplizer;
 	private final BytecodeEnhancementMetadata bytecodeEnhancementMetadata;
 
 	public EntityMetamodel(
@@ -404,16 +407,6 @@ public class EntityMetamodel implements Serializable {
 				final PersistentClass pc = ( PersistentClass ) iter.next();
 				entityNameByInheritenceClassMap.put( pc.getMappedClass(), pc.getEntityName() );
 			}
-		}
-
-		entityMode = persistentClass.hasPojoRepresentation() ? EntityMode.POJO : EntityMode.MAP;
-		final EntityTuplizerFactory entityTuplizerFactory = sessionFactory.getSessionFactoryOptions().getEntityTuplizerFactory();
-		final String tuplizerClassName = persistentClass.getTuplizerImplClassName( entityMode );
-		if ( tuplizerClassName == null ) {
-			entityTuplizer = entityTuplizerFactory.constructDefaultTuplizer( entityMode, this, persistentClass );
-		}
-		else {
-			entityTuplizer = entityTuplizerFactory.constructTuplizer( tuplizerClassName, this, persistentClass );
 		}
 	}
 
@@ -763,10 +756,6 @@ public class EntityMetamodel implements Serializable {
 		}
 	}
 
-	public EntityTuplizer getTuplizer() {
-		return entityTuplizer;
-	}
-
 	public boolean isNaturalIdentifierInsertGenerated() {
 		// the intention is for this call to replace the usage of the old ValueInclusion stuff (as exposed from
 		// persister) in SelectGenerator to determine if it is safe to use the natural identifier to find the
@@ -833,7 +822,7 @@ public class EntityMetamodel implements Serializable {
 
 	public EntityType getEntityType() {
 		if ( entityType == null ) {
-			entityType = sessionFactory.getTypeResolver().getTypeFactory().manyToOne( name );
+			entityType = new ManyToOneType( name, getSessionFactory().getTypeConfiguration() );
 		}
 		return entityType;
 	}
@@ -1029,10 +1018,6 @@ public class EntityMetamodel implements Serializable {
 
 	public InDatabaseValueGenerationStrategy[] getInDatabaseValueGenerationStrategies() {
 		return inDatabaseValueGenerationStrategies;
-	}
-
-	public EntityMode getEntityMode() {
-		return entityMode;
 	}
 
 	/**

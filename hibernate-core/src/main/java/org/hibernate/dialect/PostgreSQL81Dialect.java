@@ -17,6 +17,7 @@ import java.util.Map;
 import org.hibernate.JDBCException;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.PessimisticLockException;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.function.NoArgSQLFunction;
@@ -34,13 +35,11 @@ import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.exception.spi.SQLExceptionConversionDelegate;
 import org.hibernate.exception.spi.TemplatedViolatedConstraintNameExtracter;
 import org.hibernate.exception.spi.ViolatedConstraintNameExtracter;
-import org.hibernate.hql.spi.id.IdTableSupportStandardImpl;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.local.AfterUseAction;
-import org.hibernate.hql.spi.id.local.LocalTemporaryTableBulkIdStrategy;
 import org.hibernate.internal.util.JdbcExceptionHelper;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.procedure.internal.PostgresCallableStatementSupport;
 import org.hibernate.procedure.spi.CallableStatementSupport;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.descriptor.sql.BlobTypeDescriptor;
 import org.hibernate.type.descriptor.sql.ClobTypeDescriptor;
@@ -367,22 +366,24 @@ public class PostgreSQL81Dialect extends Dialect {
 	}
 
 	@Override
-	public MultiTableBulkIdStrategy getDefaultMultiTableBulkIdStrategy() {
-		return new LocalTemporaryTableBulkIdStrategy(
-				new IdTableSupportStandardImpl() {
-					@Override
-					public String getCreateIdTableCommand() {
-						return "create temporary table";
-					}
+	public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityPersister runtimeRootEntityDescriptor) {
+		throw new NotYetImplementedFor6Exception( getClass() );
 
-					@Override
-					public String getCreateIdTableStatementOptions() {
-						return "on commit drop";
-					}
-				},
-				AfterUseAction.CLEAN,
-				null
-		);
+//		return new LocalTemporaryTableBulkIdStrategy(
+//				new IdTableSupportStandardImpl() {
+//					@Override
+//					public String getCreateIdTableCommand() {
+//						return "create temporary table";
+//					}
+//
+//					@Override
+//					public String getCreateIdTableStatementOptions() {
+//						return "on commit drop";
+//					}
+//				},
+//				AfterUseAction.CLEAN,
+//				null
+//		);
 	}
 
 	@Override

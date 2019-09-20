@@ -9,15 +9,14 @@ package org.hibernate.dialect;
 import java.sql.DatabaseMetaData;
 import java.sql.Types;
 
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.function.NoArgSQLFunction;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.dialect.function.VarArgsSQLFunction;
-import org.hibernate.hql.spi.id.IdTableSupportStandardImpl;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.local.AfterUseAction;
-import org.hibernate.hql.spi.id.local.LocalTemporaryTableBulkIdStrategy;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.sql.CaseFragment;
 import org.hibernate.sql.DecodeCaseFragment;
 import org.hibernate.tool.schema.extract.internal.SequenceInformationExtractorSAPDBDatabaseImpl;
@@ -220,22 +219,24 @@ public class SAPDBDialect extends Dialect {
 	}
 
 	@Override
-	public MultiTableBulkIdStrategy getDefaultMultiTableBulkIdStrategy() {
-		return new LocalTemporaryTableBulkIdStrategy(
-				new IdTableSupportStandardImpl() {
-					@Override
-					public String generateIdTableName(String baseName) {
-						return "temp." + super.generateIdTableName( baseName );
-					}
+	public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityPersister runtimeRootEntityDescriptor) {
+		throw new NotYetImplementedFor6Exception( getClass() );
 
-					@Override
-					public String getCreateIdTableStatementOptions() {
-						return "ignore rollback";
-					}
-				},
-				AfterUseAction.DROP,
-				null
-		);
+//		return new LocalTemporaryTableBulkIdStrategy(
+//				new IdTableSupportStandardImpl() {
+//					@Override
+//					public String generateIdTableName(String baseName) {
+//						return "temp." + super.generateIdTableName( baseName );
+//					}
+//
+//					@Override
+//					public String getCreateIdTableStatementOptions() {
+//						return "ignore rollback";
+//					}
+//				},
+//				AfterUseAction.DROP,
+//				null
+//		);
 	}
 
 	@Override

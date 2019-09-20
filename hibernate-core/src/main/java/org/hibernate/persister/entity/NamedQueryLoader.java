@@ -14,6 +14,7 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.loader.entity.UniqueEntityLoader;
+import org.hibernate.metamodel.model.domain.AllowableParameterType;
 import org.hibernate.query.internal.AbstractProducedQuery;
 
 /**
@@ -41,9 +42,7 @@ public final class NamedQueryLoader implements UniqueEntityLoader {
 		super();
 		this.queryName = queryName;
 		this.persister = persister;
-		this.position = persister.getFactory().getSessionFactoryOptions().jdbcStyleParamsZeroBased()
-				? 0
-				: 1;
+		this.position = 1;
 	}
 
 	@Override
@@ -63,16 +62,18 @@ public final class NamedQueryLoader implements UniqueEntityLoader {
 
 		final AbstractProducedQuery query = (AbstractProducedQuery) session.getNamedQuery( queryName );
 		if ( query.getParameterMetadata().hasNamedParameters() ) {
-			query.setParameter( query.getNamedParameters()[0], id, persister.getIdentifierType() );
+			query.setParameter( query.getParameterMetadata().getNamedParameterNames().iterator().next(), id,
+								(AllowableParameterType) persister.getIdentifierType()
+			);
 		}
 		else {
-			query.setParameter( position, id, persister.getIdentifierType() );
+			query.setParameter( position, id, (AllowableParameterType) persister.getIdentifierType() );
 		}
 
 		query.setOptionalId( id );
 		query.setOptionalEntityName( persister.getEntityName() );
 		query.setOptionalObject( optionalObject );
-		query.setFlushMode( FlushMode.MANUAL );
+		query.setHibernateFlushMode( FlushMode.MANUAL );
 		query.list();
 
 		// now look up the object we are really interested in!

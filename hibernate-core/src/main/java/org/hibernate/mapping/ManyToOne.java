@@ -24,6 +24,8 @@ public class ManyToOne extends ToOne {
 	private boolean ignoreNotFound;
 	private boolean isLogicalOneToOne;
 
+	private Type resolvedType;
+
 	/**
 	 * @deprecated Use {@link ManyToOne#ManyToOne(MetadataBuildingContext, Table)} instead.
 	 */
@@ -37,16 +39,21 @@ public class ManyToOne extends ToOne {
 	}
 
 	public Type getType() throws MappingException {
-		return getMetadata().getTypeResolver().getTypeFactory().manyToOne(
-				getReferencedEntityName(),
-				referenceToPrimaryKey, 
-				getReferencedPropertyName(),
-				getPropertyName(),
-				isLazy(),
-				isUnwrapProxy(),
-				isIgnoreNotFound(),
-				isLogicalOneToOne
-		);
+		if ( resolvedType == null ) {
+			resolvedType = MappingHelper.manyToOne(
+					getReferencedEntityName(),
+					isReferenceToPrimaryKey(),
+					getReferencedPropertyName(),
+					getPropertyName(),
+					isLogicalOneToOne(),
+					isLazy(),
+					isUnwrapProxy(),
+					isIgnoreNotFound(),
+					getBuildingContext()
+			);
+		}
+
+		return resolvedType;
 	}
 
 	public void createForeignKey() throws MappingException {
@@ -55,6 +62,8 @@ public class ManyToOne extends ToOne {
 			createForeignKeyOfEntity( ( (EntityType) getType() ).getAssociatedEntityName() );
 		} 
 	}
+
+
 
 	public void createPropertyRefConstraints(Map persistentClasses) {
 		if (referencedPropertyName!=null) {

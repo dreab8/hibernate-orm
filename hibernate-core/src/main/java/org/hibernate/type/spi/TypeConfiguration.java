@@ -8,13 +8,16 @@ package org.hibernate.type.spi;
 
 import java.io.InvalidObjectException;
 import java.io.Serializable;
-import java.util.Collections;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Incubating;
@@ -27,19 +30,24 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.id.uuid.LocalObjectUuidHelper;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.SessionFactoryRegistry;
-import org.hibernate.metamodel.internal.MetamodelImpl;
-import org.hibernate.metamodel.spi.MetamodelImplementor;
+import org.hibernate.metamodel.model.domain.internal.DomainMetamodelImpl;
+import org.hibernate.metamodel.spi.DomainMetamodel;
+import org.hibernate.query.BinaryArithmeticOperator;
+import org.hibernate.query.internal.QueryHelper;
+import org.hibernate.query.sqm.SqmExpressable;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.BasicType;
 import org.hibernate.type.BasicTypeRegistry;
-import org.hibernate.type.Type;
-import org.hibernate.type.TypeFactory;
-import org.hibernate.type.TypeResolver;
+import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.java.spi.JavaTypeDescriptorRegistry;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptorIndicators;
 import org.hibernate.type.descriptor.sql.spi.SqlTypeDescriptorRegistry;
+import org.hibernate.type.internal.StandardBasicTypeImpl;
 import org.hibernate.type.internal.TypeConfigurationRegistry;
 
 import static org.hibernate.internal.CoreLogging.messageLogger;
+import static org.hibernate.query.BinaryArithmeticOperator.DIVIDE;
 
 /**
  * Defines a set of available Type instances as isolated from other configurations.  The
@@ -66,48 +74,29 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 	private final String uuid = LocalObjectUuidHelper.generateLocalObjectUuid();
 
 	private final Scope scope;
-	private final transient TypeFactory typeFactory;
 
-	// things available during both boot and runtime ("active") lifecycle phases
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// things available during both boot and runtime lifecycle phases
 	private final transient JavaTypeDescriptorRegistry javaTypeDescriptorRegistry;
 	private final transient SqlTypeDescriptorRegistry sqlTypeDescriptorRegistry;
 	private final transient BasicTypeRegistry basicTypeRegistry;
 
-	private final transient Map<String,String> importMap = new ConcurrentHashMap<>();
-
 	private final transient Map<Integer, Set<String>> jdbcToHibernateTypeContributionMap = new HashMap<>();
 
-	// temporarily needed to support deprecations
-	private final transient TypeResolver typeResolver;
-
 	public TypeConfiguration() {
-		this.scope = new Scope();
+		this.scope = new Scope( this );
+
 		this.javaTypeDescriptorRegistry = new JavaTypeDescriptorRegistry( this );
 		this.sqlTypeDescriptorRegistry = new SqlTypeDescriptorRegistry( this );
 
-		this.basicTypeRegistry = new BasicTypeRegistry();
-		this.typeFactory = new TypeFactory( this );
-		this.typeResolver = new TypeResolver( this, typeFactory );
+		this.basicTypeRegistry = new BasicTypeRegistry( this );
+		StandardBasicTypes.prime( this );
 
 		TypeConfigurationRegistry.INSTANCE.registerTypeConfiguration( this );
 	}
 
 	public String getUuid() {
 		return uuid;
-	}
-
-	/**
-	 * Temporarily needed to support deprecations
-	 *
-	 * Retrieve the {@link Type} resolver associated with this factory.
-	 *
-	 * @return The type resolver
-	 *
-	 * @deprecated (since 5.3) No replacement, access to and handling of Types will be much different in 6.0
-	 */
-	@Deprecated
-	public TypeResolver getTypeResolver(){
-		return typeResolver;
 	}
 
 	public BasicTypeRegistry getBasicTypeRegistry() {
@@ -123,8 +112,8 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 		return sqlTypeDescriptorRegistry;
 	}
 
-	public Map<String, String> getImportMap() {
-		return Collections.unmodifiableMap( importMap );
+	public SqlTypeDescriptorIndicators getCurrentBaseSqlTypeIndicators() {
+		return scope.getCurrentBaseSqlTypeIndicators();
 	}
 
 	public Map<Integer, Set<String>> getJdbcToHibernateTypeContributionMap() {
@@ -153,20 +142,16 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 		scope.setMetadataBuildingContext( metadataBuildingContext );
 	}
 
-	public MetamodelImplementor scope(SessionFactoryImplementor sessionFactory) {
-		log.debugf( "Scoping TypeConfiguration [%s] to SessionFactoryImpl [%s]", this, sessionFactory );
+	public DomainMetamodel scope(SessionFactoryImplementor sessionFactory) {
+		log.debugf( "Scoping TypeConfiguration [%s] to SessionFactoryImplementor [%s]", this, sessionFactory );
 
-		for ( Map.Entry<String, String> importEntry : scope.metadataBuildingContext.getMetadataCollector().getImports().entrySet() ) {
-			if ( importMap.containsKey( importEntry.getKey() ) ) {
-				continue;
-			}
-
-			importMap.put( importEntry.getKey(), importEntry.getValue() );
+		if ( scope.getMetadataBuildingContext() == null ) {
+			throw new IllegalStateException( "MetadataBuildingContext not known" );
 		}
 
 		scope.setSessionFactory( sessionFactory );
 		sessionFactory.addObserver( this );
-		return new MetamodelImpl( sessionFactory, this );
+		return new DomainMetamodelImpl( sessionFactory, this );
 	}
 
 	/**
@@ -271,15 +256,33 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 	 * Each stage or phase is consider a "scope" for the TypeConfiguration.
 	 */
 	private static class Scope implements Serializable {
+		private final TypeConfiguration typeConfiguration;
 
-		// todo (6.0) : consider a proper contract implemented by both SessionFactory (or its metamodel) and boot's MetadataImplementor
-		//		1) type-related info from MetadataBuildingOptions
-		//		2) ServiceRegistry
 		private transient MetadataBuildingContext metadataBuildingContext;
 		private transient SessionFactoryImplementor sessionFactory;
 
 		private String sessionFactoryName;
 		private String sessionFactoryUuid;
+
+		private transient SqlTypeDescriptorIndicators currentSqlTypeIndicators = new SqlTypeDescriptorIndicators() {
+			@Override
+			public TypeConfiguration getTypeConfiguration() {
+				return typeConfiguration;
+			}
+
+			@Override
+			public int getPreferredSqlTypeCodeForBoolean() {
+				return Types.BOOLEAN;
+			}
+		};
+
+		public Scope(TypeConfiguration typeConfiguration) {
+			this.typeConfiguration = typeConfiguration;
+		}
+
+		public SqlTypeDescriptorIndicators getCurrentBaseSqlTypeIndicators() {
+			return currentSqlTypeIndicators;
+		}
 
 		public MetadataBuildingContext getMetadataBuildingContext() {
 			if ( metadataBuildingContext == null ) {
@@ -381,5 +384,150 @@ public class TypeConfiguration implements SessionFactoryObserver, Serializable {
 	private Object readResolve() throws InvalidObjectException {
 		log.trace( "Resolving serialized TypeConfiguration - readResolve" );
 		return TypeConfigurationRegistry.INSTANCE.findTypeConfiguration( getUuid() );
+	}
+
+
+
+
+
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+	/**
+	 * @see QueryHelper#highestPrecedenceType2
+	 */
+	public SqmExpressable<?> resolveArithmeticType(
+			SqmExpressable<?> firstType,
+			SqmExpressable<?> secondType,
+			BinaryArithmeticOperator operator) {
+		return resolveArithmeticType( firstType, secondType, operator == DIVIDE );
+	}
+
+	/**
+	 * Determine the result type of an arithmetic operation as defined by the
+	 * rules in section 6.5.7.1.
+	 *
+	 * @see QueryHelper#highestPrecedenceType2
+	 */
+	public SqmExpressable<?> resolveArithmeticType(
+			SqmExpressable<?> firstType,
+			SqmExpressable<?> secondType,
+			boolean isDivision) {
+
+		if ( isDivision ) {
+			// covered under the note in 6.5.7.1 discussing the unportable
+			// "semantics of the SQL division operation"..
+			return getBasicTypeRegistry().getRegisteredType( Number.class.getName() );
+		}
+
+
+		// non-division
+
+		if ( matchesJavaType( firstType, Double.class ) ) {
+			return firstType;
+		}
+		else if ( matchesJavaType( secondType, Double.class ) ) {
+			return secondType;
+		}
+		else if ( matchesJavaType( firstType, Float.class ) ) {
+			return firstType;
+		}
+		else if ( matchesJavaType( secondType, Float.class ) ) {
+			return secondType;
+		}
+		else if ( matchesJavaType( firstType, BigDecimal.class ) ) {
+			return firstType;
+		}
+		else if ( matchesJavaType( secondType, BigDecimal.class ) ) {
+			return secondType;
+		}
+		else if ( matchesJavaType( firstType, BigInteger.class ) ) {
+			return firstType;
+		}
+		else if ( matchesJavaType( secondType, BigInteger.class ) ) {
+			return secondType;
+		}
+		else if ( matchesJavaType( firstType, Long.class ) ) {
+			return firstType;
+		}
+		else if ( matchesJavaType( secondType, Long.class ) ) {
+			return secondType;
+		}
+		else if ( matchesJavaType( firstType, Integer.class ) ) {
+			return firstType;
+		}
+		else if ( matchesJavaType( secondType, Integer.class ) ) {
+			return secondType;
+		}
+		else if ( matchesJavaType( firstType, Short.class ) ) {
+			return getBasicTypeRegistry().getRegisteredType( Integer.class.getName() );
+		}
+		else if ( matchesJavaType( secondType, Short.class ) ) {
+			return getBasicTypeRegistry().getRegisteredType( Integer.class.getName() );
+		}
+		else {
+			return getBasicTypeRegistry().getRegisteredType( Number.class.getName() );
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static boolean matchesJavaType(SqmExpressable type, Class javaType) {
+		assert javaType != null;
+		return type != null && javaType.isAssignableFrom( type.getExpressableJavaTypeDescriptor().getJavaType() );
+	}
+
+
+	private final ConcurrentHashMap<Class,BasicType> basicTypeByJavaType = new ConcurrentHashMap<>();
+
+	public BasicType getBasicTypeForJavaType(Class<?> javaType) {
+		final BasicType existing = basicTypeByJavaType.get( javaType );
+		if ( existing != null ) {
+			return existing;
+		}
+
+		final BasicType registeredType = getBasicTypeRegistry().getRegisteredType( javaType );
+		if ( registeredType != null ) {
+			basicTypeByJavaType.put( javaType, registeredType );
+			return registeredType;
+		}
+
+		return null;
+	}
+
+	public BasicType standardBasicTypeForJavaType(Class<?> javaType) {
+		if ( javaType == null ) {
+			return null;
+		}
+
+		//noinspection unchecked
+		return standardBasicTypeForJavaType(
+				javaType,
+				javaTypeDescriptor -> new StandardBasicTypeImpl(
+						javaTypeDescriptor,
+						javaTypeDescriptor.getJdbcRecommendedSqlType( getCurrentBaseSqlTypeIndicators() )
+				)
+		);
+	}
+
+	public BasicType standardBasicTypeForJavaType(
+			Class<?> javaType,
+			Function<JavaTypeDescriptor<?>,BasicType> creator) {
+		if ( javaType == null ) {
+			return null;
+		}
+		return basicTypeByJavaType.computeIfAbsent(
+				javaType,
+				jt -> {
+					// See if one exists in the BasicTypeRegistry and use that one if so
+					final BasicType registeredType = basicTypeRegistry.getRegisteredType( javaType );
+					if ( registeredType != null ) {
+						return registeredType;
+					}
+
+					// otherwise, apply the creator
+					final JavaTypeDescriptor javaTypeDescriptor = javaTypeDescriptorRegistry.resolveDescriptor( javaType );
+					return creator.apply( javaTypeDescriptor );
+				}
+		);
 	}
 }

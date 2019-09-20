@@ -14,9 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.hibernate.JDBCException;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.NullPrecedence;
 import org.hibernate.PessimisticLockException;
-import org.hibernate.boot.TempTableDdlTransactionHandling;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.function.NoArgSQLFunction;
 import org.hibernate.dialect.function.StandardSQLFunction;
@@ -31,12 +31,10 @@ import org.hibernate.engine.spi.RowSelection;
 import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.exception.LockTimeoutException;
 import org.hibernate.exception.spi.SQLExceptionConversionDelegate;
-import org.hibernate.hql.spi.id.IdTableSupportStandardImpl;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.local.AfterUseAction;
-import org.hibernate.hql.spi.id.local.LocalTemporaryTableBulkIdStrategy;
 import org.hibernate.internal.util.JdbcExceptionHelper;
 import org.hibernate.mapping.Column;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.type.StandardBasicTypes;
 
 /**
@@ -345,22 +343,24 @@ public class MySQLDialect extends Dialect {
 	}
 
 	@Override
-	public MultiTableBulkIdStrategy getDefaultMultiTableBulkIdStrategy() {
-		return new LocalTemporaryTableBulkIdStrategy(
-				new IdTableSupportStandardImpl() {
-					@Override
-					public String getCreateIdTableCommand() {
-						return "create temporary table if not exists";
-					}
+	public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityPersister runtimeRootEntityDescriptor) {
+		throw new NotYetImplementedFor6Exception( getClass() );
 
-					@Override
-					public String getDropIdTableCommand() {
-						return "drop temporary table";
-					}
-				},
-				AfterUseAction.DROP,
-				TempTableDdlTransactionHandling.NONE
-		);
+//		return new LocalTemporaryTableBulkIdStrategy(
+//				new IdTableSupportStandardImpl() {
+//					@Override
+//					public String getCreateIdTableCommand() {
+//						return "create temporary table if not exists";
+//					}
+//
+//					@Override
+//					public String getDropIdTableCommand() {
+//						return "drop temporary table";
+//					}
+//				},
+//				AfterUseAction.DROP,
+//				TempTableDdlTransactionHandling.NONE
+//		);
 	}
 
 	@Override

@@ -6,14 +6,14 @@
  */
 package org.hibernate.test.sql.hand.quotedidentifiers;
 
-import org.junit.Test;
-
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.query.NativeQuery;
+
 import org.hibernate.testing.DialectCheck;
 import org.hibernate.testing.RequiresDialectFeature;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
+import org.junit.Test;
 
 /**
  * Test of various situations with native-sql queries and quoted identifiers
@@ -66,8 +66,7 @@ public class NativeSqlAndQuotedIdentifiersTest extends BaseCoreFunctionalTestCas
 	public void testPartialScalarDiscovery() {
 		Session session = openSession();
 		session.beginTransaction();
-		SQLQuery query = (SQLQuery) session.getNamedQuery( "query-person" );
-		query.setResultSetMapping( "person-scalar" );
+		NativeQuery query = session.getNamedNativeQuery( "query-person", "person-scalar" );
 		query.list();
 		session.getTransaction().commit();
 		session.close();
@@ -77,8 +76,7 @@ public class NativeSqlAndQuotedIdentifiersTest extends BaseCoreFunctionalTestCas
 	public void testBasicEntityMapping() {
 		Session session = openSession();
 		session.beginTransaction();
-		SQLQuery query = (SQLQuery) session.getNamedQuery( "query-person" );
-		query.setResultSetMapping( "person-entity-basic" );
+		NativeQuery query = session.getNamedNativeQuery( "query-person", "person-entity-basic" );
 		query.list();
 		session.getTransaction().commit();
 		session.close();
@@ -88,8 +86,7 @@ public class NativeSqlAndQuotedIdentifiersTest extends BaseCoreFunctionalTestCas
 	public void testExpandedEntityMapping() {
 		Session session = openSession();
 		session.beginTransaction();
-		SQLQuery query = (SQLQuery) session.getNamedQuery( "query-person" );
-		query.setResultSetMapping( "person-entity-expanded" );
+		NativeQuery query = session.getNamedNativeQuery( "query-person", "person-entity-expanded" );
 		query.list();
 		session.getTransaction().commit();
 		session.close();

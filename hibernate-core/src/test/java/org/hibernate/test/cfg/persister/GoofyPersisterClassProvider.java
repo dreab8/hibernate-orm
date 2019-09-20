@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.hibernate.EntityMode;
 import org.hibernate.HibernateException;
@@ -30,6 +31,7 @@ import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.internal.MutableEntityEntryFactory;
 import org.hibernate.engine.spi.CascadeStyle;
 import org.hibernate.engine.spi.EntityEntryFactory;
+import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.engine.spi.ValueInclusion;
@@ -39,7 +41,14 @@ import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.metadata.CollectionMetadata;
+import org.hibernate.metamodel.mapping.AttributeMapping;
+import org.hibernate.metamodel.mapping.EntityIdentifierMapping;
+import org.hibernate.metamodel.mapping.EntityMappingType;
+import org.hibernate.metamodel.mapping.EntityVersionMapping;
+import org.hibernate.metamodel.mapping.NaturalIdMapping;
+import org.hibernate.metamodel.mapping.internal.MappingModelCreationProcess;
 import org.hibernate.metamodel.model.domain.NavigableRole;
+import org.hibernate.metamodel.spi.EntityRepresentationStrategy;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.MultiLoadOptions;
@@ -55,6 +64,7 @@ import org.hibernate.tuple.entity.EntityTuplizer;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.Type;
 import org.hibernate.type.VersionType;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 
 /**
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
@@ -610,6 +620,31 @@ public class GoofyPersisterClassProvider implements PersisterClassResolver {
 		}
 
 		@Override
+		public EntityIdentifierMapping getIdentifierMapping() {
+			return null;
+		}
+
+		@Override
+		public EntityVersionMapping getVersionMapping() {
+			return null;
+		}
+
+		@Override
+		public NaturalIdMapping getNaturalIdMapping() {
+			return null;
+		}
+
+		@Override
+		public boolean isTypeOrSuperType(EntityMappingType targetType) {
+			return targetType == this;
+		}
+
+		@Override
+		public EntityRepresentationStrategy getRepresentationStrategy() {
+			return null;
+		}
+
+		@Override
 		public EntityIdentifierDefinition getEntityKeyDefinition() {
 			return null;  //To change body of implemented methods use File | Settings | File Templates.
 		}
@@ -627,6 +662,46 @@ public class GoofyPersisterClassProvider implements PersisterClassResolver {
 		@Override
 		public boolean canUseReferenceCacheEntries() {
 			return false;
+		}
+
+		@Override
+		public boolean isAffectedByEnabledFilters(LoadQueryInfluencers influencers) {
+			return false;
+		}
+
+		@Override
+		public boolean isAffectedByEntityGraph(LoadQueryInfluencers influencers) {
+			return false;
+		}
+
+		@Override
+		public boolean isAffectedByEnabledFetchProfiles(LoadQueryInfluencers influencers) {
+			return false;
+		}
+
+		@Override
+		public void linkWithSuperType(MappingModelCreationProcess creationProcess) {
+
+		}
+
+		@Override
+		public void prepareMappingModel(MappingModelCreationProcess creationProcess) {
+
+		}
+
+		@Override
+		public java.util.Collection<AttributeMapping> getAttributeMappings() {
+			return null;
+		}
+
+		@Override
+		public void visitAttributeMappings(Consumer<AttributeMapping> action) {
+
+		}
+
+		@Override
+		public JavaTypeDescriptor getMappedJavaTypeDescriptor() {
+			return null;
 		}
 	}
 
@@ -874,6 +949,11 @@ public class GoofyPersisterClassProvider implements PersisterClassResolver {
 
 		@Override
 		public String getMappedByProperty() {
+			return null;
+		}
+
+		@Override
+		public Comparator<?> getSortingComparator() {
 			return null;
 		}
 

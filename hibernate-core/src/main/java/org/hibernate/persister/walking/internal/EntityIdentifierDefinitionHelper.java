@@ -7,6 +7,7 @@
 package org.hibernate.persister.walking.internal;
 
 import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.walking.spi.AttributeDefinition;
 import org.hibernate.persister.walking.spi.AttributeSource;
 import org.hibernate.persister.walking.spi.CompositionDefinition;
@@ -24,7 +25,7 @@ public final class EntityIdentifierDefinitionHelper {
 	private EntityIdentifierDefinitionHelper() {
 	}
 
-	public static EntityIdentifierDefinition buildSimpleEncapsulatedIdentifierDefinition(final AbstractEntityPersister entityPersister) {
+	public static EntityIdentifierDefinition buildSimpleEncapsulatedIdentifierDefinition(final EntityPersister entityPersister) {
 		return new EncapsulatedEntityIdentifierDefinition() {
 			private final AttributeDefinitionAdapter attr = new AttributeDefinitionAdapter( entityPersister);
 
@@ -123,9 +124,9 @@ public final class EntityIdentifierDefinitionHelper {
 	}
 
 	private static class AttributeDefinitionAdapter implements AttributeDefinition {
-		private final AbstractEntityPersister entityPersister;
+		private final EntityPersister entityPersister;
 
-		AttributeDefinitionAdapter(AbstractEntityPersister entityPersister) {
+		AttributeDefinitionAdapter(EntityPersister entityPersister) {
 			this.entityPersister = entityPersister;
 		}
 
@@ -154,7 +155,7 @@ public final class EntityIdentifierDefinitionHelper {
 			return "<identifier-property:" + getName() + ">";
 		}
 
-		protected AbstractEntityPersister getEntityPersister() {
+		protected EntityPersister getEntityPersister() {
 			return entityPersister;
 		}
 	}
@@ -176,7 +177,7 @@ public final class EntityIdentifierDefinitionHelper {
 
 		@Override
 		public Iterable<AttributeDefinition> getAttributes() {
-			return  CompositionSingularSubAttributesHelper.getIdentifierSubAttributes( getEntityPersister() );
+			return  CompositionSingularSubAttributesHelper.getIdentifierSubAttributes( (AbstractEntityPersister) getEntityPersister() );
 		}
 	}
 }

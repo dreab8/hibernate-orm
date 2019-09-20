@@ -9,16 +9,16 @@ package org.hibernate.test.annotations.cid;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 import org.junit.Test;
 
-import org.hibernate.Criteria;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
@@ -90,7 +90,7 @@ public class CompositeIdTest extends BaseCoreFunctionalTestCase {
 		s = openSession();
 		tx = s.beginTransaction();
 		Query q = s.createQuery( "select c from Child c where c.id.nthChild = :nth" );
-		q.setInteger( "nth", 1 );
+		q.setParameter( "nth", 1 );
 		List results = q.list();
 		assertEquals( 1, results.size() );
 		c = (Child) results.get( 0 );
@@ -177,7 +177,7 @@ public class CompositeIdTest extends BaseCoreFunctionalTestCase {
 		s = openSession();
 		tx = s.beginTransaction();
 		Query q = s.createQuery( "select c from Child c where c.id.nthChild = :nth" );
-		q.setInteger( "nth", 1 );
+		q.setParameter( "nth", 1 );
 		List results = q.list();
 		assertEquals( 1, results.size() );
 		c = (LittleGenius) results.get( 0 );
@@ -421,24 +421,30 @@ public class CompositeIdTest extends BaseCoreFunctionalTestCase {
 	@Test
 	public void testQueryInAndComposite() {
 
-		Session s = openSession(  );
-		Transaction transaction = s.beginTransaction();
-		createData( s );
-        s.flush();
-        List ids = new ArrayList<SomeEntityId>(2);
-        ids.add( new SomeEntityId(1,12) );
-        ids.add( new SomeEntityId(10,23) );
+		inTransaction(
+				s -> {
+					createData( s );
+					s.flush();
+					List ids = new ArrayList<SomeEntityId>(2);
+					ids.add( new SomeEntityId(1,12) );
+					ids.add( new SomeEntityId(10,23) );
 
-        Criteria criteria = s.createCriteria( SomeEntity.class );
-        Disjunction disjunction = Restrictions.disjunction();
+					CriteriaBuilder criteriaBuilder = s.getCriteriaBuilder();
+					CriteriaQuery<SomeEntity> criteria = criteriaBuilder.createQuery( SomeEntity.class );
+					Root<SomeEntity> root = criteria.from( SomeEntity.class );
+					criteria.where( criteriaBuilder.or( criteriaBuilder.in( root.get( "id" )).value( ids) ) );
+					List list = s.createQuery( criteria ).list();
 
-        disjunction.add( Restrictions.in( "id", ids  ) );
-        criteria.add( disjunction );
-
-        List list = criteria.list();
-        assertEquals( 2, list.size() );
-		transaction.rollback();
-		s.close();
+//					Criteria criteria = s.createCriteria( SomeEntity.class );
+//					Disjunction disjunction = Restrictions.disjunction();
+//
+//					disjunction.add( Restrictions.in( "id", ids  ) );
+//					criteria.add( disjunction );
+//
+//					List list = criteria.list();
+					assertEquals( 2, list.size() );
+				}
+		);
 	}
 
 	@Test

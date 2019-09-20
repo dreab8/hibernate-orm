@@ -9,17 +9,19 @@ package org.hibernate.boot.spi;
 import java.util.Collection;
 import java.util.Map;
 
+import org.hibernate.Incubating;
 import org.hibernate.annotations.common.reflection.ReflectionManager;
-import org.hibernate.boot.AttributeConverterInfo;
 import org.hibernate.boot.CacheRegionDefinition;
 import org.hibernate.boot.archive.scan.spi.ScanEnvironment;
 import org.hibernate.boot.archive.scan.spi.ScanOptions;
 import org.hibernate.boot.archive.spi.ArchiveDescriptorFactory;
 import org.hibernate.boot.internal.ClassmateContext;
+import org.hibernate.boot.model.convert.spi.ConverterDescriptor;
 import org.hibernate.boot.model.relational.AuxiliaryDatabaseObject;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.dialect.function.SQLFunction;
 import org.hibernate.jpa.spi.MutableJpaCompliance;
+import org.hibernate.metamodel.spi.ManagedTypeRepresentationResolver;
 import org.hibernate.type.spi.TypeConfiguration;
 
 import org.jboss.jandex.IndexView;
@@ -31,6 +33,7 @@ import org.jboss.jandex.IndexView;
  *
  * @author Steve Ebersole
  */
+@Incubating
 public interface BootstrapContext {
 	StandardServiceRegistry getServiceRegistry();
 
@@ -148,7 +151,7 @@ public interface BootstrapContext {
 	 *
 	 * @return The AttributeConverterInfo registered through MetadataBuilder
 	 */
-	Collection<AttributeConverterInfo> getAttributeConverters();
+	Collection<ConverterDescriptor> getAttributeConverters();
 
 	/**
 	 * Access to all explicit cache region mappings.
@@ -169,4 +172,6 @@ public interface BootstrapContext {
 	 * @todo verify this ^^
 	 */
 	void release();
+
+	ManagedTypeRepresentationResolver getRepresentationStrategySelector();
 }

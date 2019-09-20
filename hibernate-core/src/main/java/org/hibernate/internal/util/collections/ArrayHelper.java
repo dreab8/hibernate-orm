@@ -433,6 +433,13 @@ public final class ArrayHelper {
 		return trimmed;
 	}
 
+	public static <T> List<T> toExpandableList(T[] values) {
+		if ( values == null ) {
+			return new ArrayList<T>();
+		}
+		return Arrays.asList( values );
+	}
+
 	@AllowSysOut
 	public static void main(String... args) {
 		int[] batchSizes = ArrayHelper.getBatchSizes( 32 );
@@ -446,5 +453,9 @@ public final class ArrayHelper {
 		for ( int i = batchSizes.length - 1; i >= 0; i-- ) {
 			System.out.println( "[" + i + "] -> " + batchSizes[i] );
 		}
+	}
+
+	public static boolean isEmpty(Object[] array) {
+		return array == null || array.length == 0;
 	}
 }

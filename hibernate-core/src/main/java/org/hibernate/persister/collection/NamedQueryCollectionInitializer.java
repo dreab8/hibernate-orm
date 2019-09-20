@@ -14,7 +14,8 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.loader.collection.CollectionInitializer;
-import org.hibernate.query.spi.NativeQueryImplementor;
+import org.hibernate.metamodel.model.domain.AllowableParameterType;
+import org.hibernate.query.sql.spi.NativeQueryImplementor;
 
 /**
  * A wrapper around a named query.
@@ -42,13 +43,13 @@ public final class NamedQueryCollectionInitializer implements CollectionInitiali
 			nativeQuery.setParameter(
 					nativeQuery.getParameterMetadata().getNamedParameterNames().iterator().next(),
 					key,
-					persister.getKeyType()
+					(AllowableParameterType) persister.getKeyType()
 			);
 		}
 		else {
-			nativeQuery.setParameter( 1, key, persister.getKeyType() );
+			nativeQuery.setParameter( 1, key, (AllowableParameterType) persister.getKeyType() );
 		}
 
-		nativeQuery.setCollectionKey( key ).setFlushMode( FlushMode.MANUAL ).list();
+		nativeQuery.setCollectionKey( key ).setHibernateFlushMode( FlushMode.MANUAL ).list();
 	}
 }

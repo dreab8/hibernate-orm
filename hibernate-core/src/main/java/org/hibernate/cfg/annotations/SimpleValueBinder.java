@@ -43,12 +43,12 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.StringHelper;
+import org.hibernate.mapping.BasicValue;
 import org.hibernate.mapping.SimpleValue;
 import org.hibernate.mapping.Table;
 import org.hibernate.type.CharacterArrayClobType;
 import org.hibernate.type.CharacterArrayNClobType;
 import org.hibernate.type.CharacterNCharType;
-import org.hibernate.type.EnumType;
 import org.hibernate.type.PrimitiveCharacterArrayClobType;
 import org.hibernate.type.PrimitiveCharacterArrayNClobType;
 import org.hibernate.type.SerializableToBlobType;
@@ -67,25 +67,29 @@ public class SimpleValueBinder {
 
 	private MetadataBuildingContext buildingContext;
 
+	private String explicitType = "";
+	private String defaultType = "";
+
 	private String propertyName;
 	private String returnedClassName;
 	private Ejb3Column[] columns;
 	private String persistentClassName;
-	private String explicitType = "";
-	private String defaultType = "";
 	private Properties typeParameters = new Properties();
-	private boolean isNationalized;
-	private boolean isLob;
 
 	private Table table;
-	private SimpleValue simpleValue;
-	private boolean isVersion;
+	private BasicValue simpleValue;
 	private String timeStampVersionType;
-	//is a Map key
-	private boolean key;
 	private String referencedEntityName;
 	private XProperty xproperty;
 	private AccessType accessType;
+
+	//is a Map key
+	private boolean key;
+
+	private boolean isVersion;
+	private boolean isNationalized;
+	private boolean isLob;
+	private javax.persistence.EnumType enumerationStyle;
 
 	private ConverterDescriptor attributeConverterDescriptor;
 
@@ -176,38 +180,46 @@ public class SimpleValueBinder {
 		else if ( ( !key && property.isAnnotationPresent( Temporal.class ) )
 				|| ( key && property.isAnnotationPresent( MapKeyTemporal.class ) ) ) {
 
-			boolean isDate;
-			if ( buildingContext.getBootstrapContext().getReflectionManager().equals( returnedClassOrElement, Date.class ) ) {
-				isDate = true;
-			}
-			else if ( buildingContext.getBootstrapContext().getReflectionManager().equals( returnedClassOrElement, Calendar.class ) ) {
-				isDate = false;
-			}
-			else {
-				throw new AnnotationException(
-						"@Temporal should only be set on a java.util.Date or java.util.Calendar property: "
-								+ StringHelper.qualify( persistentClassName, propertyName )
-				);
-			}
+			// we should be able to handle this using the Java type because it should denote a basic value
+			final Class<?> valueJavaType = buildingContext.getBootstrapContext().getReflectionManager().toClass(returnedClassOrElement );
+
 			final TemporalType temporalType = getTemporalType( property );
-			switch ( temporalType ) {
-				case DATE:
-					type = isDate ? "date" : "calendar_date";
-					break;
-				case TIME:
-					type = "time";
-					if ( !isDate ) {
+
+			if ( Date.class.isAssignableFrom( valueJavaType ) ) {
+				switch ( temporalType ) {
+					case DATE: {
+						type = "date";
+						break;
+					}
+					case TIME: {
+						type = "time";
+						break;
+					}
+					default: {
+						type = "timestamp";
+						break;
+					}
+				}
+			}
+			else if ( Calendar.class.isAssignableFrom( valueJavaType ) ) {
+				switch ( temporalType ) {
+					case DATE: {
+						type = "calendar_date";
+						break;
+					}
+					case TIME: {
 						throw new NotYetImplementedException(
-								"Calendar cannot persist TIME only"
-										+ StringHelper.qualify( persistentClassName, propertyName )
+								"Calendar cannot persist TIME only" + StringHelper.qualify( persistentClassName, propertyName )
 						);
 					}
-					break;
-				case TIMESTAMP:
-					type = isDate ? "timestamp" : "calendar";
-					break;
-				default:
-					throw new AssertionFailure( "Unknown temporal type: " + temporalType );
+					default: {
+						type = "calendar";
+						break;
+					}
+				}
+			}
+			else if ( java.time.temporal.Temporal.class.isAssignableFrom( valueJavaType ) ) {
+				type = valueJavaType.getName();
 			}
 			explicitType = type;
 		}
@@ -272,8 +284,8 @@ public class SimpleValueBinder {
 						)
 				);
 			}
-			type = EnumType.class.getName();
-			explicitType = type;
+
+			this.enumerationStyle = determineEnumType( property, key );
 		}
 		else if ( isNationalized ) {
 			if ( buildingContext.getBootstrapContext().getReflectionManager().equals( returnedClassOrElement, String.class ) ) {
@@ -302,7 +314,7 @@ public class SimpleValueBinder {
 
 		if ( BinderHelper.ANNOTATION_STRING_DEFAULT.equals( type ) ) {
 			if ( returnedClassOrElement.isEnum() ) {
-				type = EnumType.class.getName();
+				this.enumerationStyle = determineEnumType( property, key );
 			}
 		}
 
@@ -310,6 +322,16 @@ public class SimpleValueBinder {
 		this.typeParameters = typeParameters;
 
 		applyAttributeConverter( property, attributeConverterDescriptor );
+	}
+
+	private static javax.persistence.EnumType determineEnumType(XProperty property, boolean mapKey) {
+		if ( mapKey ) {
+			final MapKeyEnumerated annotation = property.getAnnotation( MapKeyEnumerated.class );
+			return annotation == null ? javax.persistence.EnumType.ORDINAL : annotation.value();
+		}
+
+		final Enumerated annotation = property.getAnnotation( Enumerated.class );
+		return annotation == null ? javax.persistence.EnumType.ORDINAL : annotation.value();
 	}
 
 	private Dialect getDialect() {
@@ -406,13 +428,20 @@ public class SimpleValueBinder {
 	}
 
 	public SimpleValue make() {
-
 		validate();
+
 		LOG.debugf( "building SimpleValue for %s", propertyName );
+
 		if ( table == null ) {
 			table = columns[0].getTable();
 		}
-		simpleValue = new SimpleValue( buildingContext, table );
+
+		simpleValue = new BasicValue( buildingContext, table );
+
+		if ( enumerationStyle != null ) {
+			simpleValue.setEnumerationStyle( enumerationStyle );
+		}
+
 		if ( isVersion ) {
 			simpleValue.makeVersion();
 		}
@@ -474,7 +503,11 @@ public class SimpleValueBinder {
 			);
 			simpleValue.setJpaAttributeConverterDescriptor( attributeConverterDescriptor );
 		}
+		else if ( enumerationStyle != null ) {
+			simpleValue.setEnumerationStyle( enumerationStyle );
+		}
 		else {
+
 			String type;
 			TypeDefinition typeDef;
 
@@ -533,7 +566,7 @@ public class SimpleValueBinder {
 		}
 		
 		if ( simpleValue.getTypeName() != null && simpleValue.getTypeName().length() > 0
-				&& simpleValue.getMetadata().getTypeResolver().basic( simpleValue.getTypeName() ) == null ) {
+				&& simpleValue.getMetadata().getTypeConfiguration().getBasicTypeRegistry().getRegisteredType( simpleValue.getTypeName() ) == null ) {
 			try {
 				Class typeClass = buildingContext.getBootstrapContext().getClassLoaderAccess().classForName( simpleValue.getTypeName() );
 

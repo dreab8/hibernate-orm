@@ -12,10 +12,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import org.hibernate.sql.ast.spi.JdbcLiteralFormatter;
 import org.hibernate.type.descriptor.ValueBinder;
 import org.hibernate.type.descriptor.ValueExtractor;
 import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+
+import static org.hibernate.sql.ast.spi.JdbcLiteralFormatter.NULL;
 
 /**
  * Descriptor for {@link Types#NVARCHAR NVARCHAR} handling.
@@ -39,6 +42,11 @@ public class NVarcharTypeDescriptor implements SqlTypeDescriptor {
 	}
 
 	@Override
+	public <T> JdbcLiteralFormatter<T> getJdbcLiteralFormatter(JavaTypeDescriptor<T> javaTypeDescriptor) {
+		return (value, dialect, session) -> value == null ? NULL : "'" + value.toString() + "'";
+	}
+
+	@Override
 	public <X> ValueBinder<X> getBinder(final JavaTypeDescriptor<X> javaTypeDescriptor) {
 		return new BasicBinder<X>( javaTypeDescriptor, this ) {
 			@Override
@@ -58,8 +66,8 @@ public class NVarcharTypeDescriptor implements SqlTypeDescriptor {
 	public <X> ValueExtractor<X> getExtractor(final JavaTypeDescriptor<X> javaTypeDescriptor) {
 		return new BasicExtractor<X>( javaTypeDescriptor, this ) {
 			@Override
-			protected X doExtract(ResultSet rs, String name, WrapperOptions options) throws SQLException {
-				return javaTypeDescriptor.wrap( rs.getNString( name ), options );
+			protected X doExtract(ResultSet rs, int paramIndex, WrapperOptions options) throws SQLException {
+				return javaTypeDescriptor.wrap( rs.getNString( paramIndex ), options );
 			}
 
 			@Override

@@ -1,10 +1,11 @@
 /*
  * Hibernate, Relational Persistence for Idiomatic Java
  *
- * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
- * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
+ * License: GNU Lesser General Public License (LGPL), version 2.1 or later
+ * See the lgpl.txt file in the root directory or http://www.gnu.org/licenses/lgpl-2.1.html
  */
 package org.hibernate.tuple;
+
 import java.io.Serializable;
 
 /**
@@ -22,14 +23,14 @@ public interface Instantiator extends Serializable {
 	 * @param id The id of the entity to be instantiated.
 	 * @return An appropriately instantiated entity.
 	 */
-	public Object instantiate(Serializable id);
+	Object instantiate(Serializable id);
 
 	/**
 	 * Perform the requested instantiation.
 	 *
-	 * @return The instantiated data structure. 
+	 * @return The instantiated data structure.
 	 */
-	public Object instantiate();
+	Object instantiate();
 
 	/**
 	 * Performs check to see if the given object is an instance of the entity
@@ -39,5 +40,5 @@ public interface Instantiator extends Serializable {
 	 * @return True is the object does represent an instance of the underlying
 	 * entity/component.
 	 */
-	public boolean isInstance(Object object);
+	boolean isInstance(Object object);
 }

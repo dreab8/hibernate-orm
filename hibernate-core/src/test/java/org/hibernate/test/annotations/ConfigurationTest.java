@@ -8,14 +8,14 @@
 //$Id$
 package org.hibernate.test.annotations;
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.hql.internal.ast.QuerySyntaxException;
+import org.hibernate.query.SemanticException;
 
 import org.junit.Test;
 
@@ -65,7 +65,7 @@ public class ConfigurationTest {
 							fail( "Boat should not be mapped" );
 						}
 						catch (IllegalArgumentException expected) {
-							assertTyping( QuerySyntaxException.class, expected.getCause() );
+							assertTyping( SemanticException.class, expected.getCause() );
 							// expected outcome
 
 							// see org.hibernate.test.jpa.compliance.tck2_2.QueryApiTest#testInvalidQueryMarksTxnForRollback

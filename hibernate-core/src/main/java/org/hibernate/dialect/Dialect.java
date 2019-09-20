@@ -29,14 +29,13 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.Interceptor;
 import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.MappingException;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.NullPrecedence;
-import org.hibernate.Query;
 import org.hibernate.ScrollMode;
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.boot.model.relational.AuxiliaryDatabaseObject;
@@ -77,8 +76,6 @@ import org.hibernate.exception.spi.ConversionContext;
 import org.hibernate.exception.spi.SQLExceptionConversionDelegate;
 import org.hibernate.exception.spi.SQLExceptionConverter;
 import org.hibernate.exception.spi.ViolatedConstraintNameExtracter;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.persistent.PersistentTableBulkIdStrategy;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.IdentityGenerator;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
@@ -94,9 +91,13 @@ import org.hibernate.mapping.Constraint;
 import org.hibernate.mapping.ForeignKey;
 import org.hibernate.mapping.Index;
 import org.hibernate.mapping.Table;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Lockable;
 import org.hibernate.procedure.internal.StandardCallableStatementSupport;
 import org.hibernate.procedure.spi.CallableStatementSupport;
+import org.hibernate.query.spi.QueryEngine;
+import org.hibernate.query.spi.QueryOptions;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.sql.ANSICaseFragment;
 import org.hibernate.sql.ANSIJoinFragment;
@@ -259,6 +260,10 @@ public abstract class Dialect implements ConversionContext {
 		}
 
 		uniqueDelegate = new DefaultUniqueDelegate( this );
+	}
+
+	public void initializeFunctionRegistry(QueryEngine queryEngine) {
+
 	}
 
 	/**
@@ -1143,8 +1148,6 @@ public abstract class Dialect implements ConversionContext {
 	 *
 	 * @param zeroBasedFirstResult The user-supplied, zero-based first row offset.
 	 * @return The corresponding db/dialect specific offset.
-	 * @see Query#setFirstResult
-	 * @see Criteria#setFirstResult
 	 * @deprecated {@link #getLimitHandler()} should be overridden instead.
 	 */
 	@Deprecated
@@ -1504,8 +1507,8 @@ public abstract class Dialect implements ConversionContext {
 		return getCreateTableString();
 	}
 
-	public MultiTableBulkIdStrategy getDefaultMultiTableBulkIdStrategy() {
-		return new PersistentTableBulkIdStrategy();
+	public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityPersister runtimeRootEntityDescriptor) {
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	// callable statement support ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2742,6 +2745,20 @@ public abstract class Dialect implements ConversionContext {
 	 * specified (paging, ordering, etc).  This method allows these dialects to request that locking be applied
 	 * by subsequent selects.
 	 *
+	 * @return {@code true} indicates that the dialect requests that locking be applied by subsequent select;
+	 * {@code false} (the default) indicates that locking should be applied to the main SQL statement..
+	 *
+	 * @since 5.2
+	 */
+	public boolean useFollowOnLocking(String sql, QueryOptions queryOptions) {
+		return false;
+	}
+
+	/**
+	 * Some dialects have trouble applying pessimistic locking depending upon what other query options are
+	 * specified (paging, ordering, etc).  This method allows these dialects to request that locking be applied
+	 * by subsequent selects.
+	 *
 	 * @param parameters query parameters
 	 * @return {@code true} indicates that the dialect requests that locking be applied by subsequent select;
 	 * {@code false} (the default) indicates that locking should be applied to the main SQL statement..
@@ -2999,6 +3016,13 @@ public abstract class Dialect implements ConversionContext {
 	 */
 	public boolean supportsJdbcConnectionLobCreation(DatabaseMetaData databaseMetaData) {
 		return true;
+	}
+
+	public int getPreferredSqlTypeCodeForBoolean() {
+		// BIT is the safest option as most databases do not support a
+		// boolean data-type.  And BIT happens to be the JDBC recommended
+		// mapping
+		return Types.BIT;
 	}
 
 	/**

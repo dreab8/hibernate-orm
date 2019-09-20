@@ -6,7 +6,6 @@
  */
 package org.hibernate.test.annotations.quote.resultsetmappings;
 
-import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 
@@ -33,11 +32,10 @@ public class ExplicitSqlResultSetMappingTest extends BaseCoreFunctionalTestCase 
 		char open = getDialect().openQuote();
 		char close = getDialect().closeQuote();
 		queryString="select t."+open+"NAME"+close+" as "+open+"QuotEd_nAMe"+close+" from "+open+"MY_ENTITY_TABLE"+close+" t";
-		Session s = sessionFactory().openSession();
-		s.beginTransaction();
-		s.save( new MyEntity( "mine" ) );
-		s.getTransaction().commit();
-		s.close();
+		inTransaction(
+				s -> s.save( new MyEntity( "mine" ) )
+
+		);
 	}
 
 	@Override
@@ -49,24 +47,17 @@ public class ExplicitSqlResultSetMappingTest extends BaseCoreFunctionalTestCase 
 	public void testCompleteScalarAutoDiscovery() {
 		prepareTestData();
 
-		Session s = openSession();
-		s.beginTransaction();
-		s.createSQLQuery( queryString )
-				.list();
-		s.getTransaction().commit();
-		s.close();
+		inTransaction(
+				s -> s.createNativeQuery( queryString ).list()
+		);
 	}
 
 	@Test
 	public void testPartialScalarAutoDiscovery() {
 		prepareTestData();
 
-		Session s = openSession();
-		s.beginTransaction();
-		s.createSQLQuery( queryString )
-				.setResultSetMapping( "explicitScalarResultSetMapping" )
-				.list();
-		s.getTransaction().commit();
-		s.close();
+		inTransaction(
+				s -> s.createNativeQuery( queryString, "explicitScalarResultSetMapping" ).list()
+		);
 	}
 }

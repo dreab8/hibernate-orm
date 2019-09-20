@@ -13,11 +13,13 @@ import org.hibernate.HibernateException;
 import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.registry.classloading.internal.TcclLookupPrecedence;
+import org.hibernate.boot.spi.SessionFactoryOptions;
 import org.hibernate.cache.spi.TimestampsCacheFactory;
-import org.hibernate.internal.log.DeprecationLogger;
 import org.hibernate.jpa.spi.JpaCompliance;
 import org.hibernate.query.ImmutableEntityUpdateQueryHandlingMode;
 import org.hibernate.query.internal.ParameterMetadataImpl;
+import org.hibernate.query.spi.QueryInterpretationCache;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.resource.beans.container.spi.ExtendedBeanManager;
 import org.hibernate.resource.transaction.spi.TransactionCoordinator;
 import org.hibernate.resource.transaction.spi.TransactionCoordinatorBuilder;
@@ -495,21 +497,6 @@ public interface AvailableSettings extends org.hibernate.jpa.AvailableSettings {
 	 */
 	String JTA_CACHE_UT = "hibernate.jta.cacheUserTransaction";
 
-	/**
-	 * `true` / `false - should zero be used as the base for JDBC-style parameters
-	 * found in native-queries?
-	 *
-	 * @since 5.3
-	 *
-	 * @see DeprecationLogger#logUseOfDeprecatedZeroBasedJdbcStyleParams
-	 *
-	 * @deprecated This is a temporary backwards-compatibility setting to help applications
-	 * using versions prior to 5.3 in upgrading.  Deprecation warnings are issued when this
-	 * is set to `true`.
-	 */
-	@Deprecated
-	String JDBC_TYLE_PARAMS_ZERO_BASE = "hibernate.query.sql.jdbc_style_params_base";
-
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// MetadataBuilder level settings
@@ -867,6 +854,46 @@ public interface AvailableSettings extends org.hibernate.jpa.AvailableSettings {
 	 */
 	String ENFORCE_LEGACY_PROXY_CLASSNAMES = "hibernate.bytecode.enforce_legacy_proxy_classnames";
 
+
+	/**
+	 * Controls the base integer for binding JDBC-style ({@code ?}) ordinal
+	 * parameters when the Hibernate SessionFactory is bootstrapped via the native
+	 * bootstrapping API.  JPA says that all non-named parameter binding is explicitly
+	 * 1-based; so when bootstrapped via JPA, Hibernate always treats these as 1-based.
+	 * <p/>
+	 * Note that this affects only ordinal parameters.  Positional
+	 * parameters (e.g. {@code ?1}) explicitly define the binding position (1) in
+	 * their declaration, whereas the binding position is implicit with ordinal
+	 * parameters based on its ordinal position in the query.  As of 6.0, support
+	 * for this ordinal parameter declaration form has been removed from HQL and
+	 * is now only valid for {@link org.hibernate.query.NativeQuery}s.
+	 * <p/>
+	 * Historically Hibernate followed JDBC conventions for ordinal parameter binding
+	 * such that the implied positions were 0-based.  This presents a mismatch between
+	 * how to bind ordinal parameters based on how the SessionFactory was bootstrapped,
+	 * which is not ideal.  This setting then seeks to allow unifying how these are
+	 * handled regardless of the bootstrap method.  The expected value of this setting
+	 * is an integer value of either 0 (the default) or 1.  The default follows the legacy
+	 * expectations and allows legacy Hibernate apps to continue to work.  Setting this
+	 * to 1 (one) allows all non-named parameter binding to be unified as 1-based.
+	 *
+	 * @since 6.0
+	 */
+	String NATIVE_QUERY_ORDINAL_PARAMETER_BASE = "hibernate.query.native.ordinal_parameter_base";
+
+	/**
+	 * Global setting name for controlling whether Hibernate should try to map
+	 * named parameter names specified in a
+	 * {@link org.hibernate.procedure.ProcedureCall} or
+	 * {@link javax.persistence.StoredProcedureQuery} to named parameters in
+	 * the JDBC {@link java.sql.CallableStatement}.
+	 *
+	 * @see SessionFactoryOptions#isUseOfJdbcNamedParametersEnabled()
+	 *
+	 * @since 6.0
+	 */
+	String CALLABLE_NAMED_PARAMS_ENABLED = "hibernate.query.proc.callable_named_params_enabled";
+
 	/**
 	 * Should Hibernate use enhanced entities "as a proxy"?
 	 *
@@ -890,8 +917,35 @@ public interface AvailableSettings extends org.hibernate.jpa.AvailableSettings {
 
 	/**
 	 * The classname of the HQL query parser factory
+	 *
+	 * @deprecated Use {@link #SEMANTIC_QUERY_PRODUCER}
 	 */
+	@Deprecated
 	String QUERY_TRANSLATOR = "hibernate.query.factory_class";
+
+	/**
+	 * Names the {@link org.hibernate.query.hql.SemanticQueryProducer} class to use.
+	 */
+	String SEMANTIC_QUERY_PRODUCER = "hibernate.query.hql.translator";
+
+	/**
+	 * @deprecated Use {@link #QUERY_MULTI_TABLE_MUTATION_STRATEGY} instead
+	 */
+	@Deprecated
+	String HQL_BULK_ID_STRATEGY = "hibernate.hql.bulk_id_strategy";
+
+	/**
+	 * @deprecated Use {@link #QUERY_MULTI_TABLE_MUTATION_STRATEGY} instead
+	 */
+	@Deprecated
+	String ID_TABLE_STRATEGY = "hibernate.id_table_strategy";
+
+	/**
+	 * Defines the "global" strategy to use for handling HQL and Criteria mutation queries.
+	 *
+	 * Names the {@link SqmMultiTableMutationStrategy} to use.
+	 */
+	String QUERY_MULTI_TABLE_MUTATION_STRATEGY = "hibernate.query.mutation_strategy";
 
 	/**
 	 * A comma-separated list of token substitutions to use when translating a Hibernate
@@ -1210,34 +1264,23 @@ public interface AvailableSettings extends org.hibernate.jpa.AvailableSettings {
 	String PREFERRED_POOLED_OPTIMIZER = "hibernate.id.optimizer.pooled.preferred";
 
 	/**
-	 * The maximum number of strong references maintained by {@link org.hibernate.engine.query.spi.QueryPlanCache}. Default is 128.
-	 * @deprecated in favor of {@link #QUERY_PLAN_CACHE_PARAMETER_METADATA_MAX_SIZE}
+	 * Should query plan caching be enabled at all?  Default is {@code false}
+	 * unless one of {@link #QUERY_PLAN_CACHE_MAX_SIZE} or
+	 * {@link #QUERY_PLAN_CACHE_PARAMETER_METADATA_MAX_SIZE} is specified
 	 */
-	@Deprecated
-	String QUERY_PLAN_CACHE_MAX_STRONG_REFERENCES = "hibernate.query.plan_cache_max_strong_references";
+	String QUERY_PLAN_CACHE_ENABLED = "hibernate.query.plan_cache_enabled";
 
 	/**
-	 * The maximum number of soft references maintained by {@link org.hibernate.engine.query.spi.QueryPlanCache}. Default is 2048.
-	 * @deprecated in favor of {@link #QUERY_PLAN_CACHE_MAX_SIZE}
-	 */
-	@Deprecated
-	String QUERY_PLAN_CACHE_MAX_SOFT_REFERENCES = "hibernate.query.plan_cache_max_soft_references";
-
-	/**
-	 * The maximum number of entries including:
-	 * <ul>
-	 *     <li>{@link org.hibernate.engine.query.spi.HQLQueryPlan}</li>
-	 *     <li>{@link org.hibernate.engine.query.spi.FilterQueryPlan}</li>
-	 *     <li>{@link org.hibernate.engine.query.spi.NativeSQLQueryPlan}</li>
-	 * </ul>
+	 * The maximum number of entries in the Hibernate "Query Plan Cache".  The
+	 * default size is 2048.
 	 *
-	 * maintained by {@link org.hibernate.engine.query.spi.QueryPlanCache}. Default is 2048.
+	 * @see org.hibernate.query.spi.QueryPlanCache
 	 */
 	String QUERY_PLAN_CACHE_MAX_SIZE = "hibernate.query.plan_cache_max_size";
 
 	/**
 	 * The maximum number of {@link ParameterMetadataImpl} maintained
-	 * by {@link org.hibernate.engine.query.spi.QueryPlanCache}. Default is 128.
+	 * by {@link QueryInterpretationCache}. Default is 128.
 	 */
 	String QUERY_PLAN_CACHE_PARAMETER_METADATA_MAX_SIZE = "hibernate.query.plan_parameter_metadata_max_size";
 
@@ -1632,8 +1675,6 @@ public interface AvailableSettings extends org.hibernate.jpa.AvailableSettings {
 	String STATEMENT_INSPECTOR = "hibernate.session_factory.statement_inspector";
 
 	String ENABLE_LAZY_LOAD_NO_TRANS = "hibernate.enable_lazy_load_no_trans";
-
-	String HQL_BULK_ID_STRATEGY = "hibernate.hql.bulk_id_strategy";
 
 	/**
 	 * Names the {@link org.hibernate.loader.BatchFetchStyle} to use.  Can specify either the
@@ -2075,4 +2116,12 @@ public interface AvailableSettings extends org.hibernate.jpa.AvailableSettings {
 	 */
 	String OMIT_JOIN_OF_SUPERCLASS_TABLES = "hibernate.query.omit_join_of_superclass_tables";
 
+
+	/**
+	 * Global setting identifying the preferred JDBC type code for storing
+	 * boolean values.  The fallback is to ask the Dialect
+	 *
+	 * @since 6.0
+	 */
+	String PREFERRED_BOOLEAN_JDBC_TYPE_CODE = "hibernate.type.perferred_boolean_jdbc_type_code";
 }

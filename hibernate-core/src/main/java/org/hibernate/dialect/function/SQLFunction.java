@@ -23,7 +23,10 @@ import org.hibernate.type.Type;
  *
  * @author David Channon
  * @author Steve Ebersole
+ *
+ * @deprecated Replaced by {@link org.hibernate.query.sqm.function.SqmFunction}
  */
+@Deprecated
 public interface SQLFunction {
 	/**
 	 * Does this function have any arguments?

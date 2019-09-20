@@ -7,10 +7,12 @@
 package org.hibernate.metamodel.model.convert.spi;
 
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.hibernate.annotations.Remove;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.sql.ast.tree.select.SelectStatement;
+import org.hibernate.sql.exec.spi.JdbcOperation;
 import org.hibernate.type.descriptor.java.EnumJavaTypeDescriptor;
 
 /**
@@ -19,11 +21,24 @@ import org.hibernate.type.descriptor.java.EnumJavaTypeDescriptor;
  * @author Steve Ebersole
  */
 public interface EnumValueConverter<O extends Enum, R> extends BasicValueConverter<O,R> {
-	EnumJavaTypeDescriptor<O> getJavaDescriptor();
+	@Override
+	EnumJavaTypeDescriptor<O> getDomainJavaDescriptor();
+
 	int getJdbcTypeCode();
 
-	O readValue(ResultSet resultSet, String name, SharedSessionContractImplementor session) throws SQLException;
-	void writeValue(PreparedStatement statement, O value, int position, SharedSessionContractImplementor session) throws SQLException;
-
 	String toSqlLiteral(Object value);
+
+	/**
+	 * @since 6.0
+	 *
+	 * @deprecated Added temporarily in support of dual SQL execution until fully migrated
+	 * to {@link SelectStatement} and {@link JdbcOperation}
+	 */
+	@Remove
+	@Deprecated
+	void writeValue(
+			PreparedStatement statement,
+			Enum value,
+			int position,
+			SharedSessionContractImplementor session) throws SQLException;
 }

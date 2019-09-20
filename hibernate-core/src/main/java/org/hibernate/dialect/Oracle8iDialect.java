@@ -15,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.hibernate.JDBCException;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.QueryTimeoutException;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.function.NoArgSQLFunction;
@@ -33,13 +34,11 @@ import org.hibernate.exception.LockTimeoutException;
 import org.hibernate.exception.spi.SQLExceptionConversionDelegate;
 import org.hibernate.exception.spi.TemplatedViolatedConstraintNameExtracter;
 import org.hibernate.exception.spi.ViolatedConstraintNameExtracter;
-import org.hibernate.hql.spi.id.IdTableSupportStandardImpl;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.global.GlobalTemporaryTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.local.AfterUseAction;
 import org.hibernate.internal.util.JdbcExceptionHelper;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.procedure.internal.StandardCallableStatementSupport;
 import org.hibernate.procedure.spi.CallableStatementSupport;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.sql.CaseFragment;
 import org.hibernate.sql.DecodeCaseFragment;
 import org.hibernate.sql.JoinFragment;
@@ -616,27 +615,29 @@ public class Oracle8iDialect extends Dialect {
 	}
 
 	@Override
-	public MultiTableBulkIdStrategy getDefaultMultiTableBulkIdStrategy() {
-		return new GlobalTemporaryTableBulkIdStrategy(
-				new IdTableSupportStandardImpl() {
-					@Override
-					public String generateIdTableName(String baseName) {
-						final String name = super.generateIdTableName( baseName );
-						return name.length() > 30 ? name.substring( 0, 30 ) : name;
-					}
+	public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityPersister runtimeRootEntityDescriptor) {
+		throw new NotYetImplementedFor6Exception( getClass() );
 
-					@Override
-					public String getCreateIdTableCommand() {
-						return "create global temporary table";
-					}
-
-					@Override
-					public String getCreateIdTableStatementOptions() {
-						return "on commit delete rows";
-					}
-				},
-				AfterUseAction.CLEAN
-		);
+//		return new GlobalTemporaryTableBulkIdStrategy(
+//				new IdTableSupportStandardImpl() {
+//					@Override
+//					public String generateIdTableName(String baseName) {
+//						final String name = super.generateIdTableName( baseName );
+//						return name.length() > 30 ? name.substring( 0, 30 ) : name;
+//					}
+//
+//					@Override
+//					public String getCreateIdTableCommand() {
+//						return "create global temporary table";
+//					}
+//
+//					@Override
+//					public String getCreateIdTableStatementOptions() {
+//						return "on commit delete rows";
+//					}
+//				},
+//				AfterUseAction.CLEAN
+//		);
 	}
 
 	@Override

@@ -9,13 +9,13 @@ package org.hibernate.graph.internal;
 import javax.persistence.EntityGraph;
 
 import org.hibernate.cfg.NotYetImplementedException;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.graph.SubGraph;
 import org.hibernate.graph.spi.GraphImplementor;
 import org.hibernate.graph.spi.RootGraphImplementor;
 import org.hibernate.graph.spi.SubGraphImplementor;
-import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
-import org.hibernate.metamodel.model.domain.spi.IdentifiableTypeDescriptor;
+import org.hibernate.metamodel.model.domain.EntityDomainType;
+import org.hibernate.metamodel.model.domain.IdentifiableDomainType;
+import org.hibernate.metamodel.model.domain.JpaMetamodel;
 
 /**
  * The Hibernate implementation of the JPA EntityGraph contract.
@@ -27,19 +27,19 @@ public class RootGraphImpl<J> extends AbstractGraph<J> implements EntityGraph<J>
 
 	public RootGraphImpl(
 			String name,
-			EntityTypeDescriptor<J> entityType,
+			EntityDomainType<J> entityType,
 			boolean mutable,
-			SessionFactoryImplementor sessionFactory) {
-		super( entityType, mutable, sessionFactory );
+			JpaMetamodel jpaMetamodel) {
+		super( entityType, mutable, jpaMetamodel );
 		this.name = name;
 	}
 
-	public RootGraphImpl(String name, EntityTypeDescriptor<J> entityType, SessionFactoryImplementor sessionFactory) {
+	public RootGraphImpl(String name, EntityDomainType<J> entityType, JpaMetamodel jpaMetamodel) {
 		this(
 				name,
 				entityType,
 				true,
-				sessionFactory
+				jpaMetamodel
 		);
 	}
 
@@ -78,12 +78,12 @@ public class RootGraphImpl<J> extends AbstractGraph<J> implements EntityGraph<J>
 	}
 
 	@Override
-	public boolean appliesTo(EntityTypeDescriptor<? super J> entityType) {
+	public boolean appliesTo(EntityDomainType<? super J> entityType) {
 		if ( this.getGraphedType().equals( entityType ) ) {
 			return true;
 		}
 
-		IdentifiableTypeDescriptor superType = entityType.getSupertype();
+		IdentifiableDomainType superType = entityType.getSupertype();
 		while ( superType != null ) {
 			if ( superType.equals( entityType ) ) {
 				return true;
@@ -96,11 +96,11 @@ public class RootGraphImpl<J> extends AbstractGraph<J> implements EntityGraph<J>
 
 	@Override
 	public boolean appliesTo(String entityName) {
-		return appliesTo( sessionFactory().getMetamodel().entity( entityName ) );
+		return appliesTo( jpaMetamodel().entity( entityName ) );
 	}
 
 	@Override
-	public boolean appliesTo(Class entityType) {
-		return appliesTo( sessionFactory().getMetamodel().entity( entityType ) );
+	public boolean appliesTo(Class<? super J> type) {
+		return appliesTo( jpaMetamodel().entity( type ) );
 	}
 }

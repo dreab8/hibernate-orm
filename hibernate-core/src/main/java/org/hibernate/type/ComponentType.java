@@ -19,6 +19,7 @@ import org.hibernate.EntityMode;
 import org.hibernate.FetchMode;
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.PropertyNotFoundException;
 import org.hibernate.bytecode.enhance.spi.LazyPropertyInitializer;
 import org.hibernate.engine.jdbc.Size;
@@ -32,6 +33,9 @@ import org.hibernate.tuple.StandardProperty;
 import org.hibernate.tuple.ValueGeneration;
 import org.hibernate.tuple.component.ComponentMetamodel;
 import org.hibernate.tuple.component.ComponentTuplizer;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * Handles "component" mappings
@@ -40,6 +44,7 @@ import org.hibernate.tuple.component.ComponentTuplizer;
  */
 public class ComponentType extends AbstractType implements CompositeType, ProcedureParameterExtractionAware {
 
+	private final TypeConfiguration typeConfiguration;
 	private final String[] propertyNames;
 	private final Type[] propertyTypes;
 	private final ValueGeneration[] propertyValueGenerationStrategies;
@@ -54,16 +59,8 @@ public class ComponentType extends AbstractType implements CompositeType, Proced
 	protected final EntityMode entityMode;
 	protected final ComponentTuplizer componentTuplizer;
 
-
-	/**
-	 * @deprecated Use the other contructor
-	 */
-	@Deprecated
-	public ComponentType(TypeFactory.TypeScope typeScope, ComponentMetamodel metamodel) {
-		this( metamodel );
-	}
-
-	public ComponentType(ComponentMetamodel metamodel) {
+	public ComponentType(TypeConfiguration typeConfiguration, ComponentMetamodel metamodel) {
+		this.typeConfiguration = typeConfiguration;
 		// for now, just "re-flatten" the metamodel since this is temporary stuff anyway (HHH-1907)
 		this.isKey = metamodel.isKey();
 		this.propertySpan = metamodel.getPropertySpan();
@@ -762,6 +759,11 @@ public class ComponentType extends AbstractType implements CompositeType, Proced
 		return canDoExtraction;
 	}
 
+	@Override
+	public SqlTypeDescriptor getSqlTypeDescriptor() {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
 	private boolean determineIfProcedureParamExtractionCanBePerformed() {
 		for ( Type propertyType : propertyTypes ) {
 			if ( !ProcedureParameterExtractionAware.class.isInstance( propertyType ) ) {
@@ -808,34 +810,36 @@ public class ComponentType extends AbstractType implements CompositeType, Proced
 	}
 
 	@Override
-	public Object extract(CallableStatement statement, String[] paramNames, SharedSessionContractImplementor session)
+	public Object extract(CallableStatement statement, String paramName, SharedSessionContractImplementor session)
 			throws SQLException {
 		// for this form to work all sub-property spans must be one (1)...
 
-		Object[] values = new Object[propertySpan];
+//		Object[] values = new Object[propertySpan];
+//
+//		int indx = 0;
+//		boolean notNull = false;
+//		for ( String paramName : paramName ) {
+//			// we know this cast is safe from canDoExtraction
+//			final ProcedureParameterExtractionAware propertyType = (ProcedureParameterExtractionAware) propertyTypes[indx];
+//			final Object value = propertyType.extract( statement, new String[] {paramName}, session );
+//			if ( value == null ) {
+//				if ( isKey ) {
+//					return null; //different nullability rules for pk/fk
+//				}
+//			}
+//			else {
+//				notNull = true;
+//			}
+//			values[indx] = value;
+//		}
+//
+//		if ( !notNull ) {
+//			values = null;
+//		}
+//
+//		return resolve( values, session, null );
+		throw new NotYetImplementedFor6Exception( getClass() );
 
-		int indx = 0;
-		boolean notNull = false;
-		for ( String paramName : paramNames ) {
-			// we know this cast is safe from canDoExtraction
-			final ProcedureParameterExtractionAware propertyType = (ProcedureParameterExtractionAware) propertyTypes[indx];
-			final Object value = propertyType.extract( statement, new String[] {paramName}, session );
-			if ( value == null ) {
-				if ( isKey ) {
-					return null; //different nullability rules for pk/fk
-				}
-			}
-			else {
-				notNull = true;
-			}
-			values[indx] = value;
-		}
-
-		if ( !notNull ) {
-			values = null;
-		}
-
-		return resolve( values, session, null );
 	}
 
 	@Override
@@ -845,5 +849,20 @@ public class ComponentType extends AbstractType implements CompositeType, Proced
 
 	private boolean isCreateEmptyCompositesEnabled() {
 		return createEmptyCompositesEnabled;
+	}
+
+	@Override
+	public JavaTypeDescriptor getExpressableJavaTypeDescriptor() {
+		throw new NotYetImplementedFor6Exception( getClass() );
+	}
+
+	@Override
+	public PersistenceType getPersistenceType() {
+		return PersistenceType.EMBEDDABLE;
+	}
+
+	@Override
+	public Class getJavaType() {
+		return getReturnedClass();
 	}
 }

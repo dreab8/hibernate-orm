@@ -8,19 +8,15 @@ package org.hibernate.engine.spi;
 
 import java.io.Serializable;
 import java.sql.Connection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import javax.persistence.FlushModeType;
 import javax.persistence.TransactionRequiredException;
-import javax.persistence.criteria.Selection;
 
 import org.hibernate.CacheMode;
-import org.hibernate.Criteria;
 import org.hibernate.FlushMode;
 import org.hibernate.HibernateException;
 import org.hibernate.Interceptor;
-import org.hibernate.ScrollMode;
 import org.hibernate.SharedSessionContract;
 import org.hibernate.Transaction;
 import org.hibernate.cache.spi.CacheTransactionSynchronization;
@@ -31,10 +27,8 @@ import org.hibernate.engine.jdbc.spi.JdbcCoordinator;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.query.spi.sql.NativeSQLQuerySpecification;
 import org.hibernate.internal.util.config.ConfigurationHelper;
-import org.hibernate.jpa.spi.HibernateEntityManagerImplementor;
 import org.hibernate.loader.custom.CustomQuery;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.query.spi.QueryImplementor;
 import org.hibernate.query.spi.QueryProducerImplementor;
 import org.hibernate.query.spi.ScrollableResultsImplementor;
 import org.hibernate.resource.jdbc.spi.JdbcSessionOwner;
@@ -119,6 +113,11 @@ public interface SharedSessionContractImplementor
 	 */
 	UUID getSessionIdentifier();
 
+	@Override
+	default SharedSessionContractImplementor getSession() {
+		return this;
+	}
+
 	/**
 	 * Checks whether the session is closed.  Provided separately from
 	 * {@link #isOpen()} as this method does not attempt any JTA synchronization
@@ -155,6 +154,12 @@ public interface SharedSessionContractImplementor
 	 * </ul>
 	 */
 	void checkOpen(boolean markForRollbackIfClosed);
+
+	/**
+	 * Prepare for the execution of a {@link org.hibernate.query.Query} or
+	 * {@link org.hibernate.procedure.ProcedureCall}
+	 */
+	void prepareForQueryExecution(boolean requiresTxn);
 
 	/**
 	 * Marks current transaction (if one) for rollback only
@@ -272,42 +277,6 @@ public interface SharedSessionContractImplementor
 
 
 	/**
-	 * Execute a <tt>find()</tt> query
-	 */
-	List list(String query, QueryParameters queryParameters) throws HibernateException;
-
-	/**
-	 * Execute an <tt>iterate()</tt> query
-	 */
-	Iterator iterate(String query, QueryParameters queryParameters) throws HibernateException;
-
-	/**
-	 * Execute a <tt>scroll()</tt> query
-	 */
-	ScrollableResultsImplementor scroll(String query, QueryParameters queryParameters) throws HibernateException;
-
-	/**
-	 * Execute a criteria query
-	 */
-	ScrollableResultsImplementor scroll(Criteria criteria, ScrollMode scrollMode);
-
-	/**
-	 * Execute a criteria query
-	 */
-	List list(Criteria criteria);
-
-	/**
-	 * Execute a filter
-	 */
-	List listFilter(Object collection, String filter, QueryParameters queryParameters) throws HibernateException;
-
-	/**
-	 * Iterate a filter
-	 */
-	Iterator iterateFilter(Object collection, String filter, QueryParameters queryParameters)
-			throws HibernateException;
-
-	/**
 	 * Get the <tt>EntityPersister</tt> for any instance
 	 *
 	 * @param entityName optional entity name
@@ -381,17 +350,7 @@ public interface SharedSessionContractImplementor
 
 	int getDontFlushFromFind();
 
-	/**
-	 * Execute a HQL update or delete query
-	 */
-	int executeUpdate(String query, QueryParameters queryParameters) throws HibernateException;
-
-	/**
-	 * Execute a native SQL update or delete query
-	 */
-	int executeNativeUpdate(NativeSQLQuerySpecification specification, QueryParameters queryParameters)
-			throws HibernateException;
-
+	boolean isDefaultReadOnly();
 
 	CacheMode getCacheMode();
 
@@ -504,18 +463,6 @@ public interface SharedSessionContractImplementor
 			) :
 			sessionJdbcBatchSize;
 	}
-
-	/**
-	 * @deprecated (since 5.2) - see deprecation note on
-	 * org.hibernate.jpa.spi.HibernateEntityManagerImplementor#createQuery(java.lang.String, java.lang.Class, javax.persistence.criteria.Selection, org.hibernate.jpa.spi.HibernateEntityManagerImplementor.QueryOptions)
-	 * @return The typed query
-	 */
-	@Deprecated
-	<T> QueryImplementor<T> createQuery(
-			String jpaqlString,
-			Class<T> resultClass,
-			Selection selection,
-			HibernateEntityManagerImplementor.QueryOptions queryOptions);
 
 	/**
 	 * This is similar to {@link #getPersistenceContext()}, with

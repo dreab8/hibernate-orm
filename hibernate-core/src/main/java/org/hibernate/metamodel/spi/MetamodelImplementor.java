@@ -17,9 +17,9 @@ import org.hibernate.MappingException;
 import org.hibernate.Metamodel;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.graph.spi.RootGraphImplementor;
-import org.hibernate.metamodel.model.domain.spi.EmbeddedTypeDescriptor;
-import org.hibernate.metamodel.model.domain.spi.EntityTypeDescriptor;
-import org.hibernate.metamodel.model.domain.spi.ManagedTypeDescriptor;
+import org.hibernate.metamodel.model.domain.EmbeddableDomainType;
+import org.hibernate.metamodel.model.domain.EntityDomainType;
+import org.hibernate.metamodel.model.domain.ManagedDomainType;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.spi.TypeConfiguration;
@@ -28,8 +28,11 @@ import org.hibernate.type.spi.TypeConfiguration;
  * Hibernate extension to the JPA {@link Metamodel} contract
  *
  * @author Steve Ebersole
+ *
+ * @deprecated (since 6.0) - Prefer {@link org.hibernate.metamodel.spi.DomainMetamodel}
  */
-public interface MetamodelImplementor extends Metamodel {
+@Deprecated
+public interface MetamodelImplementor extends DomainMetamodel, Metamodel {
 	/**
 	 * Access to the TypeConfiguration in effect for this SessionFactory/Metamodel
 	 *
@@ -53,7 +56,9 @@ public interface MetamodelImplementor extends Metamodel {
 	 *
 	 * @throws org.hibernate.UnknownEntityTypeException If a matching EntityPersister cannot be located
 	 */
-	EntityPersister locateEntityPersister(Class byClass);
+	default EntityPersister locateEntityPersister(Class byClass){
+		return locateEntityDescriptor( byClass );
+	}
 
 	/**
 	 * Locate the entity persister by name.
@@ -165,19 +170,19 @@ public interface MetamodelImplementor extends Metamodel {
 
 
 	@Override
-	<X> EntityTypeDescriptor<X> entity(String entityName);
+	<X> EntityDomainType<X> entity(String entityName);
 
 	@Override
-	<X> EntityTypeDescriptor<X> entity(Class<X> cls);
+	<X> EntityDomainType<X> entity(Class<X> cls);
 
 	@Override
-	<X> ManagedTypeDescriptor<X> managedType(Class<X> cls);
+	<X> ManagedDomainType<X> managedType(Class<X> cls);
 
 	@Override
-	<X> EmbeddedTypeDescriptor<X> embeddable(Class<X> cls);
+	<X> EmbeddableDomainType<X> embeddable(Class<X> cls);
 
 	@Override
-	default EntityTypeDescriptor getEntityTypeByName(String entityName) {
+	default EntityDomainType getEntityTypeByName(String entityName) {
 		return entity( entityName );
 	}
 }

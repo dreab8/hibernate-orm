@@ -16,12 +16,15 @@ import java.util.Map;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.bytecode.enhance.spi.LazyPropertyInitializer;
 import org.hibernate.engine.jdbc.Size;
 import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.util.collections.ArrayHelper;
+import org.hibernate.type.descriptor.ValueBinder;
+import org.hibernate.type.descriptor.ValueExtractor;
 import org.hibernate.type.descriptor.WrapperOptions;
 import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
@@ -34,7 +37,7 @@ import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
  * @author Brett Meyer
  */
 public abstract class AbstractStandardBasicType<T>
-		implements BasicType, StringRepresentableType<T>, ProcedureParameterExtractionAware<T>, ProcedureParameterNamedBinder {
+		implements BasicType<T>, StringRepresentableType<T>, ProcedureParameterExtractionAware<T>, ProcedureParameterNamedBinder {
 
 	private static final Size DEFAULT_SIZE = new Size( 19, 2, 255, Size.LobMultiplier.NONE ); // to match legacy behavior
 	private final Size dictatedSize = new Size();
@@ -46,10 +49,41 @@ public abstract class AbstractStandardBasicType<T>
 	// sqlTypes need always to be in sync with sqlTypeDescriptor
 	private int[] sqlTypes;
 
+	private ValueBinder<T> jdbcValueBinder;
+	private ValueExtractor<T> jdbcValueExtractor;
+
 	public AbstractStandardBasicType(SqlTypeDescriptor sqlTypeDescriptor, JavaTypeDescriptor<T> javaTypeDescriptor) {
 		this.sqlTypeDescriptor = sqlTypeDescriptor;
 		this.sqlTypes = new int[] { sqlTypeDescriptor.getSqlType() };
 		this.javaTypeDescriptor = javaTypeDescriptor;
+
+		this.jdbcValueBinder = sqlTypeDescriptor.getBinder( javaTypeDescriptor );
+		this.jdbcValueExtractor = sqlTypeDescriptor.getExtractor( javaTypeDescriptor );
+	}
+
+	@Override
+	public JavaTypeDescriptor<T> getExpressableJavaTypeDescriptor() {
+		return getJavaTypeDescriptor();
+	}
+
+	@Override
+	public JavaTypeDescriptor getMappedJavaTypeDescriptor() {
+		return getJavaTypeDescriptor();
+	}
+
+	@Override
+	public ValueExtractor getJdbcValueExtractor() {
+		return jdbcValueExtractor;
+	}
+
+	@Override
+	public ValueBinder getJdbcValueBinder() {
+		return jdbcValueBinder;
+	}
+
+	@Override
+	public Class<T> getJavaType() {
+		return getExpressableJavaTypeDescriptor().getJavaType();
 	}
 
 	public T fromString(String string) {
@@ -111,15 +145,21 @@ public abstract class AbstractStandardBasicType<T>
 
 	public final void setJavaTypeDescriptor( JavaTypeDescriptor<T> javaTypeDescriptor ) {
 		this.javaTypeDescriptor = javaTypeDescriptor;
+
+		this.jdbcValueBinder = getSqlTypeDescriptor().getBinder( javaTypeDescriptor );
+		this.jdbcValueExtractor = getSqlTypeDescriptor().getExtractor( javaTypeDescriptor );
 	}
 
 	public final SqlTypeDescriptor getSqlTypeDescriptor() {
 		return sqlTypeDescriptor;
 	}
 
-	public final void setSqlTypeDescriptor( SqlTypeDescriptor sqlTypeDescriptor ) {
+	public final void setSqlTypeDescriptor(SqlTypeDescriptor sqlTypeDescriptor) {
 		this.sqlTypeDescriptor = sqlTypeDescriptor;
 		this.sqlTypes = new int[] { sqlTypeDescriptor.getSqlType() };
+
+		this.jdbcValueBinder = getSqlTypeDescriptor().getBinder( javaTypeDescriptor );
+		this.jdbcValueExtractor = getSqlTypeDescriptor().getExtractor( javaTypeDescriptor );
 	}
 
 	@Override
@@ -172,18 +212,12 @@ public abstract class AbstractStandardBasicType<T>
 		return false;
 	}
 
-	public final boolean isXMLElement() {
-		return false;
-	}
-
 	@Override
-	@SuppressWarnings({ "unchecked" })
 	public final boolean isSame(Object x, Object y) {
 		return isEqual( x, y );
 	}
 
 	@Override
-	@SuppressWarnings({ "unchecked" })
 	public final boolean isEqual(Object x, Object y, SessionFactoryImplementor factory) {
 		return isEqual( x, y );
 	}
@@ -254,7 +288,8 @@ public abstract class AbstractStandardBasicType<T>
 	}
 
 	protected final T nullSafeGet(ResultSet rs, String name, WrapperOptions options) throws SQLException {
-		return remapSqlTypeDescriptor( options ).getExtractor( javaTypeDescriptor ).extract( rs, name, options );
+//		return remapSqlTypeDescriptor( options ).getExtractor( javaTypeDescriptor ).extract( rs, name, options );
+		throw new NotYetImplementedFor6Exception( getClass() );
 	}
 
 	public Object get(ResultSet rs, String name, SharedSessionContractImplementor session) throws HibernateException, SQLException {
@@ -262,7 +297,6 @@ public abstract class AbstractStandardBasicType<T>
 	}
 
 	@Override
-	@SuppressWarnings({ "unchecked" })
 	public final void nullSafeSet(
 			PreparedStatement st,
 			Object value,
@@ -373,6 +407,11 @@ public abstract class AbstractStandardBasicType<T>
 		return true;
 	}
 
+//	@Override
+//	public ValueExtractor<T> getValueExtractor() {
+//		return getSqlTypeDescriptor().getExtractor( getJavaTypeDescriptor() );
+//	}
+
 	@Override
 	public T extract(CallableStatement statement, int startIndex, final SharedSessionContractImplementor session) throws SQLException {
 		return remapSqlTypeDescriptor( session ).getExtractor( javaTypeDescriptor ).extract(
@@ -383,10 +422,10 @@ public abstract class AbstractStandardBasicType<T>
 	}
 
 	@Override
-	public T extract(CallableStatement statement, String[] paramNames, final SharedSessionContractImplementor session) throws SQLException {
+	public T extract(CallableStatement statement, String paramName, final SharedSessionContractImplementor session) throws SQLException {
 		return remapSqlTypeDescriptor( session ).getExtractor( javaTypeDescriptor ).extract(
 				statement,
-				paramNames,
+				paramName,
 				session
 		);
 	}

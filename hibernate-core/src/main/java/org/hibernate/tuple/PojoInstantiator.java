@@ -17,7 +17,6 @@ import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.util.ReflectHelper;
 import org.hibernate.mapping.Component;
-
 /**
  * Defines a POJO-based instantiator for use from the tuplizers.
  */

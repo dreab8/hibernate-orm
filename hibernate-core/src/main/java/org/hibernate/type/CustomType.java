@@ -23,6 +23,9 @@ import org.hibernate.engine.spi.Mapping;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.util.collections.ArrayHelper;
+import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
+import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
+import org.hibernate.type.spi.TypeConfiguration;
 import org.hibernate.usertype.EnhancedUserType;
 import org.hibernate.usertype.LoggableUserType;
 import org.hibernate.usertype.Sized;
@@ -38,31 +41,44 @@ import org.hibernate.usertype.UserVersionType;
  */
 public class CustomType
 		extends AbstractType
-		implements IdentifierType, DiscriminatorType, VersionType, BasicType, StringRepresentableType, ProcedureParameterNamedBinder, ProcedureParameterExtractionAware {
+		implements BasicType, IdentifierType, DiscriminatorType, VersionType, StringRepresentableType, ProcedureParameterNamedBinder, ProcedureParameterExtractionAware {
 
 	private final UserType userType;
-	private final String name;
-	private final int[] types;
-	private final Size[] dictatedSizes;
-	private final Size[] defaultSizes;
-	private final boolean customLogging;
 	private final String[] registrationKeys;
 
-	public CustomType(UserType userType) throws MappingException {
-		this( userType, ArrayHelper.EMPTY_STRING_ARRAY );
+	private final String name;
+
+	private final JavaTypeDescriptor mappedJavaTypeDescriptor;
+	private final SqlTypeDescriptor sqlTypeDescriptor;
+
+	private final Size dictatedSize;
+	private final Size defaultSize;
+
+	private final boolean customLogging;
+
+	public CustomType(UserType userType, TypeConfiguration typeConfiguration) throws MappingException {
+		this( userType, ArrayHelper.EMPTY_STRING_ARRAY, typeConfiguration );
 	}
 
-	public CustomType(UserType userType, String[] registrationKeys) throws MappingException {
+	public CustomType(UserType userType, String[] registrationKeys, TypeConfiguration typeConfiguration) throws MappingException {
 		this.userType = userType;
 		this.name = userType.getClass().getName();
-		this.types = userType.sqlTypes();
-		this.dictatedSizes = Sized.class.isInstance( userType )
-				? ( (Sized) userType ).dictatedSizes()
-				: new Size[ types.length ];
-		this.defaultSizes = Sized.class.isInstance( userType )
-				? ( (Sized) userType ).defaultSizes()
-				: new Size[ types.length ];
-		this.customLogging = LoggableUserType.class.isInstance( userType );
+
+		//noinspection unchecked
+		this.mappedJavaTypeDescriptor = typeConfiguration.getJavaTypeDescriptorRegistry().getDescriptor( userType.returnedClass() );
+		this.sqlTypeDescriptor = typeConfiguration.getSqlTypeDescriptorRegistry().getDescriptor( userType.sqlTypes()[0] );
+
+		if ( userType instanceof Sized ) {
+			final Sized sized = (Sized) userType;
+			this.dictatedSize = sized.dictatedSizes()[0];
+			this.defaultSize = sized.defaultSizes()[0];
+		}
+		else {
+			this.dictatedSize = null;
+			this.defaultSize = null;
+		}
+
+		this.customLogging = userType instanceof LoggableUserType;
 		this.registrationKeys = registrationKeys;
 	}
 
@@ -71,28 +87,33 @@ public class CustomType
 	}
 
 	@Override
+	public SqlTypeDescriptor getSqlTypeDescriptor() {
+		return sqlTypeDescriptor;
+	}
+
+	@Override
+	public int[] sqlTypes(Mapping pi) {
+		return new int[] { sqlTypeDescriptor.getSqlType() };
+	}
+
+	@Override
 	public String[] getRegistrationKeys() {
 		return registrationKeys;
 	}
 
 	@Override
-	public int[] sqlTypes(Mapping pi) {
-		return types;
-	}
-
-	@Override
 	public Size[] dictatedSizes(Mapping mapping) throws MappingException {
-		return dictatedSizes;
+		return new Size[] {dictatedSize};
 	}
 
 	@Override
 	public Size[] defaultSizes(Mapping mapping) throws MappingException {
-		return defaultSizes;
+		return new Size[] {defaultSize};
 	}
 
 	@Override
 	public int getColumnSpan(Mapping session) {
-		return types.length;
+		return 1;
 	}
 
 	@Override
@@ -252,13 +273,13 @@ public class CustomType
 	@Override
 	@SuppressWarnings("unchecked")
 	public String toString(Object value) throws HibernateException {
-		if ( StringRepresentableType.class.isInstance( getUserType() ) ) {
+		if ( getUserType() instanceof StringRepresentableType ) {
 			return ( (StringRepresentableType) getUserType() ).toString( value );
 		}
 		if ( value == null ) {
 			return null;
 		}
-		if ( EnhancedUserType.class.isInstance( getUserType() ) ) {
+		if ( getUserType() instanceof EnhancedUserType ) {
 			//noinspection deprecation
 			return ( (EnhancedUserType) getUserType() ).toXMLString( value );
 		}
@@ -267,10 +288,10 @@ public class CustomType
 
 	@Override
 	public Object fromStringValue(String string) throws HibernateException {
-		if ( StringRepresentableType.class.isInstance( getUserType() ) ) {
+		if ( getUserType() instanceof StringRepresentableType ) {
 			return ( (StringRepresentableType) getUserType() ).fromStringValue( string );
 		}
-		if ( EnhancedUserType.class.isInstance( getUserType() ) ) {
+		if ( getUserType() instanceof EnhancedUserType ) {
 			//noinspection deprecation
 			return ( (EnhancedUserType) getUserType() ).fromXMLString( string );
 		}
@@ -286,7 +307,7 @@ public class CustomType
 
 	@Override
 	public boolean canDoSetting() {
-		if ( ProcedureParameterNamedBinder.class.isInstance( getUserType() ) ) {
+		if ( getUserType() instanceof ProcedureParameterNamedBinder ) {
 			return ((ProcedureParameterNamedBinder) getUserType() ).canDoSetting();
 		}
 		return false;
@@ -307,7 +328,7 @@ public class CustomType
 
 	@Override
 	public boolean canDoExtraction() {
-		if ( ProcedureParameterExtractionAware.class.isInstance( getUserType() ) ) {
+		if ( getUserType() instanceof ProcedureParameterExtractionAware ) {
 			return ((ProcedureParameterExtractionAware) getUserType() ).canDoExtraction();
 		}
 		return false;
@@ -326,10 +347,10 @@ public class CustomType
 	}
 
 	@Override
-	public Object extract(CallableStatement statement, String[] paramNames, SharedSessionContractImplementor session)
+	public Object extract(CallableStatement statement, String paramName, SharedSessionContractImplementor session)
 			throws SQLException {
 		if ( canDoExtraction() ) {
-			return ((ProcedureParameterExtractionAware) getUserType() ).extract( statement, paramNames, session );
+			return ((ProcedureParameterExtractionAware) getUserType() ).extract( statement, paramName, session );
 		}
 		else {
 			throw new UnsupportedOperationException(
@@ -346,5 +367,25 @@ public class CustomType
 	@Override
 	public boolean equals(Object obj) {
 		return ( obj instanceof CustomType ) && getUserType().equals( ( (CustomType) obj ).getUserType() );
+	}
+
+	@Override
+	public Class getJavaType() {
+		return mappedJavaTypeDescriptor.getJavaType();
+	}
+
+	@Override
+	public JavaTypeDescriptor getMappedJavaTypeDescriptor() {
+		return mappedJavaTypeDescriptor;
+	}
+
+	@Override
+	public JavaTypeDescriptor getExpressableJavaTypeDescriptor() {
+		return getMappedJavaTypeDescriptor();
+	}
+
+	@Override
+	public JavaTypeDescriptor getJavaTypeDescriptor() {
+		return getMappedJavaTypeDescriptor();
 	}
 }

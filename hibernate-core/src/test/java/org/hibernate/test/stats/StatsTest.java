@@ -167,7 +167,7 @@ public class StatsTest extends BaseUnitTestCase {
 		assertEquals( maxTime, sf.getStatistics().getQueryExecutionMaxTime() );
 //		assertEquals( continents, stats.getQueryExecutionMaxTimeQueryString() );
 
-		Iterator itr = s.createQuery( continents ).iterate();
+		Iterator itr = s.createQuery( continents ).list().iterator();
 		// iterate() should increment the execution count
 		assertEquals( "unexpected execution count", 2, continentStats.getExecutionCount() );
 		// but should not effect the cumulative row count
@@ -213,7 +213,7 @@ public class StatsTest extends BaseUnitTestCase {
 		s = sf.openSession();
 		tx = s.beginTransaction();
 		final String sql = "select id, name from Country";
-		results = s.createSQLQuery( sql ).addEntity( Country.class ).list().size();
+		results = s.createNativeQuery( sql ).addEntity( Country.class ).list().size();
 		QueryStatistics sqlStats = sf.getStatistics().getQueryStatistics( sql );
 		assertNotNull( "sql stats were null", sqlStats );
 		assertEquals( "unexpected execution count", 1, sqlStats.getExecutionCount() );

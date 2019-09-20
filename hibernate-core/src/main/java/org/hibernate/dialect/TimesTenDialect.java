@@ -9,6 +9,7 @@ package org.hibernate.dialect;
 import java.sql.Types;
 
 import org.hibernate.LockMode;
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.function.NoArgSQLFunction;
 import org.hibernate.dialect.function.StandardSQLFunction;
@@ -23,11 +24,9 @@ import org.hibernate.dialect.lock.UpdateLockingStrategy;
 import org.hibernate.dialect.pagination.FirstLimitHandler;
 import org.hibernate.dialect.pagination.LegacyFirstLimitHandler;
 import org.hibernate.dialect.pagination.LimitHandler;
-import org.hibernate.hql.spi.id.IdTableSupportStandardImpl;
-import org.hibernate.hql.spi.id.MultiTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.global.GlobalTemporaryTableBulkIdStrategy;
-import org.hibernate.hql.spi.id.local.AfterUseAction;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Lockable;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.sql.JoinFragment;
 import org.hibernate.sql.OracleJoinFragment;
 import org.hibernate.tool.schema.extract.internal.SequenceInformationExtractorTimesTenDatabaseImpl;
@@ -219,27 +218,29 @@ public class TimesTenDialect extends Dialect {
 	}
 
 	@Override
-	public MultiTableBulkIdStrategy getDefaultMultiTableBulkIdStrategy() {
-		return new GlobalTemporaryTableBulkIdStrategy(
-				new IdTableSupportStandardImpl() {
-					@Override
-					public String generateIdTableName(String baseName) {
-						final String name = super.generateIdTableName( baseName );
-						return name.length() > 30 ? name.substring( 1, 30 ) : name;
-					}
+	public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityPersister runtimeRootEntityDescriptor) {
+		throw new NotYetImplementedFor6Exception( getClass() );
 
-					@Override
-					public String getCreateIdTableCommand() {
-						return "create global temporary table";
-					}
-
-					@Override
-					public String getCreateIdTableStatementOptions() {
-						return "on commit delete rows";
-					}
-				},
-				AfterUseAction.CLEAN
-		);
+//		return new GlobalTemporaryTableBulkIdStrategy(
+//				new IdTableSupportStandardImpl() {
+//					@Override
+//					public String generateIdTableName(String baseName) {
+//						final String name = super.generateIdTableName( baseName );
+//						return name.length() > 30 ? name.substring( 1, 30 ) : name;
+//					}
+//
+//					@Override
+//					public String getCreateIdTableCommand() {
+//						return "create global temporary table";
+//					}
+//
+//					@Override
+//					public String getCreateIdTableStatementOptions() {
+//						return "on commit delete rows";
+//					}
+//				},
+//				AfterUseAction.CLEAN
+//		);
 	}
 
 	@Override

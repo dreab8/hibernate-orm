@@ -22,40 +22,38 @@ import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.CustomEntityDirtinessStrategy;
 import org.hibernate.EntityNameResolver;
 import org.hibernate.HibernateException;
-import org.hibernate.Interceptor;
 import org.hibernate.MappingException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.SessionFactoryObserver;
 import org.hibernate.StatelessSession;
 import org.hibernate.StatelessSessionBuilder;
-import org.hibernate.TypeHelper;
 import org.hibernate.boot.spi.SessionFactoryOptions;
 import org.hibernate.cache.spi.CacheImplementor;
 import org.hibernate.cfg.Settings;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.function.SQLFunctionRegistry;
-import org.hibernate.engine.ResultSetMappingDefinition;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
 import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
 import org.hibernate.engine.profile.FetchProfile;
-import org.hibernate.engine.query.spi.QueryPlanCache;
 import org.hibernate.exception.spi.SQLExceptionConverter;
 import org.hibernate.graph.spi.RootGraphImplementor;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.factory.IdentifierGeneratorFactory;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.metadata.CollectionMetadata;
+import org.hibernate.metamodel.model.domain.AllowableParameterType;
+import org.hibernate.metamodel.model.domain.JpaMetamodel;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.proxy.EntityNotFoundDelegate;
-import org.hibernate.query.spi.NamedQueryRepository;
+import org.hibernate.query.spi.QueryEngine;
 import org.hibernate.service.spi.ServiceRegistryImplementor;
 import org.hibernate.stat.spi.StatisticsImplementor;
 import org.hibernate.type.Type;
-import org.hibernate.type.TypeResolver;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * Base delegating implementation of the SessionFactory and SessionFactoryImplementor
@@ -191,20 +189,8 @@ public class SessionFactoryDelegatingImpl implements SessionFactoryImplementor, 
 	}
 
 	@Override
-	public TypeHelper getTypeHelper() {
-		return delegate.getTypeHelper();
-	}
-
-	/**
-	 * Retrieve the {@link Type} resolver associated with this factory.
-	 *
-	 * @return The type resolver
-	 *
-	 * @deprecated (since 5.3) No replacement, access to and handling of Types will be much different in 6.0
-	 */
-	@Deprecated
-	public TypeResolver getTypeResolver() {
-		return delegate.getTypeResolver();
+	public IdentifierGenerator getIdentifierGenerator(String rootEntityName) {
+		return delegate.getIdentifierGenerator( rootEntityName );
 	}
 
 	@Override
@@ -243,26 +229,6 @@ public class SessionFactoryDelegatingImpl implements SessionFactoryImplementor, 
 	}
 
 	@Override
-	public Interceptor getInterceptor() {
-		return delegate.getInterceptor();
-	}
-
-	@Override
-	public QueryPlanCache getQueryPlanCache() {
-		return delegate.getQueryPlanCache();
-	}
-
-	@Override
-	public Type[] getReturnTypes(String queryString) throws HibernateException {
-		return delegate.getReturnTypes( queryString );
-	}
-
-	@Override
-	public String[] getReturnAliases(String queryString) throws HibernateException {
-		return delegate.getReturnAliases( queryString );
-	}
-
-	@Override
 	public String[] getImplementors(String className) throws MappingException {
 		return delegate.getImplementors( className );
 	}
@@ -280,36 +246,6 @@ public class SessionFactoryDelegatingImpl implements SessionFactoryImplementor, 
 	@Override
 	public StatisticsImplementor getStatisticsImplementor() {
 		return delegate.getStatistics();
-	}
-
-	@Override
-	public NamedQueryDefinition getNamedQuery(String queryName) {
-		return delegate.getNamedQuery( queryName );
-	}
-
-	@Override
-	public void registerNamedQueryDefinition(String name, NamedQueryDefinition definition) {
-		delegate.registerNamedQueryDefinition( name, definition );
-	}
-
-	@Override
-	public NamedSQLQueryDefinition getNamedSQLQuery(String queryName) {
-		return delegate.getNamedSQLQuery( queryName );
-	}
-
-	@Override
-	public void registerNamedSQLQueryDefinition(String name, NamedSQLQueryDefinition definition) {
-		delegate.registerNamedSQLQueryDefinition( name, definition );
-	}
-
-	@Override
-	public ResultSetMappingDefinition getResultSetMapping(String name) {
-		return delegate.getResultSetMapping( name );
-	}
-
-	@Override
-	public IdentifierGenerator getIdentifierGenerator(String rootEntityName) {
-		return delegate.getIdentifierGenerator( rootEntityName );
 	}
 
 	@Override
@@ -353,8 +289,18 @@ public class SessionFactoryDelegatingImpl implements SessionFactoryImplementor, 
 	}
 
 	@Override
+	public JpaMetamodel getJpaMetamodel() {
+		return delegate.getJpaMetamodel();
+	}
+
+	@Override
 	public ServiceRegistryImplementor getServiceRegistry() {
 		return delegate.getServiceRegistry();
+	}
+
+	@Override
+	public Integer getMaximumFetchDepth() {
+		return delegate.getMaximumFetchDepth();
 	}
 
 	@Override
@@ -370,11 +316,6 @@ public class SessionFactoryDelegatingImpl implements SessionFactoryImplementor, 
 	@Override
 	public CurrentTenantIdentifierResolver getCurrentTenantIdentifierResolver() {
 		return delegate.getCurrentTenantIdentifierResolver();
-	}
-
-	@Override
-	public NamedQueryRepository getNamedQueryRepository() {
-		return delegate.getNamedQueryRepository();
 	}
 
 	@Override
@@ -428,6 +369,16 @@ public class SessionFactoryDelegatingImpl implements SessionFactoryImplementor, 
 	}
 
 	@Override
+	public TypeConfiguration getTypeConfiguration() {
+		return delegate.getTypeConfiguration();
+	}
+
+	@Override
+	public QueryEngine getQueryEngine() {
+		return delegate.getQueryEngine();
+	}
+
+	@Override
 	public Reference getReference() throws NamingException {
 		return delegate.getReference();
 	}
@@ -473,12 +424,12 @@ public class SessionFactoryDelegatingImpl implements SessionFactoryImplementor, 
 	}
 
 	@Override
-	public Type resolveParameterBindType(Object bindValue) {
+	public AllowableParameterType<?> resolveParameterBindType(Object bindValue) {
 		return delegate.resolveParameterBindType( bindValue );
 	}
 
 	@Override
-	public Type resolveParameterBindType(Class clazz) {
+	public AllowableParameterType<?> resolveParameterBindType(Class<?> clazz) {
 		return delegate.resolveParameterBindType( clazz );
 	}
 }

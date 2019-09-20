@@ -8,9 +8,9 @@ package org.hibernate.boot.model.process.spi;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
-import org.hibernate.boot.AttributeConverterInfo;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.internal.InFlightMetadataCollectorImpl;
 import org.hibernate.boot.internal.MetadataBuildingContextRootImpl;
@@ -40,7 +40,6 @@ import org.hibernate.type.BasicTypeRegistry;
 import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 import org.hibernate.type.spi.TypeConfiguration;
-import org.hibernate.usertype.CompositeUserType;
 import org.hibernate.usertype.UserType;
 
 import org.jboss.jandex.IndexView;
@@ -130,11 +129,7 @@ public class MetadataBuildingProcess {
 				metadataCollector
 		);
 
-		for ( AttributeConverterInfo converterInfo : managedResources.getAttributeConverterDefinitions() ) {
-			metadataCollector.addAttributeConverter(
-					converterInfo.toConverterDescriptor( rootMetadataBuildingContext )
-			);
-		}
+		managedResources.getAttributeConverterDescriptors().forEach( metadataCollector::addAttributeConverter );
 
 		bootstrapContext.getTypeConfiguration().scope( rootMetadataBuildingContext );
 
@@ -310,7 +305,22 @@ public class MetadataBuildingProcess {
 			}
 		}
 
+		applyExtraQueryImports( managedResources, metadataCollector );
+
 		return metadataCollector.buildMetadataInstance( rootMetadataBuildingContext );
+	}
+
+	private static void applyExtraQueryImports(
+			ManagedResources managedResources,
+			InFlightMetadataCollectorImpl metadataCollector) {
+		final Map<String, Class<?>> extraQueryImports = managedResources.getExtraQueryImports();
+		if ( extraQueryImports == null || extraQueryImports.isEmpty() ) {
+			return;
+		}
+
+		for ( Map.Entry<String, Class<?>> entry : extraQueryImports.entrySet() ) {
+			metadataCollector.addImport( entry.getKey(), entry.getValue().getName() );
+		}
 	}
 
 //	todo (7.0) : buildJandexInitializer
@@ -342,11 +352,6 @@ public class MetadataBuildingProcess {
 
 			@Override
 			public void contributeType(UserType type, String[] keys) {
-				getBasicTypeRegistry().register( type, keys );
-			}
-
-			@Override
-			public void contributeType(CompositeUserType type, String[] keys) {
 				getBasicTypeRegistry().register( type, keys );
 			}
 
