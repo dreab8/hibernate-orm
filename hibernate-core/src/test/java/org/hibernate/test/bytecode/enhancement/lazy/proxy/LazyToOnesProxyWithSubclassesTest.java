@@ -21,6 +21,7 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.SessionFactoryBuilder;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.stat.Statistics;
 
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.bytecode.enhancement.BytecodeEnhancerRunner;
@@ -29,13 +30,14 @@ import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
  * @author Gail Badner
  */
-@TestForIssue( jiraKey = "HHH-13640" )
+@TestForIssue(jiraKey = "HHH-13640")
 @RunWith(BytecodeEnhancerRunner.class)
 public class LazyToOnesProxyWithSubclassesTest extends BaseNonConfigCoreFunctionalTestCase {
 	@Override
@@ -75,13 +77,48 @@ public class LazyToOnesProxyWithSubclassesTest extends BaseNonConfigCoreFunction
 
 		inSession(
 				session -> {
+					final Statistics stats = sessionFactory().getStatistics();
+					stats.clear();
 					final OtherEntity otherEntity = session.get( OtherEntity.class, "test1" );
 					assertTrue( Hibernate.isPropertyInitialized( otherEntity, "animal" ) );
 					assertFalse( Hibernate.isInitialized( otherEntity.animal ) );
+					assertEquals( 1, stats.getPrepareStatementCount() );
+
 					Animal animal = session.load( Animal.class, "A Human" );
 					assertFalse( Hibernate.isInitialized( animal ) );
+					assertEquals( 1, stats.getPrepareStatementCount() );
 				}
 		);
+	}
+
+	@Test
+	public void testGetInitializeAssociations() {
+		inTransaction(
+				session -> {
+					Human human = new Human( "A Human" );
+					OtherEntity otherEntity = new OtherEntity( "test1" );
+					otherEntity.animal = human;
+
+					session.persist( human );
+					session.persist( otherEntity );
+				}
+		);
+
+		inSession(
+				session -> {
+					final Statistics stats = sessionFactory().getStatistics();
+					stats.clear();
+					final OtherEntity otherEntity = session.get( OtherEntity.class, "test1" );
+					assertTrue( Hibernate.isPropertyInitialized( otherEntity, "animal" ) );
+					assertFalse( Hibernate.isInitialized( otherEntity.animal ) );
+					assertEquals( 1, stats.getPrepareStatementCount() );
+
+					Animal animal = session.get( Animal.class, "A Human" );
+					assertTrue( Hibernate.isInitialized( animal ) );
+					assertEquals( 2, stats.getPrepareStatementCount() );
+				}
+		);
+
 	}
 
 	@Test
@@ -99,11 +136,21 @@ public class LazyToOnesProxyWithSubclassesTest extends BaseNonConfigCoreFunction
 
 		inSession(
 				session -> {
+					final Statistics stats = sessionFactory().getStatistics();
+					stats.clear();
+
 					final OtherEntity otherEntity = session.get( OtherEntity.class, "test1" );
 					assertTrue( Hibernate.isPropertyInitialized( otherEntity, "animal" ) );
 					assertFalse( Hibernate.isInitialized( otherEntity.animal ) );
 					assertTrue( Hibernate.isPropertyInitialized( otherEntity, "primate" ) );
 					assertFalse( Hibernate.isInitialized( otherEntity.primate ) );
+
+					assertEquals( 1, stats.getPrepareStatementCount() );
+
+					Primate primate = session.load( Primate.class, "A Human" );
+					assertFalse( Hibernate.isInitialized( primate ) );
+
+					assertEquals( 1, stats.getPrepareStatementCount() );
 				}
 		);
 	}
