@@ -43,6 +43,15 @@ public class InlineDirtyCheckingTest {
 	}
 
 	@Test
+	public void testSetDefaultValueTriggersInlineDirtyChecking2(){
+		TestEntity testEntity = new TestEntity( true );
+		assertThat(testEntity, instanceOf( SelfDirtinessTracker.class ));
+		testEntity.setaBoolean( false );
+		SelfDirtinessTracker selfDirtinessTracker = (SelfDirtinessTracker) testEntity;
+		assertTrue( selfDirtinessTracker.$$_hibernate_hasDirtyAttributes() );
+	}
+
+	@Test
 	public void testSetValueTriggersInlineDirtyChecking(){
 		TestEntity testEntity = new TestEntity(  );
 		assertThat(testEntity, instanceOf( SelfDirtinessTracker.class ));
@@ -65,6 +74,11 @@ public class InlineDirtyCheckingTest {
 
 		public TestEntity() {
 		}
+
+		public TestEntity(boolean aBoolean) {
+			this.aBoolean = aBoolean;
+		}
+
 
 		public TestEntity(String name) {
 			this.name = name;
