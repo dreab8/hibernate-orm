@@ -92,99 +92,107 @@ public final class Cascade {
 			final boolean hasUninitializedLazyProperties = persister.hasUninitializedLazyProperties( parent );
 			final int componentPathStackDepth = 0;
 			for ( int i = 0; i < types.length; i++) {
-				final CascadeStyle style = cascadeStyles[ i ];
-				final String propertyName = propertyNames[ i ];
-				final boolean isUninitializedProperty =
-						hasUninitializedLazyProperties &&
-						!persister.getBytecodeEnhancementMetadata().isAttributeLoaded( parent, propertyName );
+				final Type type = types[i];
+				if ( type.isAssociationType() || isLogicalOneToOne( type ) || type.isComponentType() || type.isCollectionType() ) {
+					final CascadeStyle style = cascadeStyles[i];
+					final String propertyName = propertyNames[i];
+					final boolean isUninitializedProperty =
+							hasUninitializedLazyProperties &&
+									!persister.getBytecodeEnhancementMetadata().isAttributeLoaded(
+											parent,
+											propertyName
+									);
 
-				if ( style.doCascade( action ) ) {
-					final Object child;
-					if ( isUninitializedProperty  ) {
-						// parent is a bytecode enhanced entity.
-						// Cascade to an uninitialized, lazy value only if
-						// parent is managed in the PersistenceContext.
-						// If parent is a detached entity being merged,
-						// then parent will not be in the PersistencContext
-						// (so lazy attributes must not be initialized).
-						if ( persistenceContext.getEntry( parent ) == null ) {
-							// parent was not in the PersistenceContext
-							continue;
-						}
-						if ( types[ i ].isCollectionType() ) {
-							// CollectionType#getCollection gets the PersistentCollection
-							// that corresponds to the uninitialized collection from the
-							// PersistenceContext. If not present, an uninitialized
-							// PersistentCollection will be added to the PersistenceContext.
-							// The action may initialize it later, if necessary.
-							// This needs to be done even when action.performOnLazyProperty() returns false.
-							final CollectionType collectionType = (CollectionType) types[i];
-							child = collectionType.getCollection(
-									collectionType.getKeyOfOwner( parent, eventSource ),
-									eventSource,
-									parent,
-									null
-							);
-						}
-						else if ( types[ i ].isComponentType() ) {
-							// Hibernate does not support lazy embeddables, so this shouldn't happen.
-							throw new UnsupportedOperationException(
-									"Lazy components are not supported."
-							);
-						}
-						else if ( action.performOnLazyProperty() && types[ i ].isEntityType() ) {
-							// Only need to initialize a lazy entity attribute when action.performOnLazyProperty()
-							// returns true.
-							LazyAttributeLoadingInterceptor interceptor = persister.getBytecodeEnhancementMetadata()
-									.extractInterceptor( parent );
-							child = interceptor.fetchAttribute( parent, propertyName );
+					if ( style.doCascade( action ) ) {
+						final Object child;
+						if ( isUninitializedProperty ) {
+							// parent is a bytecode enhanced entity.
+							// Cascade to an uninitialized, lazy value only if
+							// parent is managed in the PersistenceContext.
+							// If parent is a detached entity being merged,
+							// then parent will not be in the PersistencContext
+							// (so lazy attributes must not be initialized).
+							if ( persistenceContext.getEntry( parent ) == null ) {
+								// parent was not in the PersistenceContext
+								continue;
+							}
+							if ( type.isCollectionType() ) {
+								// CollectionType#getCollection gets the PersistentCollection
+								// that corresponds to the uninitialized collection from the
+								// PersistenceContext. If not present, an uninitialized
+								// PersistentCollection will be added to the PersistenceContext.
+								// The action may initialize it later, if necessary.
+								// This needs to be done even when action.performOnLazyProperty() returns false.
+								final CollectionType collectionType = (CollectionType) type;
+								child = collectionType.getCollection(
+										collectionType.getKeyOfOwner( parent, eventSource ),
+										eventSource,
+										parent,
+										null
+								);
+							}
+							else if ( type.isComponentType() ) {
+								// Hibernate does not support lazy embeddables, so this shouldn't happen.
+								throw new UnsupportedOperationException(
+										"Lazy components are not supported."
+								);
+							}
+							else if ( action.performOnLazyProperty() && type.isEntityType() ) {
+								// Only need to initialize a lazy entity attribute when action.performOnLazyProperty()
+								// returns true.
+								LazyAttributeLoadingInterceptor interceptor = persister.getBytecodeEnhancementMetadata()
+										.extractInterceptor( parent );
+								child = interceptor.fetchAttribute( parent, propertyName );
 
+							}
+							else {
+								// Nothing to do, so just skip cascading to this lazy attribute.
+								continue;
+							}
 						}
 						else {
-							// Nothing to do, so just skip cascading to this lazy attribute.
-							continue;
+							child = persister.getPropertyValue( parent, i );
 						}
-					}
-					else {
-						child = persister.getPropertyValue( parent, i );
-					}
-					cascadeProperty(
-							action,
-							cascadePoint,
-							eventSource,
-							componentPathStackDepth,
-							parent,
-							child,
-							types[ i ],
-							style,
-							propertyName,
-							anything,
-							false
-					);
-				}
-				else {
-					if ( action.requiresNoCascadeChecking() ) {
-						action.noCascade(
-								eventSource,
-								parent,
-								persister,
-								types[i],
-								i
-						);
-					}
-					// If the property is uninitialized, then there cannot be any orphans.
-					if ( action.deleteOrphans() && !isUninitializedProperty ) {
-						cascadeLogicalOneToOneOrphanRemoval(
+						cascadeProperty(
 								action,
+								cascadePoint,
 								eventSource,
 								componentPathStackDepth,
 								parent,
-								persister.getPropertyValue( parent, i ),
-								types[ i ],
+								child,
+								type,
 								style,
 								propertyName,
+								anything,
 								false
 						);
+					}
+					else {
+						if ( action.requiresNoCascadeChecking() ) {
+							action.noCascade(
+									eventSource,
+									parent,
+									persister,
+									type,
+									i
+							);
+						}
+						// If the property is uninitialized, then there cannot be any orphans.
+						if ( action.deleteOrphans() && !isUninitializedProperty ) {
+							if ( isLogicalOneToOne( type ) ) {
+								cascadeLogicalOneToOneOrphanRemoval(
+										action,
+										eventSource,
+										componentPathStackDepth,
+										parent,
+										persister.getPropertyValue( parent, i ),
+										type,
+										style,
+										propertyName,
+										false
+								);
+							}
+						}
 					}
 				}
 			}
@@ -243,16 +251,19 @@ public final class Cascade {
 			}
 		}
 
-		cascadeLogicalOneToOneOrphanRemoval(
-				action,
-				eventSource,
-				componentPathStackDepth,
-				parent,
-				child,
-				type,
-				style,
-				propertyName,
-				isCascadeDeleteEnabled );
+		if ( isLogicalOneToOne( type ) ) {
+			cascadeLogicalOneToOneOrphanRemoval(
+					action,
+					eventSource,
+					componentPathStackDepth,
+					parent,
+					child,
+					type,
+					style,
+					propertyName,
+					isCascadeDeleteEnabled
+			);
+		}
 	}
 
 	private static void cascadeLogicalOneToOneOrphanRemoval(
@@ -267,7 +278,7 @@ public final class Cascade {
 			final boolean isCascadeDeleteEnabled) throws HibernateException {
 
 		// potentially we need to handle orphan deletes for one-to-ones here...
-		if ( isLogicalOneToOne( type ) ) {
+
 			// We have a physical or logical one-to-one.  See if the attribute cascade settings and action-type require
 			// orphan checking
 			if ( style.hasOrphanDelete() && action.deleteOrphans() ) {
@@ -344,7 +355,6 @@ public final class Cascade {
 					}
 				}
 			}
-		}
 	}
 
 	/**

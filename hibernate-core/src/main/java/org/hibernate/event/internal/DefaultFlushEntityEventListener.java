@@ -8,6 +8,7 @@ package org.hibernate.event.internal;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Set;
 
 import org.hibernate.AssertionFailure;
 import org.hibernate.CustomEntityDirtinessStrategy;
@@ -157,32 +158,52 @@ public class DefaultFlushEntityEventListener implements FlushEntityEventListener
 		final Status status = entry.getStatus();
 		final Type[] types = persister.getPropertyTypes();
 
-		final boolean mightBeDirty = entry.requiresDirtyCheck( entity );
-
-		final Object[] values = getValues( entity, entry, mightBeDirty, session );
-
-		event.setPropertyValues( values );
-
-		//TODO: avoid this for non-new instances where mightBeDirty==false
-		boolean substitute = wrapCollections( session, persister, types, values );
-
-		if ( isUpdateNecessary( event, mightBeDirty ) ) {
-			substitute = scheduleUpdate( event ) || substitute;
-		}
-
-		if ( status != Status.DELETED ) {
-			// now update the object .. has to be outside the main if block above (because of collections)
-			if ( substitute ) {
-				persister.setPropertyValues( entity, values );
+		boolean isUpdateNotNecessary;
+		if ( entity instanceof PersistentAttributeInterceptable ) {
+			final PersistentAttributeInterceptor interceptor = ( (PersistentAttributeInterceptable) entity ).$$_hibernate_getInterceptor();
+			if ( interceptor instanceof EnhancementAsProxyLazinessInterceptor ) {
+				Set<String> writtenFieldNames = ( (EnhancementAsProxyLazinessInterceptor) interceptor ).getWrittenFieldNames();
+				if ( writtenFieldNames == null || writtenFieldNames.isEmpty()  ) {
+					isUpdateNotNecessary = true;
+				}
+				else {
+					writtenFieldNames.clear();
+					isUpdateNotNecessary = false;
+				}
 			}
-
-			// Search for collections by reachability, updating their role.
-			// We don't want to touch collections reachable from a deleted object
-			if ( persister.hasCollections() ) {
-				new FlushVisitor( session, entity ).processEntityPropertyValues( values, types );
+			else {
+				isUpdateNotNecessary = false;
 			}
 		}
+		else {
+			isUpdateNotNecessary = false;
+		}
+		if ( !isUpdateNotNecessary ) {
+			final boolean mightBeDirty = entry.requiresDirtyCheck( entity );
 
+			final Object[] values = getValues( entity, entry, mightBeDirty, session );
+
+			event.setPropertyValues( values );
+
+			//TODO: avoid this for non-new instances where mightBeDirty==false
+			boolean substitute = wrapCollections( session, persister, types, values );
+
+			if ( isUpdateNecessary( event, mightBeDirty ) ) {
+				substitute = scheduleUpdate( event ) || substitute;
+			}
+			if ( status != Status.DELETED ) {
+				// now update the object .. has to be outside the main if block above (because of collections)
+				if ( substitute ) {
+					persister.setPropertyValues( entity, values );
+				}
+
+				// Search for collections by reachability, updating their role.
+				// We don't want to touch collections reachable from a deleted object
+				if ( persister.hasCollections() ) {
+					new FlushVisitor( session, entity ).processEntityPropertyValues( values, types );
+				}
+			}
+		}
 	}
 
 	private Object[] getValues(Object entity, EntityEntry entry, boolean mightBeDirty, SessionImplementor session) {
