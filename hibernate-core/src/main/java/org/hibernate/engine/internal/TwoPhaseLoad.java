@@ -13,6 +13,7 @@ import org.hibernate.CacheMode;
 import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 import org.hibernate.bytecode.enhance.spi.LazyPropertyInitializer;
+import org.hibernate.bytecode.enhance.spi.interceptor.EnhancementAsProxyLazinessInterceptor;
 import org.hibernate.cache.spi.access.EntityDataAccess;
 import org.hibernate.cache.spi.entry.CacheEntry;
 import org.hibernate.engine.profile.Fetch;
@@ -21,6 +22,8 @@ import org.hibernate.engine.spi.EntityEntry;
 import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.engine.spi.PersistenceContext;
+import org.hibernate.engine.spi.PersistentAttributeInterceptable;
+import org.hibernate.engine.spi.PersistentAttributeInterceptor;
 import org.hibernate.engine.spi.SessionEventListenerManager;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -240,6 +243,21 @@ public final class TwoPhaseLoad {
 			}
 		}
 
+		EnhancementAsProxyLazinessInterceptor enhancementAsProxyLazinessInterceptor;
+		if ( entity instanceof PersistentAttributeInterceptable ) {
+			final PersistentAttributeInterceptor interceptor = ( (PersistentAttributeInterceptable) entity ).$$_hibernate_getInterceptor();
+			if ( interceptor instanceof EnhancementAsProxyLazinessInterceptor ) {
+				enhancementAsProxyLazinessInterceptor = (EnhancementAsProxyLazinessInterceptor) interceptor;
+				enhancementAsProxyLazinessInterceptor.setInternalLoad( true );
+			}
+			else {
+				enhancementAsProxyLazinessInterceptor = null;
+			}
+		}
+		else {
+			enhancementAsProxyLazinessInterceptor = null;
+		}
+
 		persister.setPropertyValues( entity, hydratedState );
 
 		final SessionFactoryImplementor factory = session.getFactory();
@@ -343,6 +361,10 @@ public final class TwoPhaseLoad {
 					"Done materializing entity %s",
 					MessageHelper.infoString( persister, id, session.getFactory() )
 			);
+		}
+
+		if ( enhancementAsProxyLazinessInterceptor != null ) {
+			enhancementAsProxyLazinessInterceptor.setInternalLoad( false );
 		}
 
 		if ( statistics.isStatisticsEnabled() ) {

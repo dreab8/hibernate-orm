@@ -35,11 +35,16 @@ public class EnhancementAsProxyLazinessInterceptor extends AbstractLazyLoadInter
 	private final EntityKey entityKey;
 
 	private final boolean inLineDirtyChecking;
+
 	private Set<String> writtenFieldNames;
 
 	private boolean initialized;
 
 	private boolean initializeBeforeWrite;
+	/*
+	 used to avoid to force initialization when the access type is Property
+	 */
+	private boolean internalLoad;
 
 	public EnhancementAsProxyLazinessInterceptor(
 			String entityName,
@@ -245,7 +250,11 @@ public class EnhancementAsProxyLazinessInterceptor extends AbstractLazyLoadInter
 			return newValue;
 		}
 
-		if ( initializeBeforeWrite ) {
+		/*
+			if the access method is by Property then during the load a setter does not
+			have to cause a force initiliazing
+		 */
+		if ( initializeBeforeWrite && !internalLoad ) {
 			// we need to force-initialize the proxy - the fetch group to which the `attributeName` belongs
 			try {
 				forceInitialize( target, attributeName );
@@ -287,5 +296,13 @@ public class EnhancementAsProxyLazinessInterceptor extends AbstractLazyLoadInter
 	@Override
 	public Object getIdentifier() {
 		return entityKey.getIdentifier();
+	}
+
+	public void setInternalLoad(boolean isInternalLoad) {
+		internalLoad = isInternalLoad;
+	}
+
+	public Set<String> getWrittenFieldNames() {
+		return writtenFieldNames;
 	}
 }
