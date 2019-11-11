@@ -47,7 +47,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 @SuppressWarnings("WeakerAccess")
 @DomainModel(
-		annotatedClasses = SmokeTests.SimpleEntity.class
+		annotatedClasses = { SmokeTests.SimpleEntity.class, SmokeTests.OtherEntity.class}
 )
 @ServiceRegistry
 @SessionFactory
@@ -110,7 +110,7 @@ public class SmokeTests {
 	}
 
 	@Test
-	@FailureExpected
+//	@FailureExpected
 	public void testEntityBasedManyToOne(SessionFactoryScope scope) {
 		final EntityPersister entityDescriptor = scope.getSessionFactory()
 				.getDomainModel()
