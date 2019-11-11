@@ -19,7 +19,10 @@ import org.hibernate.sql.results.spi.DomainResultCreationState;
  * @author Steve Ebersole
  */
 public interface ForeignKeyDescriptor {
-	DomainResult createDomainResult(NavigablePath collectionPath, TableGroup tableGroup, DomainResultCreationState creationState);
+	DomainResult createDomainResult(
+			NavigablePath collectionPath,
+			TableGroup tableGroup,
+			DomainResultCreationState creationState);
 
 	Predicate generateJoinPredicate(
 			TableGroup lhs,

@@ -137,6 +137,7 @@ import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.metamodel.RepresentationMode;
 import org.hibernate.metamodel.mapping.AttributeMapping;
 import org.hibernate.metamodel.mapping.AttributeMetadata;
+import org.hibernate.metamodel.mapping.AttributeMetadataAccess;
 import org.hibernate.metamodel.mapping.EntityDiscriminatorMapping;
 import org.hibernate.metamodel.mapping.EntityIdentifierMapping;
 import org.hibernate.metamodel.mapping.EntityMappingType;
@@ -5358,7 +5359,9 @@ public abstract class AbstractEntityPersister
 		else {
 			final Object[] values = new Object[ getNumberOfAttributeMappings() ];
 			for ( int i = 0; i < attributeMappings.size(); i++ ) {
-				values[ i ] = attributeMappings.get( i ).getAttributeMetadataAccess()
+				AttributeMapping attributeMapping = attributeMappings.get( i );
+				AttributeMetadataAccess attributeMetadataAccess = attributeMapping.getAttributeMetadataAccess();
+				values[ i ] = attributeMetadataAccess
 						.resolveAttributeMetadata( this )
 						.getPropertyAccess()
 						.getGetter()
@@ -6404,7 +6407,7 @@ public abstract class AbstractEntityPersister
 					attrName,
 					stateArrayPosition,
 					bootProperty,
-					declaringType,
+					this,
 					(EntityType) attrType,
 					propertyAccess,
 					tupleAttrDefinition.getCascadeStyle(),
