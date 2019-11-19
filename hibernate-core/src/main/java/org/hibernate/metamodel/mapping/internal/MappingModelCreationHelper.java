@@ -914,10 +914,11 @@ public class MappingModelCreationHelper {
 	public static ForeignKeyDescriptor interpretKeyDescriptor(
 			Property bootProperty,
 			ToOne bootValueMapping,
-			EntityPersister referencedEntityDescriptor,
+			EntityPersister declaringEntityPersister,
 			Dialect dialect,
 			MappingModelCreationProcess creationProcess) {
-
+		EntityPersister referencedEntityDescriptor = creationProcess.getEntityPersister(
+				 bootValueMapping.getReferencedEntityName());
 		final ModelPart fkTarget;
 		if ( bootValueMapping.isReferenceToPrimaryKey() ) {
 			fkTarget = referencedEntityDescriptor.getIdentifierMapping();
