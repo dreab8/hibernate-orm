@@ -6214,15 +6214,14 @@ public abstract class AbstractEntityPersister
 										.getJdbcServices()
 										.getJdbcEnvironment()
 										.getDialect();
-								ForeignKeyDescriptor foreignKeyDescriptor =
-										MappingModelCreationHelper.interpretKeyDescriptor(
-												property,
-												(ToOne) property.getValue(),
-												this,
-												dialect,
-												creationProcess
-										);
-								singularAssociationAttributeMapping.setForeignKeyDescriptor( foreignKeyDescriptor );
+								MappingModelCreationHelper.interpretKeyDescriptor(
+										singularAssociationAttributeMapping,
+										property,
+										(ToOne) property.getValue(),
+										this,
+										dialect,
+										creationProcess
+								);
 							} );
 	}
 

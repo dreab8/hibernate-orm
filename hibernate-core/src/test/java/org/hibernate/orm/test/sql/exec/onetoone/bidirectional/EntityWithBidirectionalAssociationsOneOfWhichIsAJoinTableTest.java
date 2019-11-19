@@ -34,14 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @DomainModel(
 		annotatedClasses = {
-				EntityWithBidirectionalOneToOneJoinTableTest.Parent.class,
-				EntityWithBidirectionalOneToOneJoinTableTest.Child.class,
-				EntityWithBidirectionalOneToOneJoinTableTest.Child2.class,
+				EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest.Parent.class,
+				EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest.Child.class,
+				EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest.Child2.class,
 		}
 )
 @ServiceRegistry
 @SessionFactory(generateStatistics = true)
-public class EntityWithBidirectionalOneToOneJoinTableTest {
+public class EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest {
 
 	@BeforeEach
 	public void setUp(SessionFactoryScope scope) {

@@ -13,13 +13,9 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.function.Consumer;
 
-import org.hibernate.FetchMode;
-import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 import org.hibernate.MappingException;
 import org.hibernate.NotYetImplementedFor6Exception;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.collection.internal.StandardArraySemantics;
 import org.hibernate.collection.internal.StandardBagSemantics;
 import org.hibernate.collection.internal.StandardIdentifierBagSemantics;
@@ -911,18 +907,22 @@ public class MappingModelCreationHelper {
 		);
 	}
 
-	public static ForeignKeyDescriptor interpretKeyDescriptor(
+	public static void interpretKeyDescriptor(
+			SingularAssociationAttributeMapping attributeMapping,
 			Property bootProperty,
 			ToOne bootValueMapping,
 			EntityPersister declaringEntityDescriptor,
 			Dialect dialect,
 			MappingModelCreationProcess creationProcess) {
+		if ( attributeMapping.getForeignKeyDescriptor() != null ) {
+			return;
+		}
 		EntityPersister referencedEntityDescriptor = creationProcess.getEntityPersister(
-				 bootValueMapping.getReferencedEntityName());
+				bootValueMapping.getReferencedEntityName() );
 		final ModelPart fkTarget;
 		final ForeignKeyDirection foreignKeyDirection = ( (AssociationType) bootValueMapping.getType() ).getForeignKeyDirection();
 		referencedEntityDescriptor.prepareMappingModel( creationProcess );
-		if ( foreignKeyDirection == ForeignKeyDirection.FROM_PARENT ) {
+		if ( bootValueMapping.isReferenceToPrimaryKey() ) {
 			fkTarget = referencedEntityDescriptor.getIdentifierMapping();
 		}
 		else {
@@ -931,12 +931,17 @@ public class MappingModelCreationHelper {
 
 		final JdbcServices jdbcServices = creationProcess.getCreationContext().getSessionFactory().getJdbcServices();
 		if ( fkTarget instanceof BasicValuedModelPart ) {
-			final String keyTableIdentifierExpression;
 			final String keyColumnExpression;
-
-			// todo (6.0) : manage reference to not PK
-			if ( foreignKeyDirection == ForeignKeyDirection.FROM_PARENT ) {
+			final String keyTableIdentifierExpression;
+			if(bootValueMapping.isReferenceToPrimaryKey()) {
 				final Iterator<Selectable> columnIterator = bootValueMapping.getColumnIterator();
+				if ( columnIterator.hasNext() ) {
+					keyColumnExpression = columnIterator.next().getText( dialect );
+				}
+				else {
+					// case of ToOne with @PrimaryKeyJoinColumn
+					keyColumnExpression = bootValueMapping.getTable().getColumn( 0 ).getName();
+				}
 
 				keyTableIdentifierExpression = creationProcess.getCreationContext()
 						.getBootstrapContext()
@@ -945,34 +950,49 @@ public class MappingModelCreationHelper {
 								bootValueMapping.getTable().getNameIdentifier(),
 								jdbcServices.getJdbcEnvironment()
 						).getText();
-				if ( columnIterator.hasNext() ) {
-					keyColumnExpression = columnIterator.next().getText( dialect );
-				}
-				else {
-					// case of ToOne with @PrimaryKeyJoinColumn
-					keyColumnExpression = bootValueMapping.getTable().getColumn( 0 ).getName();
-				}
-			}else{
-				BasicValuedModelPart basicValuedModelPart = (BasicValuedModelPart)referencedEntityDescriptor.getIdentifierMapping();
-				keyTableIdentifierExpression = basicValuedModelPart.getContainingTableExpression();
-				keyColumnExpression = basicValuedModelPart.getMappedColumnExpression();
-			}
+				final BasicValuedModelPart simpleFkTarget = (BasicValuedModelPart) fkTarget;
+				ForeignKeyDescriptor foreignKeyDescriptor = new SimpleForeignKeyDescriptor(
+						foreignKeyDirection,
+						keyTableIdentifierExpression,
+						keyColumnExpression,
+						simpleFkTarget.getContainingTableExpression(),
+						simpleFkTarget.getMappedColumnExpression(),
+						simpleFkTarget.getJdbcMapping()
 
-			final BasicValuedModelPart simpleFkTarget = (BasicValuedModelPart) fkTarget;
-			return new SimpleForeignKeyDescriptor(
-					foreignKeyDirection,
-					keyTableIdentifierExpression,
-					keyColumnExpression,
-					simpleFkTarget.getContainingTableExpression(),
-					simpleFkTarget.getMappedColumnExpression(),
-					simpleFkTarget.getJdbcMapping()
+				);
+				attributeMapping.setForeignKeyDescriptor( foreignKeyDescriptor );
+
+			}else {
+				SingularAssociationAttributeMapping subPart = (SingularAssociationAttributeMapping) referencedEntityDescriptor
+						.findSubPart( bootValueMapping.getReferencedPropertyName() );
+				ForeignKeyDescriptor foreignKeyDescriptor = subPart.getForeignKeyDescriptor();
+
+				if(foreignKeyDescriptor == null){
+					PersistentClass entityBinding = creationProcess.getCreationContext().getBootModel().getEntityBinding(
+							referencedEntityDescriptor.getEntityName() );
+					Property property = entityBinding.getProperty( bootValueMapping.getReferencedPropertyName() );
+					interpretKeyDescriptor(
+							subPart,
+							property,
+							(ToOne) property.getValue(),
+							referencedEntityDescriptor,
+							dialect,
+							creationProcess
+					);
+					attributeMapping.setForeignKeyDescriptor( subPart.getForeignKeyDescriptor() );
+
+				}else {
+					attributeMapping.setForeignKeyDescriptor( foreignKeyDescriptor );
+				}
+			}
+		}
+		else {
+
+			throw new NotYetImplementedFor6Exception(
+					"Support for composite foreign-keys not yet implemented: " +
+							bootProperty.getPersistentClass().getEntityName() + " -> " + bootProperty.getName()
 			);
 		}
-
-		throw new NotYetImplementedFor6Exception(
-				"Support for composite foreign-keys not yet implemented: " +
-						bootProperty.getPersistentClass().getEntityName() + " -> " + bootProperty.getName()
-		);
 	}
 
 	private static CollectionPart interpretMapKey(

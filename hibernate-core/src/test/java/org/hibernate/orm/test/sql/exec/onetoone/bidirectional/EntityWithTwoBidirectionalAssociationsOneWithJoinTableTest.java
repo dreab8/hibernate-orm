@@ -34,13 +34,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @DomainModel(
 		annotatedClasses = {
-				EntityWithOneBidirectionalJoinTableAssociationTest.Parent.class,
-				EntityWithOneBidirectionalJoinTableAssociationTest.Child.class,
+				EntityWithTwoBidirectionalAssociationsOneWithJoinTableTest.Parent.class,
+				EntityWithTwoBidirectionalAssociationsOneWithJoinTableTest.Child.class,
+				EntityWithTwoBidirectionalAssociationsOneWithJoinTableTest.Child2.class,
 		}
 )
 @ServiceRegistry
 @SessionFactory(generateStatistics = true)
-public class EntityWithOneBidirectionalJoinTableAssociationTest {
+public class EntityWithTwoBidirectionalAssociationsOneWithJoinTableTest {
 
 	@BeforeEach
 	public void setUp(SessionFactoryScope scope) {
@@ -49,8 +50,11 @@ public class EntityWithOneBidirectionalJoinTableAssociationTest {
 					Parent parent = new Parent( 1, "Hibernate" );
 					Child child = new Child( 2, parent );
 					child.setName( "Acme" );
+					Child2 child2 = new Child2( 3, parent );
+					child2.setName( "Fab" );
 					session.save( parent );
 					session.save( child );
+					session.save( child2 );
 				} );
 	}
 
@@ -60,6 +64,7 @@ public class EntityWithOneBidirectionalJoinTableAssociationTest {
 				session -> {
 					session.createQuery( "delete from Parent" ).executeUpdate();
 					session.createQuery( "delete from Child" ).executeUpdate();
+					session.createQuery( "delete from Child2" ).executeUpdate();
 				} );
 	}
 
@@ -76,6 +81,17 @@ public class EntityWithOneBidirectionalJoinTableAssociationTest {
 					);
 					assertThat( child.getName(), equalTo( "Acme" ) );
 					assertThat( child.getParent(), CoreMatchers.notNullValue() );
+
+
+					Child2 child2 = parent.getChild2();
+					assertThat( child2, CoreMatchers.notNullValue() );
+					assertTrue(
+							Hibernate.isInitialized( child2 ),
+							"The child2 eager OneToOne association is not initialized"
+					);
+					assertThat( child2.getName(), equalTo( "Fab" ) );
+					assertThat( child2.getParent(), CoreMatchers.notNullValue() );
+
 				} );
 	}
 
@@ -98,6 +114,14 @@ public class EntityWithOneBidirectionalJoinTableAssociationTest {
 					"The child eager OneToOne association is not initialized"
 			);
 
+			Child2 child2 = parent.getChild2();
+			assertThat( child2, CoreMatchers.notNullValue() );
+			assertTrue(
+					Hibernate.isInitialized( child2 ),
+					"The child2 eager OneToOne association is not initialized"
+
+			);
+			assertThat( child2.getParent(), CoreMatchers.notNullValue() );
 		} );
 	}
 
@@ -170,6 +194,7 @@ public class EntityWithOneBidirectionalJoinTableAssociationTest {
 
 		private String description;
 		private Child child;
+		private Child2 child2;
 
 		Parent() {
 		}
@@ -206,6 +231,15 @@ public class EntityWithOneBidirectionalJoinTableAssociationTest {
 			this.child = other;
 		}
 
+		@OneToOne
+		@JoinTable(name = "PARENT_CHILD_2", inverseJoinColumns = @JoinColumn(name = "child_id"), joinColumns = @JoinColumn(name = "parent_id"))
+		public Child2 getChild2() {
+			return child2;
+		}
+
+		public void setChild2(Child2 child2) {
+			this.child2 = child2;
+		}
 	}
 
 	@Entity(name = "Child")
@@ -252,4 +286,47 @@ public class EntityWithOneBidirectionalJoinTableAssociationTest {
 		}
 	}
 
+	@Entity(name = "Child2")
+	@Table(name = "CHILD2")
+	public static class Child2 {
+		private Integer id;
+
+		private String name;
+		private Parent parent;
+
+		Child2() {
+		}
+
+		Child2(Integer id, Parent child) {
+			this.id = id;
+			this.parent = child;
+			this.parent.setChild2( this );
+		}
+
+		@Id
+		public Integer getId() {
+			return id;
+		}
+
+		public void setId(Integer id) {
+			this.id = id;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		@OneToOne(mappedBy = "child2")
+		public Parent getParent() {
+			return parent;
+		}
+
+		public void setParent(Parent parent) {
+			this.parent = parent;
+		}
+	}
 }

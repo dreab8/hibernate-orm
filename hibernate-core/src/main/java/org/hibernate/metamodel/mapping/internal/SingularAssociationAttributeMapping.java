@@ -6,6 +6,8 @@
  */
 package org.hibernate.metamodel.mapping.internal;
 
+import java.util.List;
+
 import org.hibernate.LockMode;
 import org.hibernate.engine.FetchStrategy;
 import org.hibernate.engine.FetchTiming;
@@ -73,6 +75,10 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 
 	public void setForeignKeyDescriptor(ForeignKeyDescriptor foreignKeyDescriptor){
 		this.foreignKeyDescriptor = foreignKeyDescriptor;
+	}
+
+	public ForeignKeyDescriptor getForeignKeyDescriptor(){
+		return this.foreignKeyDescriptor;
 	}
 
 	@Override
