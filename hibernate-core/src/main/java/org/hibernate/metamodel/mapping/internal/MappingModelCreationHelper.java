@@ -911,7 +911,7 @@ public class MappingModelCreationHelper {
 		);
 	}
 
-	private static ForeignKeyDescriptor interpretKeyDescriptor(
+	public static ForeignKeyDescriptor interpretKeyDescriptor(
 			Property bootProperty,
 			ToOne bootValueMapping,
 			EntityPersister referencedEntityDescriptor,
@@ -920,12 +920,13 @@ public class MappingModelCreationHelper {
 
 		final ModelPart fkTarget;
 		if ( bootValueMapping.isReferenceToPrimaryKey() ) {
-			referencedEntityDescriptor.prepareMappingModel( creationProcess );
 			fkTarget = referencedEntityDescriptor.getIdentifierMapping();
 		}
 		else {
 			fkTarget = referencedEntityDescriptor.findSubPart( bootValueMapping.getReferencedPropertyName() );
 		}
+
+		assert fkTarget != null;
 
 		final JdbcServices jdbcServices = creationProcess.getCreationContext().getSessionFactory().getJdbcServices();
 
@@ -1140,18 +1141,6 @@ public class MappingModelCreationHelper {
 				creationProcess
 		);
 		SessionFactoryImplementor sessionFactory = creationProcess.getCreationContext().getSessionFactory();
-		final Dialect dialect = sessionFactory
-				.getJdbcServices()
-				.getJdbcEnvironment()
-				.getDialect();
-
-		final ForeignKeyDescriptor foreignKeyDescriptor = interpretKeyDescriptor(
-				bootProperty,
-				value,
-				entityPersister,
-				dialect,
-				creationProcess
-		);
 
 		final AssociationType type = (AssociationType) bootProperty.getType();
 		final FetchStyle fetchStyle = FetchStrategyHelper
@@ -1169,7 +1158,6 @@ public class MappingModelCreationHelper {
 				attrName,
 				stateArrayPosition,
 				bootProperty.getValue().isNullable(),
-				foreignKeyDescriptor,
 				stateArrayContributorMetadataAccess,
 				fetchStrategy,
 				entityPersister,

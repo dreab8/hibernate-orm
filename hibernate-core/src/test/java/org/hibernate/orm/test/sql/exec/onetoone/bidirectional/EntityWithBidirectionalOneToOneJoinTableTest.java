@@ -232,7 +232,6 @@ public class EntityWithBidirectionalOneToOneJoinTableTest {
 		}
 
 		@OneToOne
-		@JoinTable(name = "PARENT_CHILD2", inverseJoinColumns = @JoinColumn(name = "child_id"), joinColumns = @JoinColumn(name = "parent_id"))
 		public Child2 getChild2() {
 			return child2;
 		}

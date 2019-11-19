@@ -47,13 +47,12 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 		implements EntityValuedModelPart, TableGroupJoinProducer {
 	private final String sqlAliasStem;
 	private final boolean isNullable;
-	private final ForeignKeyDescriptor foreignKeyDescriptor;
+	private ForeignKeyDescriptor foreignKeyDescriptor;
 
 	public SingularAssociationAttributeMapping(
 			String name,
 			int stateArrayPosition,
 			boolean isNullable,
-			ForeignKeyDescriptor foreignKeyDescriptor,
 			StateArrayContributorMetadataAccess attributeMetadataAccess,
 			FetchStrategy mappedFetchStrategy,
 			EntityMappingType type,
@@ -70,6 +69,9 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 		);
 		this.sqlAliasStem = SqlAliasStemHelper.INSTANCE.generateStemFromAttributeName( name );
 		this.isNullable = isNullable;
+	}
+
+	public void setForeignKeyDescriptor(ForeignKeyDescriptor foreignKeyDescriptor){
 		this.foreignKeyDescriptor = foreignKeyDescriptor;
 	}
 
