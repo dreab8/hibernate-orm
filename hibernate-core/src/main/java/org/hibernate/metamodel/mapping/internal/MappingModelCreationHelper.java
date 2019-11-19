@@ -914,46 +914,54 @@ public class MappingModelCreationHelper {
 	public static ForeignKeyDescriptor interpretKeyDescriptor(
 			Property bootProperty,
 			ToOne bootValueMapping,
-			EntityPersister declaringEntityPersister,
+			EntityPersister declaringEntityDescriptor,
 			Dialect dialect,
 			MappingModelCreationProcess creationProcess) {
 		EntityPersister referencedEntityDescriptor = creationProcess.getEntityPersister(
 				 bootValueMapping.getReferencedEntityName());
 		final ModelPart fkTarget;
-		if ( bootValueMapping.isReferenceToPrimaryKey() ) {
+		final ForeignKeyDirection foreignKeyDirection = ( (AssociationType) bootValueMapping.getType() ).getForeignKeyDirection();
+		referencedEntityDescriptor.prepareMappingModel( creationProcess );
+		if ( foreignKeyDirection == ForeignKeyDirection.FROM_PARENT ) {
 			fkTarget = referencedEntityDescriptor.getIdentifierMapping();
 		}
 		else {
-			fkTarget = referencedEntityDescriptor.findSubPart( bootValueMapping.getReferencedPropertyName() );
+			fkTarget = declaringEntityDescriptor.getIdentifierMapping();
 		}
 
-		assert fkTarget != null;
-
 		final JdbcServices jdbcServices = creationProcess.getCreationContext().getSessionFactory().getJdbcServices();
-
 		if ( fkTarget instanceof BasicValuedModelPart ) {
+			final String keyTableIdentifierExpression;
+			final String keyColumnExpression;
+
+			// todo (6.0) : manage reference to not PK
+			if ( foreignKeyDirection == ForeignKeyDirection.FROM_PARENT ) {
+				final Iterator<Selectable> columnIterator = bootValueMapping.getColumnIterator();
+
+				keyTableIdentifierExpression = creationProcess.getCreationContext()
+						.getBootstrapContext()
+						.getMetadataBuildingOptions()
+						.getPhysicalNamingStrategy().toPhysicalTableName(
+								bootValueMapping.getTable().getNameIdentifier(),
+								jdbcServices.getJdbcEnvironment()
+						).getText();
+				if ( columnIterator.hasNext() ) {
+					keyColumnExpression = columnIterator.next().getText( dialect );
+				}
+				else {
+					// case of ToOne with @PrimaryKeyJoinColumn
+					keyColumnExpression = bootValueMapping.getTable().getColumn( 0 ).getName();
+				}
+			}else{
+				BasicValuedModelPart basicValuedModelPart = (BasicValuedModelPart)referencedEntityDescriptor.getIdentifierMapping();
+				keyTableIdentifierExpression = basicValuedModelPart.getContainingTableExpression();
+				keyColumnExpression = basicValuedModelPart.getMappedColumnExpression();
+			}
+
 			final BasicValuedModelPart simpleFkTarget = (BasicValuedModelPart) fkTarget;
-
-			final Iterator<Selectable> columnIterator = bootValueMapping.getColumnIterator();
-			String keyColumnExpression;
-
-			final Identifier tableIdentifier = creationProcess.getCreationContext()
-					.getBootstrapContext()
-					.getMetadataBuildingOptions()
-					.getPhysicalNamingStrategy().toPhysicalTableName(
-							bootValueMapping.getTable().getNameIdentifier(),
-							jdbcServices.getJdbcEnvironment()
-					);
-			if ( columnIterator.hasNext() ) {
-				keyColumnExpression = columnIterator.next().getText( dialect );
-			}
-			else {
-				// case of ToOne with @PrimaryKeyJoinColumn
-				keyColumnExpression = bootValueMapping.getTable().getColumn( 0 ).getName();
-			}
 			return new SimpleForeignKeyDescriptor(
-					((AssociationType)bootValueMapping.getType()).getForeignKeyDirection(),
-					tableIdentifier.getText(),
+					foreignKeyDirection,
+					keyTableIdentifierExpression,
 					keyColumnExpression,
 					simpleFkTarget.getContainingTableExpression(),
 					simpleFkTarget.getMappedColumnExpression(),
