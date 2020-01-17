@@ -31,9 +31,10 @@ import org.hibernate.metamodel.mapping.ManagedMappingType;
 import org.hibernate.metamodel.mapping.ModelPart;
 import org.hibernate.metamodel.mapping.PluralAttributeMapping;
 import org.hibernate.metamodel.mapping.StateArrayContributorMetadataAccess;
-import org.hibernate.metamodel.mapping.ordering.OrderByFragmentTranslator;
 import org.hibernate.metamodel.mapping.ordering.OrderByFragment;
+import org.hibernate.metamodel.mapping.ordering.OrderByFragmentTranslator;
 import org.hibernate.metamodel.mapping.ordering.TranslationContext;
+import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
@@ -330,6 +331,11 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 	@Override
 	public FetchStrategy getMappedFetchStrategy() {
 		return fetchStrategy;
+	}
+
+	@Override
+	public NavigableRole getNavigableRole() {
+		return getCollectionDescriptor().getNavigableRole();
 	}
 
 	@Override
