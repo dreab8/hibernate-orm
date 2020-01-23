@@ -7,14 +7,16 @@ import org.hibernate.dialect.MariaDB103Dialect;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.testing.*;
 import org.hibernate.testing.junit4.BaseCoreFunctionalTestCase;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * @author Nathan Xu
  */
 @RequiresDialect(MariaDB103Dialect.class)
-@FailureExpected(jiraKey = "HHH-13373", message = "currently db user has no privilege to create secondary db and sequence within it")
+//@FailureExpected(jiraKey = "HHH-13373", message = "currently db user has no privilege to create secondary db and sequence within it")
 public class MariaDBExtractSequenceMatadataTest extends BaseCoreFunctionalTestCase {
 
 	private static String primaryDbName;
@@ -23,8 +25,8 @@ public class MariaDBExtractSequenceMatadataTest extends BaseCoreFunctionalTestCa
 	private static String secondaryDbName = "secondary_db_HHH13373";
 	private static String secondarySequenceName = "secondary_seq_HHH13373";
 	
-	@BeforeClassOnce
-	public static void setUpDBs() throws Exception {
+	@Before
+	public void setUpDBs() throws Exception {
 		try ( Connection conn = getConnection() ) {
 			try ( Statement stmt = conn.createStatement() ) {
 				try ( ResultSet resultSet = stmt.executeQuery( "SELECT DATABASE()" ) ) {
@@ -48,18 +50,13 @@ public class MariaDBExtractSequenceMatadataTest extends BaseCoreFunctionalTestCa
 		Assert.assertFalse( jdbcEnvironment.getExtractedDatabaseMetaData().getSequenceInformationList().isEmpty() );
 	}
 
-	@AfterClassOnce
-	public static void tearDownDBs() {
+	@After
+	public void tearDownDBs() throws SQLException {
 		try ( Connection conn = getConnection() ) {
 			try ( Statement stmt = conn.createStatement() ) {
+				stmt.execute( "DROP SEQUENCE IF EXISTS " + primarySequenceName );
 				stmt.execute(  "DROP DATABASE " + secondaryDbName );
 			}
-			catch ( Exception e ) {
-				// Ignore
-			}
-		}
-		catch ( Exception e ) {
-			// Ignore
 		}
 	}
 	
