@@ -51,10 +51,7 @@ public class Helper {
 			};
 		}
 		else {
-			return initializer -> {
-				// noinspection Convert2MethodRef
-				initializers.add( initializer );
-			};
+			return initializers::add;
 		}
 	}
 
