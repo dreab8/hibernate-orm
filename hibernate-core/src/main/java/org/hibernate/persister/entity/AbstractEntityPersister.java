@@ -1183,6 +1183,21 @@ public abstract class AbstractEntityPersister
 	}
 
 	@Override
+	public boolean containsTableReference(String tableExpression) {
+		if ( getRootTableName().equals( tableExpression ) ) {
+			return true;
+		}
+
+		for ( int i = 0; i < getSubclassTableSpan(); i++ ) {
+			if ( getSubclassTableName( i ).equals( tableExpression ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
 	public String getPartName() {
 		return getEntityName();
 	}
@@ -1239,6 +1254,7 @@ public abstract class AbstractEntityPersister
 				lockMode,
 				primaryTableReference,
 				sqlAliasBase,
+				(tableExpression) -> ArrayHelper.contains( rootTableKeyColumnNames, tableExpression ),
 				(tableExpression, tableGroup) -> {
 					for ( int i = 0; i < getSubclassTableSpan(); i++ ) {
 						final String subclassTableName = getSubclassTableName( i );

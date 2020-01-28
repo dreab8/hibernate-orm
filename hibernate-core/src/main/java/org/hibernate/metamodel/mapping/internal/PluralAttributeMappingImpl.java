@@ -516,6 +516,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 				lockMode,
 				primaryTableReference,
 				sqlAliasBase,
+				(tableExpression) -> entityPartDescriptor.getEntityMappingType().containsTableReference( tableExpression ),
 				(tableExpression, tg) -> entityPartDescriptor.getEntityMappingType().createTableReferenceJoin(
 						tableExpression,
 						sqlAliasBase,
@@ -586,6 +587,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 
 		final Consumer<TableGroup> tableGroupFinalizer;
 		final BiFunction<String,TableGroup,TableReferenceJoin> tableReferenceJoinCreator;
+		final java.util.function.Predicate<String> tableReferenceJoinNameChecker;
 		if ( elementDescriptor instanceof EntityCollectionPart || indexDescriptor instanceof EntityCollectionPart ) {
 			final EntityCollectionPart entityPartDescriptor;
 			if ( elementDescriptor instanceof EntityCollectionPart ) {
@@ -602,6 +604,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 					creationContext
 			);
 
+			tableReferenceJoinNameChecker = mappingType::containsTableReference;
 			tableReferenceJoinCreator = (tableExpression, tableGroup) -> mappingType.createTableReferenceJoin(
 					tableExpression,
 					sqlAliasBase,
@@ -635,6 +638,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 						"element-collection cannot contain joins : " + collectionTableReference.getTableExpression() + " -> " + tableExpression
 				);
 			};
+			tableReferenceJoinNameChecker = s -> false;
 			tableGroupFinalizer = null;
 		}
 
@@ -644,6 +648,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 				lockMode,
 				collectionTableReference,
 				sqlAliasBase,
+				tableReferenceJoinNameChecker,
 				tableReferenceJoinCreator,
 				creationContext.getSessionFactory()
 		);
