@@ -22,13 +22,13 @@ import java.util.Set;
 		name = "company.location",
 		fetchOverrides = {
 				@FetchProfile.FetchOverride(
-						entity = CompanyWithFetchProfile.class,
+						entity = CompanyFetchProfile.class,
 						association = "location",
 						mode = FetchMode.JOIN
 				)
 		}
 )
-public class CompanyWithFetchProfile {
+public class CompanyFetchProfile {
 	@Id @GeneratedValue
 	public long id;
 	
