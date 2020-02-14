@@ -22,6 +22,7 @@ import javax.persistence.StoredProcedureQuery;
 
 import org.hibernate.Session;
 import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.dialect.CockroachDB1920Dialect;
 import org.hibernate.dialect.PostgreSQL81Dialect;
 import org.hibernate.jpa.test.BaseEntityManagerFunctionalTestCase;
 import org.hibernate.procedure.ProcedureCall;
@@ -30,6 +31,7 @@ import org.hibernate.testing.RequiresDialectFeature;
 import org.hibernate.type.StringType;
 
 import org.hibernate.testing.RequiresDialect;
+import org.hibernate.testing.SkipForDialect;
 import org.hibernate.testing.TestForIssue;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,7 +46,7 @@ import static org.junit.Assert.fail;
  * @author Vlad Mihalcea
  */
 @RequiresDialect(PostgreSQL81Dialect.class)
-@RequiresDialectFeature(DialectChecks.SupportsStoredProcedures.class)
+@SkipForDialect(CockroachDB1920Dialect.class)
 public class PostgreSQLStoredProcedureTest extends BaseEntityManagerFunctionalTestCase {
 
 	@Override

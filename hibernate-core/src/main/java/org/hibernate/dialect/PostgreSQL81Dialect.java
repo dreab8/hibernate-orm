@@ -649,8 +649,4 @@ public class PostgreSQL81Dialect extends Dialect {
 		return true;
 	}
 
-	@Override
-	public boolean supportsLoFunctions() {
-		return true;
-	}
 }

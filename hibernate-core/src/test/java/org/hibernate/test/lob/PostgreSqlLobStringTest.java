@@ -39,7 +39,7 @@ import static org.junit.Assert.fail;
  */
 @TestForIssue(jiraKey = "HHH-11614")
 @RequiresDialect(PostgreSQL81Dialect.class)
-@RequiresDialectFeature(DialectChecks.SupportsLoFunctions.class)
+@SkipForDialect(CockroachDB1920Dialect.class)
 public class PostgreSqlLobStringTest extends BaseCoreFunctionalTestCase {
 
 	private final String value1 = "abc";

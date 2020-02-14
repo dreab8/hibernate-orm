@@ -18,6 +18,7 @@ import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.AbstractHANADialect;
 import org.hibernate.dialect.CUBRIDDialect;
+import org.hibernate.dialect.CockroachDB1920Dialect;
 import org.hibernate.dialect.DB2Dialect;
 import org.hibernate.dialect.DerbyDialect;
 import org.hibernate.dialect.H2Dialect;
@@ -978,7 +979,7 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Test
-	@RequiresDialectFeature(DialectChecks.SupportsMixedTypeArithmetic.class)
+	@SkipForDialect(CockroachDB1920Dialect.class)
 	public void testExpressionWithParamInFunction() {
 		Session s = openSession();
 		s.beginTransaction();
@@ -2951,7 +2952,7 @@ public class ASTParserLoadingTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Test
-	@RequiresDialectFeature(DialectChecks.SupportsMixedTypeArithmetic.class)
+	@SkipForDialect(CockroachDB1920Dialect.class)
 	@SuppressWarnings( {"UnusedAssignment", "UnusedDeclaration"})
 	public void testSelectExpressions() {
 		createTestBaseData();

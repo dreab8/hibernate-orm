@@ -20,6 +20,7 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.Environment;
+import org.hibernate.dialect.CockroachDB1920Dialect;
 import org.hibernate.dialect.PostgreSQL81Dialect;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.testing.DialectChecks;
@@ -29,6 +30,7 @@ import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.TargetType;
 
 import org.hibernate.testing.RequiresDialect;
+import org.hibernate.testing.SkipForDialect;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
 import org.junit.After;
@@ -40,7 +42,7 @@ import org.junit.Test;
  */
 @TestForIssue(jiraKey = "HHH-10191")
 @RequiresDialect(PostgreSQL81Dialect.class)
-@RequiresDialectFeature(DialectChecks.SupportsComputedIndexes.class)
+@SkipForDialect(CockroachDB1920Dialect.class)
 public class SchemaUpdateWithFunctionIndexTest extends BaseNonConfigCoreFunctionalTestCase {
 	protected ServiceRegistry serviceRegistry;
 	protected MetadataImplementor metadata;

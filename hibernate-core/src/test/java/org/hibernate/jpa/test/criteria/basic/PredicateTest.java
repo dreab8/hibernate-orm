@@ -13,6 +13,8 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+
+import org.hibernate.dialect.CockroachDB1920Dialect;
 import org.hibernate.dialect.Oracle12cDialect;
 import org.hibernate.jpa.test.metamodel.AbstractMetamodelSpecificTest;
 import org.hibernate.jpa.test.metamodel.CreditCard;
@@ -247,7 +249,7 @@ public class PredicateTest extends AbstractMetamodelSpecificTest {
 
 	@Test
 	@TestForIssue( jiraKey = "HHH-5803" )
-	@RequiresDialectFeature( DialectChecks.SupportsMixedTypeArithmetic.class )
+	@SkipForDialect( CockroachDB1920Dialect.class )
 	public void testQuotientConversion() {
 		EntityManager em = getOrCreateEntityManager();
 		em.getTransaction().begin();
