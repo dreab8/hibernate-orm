@@ -73,11 +73,11 @@ ext {
                         'jdbc.url'   : 'jdbc:postgresql:hibernate_orm_test'
                 ],
                 oracle : [
-                        'db.dialect' : 'org.hibernate.dialect.Oracle10gDialect',
+                        'db.dialect' : 'org.hibernate.dialect.Oracle12cDialect',
                         'jdbc.driver': 'oracle.jdbc.driver.OracleDriver',
                         'jdbc.user'  : 'hibernate_orm_test',
                         'jdbc.pass'  : 'hibernate_orm_test',
-                        'jdbc.url'   : 'jdbc:oracle:thin:@localhost:1521/xe'
+                        'jdbc.url'   : 'jdbc:oracle:thin:@hibernate-testing-oracle-se.ccuzkqo3zqzq.us-east-1.rds.amazonaws.com:1521:ORCL'
                 ],
                 mssql : [
                         'db.dialect' : 'org.hibernate.dialect.SQLServer2012Dialect',
