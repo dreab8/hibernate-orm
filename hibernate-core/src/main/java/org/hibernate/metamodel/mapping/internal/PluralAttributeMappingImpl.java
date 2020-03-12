@@ -10,19 +10,23 @@ import org.hibernate.LockMode;
 import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.engine.FetchStrategy;
 import org.hibernate.engine.FetchTiming;
+import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.spi.CascadeStyle;
 import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.IndexedCollection;
 import org.hibernate.mapping.List;
 import org.hibernate.mapping.Property;
+import org.hibernate.mapping.Table;
 import org.hibernate.mapping.Value;
 import org.hibernate.metamodel.mapping.BasicValuedModelPart;
 import org.hibernate.metamodel.mapping.CollectionIdentifierDescriptor;
 import org.hibernate.metamodel.mapping.CollectionMappingType;
 import org.hibernate.metamodel.mapping.CollectionPart;
+import org.hibernate.metamodel.mapping.EmbeddableValuedModelPart;
 import org.hibernate.metamodel.mapping.EntityMappingType;
 import org.hibernate.metamodel.mapping.ForeignKeyDescriptor;
+import org.hibernate.metamodel.mapping.JdbcMapping;
 import org.hibernate.metamodel.mapping.ManagedMappingType;
 import org.hibernate.metamodel.mapping.ModelPart;
 import org.hibernate.metamodel.mapping.PluralAttributeMapping;
@@ -56,10 +60,13 @@ import org.hibernate.sql.results.graph.FetchParent;
 import org.hibernate.sql.results.graph.collection.internal.CollectionDomainResult;
 import org.hibernate.sql.results.graph.collection.internal.DelayedCollectionFetch;
 import org.hibernate.sql.results.graph.collection.internal.EagerCollectionFetch;
+import org.hibernate.type.AssociationType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.ForeignKeyDirection;
+
 import org.jboss.logging.Logger;
 
+import java.util.ArrayList;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -79,7 +86,6 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 	private final PropertyAccess propertyAccess;
 	private final StateArrayContributorMetadataAccess stateArrayContributorMetadataAccess;
 
-	private final ForeignKeyDescriptor fkDescriptor;
 	private final CollectionPart elementDescriptor;
 	private final CollectionPart indexDescriptor;
 	private final CollectionIdentifierDescriptor identifierDescriptor;
@@ -94,6 +100,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 
 	private final IndexMetadata indexMetadata;
 
+	private ForeignKeyDescriptor fkDescriptor;
 	private ForeignKeyDescriptor manyToManyFkDescriptor;
 
 	private OrderByFragment orderByFragment;
@@ -107,7 +114,6 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 			StateArrayContributorMetadataAccess stateArrayContributorMetadataAccess,
 			CollectionMappingType collectionMappingType,
 			int stateArrayPosition,
-			ForeignKeyDescriptor fkDescriptor,
 			CollectionPart elementDescriptor,
 			CollectionPart indexDescriptor,
 			CollectionIdentifierDescriptor identifierDescriptor,
@@ -119,7 +125,6 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 		this.propertyAccess = propertyAccess;
 		this.stateArrayContributorMetadataAccess = stateArrayContributorMetadataAccess;
 		this.stateArrayPosition = stateArrayPosition;
-		this.fkDescriptor = fkDescriptor;
 		this.elementDescriptor = elementDescriptor;
 		this.indexDescriptor = indexDescriptor;
 		this.identifierDescriptor = identifierDescriptor;
@@ -180,48 +185,95 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 		if ( collectionDescriptor.getElementType() instanceof EntityType
 				|| collectionDescriptor.getIndexType() instanceof EntityType ) {
 
-			final EntityPersister associatedEntityDescriptor;
-			final ModelPart fkTargetPart;
-			final Value fkBootDescriptorSource;
-			if ( collectionDescriptor.getElementType() instanceof EntityType ) {
-				final EntityType elementEntityType = (EntityType) collectionDescriptor.getElementType();
-				associatedEntityDescriptor = creationProcess.getEntityPersister( elementEntityType.getAssociatedEntityName() );
-				fkTargetPart = elementEntityType.isReferenceToPrimaryKey()
-						? associatedEntityDescriptor.getIdentifierMapping()
-						: associatedEntityDescriptor.findSubPart( elementEntityType.getRHSUniqueKeyPropertyName() );
-				fkBootDescriptorSource = bootDescriptor.getElement();
-			}
-			else {
-				assert collectionDescriptor.getIndexType() != null;
-				assert bootDescriptor instanceof IndexedCollection;
+			creationProcess.registerForeignKeyPostInitCallbacks(
+					() -> {
+						final EntityPersister associatedEntityDescriptor;
+						final ModelPart fkTargetPart;
+						final Value fkBootDescriptorSource;
+						if ( collectionDescriptor.getElementType() instanceof EntityType ) {
+							final EntityType elementEntityType = (EntityType) collectionDescriptor.getElementType();
+							associatedEntityDescriptor = creationProcess.getEntityPersister( elementEntityType.getAssociatedEntityName() );
+							fkTargetPart = elementEntityType.isReferenceToPrimaryKey()
+									?
+									associatedEntityDescriptor.getIdentifierMapping()
+									:
+									associatedEntityDescriptor.findSubPart( elementEntityType.getRHSUniqueKeyPropertyName() );
+							fkBootDescriptorSource = bootDescriptor.getElement();
+						}
+						else {
+							assert collectionDescriptor.getIndexType() != null;
+							assert bootDescriptor instanceof IndexedCollection;
 
-				final EntityType indexEntityType = (EntityType) collectionDescriptor.getIndexType();
-				associatedEntityDescriptor = creationProcess.getEntityPersister( indexEntityType.getAssociatedEntityName() );
-				fkTargetPart = indexEntityType.isReferenceToPrimaryKey()
-						? associatedEntityDescriptor.getIdentifierMapping()
-						: associatedEntityDescriptor.findSubPart( indexEntityType.getRHSUniqueKeyPropertyName() );
-				fkBootDescriptorSource = ( (IndexedCollection) bootDescriptor ).getIndex();
-			}
+							final EntityType indexEntityType = (EntityType) collectionDescriptor.getIndexType();
+							associatedEntityDescriptor = creationProcess.getEntityPersister( indexEntityType.getAssociatedEntityName() );
+							fkTargetPart = indexEntityType.isReferenceToPrimaryKey()
+									?
+									associatedEntityDescriptor.getIdentifierMapping()
+									:
+									associatedEntityDescriptor.findSubPart( indexEntityType.getRHSUniqueKeyPropertyName() );
+							fkBootDescriptorSource = ( (IndexedCollection) bootDescriptor ).getIndex();
+						}
 
-			if ( fkTargetPart instanceof BasicValuedModelPart ) {
-				final BasicValuedModelPart basicFkTargetPart = (BasicValuedModelPart) fkTargetPart;
-				final Joinable collectionDescriptorAsJoinable = (Joinable) collectionDescriptor;
-				manyToManyFkDescriptor = new SimpleForeignKeyDescriptor(
-						ForeignKeyDirection.TO_PARENT,
-						collectionDescriptorAsJoinable.getTableName(),
-						fkBootDescriptorSource.getColumnIterator().next().getText(),
-						basicFkTargetPart.getContainingTableExpression(),
-						basicFkTargetPart.getMappedColumnExpression(),
-						basicFkTargetPart.getJdbcMapping()
-				);
-			}
-			else {
-				throw new NotYetImplementedFor6Exception(
-						"Support for composite foreign keys not yet implemented : " + collectionDescriptor.getRole()
-				);
-			}
+						if ( fkTargetPart instanceof BasicValuedModelPart ) {
+							final BasicValuedModelPart basicFkTargetPart = (BasicValuedModelPart) fkTargetPart;
+							final Joinable collectionDescriptorAsJoinable = (Joinable) collectionDescriptor;
+							manyToManyFkDescriptor = new SimpleForeignKeyDescriptor(
+									ForeignKeyDirection.TO_PARENT,
+									collectionDescriptorAsJoinable.getTableName(),
+									fkBootDescriptorSource.getColumnIterator()
+											.next()
+											.getText( creationProcess.getCreationContext()
+															  .getSessionFactory()
+															  .getJdbcServices()
+															  .getDialect() ),
+									basicFkTargetPart.getContainingTableExpression(),
+									basicFkTargetPart.getMappedColumnExpression(),
+									basicFkTargetPart.getJdbcMapping()
+							);
+						}
+						else if ( fkTargetPart instanceof EmbeddableValuedModelPart ) {
+							final EmbeddableValuedModelPart embeddedFkTarget = (EmbeddableValuedModelPart) fkTargetPart;
+							final Joinable collectionDescriptorAsJoinable = (Joinable) collectionDescriptor;
+
+							java.util.List<JdbcMapping> jdbcMappings = new ArrayList<>();
+							embeddedFkTarget.visitJdbcTypes(
+									jdbcMapping -> {
+										jdbcMappings.add( jdbcMapping );
+									},
+									null,
+									creationProcess.getCreationContext().getTypeConfiguration()
+							);
+							java.util.List<String> keyColumnExpressions = new ArrayList<>();
+							fkBootDescriptorSource.getColumnIterator()
+									.forEachRemaining( column -> keyColumnExpressions.add(
+											column.getText( creationProcess.getCreationContext()
+																	.getSessionFactory()
+																	.getJdbcServices()
+																	.getDialect() ) ) );
+							java.util.List<String> targetColumnExpressions = new ArrayList<>();
+							fkTargetPart.visitColumns(
+									(table, column, mapping) ->
+											targetColumnExpressions.add( column ) );
+							manyToManyFkDescriptor = new EmbeddedForeignKeyDescriptor(
+									( (AssociationType) bootDescriptor.getType() ).getForeignKeyDirection(),
+									collectionDescriptorAsJoinable.getTableName(),
+									keyColumnExpressions,
+									( (EmbeddableValuedModelPart) fkTargetPart ).getContainingTableExpression(),
+									targetColumnExpressions,
+									(EmbeddableValuedModelPart) fkTargetPart,
+									jdbcMappings
+							);
+						}
+						else {
+							throw new NotYetImplementedFor6Exception(
+									"Support for composite foreign keys not yet implemented : " + collectionDescriptor.getRole()
+							);
+						}
+						return true;
+					}
+			);
+
 		}
-
 		final boolean hasOrder = bootDescriptor.getOrderBy() != null;
 		final boolean hasManyToManyOrder = bootDescriptor.getManyToManyOrdering() != null;
 
@@ -255,6 +307,18 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 				);
 			}
 		}
+	}
+
+	private static String getTableIdentifierExpression(Table table, MappingModelCreationProcess creationProcess) {
+		final JdbcEnvironment jdbcEnvironment = creationProcess.getCreationContext()
+				.getMetadata()
+				.getDatabase()
+				.getJdbcEnvironment();
+		return jdbcEnvironment
+				.getQualifiedObjectNameFormatter().format(
+						table.getQualifiedTableName(),
+						jdbcEnvironment.getDialect()
+				);
 	}
 
 	@Override
@@ -364,11 +428,13 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 			DomainResultCreationState creationState) {
 		final SqlAstCreationState sqlAstCreationState = creationState.getSqlAstCreationState();
 
-		if ( fetchTiming == FetchTiming.IMMEDIATE || selected || getCollectionDescriptor().getCollectionType().hasHolder() ) {
+		if ( fetchTiming == FetchTiming.IMMEDIATE || selected || getCollectionDescriptor().getCollectionType()
+				.hasHolder() ) {
 			final TableGroup collectionTableGroup = sqlAstCreationState.getFromClauseAccess().resolveTableGroup(
 					fetchablePath,
 					p -> {
-						final TableGroup lhsTableGroup = sqlAstCreationState.getFromClauseAccess().getTableGroup( fetchParent.getNavigablePath() );
+						final TableGroup lhsTableGroup = sqlAstCreationState.getFromClauseAccess().getTableGroup(
+								fetchParent.getNavigablePath() );
 						final TableGroupJoin tableGroupJoin = createTableGroupJoin(
 								fetchablePath,
 								lhsTableGroup,
@@ -382,7 +448,10 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 
 						lhsTableGroup.addTableGroupJoin( tableGroupJoin );
 
-						sqlAstCreationState.getFromClauseAccess().registerTableGroup( fetchablePath, tableGroupJoin.getJoinedGroup() );
+						sqlAstCreationState.getFromClauseAccess().registerTableGroup(
+								fetchablePath,
+								tableGroupJoin.getJoinedGroup()
+						);
 
 						return tableGroupJoin.getJoinedGroup();
 					}
@@ -448,6 +517,11 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 			);
 		}
 	}
+
+	public void setForeignKeyDescriptor(ForeignKeyDescriptor fkDescriptor) {
+		this.fkDescriptor = fkDescriptor;
+	}
+
 	private TableGroupJoin createOneToManyTableGroupJoin(
 			NavigablePath navigablePath,
 			TableGroup lhs,
@@ -460,7 +534,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 		final TableGroup tableGroup = createOneToManyTableGroup(
 				navigablePath,
 				sqlAstJoinType == SqlAstJoinType.INNER
-						&& ! getAttributeMetadataAccess().resolveAttributeMetadata( null ).isNullable(),
+						&& !getAttributeMetadataAccess().resolveAttributeMetadata( null ).isNullable(),
 				lockMode,
 				aliasBaseGenerator,
 				sqlExpressionResolver,
@@ -503,11 +577,12 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 
 		final SqlAliasBase sqlAliasBase = aliasBaseGenerator.createSqlAliasBase( getSqlAliasStem() );
 
-		final TableReference primaryTableReference = entityPartDescriptor.getEntityMappingType().createPrimaryTableReference(
-				sqlAliasBase,
-				sqlExpressionResolver,
-				creationContext
-		);
+		final TableReference primaryTableReference = entityPartDescriptor.getEntityMappingType()
+				.createPrimaryTableReference(
+						sqlAliasBase,
+						sqlExpressionResolver,
+						creationContext
+				);
 
 		return new StandardTableGroup(
 				navigablePath,
@@ -515,7 +590,8 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 				lockMode,
 				primaryTableReference,
 				sqlAliasBase,
-				(tableExpression) -> entityPartDescriptor.getEntityMappingType().containsTableReference( tableExpression ),
+				(tableExpression) -> entityPartDescriptor.getEntityMappingType()
+						.containsTableReference( tableExpression ),
 				(tableExpression, tg) -> entityPartDescriptor.getEntityMappingType().createTableReferenceJoin(
 						tableExpression,
 						sqlAliasBase,
@@ -574,7 +650,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 			SqlAstCreationContext creationContext) {
 		final SqlAliasBase sqlAliasBase = aliasBaseGenerator.createSqlAliasBase( getSqlAliasStem() );
 
-		assert ! getCollectionDescriptor().isOneToMany();
+		assert !getCollectionDescriptor().isOneToMany();
 
 		final String collectionTableName = ( (Joinable) collectionDescriptor ).getTableName();
 		final TableReference collectionTableReference = new TableReference(
@@ -585,7 +661,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 		);
 
 		final Consumer<TableGroup> tableGroupFinalizer;
-		final BiFunction<String,TableGroup,TableReferenceJoin> tableReferenceJoinCreator;
+		final BiFunction<String, TableGroup, TableReferenceJoin> tableReferenceJoinCreator;
 		final java.util.function.Predicate<String> tableReferenceJoinNameChecker;
 		if ( elementDescriptor instanceof EntityCollectionPart || indexDescriptor instanceof EntityCollectionPart ) {
 			final EntityCollectionPart entityPartDescriptor;
@@ -608,13 +684,14 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 					tableExpression,
 					sqlAliasBase,
 					associatedPrimaryTable,
-					canUseInnerJoin && ! getAttributeMetadataAccess().resolveAttributeMetadata( null ).isNullable(),
+					canUseInnerJoin && !getAttributeMetadataAccess().resolveAttributeMetadata( null ).isNullable(),
 					sqlExpressionResolver,
 					creationContext
 			);
 
 			tableGroupFinalizer = tableGroup -> {
-				final SqlAstJoinType joinType = canUseInnerJoin && ! getAttributeMetadataAccess().resolveAttributeMetadata( null ).isNullable()
+				final SqlAstJoinType joinType = canUseInnerJoin && !getAttributeMetadataAccess().resolveAttributeMetadata(
+						null ).isNullable()
 						? SqlAstJoinType.INNER
 						: SqlAstJoinType.LEFT;
 				final TableReferenceJoin associationJoin = new TableReferenceJoin(
@@ -725,7 +802,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 		}
 
 		if ( elementDescriptor instanceof EntityCollectionPart ) {
-			return ( (EntityCollectionPart) elementDescriptor ).findSubPart(name);
+			return ( (EntityCollectionPart) elementDescriptor ).findSubPart( name );
 		}
 		return null;
 	}

@@ -35,7 +35,20 @@ public class EmbeddableResultImpl<T> extends AbstractFetchParent implements Embe
 			EmbeddableValuedModelPart modelPart,
 			String resultVariable,
 			DomainResultCreationState creationState) {
-		super( modelPart.getEmbeddableTypeDescriptor(), navigablePath );
+		this(
+				navigablePath,
+				modelPart.getEmbeddableTypeDescriptor(),
+				resultVariable,
+				creationState
+		);
+	}
+
+	public EmbeddableResultImpl(
+			NavigablePath navigablePath,
+			EmbeddableMappingType mappingType,
+			String resultVariable,
+			DomainResultCreationState creationState) {
+		super( mappingType, navigablePath );
 		this.resultVariable = resultVariable;
 
 		final FromClauseAccess fromClauseAccess = creationState.getSqlAstCreationState().getFromClauseAccess();
@@ -43,7 +56,8 @@ public class EmbeddableResultImpl<T> extends AbstractFetchParent implements Embe
 		fromClauseAccess.resolveTableGroup(
 				navigablePath,
 				np -> {
-					final EmbeddableValuedModelPart embeddedValueMapping = modelPart.getEmbeddableTypeDescriptor().getEmbeddedValueMapping();
+					final EmbeddableValuedModelPart embeddedValueMapping = mappingType
+							.getEmbeddedValueMapping();
 					final TableGroupJoin tableGroupJoin = embeddedValueMapping.createTableGroupJoin(
 							navigablePath,
 							fromClauseAccess.findTableGroup( navigablePath.getParent() ),

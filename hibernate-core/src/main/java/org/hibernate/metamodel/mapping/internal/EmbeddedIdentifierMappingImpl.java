@@ -59,7 +59,7 @@ import org.hibernate.type.spi.TypeConfiguration;
  *
  * @author Andrea Boriero
  */
-public class EmbeddedIdentifierMappingImpl implements CompositeIdentifierMapping, SingleAttributeIdentifierMapping, EmbeddableValuedFetchable {
+public class EmbeddedIdentifierMappingImpl implements CompositeIdentifierMapping,  EmbeddableValuedFetchable {
 	private final NavigableRole navigableRole;
 	private final EntityMappingType entityMapping;
 	private final String name;
@@ -317,8 +317,4 @@ public class EmbeddedIdentifierMappingImpl implements CompositeIdentifierMapping
 		return (Collection) getEmbeddableTypeDescriptor().getAttributeMappings();
 	}
 
-	@Override
-	public PropertyAccess getPropertyAccess() {
-		return propertyAccess;
-	}
 }
