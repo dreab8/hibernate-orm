@@ -70,11 +70,11 @@ featurepack {
 	configurationName 'featurePack'
 	// Variables to be replaced in the template. N.B. not all variables need to be replaced!
 	// Exact ORM version, e.g. "5.3.0.Final"
-	variables['slot'] = rootProject.ormVersion.fullName
+	variables['slot'] = project.ormVersion.fullName
 	// Just the minor ORM version, e.g. "5.3"; Is used as an alias for the exact version
-	variables['minorSlot'] = rootProject.ormVersion.family
+	variables['minorSlot'] = project.ormVersion.family
 	variables['bytebuddySlot'] = bytebuddyVersion
-	variables['infinispan2lcSlot'] = 'for-orm-' + rootProject.ormVersion.family
+	variables['infinispan2lcSlot'] = 'for-orm-' + project.ormVersion.family
 	//Dependency on another Feature Pack:
 	dependency "org.wildfly:wildfly-feature-pack:${project.wildflyVersion}" // It will assume it is "zip" by default
 	//Ensure we declare all source repositories explicitly
@@ -97,7 +97,7 @@ provision {
 		version = project.hibernateCommonsVersion
 	}
 	variables['wildfly.version'] = project.wildflyVersion
-	variables['hibernate-orm.version'] = rootProject.ormVersion.fullName
+	variables['hibernate-orm.version'] = project.ormVersion.fullName
 	//Ensure we declare all source repositories explicitly
 	autoAddRepositories = false
 }

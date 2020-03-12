@@ -1,3 +1,5 @@
+import org.hibernate.build.HibernateVersion
+
 /*
  * Hibernate, Relational Persistence for Idiomatic Java
  *
@@ -7,14 +9,20 @@
 
 apply plugin: 'base'
 
+System.out.println( ">>>>>>>> base-information.gradle" )
+
 ext {
-	ormVersion = new HibernateVersion( '5.4.13-SNAPSHOT', project )
 	baselineJavaVersion = '1.8'
-	jpaVersion = new JpaVersion('2.2')
+	jpaVersion = new JpaVersion( '2.2' )
+
+	ormVersion = HibernateVersion.fromProperties(project.versionFile)
 }
 
 group = 'org.hibernate'
-version = project.ormVersion.fullName
+version = ormVersion.fullName
+
+
+System.out.println( "version " + version)
 
 class JpaVersion {
 	/** The *normal* name (1.0, 2.0, ..) */
@@ -22,7 +30,7 @@ class JpaVersion {
 
 	final String osgiName
 
-	JpaVersion(String version){
+	JpaVersion(String version) {
 		this.name = version
 		this.osgiName = version + ".0"
 	}
@@ -33,29 +41,4 @@ class JpaVersion {
 	}
 }
 
-class HibernateVersion {
-	final String fullName
-	final String majorVersion
-	final String family
 
-	final String osgiVersion
-
-	final boolean isSnapshot
-
-	HibernateVersion(String fullName, Project project) {
-		this.fullName = fullName
-
-		final String[] hibernateVersionComponents = fullName.split( '\\.' )
-		this.majorVersion = hibernateVersionComponents[0]
-		this.family = hibernateVersionComponents[0] + '.' + hibernateVersionComponents[1]
-
-		this.isSnapshot = fullName.endsWith( '-SNAPSHOT' )
-
-		this.osgiVersion = isSnapshot ? family + '.' + hibernateVersionComponents[2] + '.SNAPSHOT' : fullName
-	}
-
-	@Override
-	String toString() {
-		return this.fullName
-	}
-}

@@ -4,7 +4,6 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-
 buildscript {
 	repositories {
 		jcenter()
@@ -27,6 +26,25 @@ plugins {
 	id 'me.champeau.buildscan-recipes' version '0.2.3'
 }
 
+ext {
+	versionFile = rootProject.file( 'gradle/version.properties' )
+
+}
+
+gradle.rootProject() {
+	System.out.println( ">>>>> beforeEvaluate" )
+	if ( project.hasProperty( "releasedVersion" ) ) {
+		def version = project.getProperty( "releasedVersion" )
+		if ( !version ) {
+			def ormVersion = HibernateVersion.fromProperties(project.versionFile)
+			version = "${ormVersion.family}.${ormVersion.microVersion}.Final"
+		}
+		ant.propertyfile( file: project.versionFile.canonicalPath ) {
+			entry( key: 'ormversion', type: 'string', operation: '=', value: "${version}" )
+		}
+	}
+}
+
 allprojects {
 	repositories {
 		mavenCentral()
@@ -42,8 +60,37 @@ allprojects {
 
 	// minimize changes, at least for now (gradle uses 'build' by default)..
 	buildDir = "target"
+}
 
-	apply from: rootProject.file( 'gradle/base-information.gradle' )
+def hasUpdateVersion = false
+
+gradle.getTaskGraph(  ).whenReady {
+	graph ->
+		if(graph.hasTask( updateVersion )){
+			hasUpdateVersion = true;
+		}
+}
+
+gradle.buildFinished{
+			def nextVersion;
+			if ( hasUpdateVersion ) {
+
+				if ( project.hasProperty( "nextVersion" ) ) {
+					nextVersion = project.getProperty( "nextVersion" )
+				}
+				else {
+					def ormVersion = HibernateVersion.fromProperties( project.versionFile )
+					def nextMicro = ormVersion.microVersion + 1
+					nextVersion = "${ormVersion.family}.${nextMicro}-SNAPSHOT"
+				}
+				ant.propertyfile( file: versionFile.canonicalPath ) {
+					entry( key: 'ormversion', type: 'string', operation: '=', value: "${nextVersion}" )
+				}
+			}
+}
+
+task updateVersion {
+
 }
 
 

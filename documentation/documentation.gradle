@@ -1,6 +1,3 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-import org.asciidoctor.gradle.AsciidoctorTask
-
 /*
  * Hibernate, Relational Persistence for Idiomatic Java
  *
@@ -27,6 +24,7 @@ rootProject.subprojects { subproject ->
 	}
 }
 
+apply from: rootProject.file( 'gradle/base-information.gradle' )
 apply from: rootProject.file( 'gradle/java-module.gradle' )
 
 apply plugin: 'org.asciidoctor.convert'
@@ -176,8 +174,8 @@ task renderTopicalGuides(type: AsciidoctorTask, group: 'Documentation') {
 	attributes  icons: 'font',
 				experimental: true,
 				'source-highlighter': 'prettify',
-				majorMinorVersion: rootProject.ormVersion.family,
-				fullVersion: rootProject.ormVersion.fullName
+				majorMinorVersion: project.ormVersion.family,
+				fullVersion: project.ormVersion.fullName
 	resources {
 		from('src/main/asciidoc/topical/') {
 			include '**/images/**'
@@ -232,8 +230,8 @@ task renderUserGuide(type: AsciidoctorTask, group: 'Documentation') {
 			   'source-highlighter': 'prettify',
 			   linkcss: true,
 			   stylesheet: "css/hibernate.css",
-			   majorMinorVersion: rootProject.ormVersion.family,
-			   fullVersion: rootProject.ormVersion.fullName,
+			   majorMinorVersion: project.ormVersion.family,
+			   fullVersion: project.ormVersion.fullName,
 			   docinfo: 'private'
 
 	resources {
@@ -269,7 +267,7 @@ task renderIntegrationGuide(type: AsciidoctorTask, group: 'Documentation') {
 				'source-highlighter': 'prettify',
 				linkcss: true,
 				stylesheet: "css/hibernate.css",
-				majorMinorVersion: rootProject.ormVersion.family
+				majorMinorVersion: project.ormVersion.family
 	resources {
 		from('src/main/asciidoc/integrationguide/') {
 			include 'images/**'
