@@ -26,7 +26,12 @@ dependencies {
     compile( libraries.maven_plugin ) { transitive = false }
     compile( libraries.maven_plugin_tools ) { transitive = false }
     compile( project(':hibernate-core') ) { transitive = false }
-    compile( libraries.jpa ) { transitive = false }
+    if ( project.hasProperty( 'releaseSuffix' ) ) {
+        compile( libraries.jakarta ){ transitive = false }
+    }
+    else {
+        compile( libraries.jpa ){ transitive = false }
+    }
     compile( libraries.javassist ) { transitive = false }
     compile( libraries.byteBuddy ) { transitive = false }
     compile 'org.codehaus.plexus:plexus-utils:3.0.24'
@@ -36,13 +41,25 @@ dependencies {
     runtime( libraries.maven_plugin )
     runtime( libraries.maven_plugin_tools )
     runtime( project(':hibernate-core') )
-    runtime( libraries.jpa )
+
+    if ( project.hasProperty( 'releaseSuffix' ) ) {
+        compile( libraries.jakarta )
+    }
+    else {
+        compile( libraries.jpa )
+    }
     runtime( libraries.jta )
     runtime( libraries.javassist )
     runtime( libraries.byteBuddy )
     runtime 'org.codehaus.plexus:plexus-utils:3.0.24'
 }
-
+def jpaDependency
+if ( project.hasProperty( 'releaseSuffix' ) ) {
+    jpaDependency = libraries.jakarta
+}
+else {
+    jpaDependency = libraries.jpa
+}
 // Inject dependencies into plugin.xml
 // Note: injecting the full dependency, rather than just the version,
 // removing the need to maintain artifact names that might change with upgrades (JPA/JTA API version, etc.)
@@ -52,8 +69,9 @@ task processPluginXml(type: Copy) {
 
     from "src/main/resources/META-INF/maven/plugin.xml"
     into "$processResources.destinationDir/META-INF/maven"
+
     filter(ReplaceTokens, tokens: ['version' : project.version, 'generated-dependencies' :\
-            generateMavenDependency(libraries.jpa)\
+            generateMavenDependency(jpaDependency)\
             + generateMavenDependency(libraries.antlr)\
             + generateMavenDependency(libraries.dom4j)\
             + generateMavenDependency(libraries.jta)\

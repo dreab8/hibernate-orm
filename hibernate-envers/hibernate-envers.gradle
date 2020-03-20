@@ -11,12 +11,11 @@ apply from: rootProject.file( 'gradle/published-java-module.gradle' )
 apply plugin: 'hibernate-matrix-testing'
 
 dependencies {
-    compile( project( ':hibernate-core' ) ) {
-        // Exclude access to this to avoid future use.
-        exclude group: "org.javassist", module: "javassist"
-    }
-
-    provided( libraries.ant )
+    implementation( project( ':hibernate-core' ) )
+    implementation( libraries.dom4j )
+    implementation( libraries.commons_annotations )
+    implementation( libraries.jandex )
+    implementation( libraries.ant )
     annotationProcessor( project( ':hibernate-jpamodelgen' ) )
 
     testCompile( project( ':hibernate-testing' ) )

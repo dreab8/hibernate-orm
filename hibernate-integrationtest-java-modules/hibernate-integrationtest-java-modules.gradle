@@ -37,7 +37,12 @@ checkstyleMain.exclude '**/module-info.java'
 dependencies {
 	compile( project( ':hibernate-core' ) )
 	compile( project( ':hibernate-envers' ) )
-	compile( libraries.jpa )
+	if ( project.hasProperty( 'releaseSuffix' ) ) {
+		compile( libraries.jakarta )
+	}
+	else {
+		compile( libraries.jpa )
+	}
 }
 
 test {

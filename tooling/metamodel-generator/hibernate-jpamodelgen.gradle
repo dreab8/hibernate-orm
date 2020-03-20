@@ -29,7 +29,12 @@ dependencies {
     xjc( libraries.activation )
 
     testCompile libraries.junit
-    testCompile libraries.jpa
+    if ( project.hasProperty( 'releaseSuffix' ) ) {
+        testCompile( libraries.jakarta )
+    }
+    else {
+        testCompile( libraries.jpa )
+    }
     testCompile project( ':hibernate-core' )
 }
 

@@ -15,7 +15,12 @@ apply plugin: 'maven'
 
 dependencies {
 	compile( project( ':hibernate-core' ) )
-	compile( libraries.jpa )
+	if ( project.hasProperty( 'releaseSuffix' ) ) {
+		compile( libraries.jakarta )
+	}
+	else {
+		compile( libraries.jpa )
+	}
 	compile( libraries.javassist )
 	compile( libraries.byteBuddy )
 	compile gradleApi()

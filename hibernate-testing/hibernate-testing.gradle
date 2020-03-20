@@ -22,6 +22,8 @@ dependencies {
     compile ( libraries.jboss_jta ) {
         transitive=false;
     }
+    implementation( libraries.jandex )
+    implementation( libraries.commons_annotations )
 }
 
 // resources inherently exclude sources

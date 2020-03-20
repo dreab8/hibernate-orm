@@ -49,39 +49,43 @@ configurations {
 }
 
 dependencies {
-
-    compile( libraries.jpa )
+    if ( project.hasProperty( 'releaseSuffix' ) ) {
+        compile( libraries.jakarta )
+    }
+    else {
+        compile( libraries.jpa )
+    }
     // This can now be made provided
-    compile( libraries.javassist )
+    implementation( libraries.javassist )
     // Could be made optional?
-    compile( libraries.byteBuddy )
-    compile( libraries.antlr )
+    implementation( libraries.byteBuddy )
+    implementation( libraries.antlr )
     compile( libraries.jta )
-    compile( libraries.jandex )
-    compile( libraries.classmate )
-    compile( libraries.activation )
+    implementation( libraries.jandex )
+    implementation( libraries.classmate )
+    implementation( libraries.activation )
 
     // We need dom4j for a number of things temporarily:
     //      1) (unsupported) EntityMode.DOM4J support
     //      2) Envers
     //      3) hibernate-commons-annotations
-    compile( libraries.dom4j )
-    compile( libraries.commons_annotations )
+    implementation( libraries.dom4j )
+    implementation( libraries.commons_annotations )
     antlr( libraries.antlr )
 
     // JAXB
-    compile( libraries.jaxb_api )
-    compile( libraries.jaxb_runtime )
+    implementation( libraries.jaxb_api )
+    implementation( libraries.jaxb_runtime )
     xjc( libraries.jaxb_runtime )
     xjc( libraries.jaxb_xjc )
     xjc( libraries.jaxb2_basics )
     xjc( libraries.jaxb2_basics_ant )
     xjc( libraries.activation )
 
-    provided( libraries.jacc )
-    provided( libraries.validation )
-    provided( libraries.ant )
-    provided( libraries.cdi )
+    implementation( libraries.jacc )
+    implementation( libraries.validation )
+    implementation( libraries.ant )
+    implementation( libraries.cdi )
 
     testCompile( project(':hibernate-testing') )
     testCompile( libraries.shrinkwrap_api )

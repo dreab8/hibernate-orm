@@ -38,7 +38,12 @@ defaultTasks 'buildDocs'
 dependencies {
 	ext.pressgangVersion = '3.0.0'
 
-	compile( libraries.jpa )
+	if ( project.hasProperty( 'releaseSuffix' ) ) {
+		compile( libraries.jakarta )
+	}
+	else {
+		compile( libraries.jpa )
+	}
 	compile( project( ':hibernate-core' ) )
 	annotationProcessor( project( ':hibernate-jpamodelgen' ) )
 

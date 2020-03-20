@@ -6,7 +6,12 @@ dependencies {
 	compile( project( ':hibernate-core' ) )
 	compile( libraries.dom4j )
 	compile( libraries.commons_annotations )
-	compile( libraries.jpa )
+	if ( project.hasProperty( 'releaseSuffix' ) ) {
+		compile( libraries.jakarta )
+	}
+	else {
+		compile( libraries.jpa )
+	}
 	compile( libraries.byteBuddy )
 	compile( libraries.jta )
 }

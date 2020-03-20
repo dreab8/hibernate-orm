@@ -7,6 +7,7 @@
 apply from: rootProject.file( 'gradle/base-information.gradle' )
 
 apply plugin: 'idea'
+apply plugin: 'java'
 apply plugin: 'distribution'
 
 idea.module {
@@ -244,3 +245,119 @@ artifacts {
 
 task release( dependsOn: [uploadDocumentation, uploadBundlesSourceForge] )
 
+void replace(File file, String toReplace, String replacement ){
+    String fileName = file.getName(  )
+    if( fileName.endsWith( ".sql" ) || fileName.endsWith( ".jar" )){
+        return;
+    }
+
+//    println( "path >> " + file.getPath() )
+
+    def updated = file.text.replace( toReplace, replacement )
+
+    file.text = updated
+}
+
+task fakeRelease{
+    doFirst{
+        println ">>>>>>>>>>>>>>> This is a FAKE release"
+    }
+}
+
+task releaseJPA3 {
+    if ( !project.hasProperty( 'releaseSuffix' ) ) {
+        throw new GradleException( "For jpa 3 release the releaseSuffix parameter is required." )
+    }
+    rootProject.subprojects {
+        subproject ->
+            if ( !subproject.name.equals( 'hibernate-infinispan' ) && !subproject.name.equals( 'release' ) ) {
+
+                println( ">>>>>>>>>>>>>>>>>>>>>>>>>>>>> project ${subproject.name} changing javax.persistence -> jakarta.persistence " )
+
+                subproject.sourceSets.main.allJava.files.each {
+                    file ->
+                        replace( file, 'javax.persistence.', 'jakarta.persistence.' )
+                        replace( file, 'javax.validation.', 'jakarta.validation.' )
+                }
+
+                subproject.sourceSets.main.resources.files.each {
+                    file ->
+                        replace( file, 'javax.persistence.', 'jakarta.persistence.' )
+                        replace( file, 'javax.validation.', 'jakarta.validation.' )
+                        if ( file.name.equals( 'javax.persistence.spi,PersistenceProvider' ) ) {
+                            file.renameTo( 'jakarta.persistence.spi,PersistenceProvider' )
+                        }
+                }
+
+                subproject.sourceSets.test.allJava.files.each {
+                    file ->
+                        replace( file, 'javax.persistence.', 'jakarta.persistence.' )
+                        replace( file, 'javax.validation.', 'jakarta.validation.' )
+
+                }
+
+                subproject.sourceSets.test.resources.files.each {
+                    file ->
+                        replace( file, 'javax.persistence.', 'jakarta.persistence.' )
+                        replace( file, 'javax.validation.', 'jakarta.validation.' )
+                }
+
+            }
+    }
+
+    rootProject.subprojects {
+        subproject ->
+            if ( !subproject.name.equals( 'hibernate-infinispan' ) && !subproject.name.equals( 'release' ) ) {
+
+                println( ">>>>>>>>>>>>>>>>>>>>>>>>>>>>> project ${subproject.name} adding test depend " )
+                project( ':release' ).fakeRelease.dependsOn subproject.test
+            }
+    }
+}
+
+task revertJPA3Changes {
+    doFirst {
+        rootProject.subprojects {
+            subproject ->
+                if ( !subproject.name.equals( 'hibernate-infinispan' ) && !subproject.name.equals( 'release' ) ) {
+
+                    println( '#################################################################' )
+                    println( '######### changing jakarta.persistence -> javax.persistence #########' )
+                    println( '#################################################################' )
+
+                    subproject.sourceSets.main.allJava.files.each {
+                        file ->
+                            replace( file, 'jakarta.persistence.', 'javax.persistence.' )
+                            replace( file, 'jakarta.validation.' ,'javax.validation.')
+                    }
+
+                    subproject.sourceSets.main.resources.files.each {
+                        file ->
+                            replace( file, 'jakarta.persistence.', 'javax.persistence.' )
+                            replace( file, 'jakarta.validation.' ,'javax.validation.')
+                            if ( file.name.equals( 'jakarta.persistence.spi,PersistenceProvider' ) ) {
+                                file.renameTo( 'javax.persistence.spi,PersistenceProvider' )
+                            }
+                    }
+
+                    subproject.sourceSets.test.allJava.files.each {
+                        file ->
+                            replace( file, 'jakarta.persistence.', 'javax.persistence.' )
+                            replace( file, 'jakarta.validation.' ,'javax.validation.')
+                    }
+
+                    subproject.sourceSets.test.resources.files.each {
+                        file ->
+                            replace( file, 'jakarta.persistence.', 'javax.persistence.' )
+                            replace( file, 'jakarta.validation.' ,'javax.validation.')
+                    }
+                }
+        }
+    }
+}
+
+
+
+releaseJPA3.dependsOn( fakeRelease )
+
+releaseJPA3.finalizedBy revertJPA3Changes
