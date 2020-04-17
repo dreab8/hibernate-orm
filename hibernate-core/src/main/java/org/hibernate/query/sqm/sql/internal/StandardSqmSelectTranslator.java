@@ -260,40 +260,44 @@ public class StandardSqmSelectTranslator
 
 	@Override
 	public List<Fetch> visitFetches(FetchParent fetchParent) {
-		final List<Fetch> fetches = CollectionHelper.arrayList( fetchParent.getReferencedMappingType().getNumberOfFetchables() );
+		final List<Fetch> fetches = CollectionHelper.arrayList(
+				fetchParent.getReferencedMappingType().getNumberOfFetchables()
+		);
 
 		final BiConsumer<Fetchable, Boolean> fetchableBiConsumer = (fetchable, isKeyFetchable) -> {
-				final NavigablePath fetchablePath = fetchParent.getNavigablePath().append( fetchable.getFetchableName() );
+			final NavigablePath fetchablePath = fetchParent.getNavigablePath().append( fetchable.getFetchableName() );
 
-				final Fetch biDirectionalFetch = fetchable.resolveCircularFetch(
-						fetchablePath,
-						fetchParent,
-						StandardSqmSelectTranslator.this
-				);
+			final Fetch biDirectionalFetch = fetchable.resolveCircularFetch(
+					fetchablePath,
+					fetchParent,
+					StandardSqmSelectTranslator.this
+			);
 
-				if ( biDirectionalFetch != null ) {
-					fetches.add( biDirectionalFetch );
-					return;
+			if ( biDirectionalFetch != null ) {
+				fetches.add( biDirectionalFetch );
+				return;
+			}
+
+			try {
+				fetchDepth++;
+				final Fetch fetch = buildFetch( fetchablePath, fetchParent, fetchable, isKeyFetchable );
+
+				if ( fetch != null ) {
+					fetches.add( fetch );
 				}
-
-				try {
-					fetchDepth++;
-					final Fetch fetch = buildFetch( fetchablePath, fetchParent, fetchable, isKeyFetchable );
-
-					if ( fetch != null ) {
-						fetches.add( fetch );
-					}
-				}
-				finally {
-					fetchDepth--;
-				}
+			}
+			finally {
+				fetchDepth--;
+			}
 		};
 
 // todo (6.0) : determine how to best handle TREAT
 //		fetchParent.getReferencedMappingContainer().visitKeyFetchables( fetchableBiConsumer, treatTargetType );
 //		fetchParent.getReferencedMappingContainer().visitFetchables( fetchableBiConsumer, treatTargetType );
-		fetchParent.getReferencedMappingContainer().visitKeyFetchables( fetchable -> fetchableBiConsumer.accept( fetchable, true ), null );
-		fetchParent.getReferencedMappingContainer().visitFetchables( fetchable -> fetchableBiConsumer.accept( fetchable, false ), null );
+		fetchParent.getReferencedMappingContainer().visitKeyFetchables(
+				fetchable -> fetchableBiConsumer.accept( fetchable, true ), null );
+		fetchParent.getReferencedMappingContainer().visitFetchables(
+				fetchable -> fetchableBiConsumer.accept( fetchable, false ), null );
 
 		return fetches;
 	}
