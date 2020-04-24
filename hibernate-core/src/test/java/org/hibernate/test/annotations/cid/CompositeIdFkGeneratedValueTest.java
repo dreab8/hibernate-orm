@@ -7,6 +7,8 @@
 package org.hibernate.test.annotations.cid;
 
 import static org.hibernate.testing.transaction.TransactionUtil.doInHibernate;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -17,7 +19,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.ManyToOne;
+import javax.persistence.PersistenceException;
 
+import org.hibernate.HibernateException;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.SQLServer2012Dialect;
 import org.hibernate.testing.TestForIssue;
@@ -52,10 +56,28 @@ public class CompositeIdFkGeneratedValueTest extends BaseCoreFunctionalTestCase 
 			System.out.println( "VALUE =>" + head.name + "=" + head.hid );
 
 			NodeS node = new NodeS();
-			node.hid = head;
 			node.name = "Node by Sequence";
+			node.hid = head;
 			session.persist( node );
 			System.out.println( "VALUE =>" + node.name + "=" + node.nid + ":" + node.hid.hid );
+		} );
+	}
+
+	@Test
+	public void testCompositePkWithSequenceGeneratorAndNullValue() throws Exception {
+		doInHibernate( this::sessionFactory, session -> {
+			try {
+				NodeS node = new NodeS();
+				node.name = "Node by Sequence";
+				session.persist( node );
+				System.out.println( "VALUE =>" + node.name + "=" + node.nid + ":" + node.hid.hid );
+
+				session.flush();
+				fail();
+			}
+			catch (PersistenceException e) {
+
+			}
 		} );
 	}
 
