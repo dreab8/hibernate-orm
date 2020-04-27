@@ -6,7 +6,6 @@
  */
 package org.hibernate.metamodel.mapping.internal;
 
-import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 import org.hibernate.engine.FetchStrategy;
 import org.hibernate.engine.FetchTiming;
@@ -43,12 +42,10 @@ import org.hibernate.sql.results.graph.Fetch;
 import org.hibernate.sql.results.graph.FetchParent;
 import org.hibernate.sql.results.graph.Fetchable;
 import org.hibernate.sql.results.graph.entity.EntityFetch;
-import org.hibernate.sql.results.graph.entity.EntityResultGraphNode;
 import org.hibernate.sql.results.graph.entity.EntityValuedFetchable;
 import org.hibernate.sql.results.graph.entity.internal.EntityFetchDelayedImpl;
 import org.hibernate.sql.results.graph.entity.internal.EntityFetchJoinedImpl;
 import org.hibernate.sql.results.graph.entity.internal.EntityFetchSelectImpl;
-import org.hibernate.sql.results.internal.domain.BiDirectionalFetchImpl;
 import org.hibernate.type.ForeignKeyDirection;
 
 /**
@@ -224,42 +221,6 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 
 			}
 		}
-		return null;
-	}
-
-	private Fetch createBiDirectionalFetch(NavigablePath fetchablePath, FetchParent fetchParent) {
-		final EntityResultGraphNode referencedEntityReference = resolveEntityGraphNode( fetchParent );
-
-		if ( referencedEntityReference == null ) {
-			throw new HibernateException(
-					"Could not locate entity-valued reference for circular path `" + fetchablePath + "`"
-			);
-		}
-
-		return new BiDirectionalFetchImpl(
-				FetchTiming.IMMEDIATE,
-				fetchablePath,
-				fetchParent,
-				this,
-				referencedEntityReference.getNavigablePath()
-		);
-	}
-
-	protected EntityResultGraphNode resolveEntityGraphNode(FetchParent fetchParent) {
-		FetchParent processingParent = fetchParent;
-		while ( processingParent != null ) {
-			if ( processingParent instanceof EntityResultGraphNode ) {
-				return (EntityResultGraphNode) processingParent;
-			}
-
-			if ( processingParent instanceof Fetch ) {
-				processingParent = ( (Fetch) processingParent ).getFetchParent();
-				continue;
-			}
-
-			processingParent = null;
-		}
-
 		return null;
 	}
 

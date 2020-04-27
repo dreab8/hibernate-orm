@@ -169,9 +169,13 @@ public class EmbeddedAttributeMapping
 			NavigablePath fetchablePath,
 			FetchParent fetchParent,
 			DomainResultCreationState creationState) {
-		// an embeddable can never be circular
+		final NavigablePath parentParent = fetchablePath.getParent().getParent();
+		if ( parentParent != null && creationState.resolveModelPart( parentParent ) == this ) {
+			return createBiDirectionalFetch( fetchablePath, fetchParent );
+		}
 		return null;
 	}
+
 
 	@Override
 	public Fetch generateFetch(
