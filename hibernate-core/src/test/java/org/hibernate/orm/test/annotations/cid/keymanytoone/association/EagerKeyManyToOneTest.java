@@ -4,9 +4,8 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.orm.test.annotations.cid.keymanytoone;
+package org.hibernate.orm.test.annotations.cid.keymanytoone.association;
 
-import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.jdbc.SQLStatementInspector;
 import org.hibernate.testing.orm.junit.DomainModel;
 import org.hibernate.testing.orm.junit.SessionFactory;
@@ -15,7 +14,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -37,9 +35,13 @@ public class EagerKeyManyToOneTest {
 				session -> {
 					Card card = new Card( CARD_ID );
 					Key key = new Key( KEY_ID );
-					card.addField( card, key );
+					CardField field = new CardField( card, key );
+					card.setField( field );
+
 					session.persist( key );
 					session.persist( card );
+
+					session.persist( field );
 				}
 		);
 	}
@@ -56,12 +58,7 @@ public class EagerKeyManyToOneTest {
 	}
 
 	@Test
-	@TestForIssue(jiraKey = "HHH-4147")
 	public void testLoadEntityWithEagerFetchingToKeyManyToOneReferenceBackToSelf(SessionFactoryScope scope) {
-		// based on the core testsuite test of same name in org.hibernate.test.keymanytoone.bidir.component.EagerKeyManyToOneTest
-		// meant to test against regression relating to http://opensource.atlassian.com/projects/hibernate/browse/HHH-2277
-		// and http://opensource.atlassian.com/projects/hibernate/browse/HHH-4147
-
 		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
 		statementInspector.clear();
 		scope.inTransaction(
@@ -87,9 +84,8 @@ public class EagerKeyManyToOneTest {
 							c1_0.id=?`
 						 */
 						Card card = session.get( Card.class, CARD_ID );
-						assertEquals( 1, card.getFields().size() );
 
-						CardField cf = card.getFields().iterator().next();
+						CardField cf = card.getField();
 						assertSame( card, cf.getPrimaryKey().getCard() );
 
 						statementInspector.assertExecutedCount( 1 );
@@ -101,6 +97,4 @@ public class EagerKeyManyToOneTest {
 				}
 		);
 	}
-
-
 }

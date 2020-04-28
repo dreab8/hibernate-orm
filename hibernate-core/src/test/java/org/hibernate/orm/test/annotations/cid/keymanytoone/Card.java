@@ -5,6 +5,7 @@
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
 package org.hibernate.orm.test.annotations.cid.keymanytoone;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,14 +28,13 @@ public class Card implements Serializable {
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "primaryKey.card")
 	private Set<CardField> fields;
 
+	Card() {
+		fields = new HashSet<>();
+	}
+
 	public Card(String id) {
 		this();
 		this.id = id;
-
-	}
-
-	Card() {
-		fields = new HashSet<CardField>();
 	}
 
 	public String getId() {
