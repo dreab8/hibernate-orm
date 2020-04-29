@@ -168,24 +168,12 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 		// NOTE - a circular fetch reference ultimately needs 2 pieces of information:
 		//		1) The NavigablePath that is circular (`fetchablePath`)
 		//		2) The NavigablePath to the entity-valued-reference that is the "other side" of the circularity
+
 		final ModelPart parentModelPart = fetchParent.getReferencedModePart();
 
 		if ( ! Fetchable.class.isInstance( parentModelPart ) ) {
 			// the `fetchParent` would have to be a Fetch as well for this to be circular...
 			return null;
-		}
-
-		if ( foreignKeyDescriptor instanceof EmbeddedForeignKeyDescriptor ) {
-			ModelPart modelPart = creationState.resolveModelPart( fetchablePath.getParent().getParent().getParent() );
-			if ( modelPart instanceof Association ) {
-				ForeignKeyDescriptor foreignKeyDescriptor = ( (Association) modelPart ).getForeignKeyDescriptor();
-				if ( foreignKeyDescriptor.equals( this.foreignKeyDescriptor ) ) {
-					return createBiDirectionalFetch( fetchablePath, fetchParent );
-				}
-			}
-			else {
-				return null;
-			}
 		}
 
 		final FetchParent associationFetchParent = fetchParent.resolveContainingAssociationParent();
