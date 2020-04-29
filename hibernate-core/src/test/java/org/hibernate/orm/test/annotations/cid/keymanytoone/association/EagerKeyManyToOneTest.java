@@ -67,21 +67,22 @@ public class EagerKeyManyToOneTest {
 						/*
 						select
 							c1_0.id,
-							f1_0.card_id,
-							f1_0."key_id",
-							f1_0.card_id,
-							f1_0."key_id",
+							c2_0.id,
 							k1_0.id
 						from
 							Card as c1_0
 						left outer join
 							CardField as f1_0
-								on c1_0.id=f1_0.card_id
-						left outer join
-							"key" k1_0
-								on f1_0."key_id"=k1_0.id
+								on c1_0.field_card_id = f1_0.card_id
+								and c1_0."field_key_id" = f1_0."key_id"
+						inner join
+							"key" as k1_0
+								on f1_0."key_id" = k1_0.id
+						inner join
+							Card as c2_0
+								on f1_0.card_id = c2_0.id
 						where
-							c1_0.id=?`
+							c1_0.id = ?
 						 */
 						Card card = session.get( Card.class, CARD_ID );
 
@@ -89,7 +90,7 @@ public class EagerKeyManyToOneTest {
 						assertSame( card, cf.getPrimaryKey().getCard() );
 
 						statementInspector.assertExecutedCount( 1 );
-						statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 2 );
+						statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 3 );
 					}
 					catch (StackOverflowError soe) {
 						fail( "eager + key-many-to-one caused stack-overflow in annotations" );
