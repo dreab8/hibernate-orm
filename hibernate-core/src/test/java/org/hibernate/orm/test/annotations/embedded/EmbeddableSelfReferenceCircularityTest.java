@@ -19,16 +19,21 @@ import org.hibernate.testing.orm.junit.SessionFactoryScope;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertSame;
+
 /**
  * @author Andrea Boriero
  */
 @DomainModel(
 		annotatedClasses = {
-				EmbeddableCircularityTest.EntityTest.class
+				EmbeddableSelfReferenceCircularityTest.EntityTest.class
 		}
 )
 @SessionFactory(statementInspectorClass = SQLStatementInspector.class)
-public class EmbeddableCircularityTest {
+public class EmbeddableSelfReferenceCircularityTest {
 
 	@BeforeEach
 	public void setUp(SessionFactoryScope scope) {
@@ -38,6 +43,7 @@ public class EmbeddableCircularityTest {
 					EmbeddableTest embeddable = new EmbeddableTest();
 					embeddable.setEntity( entity );
 					embeddable.setStringField( "Fab" );
+					entity.setEmbeddedAttribute( embeddable );
 					session.save( entity );
 				}
 		);
@@ -64,6 +70,10 @@ public class EmbeddableCircularityTest {
 				 */
 				session -> {
 					EntityTest entity = session.get( EntityTest.class, 1 );
+					EmbeddableTest embeddedAttribute = entity.getEmbeddedAttribute();
+					assertThat( embeddedAttribute, notNullValue() );
+					assertThat( embeddedAttribute.getStringField(), is( "Fab" ) );
+					assertSame( entity, embeddedAttribute.getEntity() );
 					statementInspector.assertExecutedCount( 1 );
 					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 1 );
 				}
@@ -75,45 +85,13 @@ public class EmbeddableCircularityTest {
 		@Id
 		private Integer id;
 
-		@ManyToOne
-		private EntityTest2 entity2;
+		@Embedded
+		private EmbeddableTest embeddedAttribute;
 
 		public EntityTest() {
 		}
 
 		public EntityTest(int id) {
-			this.id = id;
-		}
-
-		public Integer getId() {
-			return id;
-		}
-
-		public void setId(Integer id) {
-			this.id = id;
-		}
-
-		public EntityTest2 getEntity2() {
-			return entity2;
-		}
-
-		public void setEntity2(EntityTest2 entity2) {
-			this.entity2 = entity2;
-		}
-	}
-
-	@Entity(name = "EntityTest2")
-	public static class EntityTest2 {
-		@Id
-		private Integer id;
-
-		@Embedded
-		private EmbeddableTest embeddedAttribute;
-
-		public EntityTest2() {
-		}
-
-		public EntityTest2(int id) {
 			this.id = id;
 		}
 
