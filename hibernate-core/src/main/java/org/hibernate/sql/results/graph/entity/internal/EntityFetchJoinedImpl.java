@@ -18,6 +18,7 @@ import org.hibernate.sql.results.graph.FetchParentAccess;
 import org.hibernate.sql.results.graph.Initializer;
 import org.hibernate.sql.results.graph.entity.AbstractNonLazyEntityFetch;
 import org.hibernate.sql.results.graph.entity.EntityInitializer;
+import org.hibernate.sql.results.graph.entity.EntityResult;
 import org.hibernate.sql.results.graph.entity.EntityValuedFetchable;
 
 /**
@@ -73,7 +74,7 @@ public class EntityFetchJoinedImpl extends AbstractNonLazyEntityFetch {
 		return true;
 	}
 
-	public EntityResultImpl getEntityResult() {
+	public EntityResult getEntityResult() {
 		return entityResult;
 	}
 

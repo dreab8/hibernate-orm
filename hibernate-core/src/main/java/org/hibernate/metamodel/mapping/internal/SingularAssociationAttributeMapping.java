@@ -6,6 +6,7 @@
  */
 package org.hibernate.metamodel.mapping.internal;
 
+import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 import org.hibernate.engine.FetchStrategy;
 import org.hibernate.engine.FetchTiming;
@@ -42,10 +43,12 @@ import org.hibernate.sql.results.graph.Fetch;
 import org.hibernate.sql.results.graph.FetchParent;
 import org.hibernate.sql.results.graph.Fetchable;
 import org.hibernate.sql.results.graph.entity.EntityFetch;
+import org.hibernate.sql.results.graph.entity.EntityResultGraphNode;
 import org.hibernate.sql.results.graph.entity.EntityValuedFetchable;
 import org.hibernate.sql.results.graph.entity.internal.EntityFetchDelayedImpl;
 import org.hibernate.sql.results.graph.entity.internal.EntityFetchJoinedImpl;
 import org.hibernate.sql.results.graph.entity.internal.EntityFetchSelectImpl;
+import org.hibernate.sql.results.internal.domain.BiDirectionalFetchImpl;
 import org.hibernate.type.ForeignKeyDirection;
 
 /**
@@ -171,7 +174,26 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 
 		final ModelPart parentModelPart = fetchParent.getReferencedModePart();
 
-		if ( ! Fetchable.class.isInstance( parentModelPart ) ) {
+		if ( parentModelPart instanceof EmbeddedAttributeMapping ) {
+			final NavigablePath embeddableParentNavigablePath = fetchablePath.getParent().getParent();
+			final ModelPart embeddaleParentModelPart = creationState.resolveModelPart( embeddableParentNavigablePath );
+			if ( !Fetchable.class.isInstance( embeddaleParentModelPart ) ) {
+				// the `fetchParent` would have to be a Fetch as well for this to be circular...
+				return null;
+			}
+			if ( embeddaleParentModelPart.equals( this ) ) {
+				return new BiDirectionalFetchImpl(
+						FetchTiming.IMMEDIATE,
+						fetchablePath,
+						fetchParent,
+						this,
+						embeddableParentNavigablePath
+				);
+			}
+			return null;
+		}
+
+		if ( !Fetchable.class.isInstance( parentModelPart ) ) {
 			// the `fetchParent` would have to be a Fetch as well for this to be circular...
 			return null;
 		}
@@ -185,16 +207,17 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 
 		final Association associationParent = (Association) referencedModePart;
 
-		if ( foreignKeyDescriptor.equals( associationParent.getForeignKeyDescriptor() ) ) {
+		final ForeignKeyDescriptor associationParentForeignKeyDescriptor = associationParent.getForeignKeyDescriptor();
+		if ( this.foreignKeyDescriptor.equals( associationParentForeignKeyDescriptor ) ) {
 			// we need to determine the NavigablePath referring to the entity that the bi-dir
 			// fetch will "return" for its Assembler.  so we walk "up" the FetchParent graph
 			// to find the "referenced entity" reference
 
-			return createBiDirectionalFetch( fetchablePath, fetchParent );
+			return createBiDirectionalFetch( fetchablePath, fetchParent, creationState );
 		}
 
 		// this is the case of a JoinTable
-		// 	PARENT(id)
+		// 	PARENT(id)OneToOneMapsIdJoinColumnTest
 		// 	PARENT_CHILD(parent_id, child_id)
 		// 	CHILD(id)
 		// 	the FKDescriptor for the association `Parent.child` will be
@@ -204,7 +227,6 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 		// in such a case the associationParent.getIdentifyingColumnExpressions() is PARENT_CHILD.parent_id
 		// while the getIdentifyingColumnExpressions for this association is PARENT_CHILD.child_id
 		// so we will check if the parentAssociation ForeignKey Target match with the association entity identifier table and columns
-		final ForeignKeyDescriptor associationParentForeignKeyDescriptor = associationParent.getForeignKeyDescriptor();
 		if ( referencedModePart instanceof SingularAssociationAttributeMapping
 				&& ( (SingularAssociationAttributeMapping) referencedModePart ).getDeclaringType() == getPartMappingType() ) {
 			if ( this.foreignKeyDescriptor.getReferringTableExpression()
@@ -214,13 +236,70 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 						.equals( entityPersister.getTableName() ) ) {
 					final String[] identifierColumnNames = entityPersister.getIdentifierColumnNames();
 					if ( associationParentForeignKeyDescriptor.areTargetColumnNamesEqualsTo( identifierColumnNames ) ) {
-						return createBiDirectionalFetch( fetchablePath, fetchParent );
+						return createBiDirectionalFetch( fetchablePath, fetchParent, creationState );
 					}
 					return null;
 				}
 
 			}
 		}
+
+		ModelPart parentParentModelPart = creationState.resolveModelPart( fetchablePath.getParent().getParent() );
+		if(parentParentModelPart instanceof Association){
+			if ( this.foreignKeyDescriptor.equals( ((Association)parentParentModelPart).getForeignKeyDescriptor() ) ) {
+				// we need to determine the NavigablePath referring to the entity that the bi-dir
+				// fetch will "return" for its Assembler.  so we walk "up" the FetchParent graph
+				// to find the "referenced entity" reference
+
+				return createBiDirectionalFetch( fetchablePath, fetchParent, creationState );
+			}
+		}
+
+		return null;
+	}
+
+	protected Fetch createBiDirectionalFetch(
+			NavigablePath fetchablePath,
+			FetchParent fetchParent,
+			DomainResultCreationState creationState) {
+		final TableGroup lhsTableGroup = creationState.getSqlAstCreationState()
+				.getFromClauseAccess().findTableGroup( fetchParent.getNavigablePath() );
+		if ( referringPrimaryKey && foreignKeyDirection == ForeignKeyDirection.FROM_PARENT ) {
+			foreignKeyDescriptor.createDomainResult( fetchablePath, lhsTableGroup, creationState );
+		}
+
+		final EntityResultGraphNode referencedEntityReference = resolveEntityGraphNode( fetchParent );
+
+		if ( referencedEntityReference == null ) {
+			throw new HibernateException(
+					"Could not locate entity-valued reference for circular path `" + fetchablePath + "`"
+			);
+		}
+
+		return new BiDirectionalFetchImpl(
+				FetchTiming.IMMEDIATE,
+				fetchablePath,
+				fetchParent,
+				this,
+				referencedEntityReference.getNavigablePath()
+		);
+	}
+
+	protected EntityResultGraphNode resolveEntityGraphNode(FetchParent fetchParent) {
+		FetchParent processingParent = fetchParent;
+		while ( processingParent != null ) {
+			if ( processingParent instanceof EntityResultGraphNode ) {
+				return (EntityResultGraphNode) processingParent;
+			}
+
+			if ( processingParent instanceof Fetch ) {
+				processingParent = ( (Fetch) processingParent ).getFetchParent();
+				continue;
+			}
+
+			processingParent = null;
+		}
+
 		return null;
 	}
 
@@ -238,7 +317,18 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 				fetchParent.getNavigablePath()
 		);
 
+		final DomainResult keyResult;
+
+		if ( referringPrimaryKey && foreignKeyDirection == ForeignKeyDirection.FROM_PARENT ) {
+			keyResult = foreignKeyDescriptor.createDomainResult( fetchablePath, lhsTableGroup, creationState );
+		}
+		else {
+			keyResult = ( (EntityPersister) getDeclaringType() ).getIdentifierMapping()
+					.createDomainResult( fetchablePath, lhsTableGroup, null, creationState );
+		}
+
 		if ( fetchTiming == FetchTiming.IMMEDIATE && selected ) {
+
 			if ( sqlAstCreationState.getFromClauseAccess().findTableGroup( fetchablePath ) == null ) {
 				SqlAstJoinType sqlAstJoinType;
 				if ( isNullable ) {
@@ -274,16 +364,7 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 			);
 		}
 
-		//noinspection rawtypes
-		final DomainResult keyResult;
 
-		if ( referringPrimaryKey ) {
-			keyResult = foreignKeyDescriptor.createDomainResult( fetchablePath, lhsTableGroup, creationState );
-		}
-		else {
-			keyResult = ( (EntityPersister) getDeclaringType() ).getIdentifierMapping()
-					.createDomainResult( fetchablePath, lhsTableGroup, null, creationState );
-		}
 
 		assert !selected;
 		if ( fetchTiming == FetchTiming.IMMEDIATE ) {
