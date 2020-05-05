@@ -183,6 +183,7 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 			}
 			if ( embeddaleParentModelPart.equals( this ) ) {
 				return new BiDirectionalFetchImpl(
+						createKeyResult( fetchablePath, fetchParent, creationState ),
 						FetchTiming.IMMEDIATE,
 						fetchablePath,
 						fetchParent,
@@ -262,12 +263,6 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 			NavigablePath fetchablePath,
 			FetchParent fetchParent,
 			DomainResultCreationState creationState) {
-		final TableGroup lhsTableGroup = creationState.getSqlAstCreationState()
-				.getFromClauseAccess().findTableGroup( fetchParent.getNavigablePath() );
-		if ( referringPrimaryKey && foreignKeyDirection == ForeignKeyDirection.FROM_PARENT ) {
-			foreignKeyDescriptor.createDomainResult( fetchablePath, lhsTableGroup, creationState );
-		}
-
 		final EntityResultGraphNode referencedEntityReference = resolveEntityGraphNode( fetchParent );
 
 		if ( referencedEntityReference == null ) {
@@ -277,12 +272,37 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 		}
 
 		return new BiDirectionalFetchImpl(
+				createKeyResult( fetchablePath, fetchParent, creationState ),
 				FetchTiming.IMMEDIATE,
 				fetchablePath,
 				fetchParent,
 				this,
 				referencedEntityReference.getNavigablePath()
 		);
+	}
+
+	private DomainResult createKeyResult(
+			NavigablePath fetchablePath,
+			FetchParent fetchParent,
+			DomainResultCreationState creationState) {
+		final TableGroup lhsTableGroup = creationState.getSqlAstCreationState()
+				.getFromClauseAccess().findTableGroup( fetchParent.getNavigablePath() );
+		return createKeyResult( fetchablePath, creationState, lhsTableGroup );
+	}
+
+	private DomainResult createKeyResult(
+			NavigablePath fetchablePath,
+			DomainResultCreationState creationState,
+			TableGroup lhsTableGroup) {
+		final DomainResult keyResult;
+		if ( referringPrimaryKey && foreignKeyDirection == ForeignKeyDirection.FROM_PARENT ) {
+			keyResult = foreignKeyDescriptor.createDomainResult( fetchablePath, lhsTableGroup, creationState );
+		}
+		else {
+			keyResult = ( (EntityPersister) getDeclaringType() ).getIdentifierMapping()
+					.createDomainResult( fetchablePath, lhsTableGroup, null, creationState );
+		}
+		return keyResult;
 	}
 
 	protected EntityResultGraphNode resolveEntityGraphNode(FetchParent fetchParent) {
@@ -317,15 +337,7 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 				fetchParent.getNavigablePath()
 		);
 
-		final DomainResult keyResult;
-
-		if ( referringPrimaryKey && foreignKeyDirection == ForeignKeyDirection.FROM_PARENT ) {
-			keyResult = foreignKeyDescriptor.createDomainResult( fetchablePath, lhsTableGroup, creationState );
-		}
-		else {
-			keyResult = ( (EntityPersister) getDeclaringType() ).getIdentifierMapping()
-					.createDomainResult( fetchablePath, lhsTableGroup, null, creationState );
-		}
+		final DomainResult keyResult = createKeyResult( fetchablePath, creationState, lhsTableGroup );
 
 		if ( fetchTiming == FetchTiming.IMMEDIATE && selected ) {
 
@@ -363,8 +375,6 @@ public class SingularAssociationAttributeMapping extends AbstractSingularAttribu
 					creationState
 			);
 		}
-
-
 
 		assert !selected;
 		if ( fetchTiming == FetchTiming.IMMEDIATE ) {

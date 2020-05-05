@@ -26,6 +26,7 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.query.NavigablePath;
 import org.hibernate.sql.results.graph.AssemblerCreationState;
 import org.hibernate.sql.results.graph.BiDirectionalFetch;
+import org.hibernate.sql.results.graph.DomainResult;
 import org.hibernate.sql.results.graph.DomainResultAssembler;
 import org.hibernate.sql.results.graph.DomainResultCreationState;
 import org.hibernate.sql.results.graph.Fetch;
@@ -51,6 +52,7 @@ public class BiDirectionalFetchImpl implements BiDirectionalFetch, Association {
 	private final NavigablePath referencedNavigablePath;
 
 	public BiDirectionalFetchImpl(
+			DomainResult keyResult,
 			FetchTiming timing,
 			NavigablePath navigablePath,
 			FetchParent fetchParent,
