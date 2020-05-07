@@ -31,6 +31,7 @@ public class ToOneSelfReferenceCircularityDetectionTest {
 					EntityTest entity = new EntityTest( 1, "e1" );
 					EntityTest entity2 = new EntityTest( 2, "e2" );
 					EntityTest entity3 = new EntityTest( 3, "e3" );
+
 					entity2.setEntity( entity3 );
 					entity.setEntity( entity2 );
 					session.save( entity3 );
@@ -71,7 +72,7 @@ public class ToOneSelfReferenceCircularityDetectionTest {
 					assertThat( entity3, notNullValue() );
 					assertThat( entity3.getName(), is( "e3" ) );
 
-					statementInspector.assertExecutedCount( 1 );
+					statementInspector.assertExecutedCount( 2 );
 					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 1 );
 				}
 		);

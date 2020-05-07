@@ -13,6 +13,7 @@ import javax.persistence.Table;
 
 import org.hibernate.Hibernate;
 
+import org.hibernate.testing.jdbc.SQLStatementInspector;
 import org.hibernate.testing.orm.junit.DomainModel;
 import org.hibernate.testing.orm.junit.FailureExpected;
 import org.hibernate.testing.orm.junit.ServiceRegistry;
@@ -26,6 +27,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -39,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 		}
 )
 @ServiceRegistry
-@SessionFactory(generateStatistics = true)
+@SessionFactory(statementInspectorClass = SQLStatementInspector.class)
 public class EntityWithBidirectionalOneToOneTest {
 
 	@BeforeEach
@@ -69,24 +71,24 @@ public class EntityWithBidirectionalOneToOneTest {
 	public void testGetParent(SessionFactoryScope scope) {
 		scope.inTransaction( session -> {
 			final Parent parent = session.get( Parent.class, 1 );
-			Child child = parent.getOwnedBidirectionalChild();
+			Child child = parent.getChild();
 			assertThat( child, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( child ),
 					"The child eager OneToOne association is not initialized"
 			);
 			assertThat( child.getName(), notNullValue() );
-			assertThat( child.getParentMappedByChild(), notNullValue() );
-			assertThat( child.getParentMappedByChild(), notNullValue() );
+			assertThat( child.getParent(), notNullValue() );
+			assertThat( child.getParent(), notNullValue() );
 
-			Child2 child2 = parent.getChildMappedByParent1();
+			Child2 child2 = parent.getChild2();
 			assertThat( child2, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( child2 ),
 					"The child2 eager OneToOne association is not initialized"
 			);
 			assertThat( child2.getName(), equalTo( "Fab" ) );
-			assertThat( child2.getOwnedBidirectionalParent(), notNullValue() );
+			assertThat( child2.getBidirectionalParent(), notNullValue() );
 
 		} );
 	}
@@ -108,32 +110,34 @@ public class EntityWithBidirectionalOneToOneTest {
 			session.save( child2 );
 		} );
 
+		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
+		statementInspector.clear();
 		scope.inTransaction( session -> {
 			final Parent parent = session.get( Parent.class, 4 );
-			Child child = parent.getOwnedBidirectionalChild();
+			statementInspector.assertExecutedCount( 1);
+			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 3 );
+			Child child = parent.getChild();
 			assertThat( child, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( child ),
 					"The child eager OneToOne association is not initialized"
 			);
 			assertThat( child.getName(), notNullValue() );
-			assertThat( child.getParentMappedByChild(), notNullValue() );
+			assertSame( child.getParent(), parent );
 
-			Child2 child2 = parent.getChildMappedByParent1();
+			Child2 child2 = parent.getChild2();
 			assertThat( child2, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( child2 ),
 					"The child2 eager OneToOne association is not initialized"
 			);
 			assertThat( child2.getName(), equalTo( "Fab2" ) );
-			assertThat( child2.getOwnedBidirectionalParent(), notNullValue() );
-			assertThat( child2.getOwnedBidirectionalParent().getDescription(), equalTo( "Hibernate OGM" ) );
+
+			assertSame( child2.getBidirectionalParent(), parent );
 
 			Parent parent2 = child2.getUnidirectionalParent();
 			assertThat( parent2, notNullValue() );
-			assertThat( parent2.getDescription(), equalTo( "Hibernate OGM" ) );
-			assertThat( parent2.getOwnedBidirectionalChild(), notNullValue() );
-
+			assertSame( parent2, parent );
 		} );
 	}
 
@@ -163,29 +167,29 @@ public class EntityWithBidirectionalOneToOneTest {
 			final Parent parent = session.get( Parent.class, 4 );
 			assertThat( parent.getDescription(), equalTo( "Hibernate Search" ) );
 
-			Child child = parent.getOwnedBidirectionalChild();
+			Child child = parent.getChild();
 			assertThat( child, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( child ),
 					"The child eager OneToOne association is not initialized"
 			);
 			assertThat( child.getName(), notNullValue() );
-			assertThat( child.getParentMappedByChild(), notNullValue() );
+			assertThat( child.getParent(), notNullValue() );
 
-			Child2 child2 = parent.getChildMappedByParent1();
+			Child2 child2 = parent.getChild2();
 			assertThat( child2, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( child2 ),
 					"The child2 eager OneToOne association is not initialized"
 			);
 			assertThat( child2.getName(), equalTo( "Fab2" ) );
-			assertThat( child2.getOwnedBidirectionalParent(), notNullValue() );
-			assertThat( child2.getOwnedBidirectionalParent().getDescription(), equalTo( "Hibernate Search" ) );
+			assertThat( child2.getBidirectionalParent(), notNullValue() );
+			assertThat( child2.getBidirectionalParent().getDescription(), equalTo( "Hibernate Search" ) );
 
 			Parent parent2 = child2.getUnidirectionalParent();
 			assertThat( parent2, notNullValue() );
 			assertThat( parent2.getDescription(), equalTo( "Hibernate OGM" ) );
-			assertThat( parent2.getOwnedBidirectionalChild(), notNullValue() );
+			assertThat( parent2.getChild(), notNullValue() );
 
 		} );
 	}
@@ -194,26 +198,26 @@ public class EntityWithBidirectionalOneToOneTest {
 	public void testGetChild(SessionFactoryScope scope) {
 		scope.inTransaction( session -> {
 			final Child child = session.get( Child.class, 2 );
-			Parent parent = child.getParentMappedByChild();
+			Parent parent = child.getParent();
 			assertTrue(
 					Hibernate.isInitialized( parent ),
 					"The parent eager OneToOne association is not initialized"
 			);
 			assertThat( parent, notNullValue() );
 			assertThat( parent.getDescription(), notNullValue() );
-			Child child1 = parent.getOwnedBidirectionalChild();
+			Child child1 = parent.getChild();
 			assertThat( child1, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( child1 ),
 					"The child eager OneToOne association is not initialized"
 			);
-			Child2 child2 = parent.getChildMappedByParent1();
+			Child2 child2 = parent.getChild2();
 			assertThat( child2, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( child2 ),
 					"The child2 eager OneToOne association is not initialized"
 			);
-			assertThat( child2.getOwnedBidirectionalParent(), notNullValue() );
+			assertThat( child2.getBidirectionalParent(), notNullValue() );
 			assertThat( child2.getUnidirectionalParent(), nullValue() );
 		} );
 	}
@@ -223,14 +227,14 @@ public class EntityWithBidirectionalOneToOneTest {
 		scope.inTransaction(
 				session -> {
 					final Parent parent = session.createQuery(
-							"SELECT p FROM Parent p JOIN p.ownedBidirectionalChild WHERE p.id = :id",
+							"SELECT p FROM Parent p JOIN p.child WHERE p.id = :id",
 							Parent.class
 					)
 							.setParameter( "id", 1 )
 							.getSingleResult();
 
-					assertThat( parent.getOwnedBidirectionalChild(), notNullValue() );
-					String name = parent.getOwnedBidirectionalChild().getName();
+					assertThat( parent.getChild(), notNullValue() );
+					String name = parent.getChild().getName();
 					assertThat( name, notNullValue() );
 				}
 		);
@@ -246,9 +250,9 @@ public class EntityWithBidirectionalOneToOneTest {
 							.setParameter( "id", 1 )
 							.getSingleResult();
 
-					assertThat( child.getParentMappedByChild(), notNullValue() );
+					assertThat( child.getParent(), notNullValue() );
 
-					String description = child.getParentMappedByChild().getDescription();
+					String description = child.getParent().getDescription();
 					assertThat( description, notNullValue() );
 				}
 		);
@@ -261,10 +265,10 @@ public class EntityWithBidirectionalOneToOneTest {
 		private String description;
 
 		@OneToOne
-		private Child ownedBidirectionalChild;
+		private Child child;
 
-		@OneToOne(mappedBy = "ownedBidirectionalParent")
-		private Child2 childMappedByParent1;
+		@OneToOne(mappedBy = "bidirectionalParent")
+		private Child2 child2;
 
 		Parent() {
 		}
@@ -294,20 +298,20 @@ public class EntityWithBidirectionalOneToOneTest {
 			this.description = description;
 		}
 
-		public Child getOwnedBidirectionalChild() {
-			return ownedBidirectionalChild;
+		public Child getChild() {
+			return child;
 		}
 
-		public void setOwnedBidirectionalChild(Child ownedBidirectionalChild) {
-			this.ownedBidirectionalChild = ownedBidirectionalChild;
+		public void setChild(Child child) {
+			this.child = child;
 		}
 
-		public Child2 getChildMappedByParent1() {
-			return childMappedByParent1;
+		public Child2 getChild2() {
+			return child2;
 		}
 
-		public void setChildMappedByParent1(Child2 childMappedByParent1) {
-			this.childMappedByParent1 = childMappedByParent1;
+		public void setChild2(Child2 child2) {
+			this.child2 = child2;
 		}
 
 	}
@@ -318,17 +322,17 @@ public class EntityWithBidirectionalOneToOneTest {
 		private Integer id;
 		private String name;
 
-		@OneToOne(mappedBy = "ownedBidirectionalChild")
-		private Parent parentMappedByChild;
+		@OneToOne(mappedBy = "child")
+		private Parent parent;
 
 		Child() {
 
 		}
 
-		Child(Integer id, Parent parentMappedByChild) {
+		Child(Integer id, Parent parent) {
 			this.id = id;
-			this.parentMappedByChild = parentMappedByChild;
-			this.parentMappedByChild.setOwnedBidirectionalChild( this );
+			this.parent = parent;
+			this.parent.setChild( this );
 		}
 
 		public Integer getId() {
@@ -347,12 +351,12 @@ public class EntityWithBidirectionalOneToOneTest {
 			this.name = name;
 		}
 
-		public Parent getParentMappedByChild() {
-			return parentMappedByChild;
+		public Parent getParent() {
+			return parent;
 		}
 
-		public void setParentMappedByChild(Parent parentMappedByChild) {
-			this.parentMappedByChild = parentMappedByChild;
+		public void setParent(Parent parent) {
+			this.parent = parent;
 		}
 	}
 
@@ -365,7 +369,7 @@ public class EntityWithBidirectionalOneToOneTest {
 		private String name;
 
 		@OneToOne
-		private Parent ownedBidirectionalParent;
+		private Parent bidirectionalParent;
 
 		@OneToOne
 		private Parent unidirectionalParent;
@@ -373,10 +377,10 @@ public class EntityWithBidirectionalOneToOneTest {
 		Child2() {
 		}
 
-		Child2(Integer id, Parent ownedBidirectionalParent) {
+		Child2(Integer id, Parent bidirectionalParent) {
 			this.id = id;
-			this.ownedBidirectionalParent = ownedBidirectionalParent;
-			this.ownedBidirectionalParent.setChildMappedByParent1( this );
+			this.bidirectionalParent = bidirectionalParent;
+			this.bidirectionalParent.setChild2( this );
 		}
 
 
@@ -396,12 +400,12 @@ public class EntityWithBidirectionalOneToOneTest {
 			this.name = name;
 		}
 
-		public Parent getOwnedBidirectionalParent() {
-			return ownedBidirectionalParent;
+		public Parent getBidirectionalParent() {
+			return bidirectionalParent;
 		}
 
-		public void setOwnedBidirectionalParent(Parent ownedBidirectionalParent) {
-			this.ownedBidirectionalParent = ownedBidirectionalParent;
+		public void setBidirectionalParent(Parent bidirectionalParent) {
+			this.bidirectionalParent = bidirectionalParent;
 		}
 
 		public Parent getUnidirectionalParent() {
