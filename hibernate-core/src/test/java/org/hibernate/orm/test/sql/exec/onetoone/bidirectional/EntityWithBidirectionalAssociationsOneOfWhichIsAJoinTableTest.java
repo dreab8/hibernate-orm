@@ -15,6 +15,7 @@ import javax.persistence.Table;
 
 import org.hibernate.Hibernate;
 
+import org.hibernate.testing.jdbc.SQLStatementInspector;
 import org.hibernate.testing.orm.junit.DomainModel;
 import org.hibernate.testing.orm.junit.ServiceRegistry;
 import org.hibernate.testing.orm.junit.SessionFactory;
@@ -27,6 +28,7 @@ import org.hamcrest.CoreMatchers;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hibernate.orm.test.sql.exec.onetoone.bidirectional.EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -34,13 +36,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @DomainModel(
 		annotatedClasses = {
-				EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest.Parent.class,
-				EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest.Child.class,
-				EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest.Child2.class,
+				Parent.class,
+				Child.class,
+				Child2.class,
 		}
 )
 @ServiceRegistry
-@SessionFactory(generateStatistics = true)
+@SessionFactory(statementInspectorClass = SQLStatementInspector.class)
 public class EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest {
 
 	@BeforeEach
@@ -70,9 +72,13 @@ public class EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest {
 
 	@Test
 	public void testGetParent(SessionFactoryScope scope) {
+		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
+		statementInspector.clear();
 		scope.inTransaction(
 				session -> {
 					final Parent parent = session.get( Parent.class, 1 );
+					statementInspector.assertExecutedCount( 1 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 6 );
 					Child child = parent.getChild();
 					assertThat( child, CoreMatchers.notNullValue() );
 					assertTrue(
@@ -82,7 +88,6 @@ public class EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest {
 					assertThat( child.getName(), equalTo( "Acme" ) );
 					assertThat( child.getParent(), CoreMatchers.notNullValue() );
 
-
 					Child2 child2 = parent.getChild2();
 					assertThat( child2, CoreMatchers.notNullValue() );
 					assertTrue(
@@ -91,14 +96,18 @@ public class EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest {
 					);
 					assertThat( child2.getName(), equalTo( "Fab" ) );
 					assertThat( child2.getParent(), CoreMatchers.notNullValue() );
-
+					statementInspector.assertExecutedCount( 1 );
 				} );
 	}
 
 	@Test
 	public void testGetChild(SessionFactoryScope scope) {
+		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
+		statementInspector.clear();
 		scope.inTransaction( session -> {
 			final Child child = session.get( Child.class, 2 );
+			statementInspector.assertExecutedCount( 1 );
+			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 6 );
 			Parent parent = child.getParent();
 			assertThat( parent, CoreMatchers.notNullValue() );
 			assertTrue(
@@ -122,11 +131,14 @@ public class EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest {
 
 			);
 			assertThat( child2.getParent(), CoreMatchers.notNullValue() );
+			statementInspector.assertExecutedCount( 1 );
 		} );
 	}
 
 	@Test
 	public void testHqlSelectChild(SessionFactoryScope scope) {
+		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
+		statementInspector.clear();
 		scope.inTransaction(
 				session -> {
 					final String queryString = "SELECT c FROM Child c JOIN c.parent d WHERE d.id = :id";
@@ -134,6 +146,9 @@ public class EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest {
 							.setParameter( "id", 1 )
 							.getSingleResult();
 
+					statementInspector.assertExecutedCount( 2 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 2 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 1, "join", 6 );
 					assertThat( child.getParent(), CoreMatchers.notNullValue() );
 
 					String description = child.getParent().getDescription();
@@ -146,13 +161,17 @@ public class EntityWithBidirectionalAssociationsOneOfWhichIsAJoinTableTest {
 	public void testHqlSelectParent(SessionFactoryScope scope) {
 		scope.inTransaction(
 				session -> {
+					SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
+					statementInspector.clear();
 					final Parent parent = session.createQuery(
 							"SELECT p FROM Parent p JOIN p.child WHERE p.id = :id",
 							Parent.class
 					)
 							.setParameter( "id", 1 )
 							.getSingleResult();
-
+					statementInspector.assertExecutedCount( 2 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 2 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 1, "join", 6 );
 					Child child = parent.getChild();
 					assertThat( child, CoreMatchers.notNullValue() );
 					assertTrue(

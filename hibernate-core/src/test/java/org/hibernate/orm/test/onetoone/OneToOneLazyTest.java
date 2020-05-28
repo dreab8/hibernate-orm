@@ -34,12 +34,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 @DomainModel(
 		annotatedClasses = {
-				OneToOneLazy.Title.class,
-				OneToOneLazy.Book.class
+				OneToOneLazyTest.Title.class,
+				OneToOneLazyTest.Book.class
 		}
 )
 @SessionFactory
-public class OneToOneLazy {
+public class OneToOneLazyTest {
 
 	@BeforeEach
 	public void setUp(SessionFactoryScope scope) {
@@ -67,7 +67,6 @@ public class OneToOneLazy {
 				session -> {
 					Title title = session.find( Title.class, 1L );
 					assertThat( Hibernate.isInitialized( title.getBook() ), is( true ) );
-
 				}
 		);
 	}
