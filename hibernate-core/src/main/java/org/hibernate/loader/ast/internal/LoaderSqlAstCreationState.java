@@ -7,7 +7,9 @@
 package org.hibernate.loader.ast.internal;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.persistence.CacheRetrieveMode;
 import javax.persistence.CacheStoreMode;
 
@@ -16,6 +18,7 @@ import org.hibernate.LockMode;
 import org.hibernate.LockOptions;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.graph.spi.AppliedGraph;
+import org.hibernate.metamodel.mapping.AssociationKey;
 import org.hibernate.metamodel.mapping.ModelPart;
 import org.hibernate.query.Limit;
 import org.hibernate.query.NavigablePath;
@@ -54,6 +57,8 @@ public class LoaderSqlAstCreationState
 	private final FromClauseAccess fromClauseAccess;
 	private final LockOptions lockOptions;
 	private final FetchProcessor fetchProcessor;
+
+	private Set<AssociationKey> visitedAssociationKeys = new HashSet<>();
 
 	public LoaderSqlAstCreationState(
 			QuerySpec querySpec,
@@ -141,6 +146,16 @@ public class LoaderSqlAstCreationState
 	@Override
 	public SqlAstCreationState getSqlAstCreationState() {
 		return this;
+	}
+
+	@Override
+	public void registerVisitedAssociationKey(AssociationKey associationKey) {
+		visitedAssociationKeys.add( associationKey );
+	}
+
+	@Override
+	public boolean isAssociationKeyVisited(AssociationKey associationKey) {
+		return visitedAssociationKeys.contains( associationKey );
 	}
 
 	@Override

@@ -325,8 +325,7 @@ public abstract class AbstractEntityInitializer extends AbstractFetchParentAcces
 		else {
 			id = identifierAssembler.assemble(
 					rowProcessingState,
-					jdbcValuesSourceProcessingState
-							.getProcessingOptions()
+					jdbcValuesSourceProcessingState.getProcessingOptions()
 			);
 		}
 

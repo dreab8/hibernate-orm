@@ -7,10 +7,12 @@
 package org.hibernate.query.sqm.sql.internal;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import org.hibernate.HibernateException;
@@ -24,6 +26,7 @@ import org.hibernate.internal.FilterHelper;
 import org.hibernate.internal.util.collections.CollectionHelper;
 import org.hibernate.internal.util.collections.Stack;
 import org.hibernate.internal.util.collections.StandardStack;
+import org.hibernate.metamodel.mapping.AssociationKey;
 import org.hibernate.metamodel.mapping.EntityMappingType;
 import org.hibernate.metamodel.mapping.ModelPart;
 import org.hibernate.metamodel.mapping.ModelPartContainer;
@@ -91,6 +94,8 @@ public class StandardSqmSelectTranslator
 	// prepare for 10 root selections to avoid list growth in most cases
 	private final List<DomainResult> domainResults = CollectionHelper.arrayList( 10 );
 
+	private Set<AssociationKey> visitedAssociationKeys = new HashSet<>();
+
 	private final EntityGraphTraversalState entityGraphTraversalState;
 
 	private int fetchDepth;
@@ -140,8 +145,6 @@ public class StandardSqmSelectTranslator
 	public SqlAstCreationState getSqlAstCreationState() {
 		return this;
 	}
-
-
 
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// walker
@@ -248,6 +251,16 @@ public class StandardSqmSelectTranslator
 		return null;
 	}
 
+	@Override
+	public void registerVisitedAssociationKey(AssociationKey associationKey) {
+		visitedAssociationKeys.add( associationKey );
+	}
+
+	@Override
+	public boolean isAssociationKeyVisited(AssociationKey associationKey) {
+		return visitedAssociationKeys.contains( associationKey );
+	}
+
 	private DomainResultProducer resolveDomainResultProducer(SqmSelection sqmSelection) {
 		return (DomainResultProducer) sqmSelection.getSelectableNode().accept( this );
 	}
@@ -260,40 +273,44 @@ public class StandardSqmSelectTranslator
 
 	@Override
 	public List<Fetch> visitFetches(FetchParent fetchParent) {
-		final List<Fetch> fetches = CollectionHelper.arrayList( fetchParent.getReferencedMappingType().getNumberOfFetchables() );
+		final List<Fetch> fetches = CollectionHelper.arrayList(
+				fetchParent.getReferencedMappingType().getNumberOfFetchables()
+		);
 
 		final BiConsumer<Fetchable, Boolean> fetchableBiConsumer = (fetchable, isKeyFetchable) -> {
-				final NavigablePath fetchablePath = fetchParent.getNavigablePath().append( fetchable.getFetchableName() );
+			final NavigablePath fetchablePath = fetchParent.getNavigablePath().append( fetchable.getFetchableName() );
 
-				final Fetch biDirectionalFetch = fetchable.resolveCircularFetch(
-						fetchablePath,
-						fetchParent,
-						StandardSqmSelectTranslator.this
-				);
+			final Fetch biDirectionalFetch = fetchable.resolveCircularFetch(
+					fetchablePath,
+					fetchParent,
+					StandardSqmSelectTranslator.this
+			);
 
-				if ( biDirectionalFetch != null ) {
-					fetches.add( biDirectionalFetch );
-					return;
+			if ( biDirectionalFetch != null ) {
+				fetches.add( biDirectionalFetch );
+				return;
+			}
+
+			try {
+				fetchDepth++;
+				final Fetch fetch = buildFetch( fetchablePath, fetchParent, fetchable, isKeyFetchable );
+
+				if ( fetch != null ) {
+					fetches.add( fetch );
 				}
-
-				try {
-					fetchDepth++;
-					final Fetch fetch = buildFetch( fetchablePath, fetchParent, fetchable, isKeyFetchable );
-
-					if ( fetch != null ) {
-						fetches.add( fetch );
-					}
-				}
-				finally {
-					fetchDepth--;
-				}
+			}
+			finally {
+				fetchDepth--;
+			}
 		};
 
 // todo (6.0) : determine how to best handle TREAT
 //		fetchParent.getReferencedMappingContainer().visitKeyFetchables( fetchableBiConsumer, treatTargetType );
 //		fetchParent.getReferencedMappingContainer().visitFetchables( fetchableBiConsumer, treatTargetType );
-		fetchParent.getReferencedMappingContainer().visitKeyFetchables( fetchable -> fetchableBiConsumer.accept( fetchable, true ), null );
-		fetchParent.getReferencedMappingContainer().visitFetchables( fetchable -> fetchableBiConsumer.accept( fetchable, false ), null );
+		fetchParent.getReferencedMappingContainer().visitKeyFetchables(
+				fetchable -> fetchableBiConsumer.accept( fetchable, true ), null );
+		fetchParent.getReferencedMappingContainer().visitFetchables(
+				fetchable -> fetchableBiConsumer.accept( fetchable, false ), null );
 
 		return fetches;
 	}

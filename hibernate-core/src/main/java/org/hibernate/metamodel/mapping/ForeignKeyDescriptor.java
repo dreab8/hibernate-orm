@@ -6,6 +6,7 @@
  */
 package org.hibernate.metamodel.mapping;
 
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.query.NavigablePath;
 import org.hibernate.sql.ast.SqlAstJoinType;
 import org.hibernate.sql.ast.spi.SqlAstCreationContext;
@@ -31,6 +32,13 @@ public interface ForeignKeyDescriptor extends VirtualModelPart {
 			NavigablePath collectionPath,
 			TableGroup tableGroup,
 			DomainResultCreationState creationState);
+
+	default DomainResult createTargetDomainResult(
+			NavigablePath collectionPath,
+			TableGroup tableGroup,
+			DomainResultCreationState creationState){
+		throw new NotYetImplementedFor6Exception(getClass());
+	}
 
 	Predicate generateJoinPredicate(
 			TableGroup lhs,
@@ -67,6 +75,5 @@ public interface ForeignKeyDescriptor extends VirtualModelPart {
 
 	void visitTargetColumns(ColumnConsumer consumer);
 
-
-	boolean areTargetColumnNamesEqualsTo(String[] columnNames);
+	AssociationKey getAssociationKey();
 }

@@ -6,9 +6,6 @@
  */
 package org.hibernate.metamodel.mapping.internal;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hibernate.LockMode;
 import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.engine.FetchStrategy;
@@ -140,6 +137,8 @@ public class EntityCollectionPart
 			String resultVariable,
 			DomainResultCreationState creationState) {
 //		assert fetchParent.getReferencedMappingContainer() instanceof PluralAttributeMapping;
+
+		creationState.registerVisitedAssociationKey( getForeignKeyDescriptor().getAssociationKey() );
 
 		// find or create the TableGroup associated with this `fetchablePath`
 		creationState.getSqlAstCreationState().getFromClauseAccess().resolveTableGroup(

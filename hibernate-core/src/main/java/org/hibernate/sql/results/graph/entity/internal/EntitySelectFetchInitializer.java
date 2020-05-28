@@ -31,7 +31,7 @@ public class EntitySelectFetchInitializer extends AbstractFetchParentAccess impl
 
 	private Object entityInstance;
 
-	protected EntitySelectFetchInitializer(
+	public EntitySelectFetchInitializer(
 			NavigablePath fetchedNavigable,
 			EntityPersister concreteDescriptor,
 			DomainResultAssembler identifierAssembler,

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.HibernateException;
+import org.hibernate.metamodel.mapping.AssociationKey;
 import org.hibernate.metamodel.mapping.ColumnConsumer;
 import org.hibernate.metamodel.mapping.EmbeddableValuedModelPart;
 import org.hibernate.metamodel.mapping.EntityMappingType;
@@ -49,6 +50,7 @@ public class EmbeddedForeignKeyDescriptor implements ForeignKeyDescriptor, Model
 	private final List<String> targetColumnExpressions;
 	private final EmbeddableValuedModelPart mappingType;
 	private final List<JdbcMapping> jdbcMappings;
+	private AssociationKey associationKey;
 
 	public EmbeddedForeignKeyDescriptor(
 			EmbeddedIdentifierMappingImpl mappingType,
@@ -330,17 +332,18 @@ public class EmbeddedForeignKeyDescriptor implements ForeignKeyDescriptor, Model
 	}
 
 	@Override
-	public boolean areTargetColumnNamesEqualsTo(String[] columnNames) {
-		int length = columnNames.length;
-		if ( length != targetColumnExpressions.size() ) {
-			return false;
-		}
-		for ( int i = 0; i < length; i++ ) {
-			if ( !targetColumnExpressions.contains( columnNames[i] ) ) {
-				return false;
+	public AssociationKey getAssociationKey() {
+		if ( associationKey == null ) {
+			String[] associationKeyColumns = new String[keyColumnExpressions.size()];
+			int i = 0;
+			for ( String keyColumnExpression : this.keyColumnExpressions ) {
+				associationKeyColumns[i] = keyColumnExpression;
+				i++;
 			}
+
+			associationKey = new AssociationKey( keyColumnContainingTable, associationKeyColumns );
 		}
-		return true;
+		return associationKey;
 	}
 
 	@Override

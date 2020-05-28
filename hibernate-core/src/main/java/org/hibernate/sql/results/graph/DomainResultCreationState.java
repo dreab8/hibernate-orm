@@ -8,11 +8,10 @@ package org.hibernate.sql.results.graph;
 
 import java.util.List;
 
-import org.hibernate.LockMode;
 import org.hibernate.NotYetImplementedFor6Exception;
+import org.hibernate.metamodel.mapping.AssociationKey;
 import org.hibernate.metamodel.mapping.ModelPart;
 import org.hibernate.query.NavigablePath;
-import org.hibernate.sql.results.jdbc.spi.JdbcValues;
 import org.hibernate.sql.ast.spi.SqlAliasBaseManager;
 import org.hibernate.sql.ast.spi.SqlAstCreationState;
 
@@ -29,6 +28,14 @@ public interface DomainResultCreationState {
 
 	default SqlAliasBaseManager getSqlAliasBaseManager() {
 		return (SqlAliasBaseManager) getSqlAstCreationState().getSqlAliasBaseGenerator();
+	}
+
+	default void registerVisitedAssociationKey(AssociationKey associationKey){
+
+	}
+
+	default boolean isAssociationKeyVisited(AssociationKey associationKey){
+		return false;
 	}
 
 	/**

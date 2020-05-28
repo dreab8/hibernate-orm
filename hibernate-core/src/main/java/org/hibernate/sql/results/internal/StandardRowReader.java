@@ -120,25 +120,27 @@ public class StandardRowReader<T> implements RowReader<T> {
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// old
 
-		for ( int i = 0; i < initializers.size(); i++ ) {
+		final int initializersCount = initializers.size();
+
+		for ( int i = 0; i < initializersCount; i++ ) {
 			final Initializer initializer = initializers.get( i );
 			if ( ! ( initializer instanceof CollectionInitializer ) ) {
 				initializer.resolveKey( rowProcessingState );
 			}
 		}
 
-		for ( int i = 0; i < initializers.size(); i++ ) {
+		for ( int i = 0; i < initializersCount; i++ ) {
 			final Initializer initializer = initializers.get( i );
 			if ( initializer instanceof CollectionInitializer ) {
 				initializer.resolveKey( rowProcessingState );
 			}
 		}
 
-		for ( int i = 0; i < initializers.size(); i++ ) {
+		for ( int i = 0; i < initializersCount; i++ ) {
 			initializers.get( i ).resolveInstance( rowProcessingState );
 		}
 
-		for ( int i = 0; i < initializers.size(); i++ ) {
+		for ( int i = 0; i < initializersCount; i++ ) {
 			initializers.get( i ).initializeInstance( rowProcessingState );
 		}
 	}

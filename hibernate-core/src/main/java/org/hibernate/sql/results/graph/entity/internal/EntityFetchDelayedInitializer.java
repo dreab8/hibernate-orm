@@ -32,7 +32,7 @@ public class EntityFetchDelayedInitializer extends AbstractFetchParentAccess imp
 	private Object entityInstance;
 	private Object identifier;
 
-	protected EntityFetchDelayedInitializer(
+	public EntityFetchDelayedInitializer(
 			NavigablePath fetchedNavigable,
 			EntityPersister concreteDescriptor,
 			DomainResultAssembler identifierAssembler) {

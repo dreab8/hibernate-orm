@@ -389,6 +389,8 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 			DomainResultCreationState creationState) {
 		final SqlAstCreationState sqlAstCreationState = creationState.getSqlAstCreationState();
 
+		creationState.registerVisitedAssociationKey( fkDescriptor.getAssociationKey() );
+
 		if ( fetchTiming == FetchTiming.IMMEDIATE) {
 			if ( selected ) {
 				final TableGroup collectionTableGroup = sqlAstCreationState.getFromClauseAccess().resolveTableGroup(

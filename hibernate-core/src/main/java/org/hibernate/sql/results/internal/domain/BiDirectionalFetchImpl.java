@@ -9,7 +9,6 @@ package org.hibernate.sql.results.internal.domain;
 import java.util.function.Consumer;
 
 import org.hibernate.LockMode;
-import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.engine.FetchStrategy;
 import org.hibernate.engine.FetchTiming;
 import org.hibernate.engine.spi.CollectionKey;
@@ -21,11 +20,13 @@ import org.hibernate.metamodel.mapping.EntityMappingType;
 import org.hibernate.metamodel.mapping.ForeignKeyDescriptor;
 import org.hibernate.metamodel.mapping.MappingType;
 import org.hibernate.metamodel.mapping.ModelPart;
+import org.hibernate.metamodel.mapping.internal.SingularAssociationAttributeMapping;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.query.NavigablePath;
 import org.hibernate.sql.results.graph.AssemblerCreationState;
 import org.hibernate.sql.results.graph.BiDirectionalFetch;
+import org.hibernate.sql.results.graph.DomainResult;
 import org.hibernate.sql.results.graph.DomainResultAssembler;
 import org.hibernate.sql.results.graph.DomainResultCreationState;
 import org.hibernate.sql.results.graph.Fetch;
@@ -35,6 +36,8 @@ import org.hibernate.sql.results.graph.Fetchable;
 import org.hibernate.sql.results.graph.Initializer;
 import org.hibernate.sql.results.graph.collection.CollectionInitializer;
 import org.hibernate.sql.results.graph.entity.EntityInitializer;
+import org.hibernate.sql.results.graph.entity.internal.BiDirectionalEntityInitializer;
+import org.hibernate.sql.results.graph.entity.internal.EntityFetchDelayedInitializer;
 import org.hibernate.sql.results.jdbc.spi.JdbcValuesSourceProcessingOptions;
 import org.hibernate.sql.results.jdbc.spi.RowProcessingState;
 import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
@@ -43,24 +46,61 @@ import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
  * @author Andrea Boriero
  */
 public class BiDirectionalFetchImpl implements BiDirectionalFetch, Association {
+	private DomainResult keyResult;
+	private final EntityMappingType entityMappingType;
 	private final FetchTiming timing;
 	private final NavigablePath navigablePath;
-	private final Fetchable fetchable;
+	private String uniqueKeyPropertyName;
+	private final SingularAssociationAttributeMapping fetchable;
 
 	private final FetchParent fetchParent;
 	private final NavigablePath referencedNavigablePath;
 
+
 	public BiDirectionalFetchImpl(
+			EntityMappingType entityMappingType,
 			FetchTiming timing,
 			NavigablePath navigablePath,
 			FetchParent fetchParent,
-			Fetchable fetchable,
-			NavigablePath referencedNavigablePath) {
+			SingularAssociationAttributeMapping fetchable,
+			NavigablePath referencedNavigablePath,
+			DomainResult keyResult,
+			String uniqueKeyPropertyName) {
+		this.entityMappingType = entityMappingType;
 		this.timing = timing;
 		this.fetchParent = fetchParent;
 		this.navigablePath = navigablePath;
+		this.uniqueKeyPropertyName = uniqueKeyPropertyName;
+//		if ( keyResult == null ) {
+//			this.referencedNavigablePath = fetchParent.getNavigablePath().getParent();
+//		}
+//		else {
+			this.referencedNavigablePath = referencedNavigablePath;
+//		}
 		this.fetchable = fetchable;
-		this.referencedNavigablePath = referencedNavigablePath;
+		this.keyResult = keyResult;
+	}
+
+	public BiDirectionalFetchImpl(
+			EntityMappingType entityMappingType,
+			FetchTiming timing,
+			NavigablePath navigablePath,
+			FetchParent fetchParent,
+			SingularAssociationAttributeMapping fetchable,
+			NavigablePath referencedNavigablePath,
+			DomainResult keyResult) {
+		this.entityMappingType = entityMappingType;
+		this.timing = timing;
+		this.fetchParent = fetchParent;
+		this.navigablePath = navigablePath;
+//		if ( keyResult == null ) {
+//			this.referencedNavigablePath = fetchParent.getNavigablePath().getParent();
+//		}
+//		else {
+			this.referencedNavigablePath = referencedNavigablePath;
+//		}
+		this.fetchable = fetchable;
+		this.keyResult = keyResult;
 	}
 
 	@Override
@@ -93,10 +133,17 @@ public class BiDirectionalFetchImpl implements BiDirectionalFetch, Association {
 			FetchParentAccess parentAccess,
 			Consumer<Initializer> collector,
 			AssemblerCreationState creationState) {
+		DomainResultAssembler resultAssembler;
+		resultAssembler = keyResult.createResultAssembler( collector, creationState );
 		return new CircularFetchAssembler(
+				resultAssembler,
 				fetchable,
 				getReferencedPath(),
-				fetchable.getJavaTypeDescriptor()
+				fetchable.getJavaTypeDescriptor(),
+				entityMappingType,
+				fetchable.isNullable(),
+				timing,
+				uniqueKeyPropertyName
 		);
 	}
 
@@ -165,38 +212,75 @@ public class BiDirectionalFetchImpl implements BiDirectionalFetch, Association {
 	private static class CircularFetchAssembler implements DomainResultAssembler {
 		private final NavigablePath circularPath;
 		private final JavaTypeDescriptor javaTypeDescriptor;
+		private DomainResultAssembler domainResultAssembler;
 		private final Fetchable fetchable;
+		private final EntityMappingType entityMappingType;
+		private final boolean nullable;
+		private final FetchTiming timing;
+		private final String uniqueKeyPropertyName;
 
 		public CircularFetchAssembler(
+				DomainResultAssembler domainResultAssembler,
 				Fetchable fetchable,
 				NavigablePath circularPath,
-				JavaTypeDescriptor javaTypeDescriptor) {
+				JavaTypeDescriptor javaTypeDescriptor,
+				EntityMappingType entityMappingType,
+				boolean nullable,
+				FetchTiming timing,
+				String uniqueKeyPropertyName) {
+			this.domainResultAssembler = domainResultAssembler;
 			this.fetchable = fetchable;
 			this.circularPath = circularPath;
 			this.javaTypeDescriptor = javaTypeDescriptor;
+			this.entityMappingType = entityMappingType;
+			this.nullable = nullable;
+			this.timing = timing;
+			this.uniqueKeyPropertyName = uniqueKeyPropertyName;
 		}
 
 		@Override
 		public Object assemble(RowProcessingState rowProcessingState, JdbcValuesSourceProcessingOptions options) {
-			final EntityInitializer initializer = resolveCircularInitializer( rowProcessingState );
-			if ( initializer == null ) {
+			EntityInitializer initializer;
+//			if ( domainResultAssembler == null ) {
+//				initializer = resolveCircularInitializer( rowProcessingState );
+//				if ( initializer == null ) {
+//
+//					final Initializer parentInitializer = rowProcessingState.resolveInitializer(
+//							circularPath.getParent() );
+//					assert parentInitializer instanceof CollectionInitializer;
+//					final CollectionInitializer circ = (CollectionInitializer) parentInitializer;
+//					final CollectionKey collectionKey = circ.resolveCollectionKey( rowProcessingState );
+//					final EntityKey entityKey = new EntityKey(
+//							collectionKey.getKey(),
+//							(EntityPersister) ( (AttributeMapping) fetchable ).getMappedTypeDescriptor()
+//					);
+//
+//					final SharedSessionContractImplementor session = rowProcessingState.getJdbcValuesSourceProcessingState()
+//							.getSession();
+//					return session.getPersistenceContext()
+//							.getEntity( entityKey );
+//
+//				}
+//			}
+//			else {
+				if ( timing == FetchTiming.IMMEDIATE ) {
+					initializer = new BiDirectionalEntityInitializer(
+							circularPath,
+							entityMappingType.getEntityPersister(),
+							domainResultAssembler,
+							nullable,
+							uniqueKeyPropertyName
+					);
+				}
+				else {
+					initializer = new EntityFetchDelayedInitializer(
+							circularPath,
+							(EntityPersister) ( (AttributeMapping) fetchable ).getMappedTypeDescriptor(),
+							domainResultAssembler
+					);
+				}
+//			}
 
-				final Initializer parentInitializer = rowProcessingState.resolveInitializer(
-						circularPath.getParent() );
-				assert parentInitializer instanceof CollectionInitializer;
-				final CollectionInitializer circ = (CollectionInitializer) parentInitializer;
-				final CollectionKey collectionKey = circ.resolveCollectionKey( rowProcessingState );
-				final EntityKey entityKey = new EntityKey(
-						collectionKey.getKey(),
-						(EntityPersister) ( (AttributeMapping) fetchable ).getMappedTypeDescriptor()
-				);
-
-				final SharedSessionContractImplementor session = rowProcessingState.getJdbcValuesSourceProcessingState()
-						.getSession();
-				return session.getPersistenceContext()
-						.getEntity( entityKey );
-
-			}
 			if ( initializer.getInitializedInstance() == null ) {
 				initializer.resolveKey( rowProcessingState );
 				initializer.resolveInstance( rowProcessingState );
@@ -207,6 +291,12 @@ public class BiDirectionalFetchImpl implements BiDirectionalFetch, Association {
 
 		private EntityInitializer resolveCircularInitializer(RowProcessingState rowProcessingState) {
 			final Initializer initializer = rowProcessingState.resolveInitializer( circularPath );
+			if(initializer == null){
+				return null;
+			}
+			if ( initializer instanceof EntityInitializer ) {
+				return (EntityInitializer) initializer;
+			}
 			final ModelPart initializedPart = initializer.getInitializedPart();
 
 			if ( initializedPart instanceof EntityInitializer ) {
@@ -218,7 +308,6 @@ public class BiDirectionalFetchImpl implements BiDirectionalFetch, Association {
 			while ( !( parentInitializer instanceof EntityInitializer) && path.getParent() != null ) {
 				path = path.getParent();
 				parentInitializer = rowProcessingState.resolveInitializer( path );
-
 			}
 
 			if ( !( parentInitializer instanceof EntityInitializer ) ) {
