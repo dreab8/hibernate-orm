@@ -214,7 +214,7 @@ public class BiDirectionalFetchImpl implements BiDirectionalFetch, Association {
 
 			NavigablePath path = circularPath.getParent();
 			Initializer parentInitializer = rowProcessingState.resolveInitializer( path );
-			while ( !( parentInitializer instanceof EntityInitializer) && path.getParent() != null ) {
+			while ( !( parentInitializer instanceof EntityInitializer ) && path.getParent() != null ) {
 				path = path.getParent();
 				parentInitializer = rowProcessingState.resolveInitializer( path );
 

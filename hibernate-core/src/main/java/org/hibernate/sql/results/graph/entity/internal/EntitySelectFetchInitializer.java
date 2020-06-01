@@ -17,12 +17,18 @@ import org.hibernate.query.NavigablePath;
 import org.hibernate.sql.results.graph.AbstractFetchParentAccess;
 import org.hibernate.sql.results.graph.DomainResultAssembler;
 import org.hibernate.sql.results.graph.entity.EntityInitializer;
+import org.hibernate.sql.results.graph.entity.EntityLoadingLogger;
+import org.hibernate.sql.results.graph.entity.LoadingEntityEntry;
 import org.hibernate.sql.results.jdbc.spi.RowProcessingState;
+
+import static org.hibernate.internal.log.LoggingHelper.toLoggableString;
 
 /**
  * @author Andrea Boriero
  */
 public class EntitySelectFetchInitializer extends AbstractFetchParentAccess implements EntityInitializer {
+	private static final String CONCRETE_NAME = EntitySelectFetchInitializer.class.getSimpleName();
+
 	private final NavigablePath navigablePath;
 	private final EntityPersister concreteDescriptor;
 	private final DomainResultAssembler identifierAssembler;
@@ -68,9 +74,40 @@ public class EntitySelectFetchInitializer extends AbstractFetchParentAccess impl
 		if ( id == null ) {
 			return;
 		}
-
-		final String entityName = concreteDescriptor.getEntityName();
 		final SharedSessionContractImplementor session = rowProcessingState.getSession();
+
+		final EntityKey entityKey = new EntityKey( id, concreteDescriptor );
+		final LoadingEntityEntry existingLoadingEntry = session
+				.getPersistenceContext()
+				.getLoadContexts()
+				.findLoadingEntityEntry( entityKey );
+
+		if ( existingLoadingEntry != null ) {
+			if ( EntityLoadingLogger.DEBUG_ENABLED ) {
+				EntityLoadingLogger.LOGGER.debugf(
+						"(%s) Found existing loading entry [%s] - using loading instance",
+						CONCRETE_NAME,
+						toLoggableString( getNavigablePath(), id )
+				);
+			}
+			this.entityInstance = existingLoadingEntry.getEntityInstance();
+
+			if ( existingLoadingEntry.getEntityInitializer() != this ) {
+				// the entity is already being loaded elsewhere
+				if ( EntityLoadingLogger.DEBUG_ENABLED ) {
+					EntityLoadingLogger.LOGGER.debugf(
+							"(%s) Entity [%s] being loaded by another initializer [%s] - skipping processing",
+							CONCRETE_NAME,
+							toLoggableString( getNavigablePath(), id ),
+							existingLoadingEntry.getEntityInitializer()
+					);
+				}
+
+				// EARLY EXIT!!!
+				return;
+			}
+		}
+		final String entityName = concreteDescriptor.getEntityName();
 
 		entityInstance = session.internalLoad(
 				entityName,

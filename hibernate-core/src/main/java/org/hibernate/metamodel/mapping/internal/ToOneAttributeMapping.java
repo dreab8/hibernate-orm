@@ -184,9 +184,6 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 			}
 
 			ModelPart modelPart = creationState.resolveModelPart( parentOfParent );
-			if ( modelPart instanceof PluralAttributeMapping ) {
-				modelPart = ( (PluralAttributeMapping) modelPart ).getDeclaringType();
-			}
 			while ( modelPart instanceof EmbeddedAttributeMapping ) {
 				modelPart = creationState.resolveModelPart( parentOfParent.getParent() );
 			}
