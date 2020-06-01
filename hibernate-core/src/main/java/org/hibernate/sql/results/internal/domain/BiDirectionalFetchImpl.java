@@ -203,6 +203,9 @@ public class BiDirectionalFetchImpl implements BiDirectionalFetch, Association {
 
 		private EntityInitializer resolveCircularInitializer(RowProcessingState rowProcessingState) {
 			final Initializer initializer = rowProcessingState.resolveInitializer( circularPath );
+			if ( initializer instanceof EntityInitializer ) {
+				return (EntityInitializer) initializer;
+			}
 			final ModelPart initializedPart = initializer.getInitializedPart();
 
 			if ( initializedPart instanceof EntityInitializer ) {

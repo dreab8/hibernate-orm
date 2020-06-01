@@ -45,6 +45,7 @@ import org.hibernate.persister.entity.Joinable;
 import org.hibernate.property.access.spi.PropertyAccess;
 import org.hibernate.query.NavigablePath;
 import org.hibernate.sql.ast.SqlAstJoinType;
+import org.hibernate.sql.ast.spi.FromClauseAccess;
 import org.hibernate.sql.ast.spi.SqlAliasBase;
 import org.hibernate.sql.ast.spi.SqlAliasBaseGenerator;
 import org.hibernate.sql.ast.spi.SqlAliasStemHelper;
@@ -438,12 +439,15 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 			DomainResultCreationState creationState) {
 		final SqlAstCreationState sqlAstCreationState = creationState.getSqlAstCreationState();
 
+		creationState.registerVisitedAssociationKey( fkDescriptor.getAssociationKey() );
+
 		if ( fetchTiming == FetchTiming.IMMEDIATE) {
 			if ( selected ) {
-				final TableGroup collectionTableGroup = sqlAstCreationState.getFromClauseAccess().resolveTableGroup(
+				final FromClauseAccess fromClauseAccess = sqlAstCreationState.getFromClauseAccess();
+				final TableGroup collectionTableGroup = fromClauseAccess.resolveTableGroup(
 						fetchablePath,
 						p -> {
-							final TableGroup lhsTableGroup = sqlAstCreationState.getFromClauseAccess().getTableGroup(
+							final TableGroup lhsTableGroup = fromClauseAccess.getTableGroup(
 									fetchParent.getNavigablePath() );
 							final TableGroupJoin tableGroupJoin = createTableGroupJoin(
 									fetchablePath,

@@ -22,6 +22,7 @@ import org.hibernate.metamodel.mapping.ModelPart;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.query.NavigablePath;
+import org.hibernate.sql.ast.spi.FromClauseAccess;
 import org.hibernate.sql.ast.tree.from.TableGroup;
 import org.hibernate.sql.results.graph.DomainResult;
 import org.hibernate.sql.results.graph.DomainResultCreationState;
@@ -137,18 +138,17 @@ public class EntityCollectionPart
 			LockMode lockMode,
 			String resultVariable,
 			DomainResultCreationState creationState) {
-//		assert fetchParent.getReferencedMappingContainer() instanceof PluralAttributeMapping;
-
 		// find or create the TableGroup associated with this `fetchablePath`
-		creationState.getSqlAstCreationState().getFromClauseAccess().resolveTableGroup(
+		final FromClauseAccess fromClauseAccess = creationState.getSqlAstCreationState().getFromClauseAccess();
+		creationState.registerVisitedAssociationKey( getForeignKeyDescriptor().getAssociationKey() );
+
+		fromClauseAccess.resolveTableGroup(
 				fetchablePath,
 				np -> {
 					// We need to create one.  The Result will be able to find it later by path
 
 					// first, find the collection's TableGroup
-					final TableGroup collectionTableGroup = creationState.getSqlAstCreationState()
-							.getFromClauseAccess()
-							.getTableGroup( fetchParent.getNavigablePath() );
+					final TableGroup collectionTableGroup = fromClauseAccess.getTableGroup( fetchParent.getNavigablePath() );
 
 					assert collectionTableGroup != null;
 
