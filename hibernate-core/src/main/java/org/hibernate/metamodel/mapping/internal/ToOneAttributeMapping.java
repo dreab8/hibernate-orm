@@ -77,6 +77,7 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 	private final boolean referringPrimaryKey;
 
 	private final Cardinality cardinality;
+	private String mappedBy;
 
 	private ForeignKeyDescriptor foreignKeyDescriptor;
 	private ForeignKeyDirection foreignKeyDirection;
@@ -122,10 +123,15 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 			else {
 				cardinality = Cardinality.MANY_TO_ONE;
 			}
+			this.mappedBy = null;
 		}
 		else {
 			assert bootValue instanceof OneToOne;
 			cardinality = Cardinality.ONE_TO_ONE;
+			this.mappedBy = ((OneToOne)bootValue).getMappedByProperty();
+			if(mappedBy == null){
+				mappedBy = bootValue.getReferencedPropertyName();
+			}
 		}
 
 		this.navigableRole = navigableRole;
@@ -184,15 +190,36 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 			}
 
 			ModelPart modelPart = creationState.resolveModelPart( parentOfParent );
+			NavigablePath parent = null;
 			while ( modelPart instanceof EmbeddedAttributeMapping ) {
-				modelPart = creationState.resolveModelPart( parentOfParent.getParent() );
+				parent = parentOfParent.getParent();
+				modelPart = creationState.resolveModelPart( parent );
 			}
-			if ( entityMappingType.getJavaTypeDescriptor() == modelPart.getJavaTypeDescriptor() ) {
-				return createBiDirectionalFetch( fetchablePath, fetchParent );
+			if ( parent == null ) {
+				parent = parentOfParent;
+			}
+			if ( this.mappedBy != null && parent.getFullPath().endsWith( this.mappedBy )  ) {
+				if ( entityMappingType.getJavaTypeDescriptor() == modelPart.getJavaTypeDescriptor() ) {
+					return createBiDirectionalFetch( fetchablePath, fetchParent );
+				}
+			}
+			final ModelPart parentModelPart = creationState.resolveModelPart( fetchablePath.getParent() );
+			if ( parentModelPart instanceof ToOneAttributeMapping ) {
+				String mappedBy = ( (ToOneAttributeMapping) parentModelPart ).getMappedBy();
+				if ( mappedBy != null ) {
+					String fullPath = fetchablePath.getFullPath();
+					if ( fullPath.endsWith( mappedBy ) ) {
+						return createBiDirectionalFetch( fetchablePath, fetchParent );
+					}
+				}
 			}
 		}
 
 		return null;
+	}
+
+	public String getMappedBy(){
+		return mappedBy;
 	}
 
 	private Fetch createBiDirectionalFetch(NavigablePath fetchablePath, FetchParent fetchParent) {
@@ -287,6 +314,33 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 
 		//noinspection rawtypes
 		final DomainResult keyResult;
+
+		/*
+			1. No JoinTable
+				Model:
+					EntityA{
+						@ManyToOne
+						EntityB b
+					}
+
+					EntityB{
+						@ManyToOne
+						EntityA a
+					}
+
+				Relational:
+					ENTITY_A( id )
+					ENTITY_B( id, entity_a_id)
+
+				1.1 EntityA -> EntityB : as keyResult we need ENTITY_B.id
+				1.2 EntityB -> EntityA : as keyResult we need ENTITY_B.entity_a_id (FK referring column)
+
+				The 1.1 case is always an eager, so we should not arrive at this point, but when max fetch depth is reached the value of the selected attribute is false so instead of an EntityFetchJoinedImpl an EntityFetchSelectImpl has to be created.
+
+			2. JoinTable
+
+		 */
+
 
 		if ( referringPrimaryKey ) {
 			keyResult = foreignKeyDescriptor.createDomainResult( fetchablePath, parentTableGroup, creationState );

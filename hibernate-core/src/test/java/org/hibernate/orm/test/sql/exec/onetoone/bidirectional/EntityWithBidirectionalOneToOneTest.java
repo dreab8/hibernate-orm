@@ -181,32 +181,32 @@ public class EntityWithBidirectionalOneToOneTest {
 
 			assertThat( mother.getName(), equalTo( "Catia" ) );
 
-			Child child = mother.getProcreatedChild();
-			assertThat( child, notNullValue() );
+			Child procreatedChild = mother.getProcreatedChild();
+			assertThat( procreatedChild, notNullValue() );
 			assertTrue(
-					Hibernate.isInitialized( child ),
-					"The child eager OneToOne association is not initialized"
+					Hibernate.isInitialized( procreatedChild ),
+					"The procreatedChild eager OneToOne association is not initialized"
 			);
-			assertThat( child.getName(), equalTo( "Stefano" ) );
-			assertSame( child.getMother(), mother );
+			assertThat( procreatedChild.getName(), equalTo( "Stefano" ) );
+			assertSame( procreatedChild.getMother(), mother );
 
-			AdoptedChild child2 = mother.getAdoptedChild();
-			assertThat( child2, notNullValue() );
+			AdoptedChild adoptedChild = mother.getAdoptedChild();
+			assertThat( adoptedChild, notNullValue() );
 			assertTrue(
-					Hibernate.isInitialized( child2 ),
-					"The child2 eager OneToOne association is not initialized"
+					Hibernate.isInitialized( adoptedChild ),
+					"The adoptedChild eager OneToOne association is not initialized"
 			);
-			assertThat( child2.getName(), equalTo( "Luisa" ) );
-			assertSame( child2.getStepMother(), mother );
+			assertThat( adoptedChild.getName(), equalTo( "Luisa" ) );
+			assertSame( adoptedChild.getStepMother(), mother );
 
-			Mother biologicalMother = child2.getBiologicalMother();
+			Mother biologicalMother = adoptedChild.getBiologicalMother();
 			assertThat( biologicalMother.getId(), equalTo( 6 ) );
 			assertThat( biologicalMother.getAdoptedChild(), nullValue() );
 
 			Child anotherChild = biologicalMother.getProcreatedChild();
 			assertThat( anotherChild.getId(), equalTo( 8 ) );
 			assertThat( anotherChild.getName(), equalTo( "Igor" ) );
-			assertSame( anotherChild.getMother(), biologicalMother );
+			assertSame(  biologicalMother, anotherChild.getMother() );
 
 			statementInspector.assertExecutedCount( 3 );
 			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 3 );

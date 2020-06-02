@@ -46,20 +46,20 @@ public class ToOneSelfReferenceCircularityDetectionTest {
 		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
 		statementInspector.clear();
 		scope.inTransaction(
-				/*
-				select
-					e1_0.id,
-					e2_0.id,
-					e2_0.name,
-					e1_0.name
-				from
-					EntityTest as e1_0
-				left outer join
-					EntityTest as e2_0
-						on e1_0.entity_id = e2_0.id
-				where
-					e1_0.id = ?
-				 */
+//				/*
+//				select
+//					e1_0.id,
+//					e2_0.id,
+//					e2_0.name,
+//					e1_0.name
+//				from
+//					EntityTest as e1_0
+//				left outer join
+//					EntityTest as e2_0
+//						on e1_0.entity_id = e2_0.id
+//				where
+//					e1_0.id = ?
+//				 */
 				session -> {
 					final EntityTest entity = session.get( EntityTest.class, 1 );
 					assertThat( entity.getName(), is( "e1" ) );
@@ -72,8 +72,8 @@ public class ToOneSelfReferenceCircularityDetectionTest {
 					assertThat( entity3, notNullValue() );
 					assertThat( entity3.getName(), is( "e3" ) );
 
-					statementInspector.assertExecutedCount( 2 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 1 );
+					statementInspector.assertExecutedCount( 1 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", scope.getSessionFactory().getMaximumFetchDepth() );
 				}
 		);
 	}

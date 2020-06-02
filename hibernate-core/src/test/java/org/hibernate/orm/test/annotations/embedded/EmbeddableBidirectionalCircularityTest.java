@@ -11,6 +11,7 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 import org.hibernate.testing.jdbc.SQLStatementInspector;
 import org.hibernate.testing.orm.junit.DomainModel;
@@ -20,11 +21,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.hamcrest.CoreMatchers;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
@@ -32,12 +28,12 @@ import static org.junit.jupiter.api.Assertions.assertSame;
  */
 @DomainModel(
 		annotatedClasses = {
-				EmbeddableCircularityTest.EntityTest.class,
-				EmbeddableCircularityTest.EntityTest2.class
+				EmbeddableBidirectionalCircularityTest.EntityTest.class,
+				EmbeddableBidirectionalCircularityTest.EntityTest2.class
 		}
 )
 @SessionFactory(statementInspectorClass = SQLStatementInspector.class)
-public class EmbeddableCircularityTest {
+public class EmbeddableBidirectionalCircularityTest {
 
 	@BeforeEach
 	public void setUp(SessionFactoryScope scope) {
@@ -88,83 +84,7 @@ public class EmbeddableCircularityTest {
 					EntityTest2 entity2 = entity.getEntity2();
 					assertSame( entity2.getEmbeddedAttribute().getEntity(), entity );
 					statementInspector.assertExecutedCount( 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", scope.getSessionFactory().getMaximumFetchDepth() );
-				}
-		);
-	}
-
-	@Test
-	public void testGet2(SessionFactoryScope scope) {
-		scope.inTransaction(
-				session -> {
-					EntityTest entity = new EntityTest( 3 );
-					EntityTest2 entityTest2 = new EntityTest2( 4 );
-
-					EntityTest entity3 = new EntityTest( 5 );
-
-					EmbeddableTest embeddable = new EmbeddableTest();
-					embeddable.setEntity( entity3 );
-					embeddable.setStringField( "Fab" );
-
-					entityTest2.setEmbeddedAttribute( embeddable );
-
-					entity.setEntity2( entityTest2 );
-					session.save( entity );
-					session.save( entity3 );
-					session.save( entityTest2 );
-				}
-		);
-		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
-		statementInspector.clear();
-		scope.inTransaction(
-				session -> {
-					EntityTest entity = session.get( EntityTest.class, 3 );
-					EntityTest2 entity2 = entity.getEntity2();
-					EntityTest entity3 = entity2.getEmbeddedAttribute().getEntity();
-					assertThat( entity3.getId(), is( 5 ) );
-					assertThat( entity3.getEntity2(), nullValue() );
-					statementInspector.assertExecutedCount( 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", scope.getSessionFactory().getMaximumFetchDepth() );
-				}
-		);
-	}
-
-	@Test
-	public void testGet3(SessionFactoryScope scope) {
-		scope.inTransaction(
-				session -> {
-					EntityTest entity = new EntityTest( 3 );
-					EntityTest2 entityTest = new EntityTest2( 4 );
-
-					EntityTest entity3 = new EntityTest( 5 );
-
-					EntityTest2 entityTest2 = new EntityTest2( 6 );
-
-					entity3.setEntity2( entityTest2 );
-					EmbeddableTest embeddable = new EmbeddableTest();
-					embeddable.setEntity( entity3 );
-					embeddable.setStringField( "Fab" );
-
-					entityTest.setEmbeddedAttribute( embeddable );
-
-					entity.setEntity2( entityTest );
-					session.save( entity );
-					session.save( entity3 );
-					session.save( entityTest );
-					session.save( entityTest2 );
-				}
-		);
-		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
-		statementInspector.clear();
-		scope.inTransaction(
-				session -> {
-					EntityTest entity = session.get( EntityTest.class, 3 );
-					EntityTest2 entity2 = entity.getEntity2();
-					EntityTest entity3 = entity2.getEmbeddedAttribute().getEntity();
-					assertThat( entity3.getId(), is( 5 ) );
-					assertThat( entity3.getEntity2().getId(), is( 6 ) );
-					statementInspector.assertExecutedCount( 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", scope.getSessionFactory().getMaximumFetchDepth() );
+					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 2 );
 				}
 		);
 	}
@@ -237,7 +157,7 @@ public class EmbeddableCircularityTest {
 	public static class EmbeddableTest {
 		private String stringField;
 
-		@ManyToOne
+		@OneToOne(mappedBy = "entity2")
 		private EntityTest entity;
 
 		public String getStringField() {
