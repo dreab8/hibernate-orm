@@ -20,8 +20,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.hamcrest.CoreMatchers;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,15 +30,19 @@ import static org.junit.jupiter.api.Assertions.assertSame;
  */
 @DomainModel(
 		annotatedClasses = {
-				EmbeddableCircularityTest.EntityTest.class,
-				EmbeddableCircularityTest.EntityTest2.class
+				EmbeddableWithManyToOneTest.EntityTest.class,
+				EmbeddableWithManyToOneTest.EntityTest2.class
 		}
 )
 @SessionFactory(statementInspectorClass = SQLStatementInspector.class)
-public class EmbeddableCircularityTest {
+public class EmbeddableWithManyToOneTest {
+
+	private int expectedJoinCount;
 
 	@BeforeEach
 	public void setUp(SessionFactoryScope scope) {
+		expectedJoinCount = scope.getSessionFactory().getMaximumFetchDepth();
+
 		scope.inTransaction(
 				session -> {
 					EntityTest entity = new EntityTest( 1 );
@@ -88,7 +90,11 @@ public class EmbeddableCircularityTest {
 					EntityTest2 entity2 = entity.getEntity2();
 					assertSame( entity2.getEmbeddedAttribute().getEntity(), entity );
 					statementInspector.assertExecutedCount( 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", scope.getSessionFactory().getMaximumFetchDepth() );
+					statementInspector.assertNumberOfOccurrenceInQuery(
+							0,
+							"join",
+							expectedJoinCount
+					);
 				}
 		);
 	}
@@ -124,7 +130,11 @@ public class EmbeddableCircularityTest {
 					assertThat( entity3.getId(), is( 5 ) );
 					assertThat( entity3.getEntity2(), nullValue() );
 					statementInspector.assertExecutedCount( 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", scope.getSessionFactory().getMaximumFetchDepth() );
+					statementInspector.assertNumberOfOccurrenceInQuery(
+							0,
+							"join",
+							expectedJoinCount
+					);
 				}
 		);
 	}
@@ -164,7 +174,11 @@ public class EmbeddableCircularityTest {
 					assertThat( entity3.getId(), is( 5 ) );
 					assertThat( entity3.getEntity2().getId(), is( 6 ) );
 					statementInspector.assertExecutedCount( 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", scope.getSessionFactory().getMaximumFetchDepth() );
+					statementInspector.assertNumberOfOccurrenceInQuery(
+							0,
+							"join",
+							expectedJoinCount
+					);
 				}
 		);
 	}

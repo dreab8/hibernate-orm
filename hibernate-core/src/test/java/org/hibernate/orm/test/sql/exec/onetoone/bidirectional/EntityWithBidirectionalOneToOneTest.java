@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * @author Chris CranfinitializersCountord
+ * @author Chris Cranford
  */
 @DomainModel(
 		annotatedClasses = {
@@ -80,7 +80,7 @@ public class EntityWithBidirectionalOneToOneTest {
 		scope.inTransaction( session -> {
 			final Mother mother = session.get( Mother.class, 1 );
 
-			Child child = mother.getProcreatedChild();
+			Child child = mother.getBiologicalChild();
 			assertThat( child, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( child ),
@@ -89,7 +89,7 @@ public class EntityWithBidirectionalOneToOneTest {
 			assertThat( child.getName(), is( "Luis" ) );
 			assertSame( child.getMother(), mother );
 
-			AdoptedChild adoptedChild = mother.getAdoptedChild();
+			AdoptedChild adoptedChild = mother.getAdopted();
 			assertThat( adoptedChild.getName(), is( "Fab" ) );
 			assertTrue(
 					Hibernate.isInitialized( adoptedChild ),
@@ -127,7 +127,7 @@ public class EntityWithBidirectionalOneToOneTest {
 		scope.inTransaction( session -> {
 			final Mother mother = session.get( Mother.class, 4 );
 
-			Child child = mother.getProcreatedChild();
+			Child child = mother.getBiologicalChild();
 			assertThat( child, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( child ),
@@ -136,7 +136,7 @@ public class EntityWithBidirectionalOneToOneTest {
 			assertThat( child.getName(), is( "Carlo" ) );
 			assertSame( child.getMother(), mother );
 
-			AdoptedChild adoptedChild = mother.getAdoptedChild();
+			AdoptedChild adoptedChild = mother.getAdopted();
 			assertThat( adoptedChild, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( adoptedChild ),
@@ -156,18 +156,18 @@ public class EntityWithBidirectionalOneToOneTest {
 	public void testGetMother3(SessionFactoryScope scope) {
 		scope.inTransaction( session -> {
 
-			Mother parent = new Mother( 4, "Catia" );
+			Mother mother = new Mother( 4, "Catia" );
 
-			Child child = new Child( 5, "Stefano", parent );
+			Child child = new Child( 5, "Stefano", mother );
 
-			AdoptedChild adoptedChild = new AdoptedChild( 7, "Luisa", parent );
+			AdoptedChild adoptedChild = new AdoptedChild( 7, "Luisa", mother );
 
 			Mother biologicalMother = new Mother( 6, "Rebecca" );
 			adoptedChild.setBiologicalMother( biologicalMother );
 
 			Child anotherChild = new Child( 8, "Igor", biologicalMother );
 
-			session.save( parent );
+			session.save( mother );
 			session.save( biologicalMother );
 			session.save( child );
 			session.save( adoptedChild );
@@ -181,7 +181,7 @@ public class EntityWithBidirectionalOneToOneTest {
 
 			assertThat( mother.getName(), equalTo( "Catia" ) );
 
-			Child procreatedChild = mother.getProcreatedChild();
+			Child procreatedChild = mother.getBiologicalChild();
 			assertThat( procreatedChild, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( procreatedChild ),
@@ -190,7 +190,7 @@ public class EntityWithBidirectionalOneToOneTest {
 			assertThat( procreatedChild.getName(), equalTo( "Stefano" ) );
 			assertSame( procreatedChild.getMother(), mother );
 
-			AdoptedChild adoptedChild = mother.getAdoptedChild();
+			AdoptedChild adoptedChild = mother.getAdopted();
 			assertThat( adoptedChild, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( adoptedChild ),
@@ -201,9 +201,9 @@ public class EntityWithBidirectionalOneToOneTest {
 
 			Mother biologicalMother = adoptedChild.getBiologicalMother();
 			assertThat( biologicalMother.getId(), equalTo( 6 ) );
-			assertThat( biologicalMother.getAdoptedChild(), nullValue() );
+			assertThat( biologicalMother.getAdopted(), nullValue() );
 
-			Child anotherChild = biologicalMother.getProcreatedChild();
+			Child anotherChild = biologicalMother.getBiologicalChild();
 			assertThat( anotherChild.getId(), equalTo( 8 ) );
 			assertThat( anotherChild.getName(), equalTo( "Igor" ) );
 			assertSame(  biologicalMother, anotherChild.getMother() );
@@ -230,14 +230,14 @@ public class EntityWithBidirectionalOneToOneTest {
 			assertThat( mother, notNullValue() );
 			assertThat( mother.getName(), is( "Giulia" ) );
 
-			Child child1 = mother.getProcreatedChild();
+			Child child1 = mother.getBiologicalChild();
 			assertSame( child1, child );
 			assertTrue(
 					Hibernate.isInitialized( child1 ),
 					"The child eager OneToOne association is not initialized"
 			);
 
-			AdoptedChild adoptedChild = mother.getAdoptedChild();
+			AdoptedChild adoptedChild = mother.getAdopted();
 			assertThat( adoptedChild, notNullValue() );
 			assertTrue(
 					Hibernate.isInitialized( adoptedChild ),
@@ -285,14 +285,14 @@ public class EntityWithBidirectionalOneToOneTest {
 			assertThat( mother, notNullValue() );
 			assertThat( mother.getName(), is( "Giulia" ) );
 
-			Child child1 = mother.getProcreatedChild();
+			Child child1 = mother.getBiologicalChild();
 			assertSame( child1, child );
 			Contracts.assertTrue(
 					Hibernate.isInitialized( child1 ),
 					"The child eager OneToOne association is not initialized"
 			);
 
-			AdoptedChild adoptedChild = mother.getAdoptedChild();
+			AdoptedChild adoptedChild = mother.getAdopted();
 			assertThat( adoptedChild, notNullValue() );
 			Contracts.assertTrue(
 					Hibernate.isInitialized( adoptedChild ),
@@ -305,13 +305,13 @@ public class EntityWithBidirectionalOneToOneTest {
 			assertThat( biologicalMother, notNullValue() );
 			assertThat( biologicalMother.getId(), equalTo( 6 ) );
 
-			Child anotherChild = biologicalMother.getProcreatedChild();
+			Child anotherChild = biologicalMother.getBiologicalChild();
 			assertThat( anotherChild, notNullValue() );
 			assertThat( anotherChild.getId(), equalTo( 8 ) );
 
 			Assert.assertSame( anotherChild.getMother(), biologicalMother );
 
-			assertThat( biologicalMother.getAdoptedChild(), nullValue() );
+			assertThat( biologicalMother.getAdopted(), nullValue() );
 
 			statementInspector.assertExecutedCount( 3 );
 			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 3 );
@@ -327,17 +327,17 @@ public class EntityWithBidirectionalOneToOneTest {
 		scope.inTransaction(
 				session -> {
 					final Mother mother = session.createQuery(
-							"SELECT p FROM Mother p JOIN p.procreatedChild WHERE p.id = :id",
+							"SELECT m FROM Mother m JOIN m.biologicalChild WHERE m.id = :id",
 							Mother.class
 					)
 							.setParameter( "id", 1 )
 							.getSingleResult();
 
-					Child child = mother.getProcreatedChild();
+					Child child = mother.getBiologicalChild();
 					assertThat( child, notNullValue() );
 					assertThat( child.getName(), is( "Luis" ) );
 					statementInspector.assertExecutedCount( 3 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 2 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 1 );
 					statementInspector.assertNumberOfOccurrenceInQuery( 1, "join", 3 );
 					statementInspector.assertNumberOfOccurrenceInQuery( 2, "join", 3 );
 				}
@@ -359,8 +359,8 @@ public class EntityWithBidirectionalOneToOneTest {
 					assertThat( mother, notNullValue() );
 
 					assertThat( mother.getName(), is( "Giulia" ) );
-					statementInspector.assertExecutedCount( 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 2 );
+					statementInspector.assertExecutedCount( 2 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 1 );
 					statementInspector.assertNumberOfOccurrenceInQuery( 1, "join", 3 );
 				}
 		);
@@ -373,10 +373,10 @@ public class EntityWithBidirectionalOneToOneTest {
 		private String name;
 
 		@OneToOne
-		private Child procreatedChild;
+		private Child biologicalChild;
 
 		@OneToOne(mappedBy = "stepMother")
-		private AdoptedChild adoptedChild;
+		private AdoptedChild adopted;
 
 		Mother() {
 		}
@@ -406,20 +406,20 @@ public class EntityWithBidirectionalOneToOneTest {
 			this.name = name;
 		}
 
-		public Child getProcreatedChild() {
-			return procreatedChild;
+		public Child getBiologicalChild() {
+			return biologicalChild;
 		}
 
-		public void setProcreatedChild(Child procreatedChild) {
-			this.procreatedChild = procreatedChild;
+		public void setBiologicalChild(Child biologicalChild) {
+			this.biologicalChild = biologicalChild;
 		}
 
-		public AdoptedChild getAdoptedChild() {
-			return adoptedChild;
+		public AdoptedChild getAdopted() {
+			return adopted;
 		}
 
-		public void setAdoptedChild(AdoptedChild adoptedChild) {
-			this.adoptedChild = adoptedChild;
+		public void setAdopted(AdoptedChild adopted) {
+			this.adopted = adopted;
 		}
 	}
 
@@ -429,7 +429,7 @@ public class EntityWithBidirectionalOneToOneTest {
 		private Integer id;
 		private String name;
 
-		@OneToOne(mappedBy = "procreatedChild")
+		@OneToOne(mappedBy = "biologicalChild")
 		private Mother mother;
 
 		Child() {
@@ -440,7 +440,7 @@ public class EntityWithBidirectionalOneToOneTest {
 			this.id = id;
 			this.name = name;
 			this.mother = mother;
-			this.mother.setProcreatedChild( this );
+			this.mother.setBiologicalChild( this );
 		}
 
 		public Integer getId() {
@@ -489,7 +489,7 @@ public class EntityWithBidirectionalOneToOneTest {
 			this.id = id;
 			this.name = name;
 			this.stepMother = stepMother;
-			this.stepMother.setAdoptedChild( this );
+			this.stepMother.setAdopted( this );
 		}
 
 		public Integer getId() {

@@ -4,72 +4,47 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later
  * See the lgpl.txt file in the root directory or http://www.gnu.org/licenses/lgpl-2.1.html
  */
-package org.hibernate.orm.test.annotations.embedded;
+package org.hibernate.orm.test.manytoone;
 
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 
 import org.hibernate.testing.jdbc.SQLStatementInspector;
 import org.hibernate.testing.orm.junit.DomainModel;
 import org.hibernate.testing.orm.junit.SessionFactory;
 import org.hibernate.testing.orm.junit.SessionFactoryScope;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hibernate.orm.test.manytoone.ManyToOneBidirectionalTest.*;
 
 /**
  * @author Andrea Boriero
  */
 @DomainModel(
 		annotatedClasses = {
-				EmbeddableBidirectionalCircularityTest.EntityTest.class,
-				EmbeddableBidirectionalCircularityTest.EntityTest2.class
+				EntityTest.class,
+				EntityTest2.class
 		}
 )
 @SessionFactory(statementInspectorClass = SQLStatementInspector.class)
-public class EmbeddableBidirectionalCircularityTest {
+public class ManyToOneBidirectionalTest {
 
 	@BeforeEach
 	public void setUp(SessionFactoryScope scope) {
 		scope.inTransaction(
 				session -> {
-					EntityTest entity = new EntityTest( 1 );
-					EntityTest2 entityTest2 = new EntityTest2( 2 );
-
-					EmbeddableTest embeddable = new EmbeddableTest();
-					embeddable.setEntity( entity );
-					embeddable.setStringField( "Fab" );
-
-					entityTest2.setEmbeddedAttribute( embeddable );
-
-					entity.setEntity2( entityTest2 );
+					EntityTest entity = new EntityTest( 1, "e1" );
+					EntityTest2 entity2 = new EntityTest2( 2, "e2" );
+					EntityTest entity3 = new EntityTest( 3, "e3" );
+					entity.setEntity2( entity2 );
+					entity2.setEntity( entity3 );
+					session.save( entity3 );
+					session.save( entity2 );
 					session.save( entity );
-					session.save( entityTest2 );
-				}
-		);
-	}
-
-	@AfterEach
-	public void tearDown(SessionFactoryScope scope) {
-		scope.inTransaction(
-				session -> {
-					session.createQuery( "from EntityTest", EntityTest.class ).list().forEach(
-							entityTest -> {
-								session.delete( entityTest );
-							}
-					);
-
-					session.createQuery( "from EntityTest2", EntityTest2.class ).list().forEach(
-							entityTest -> {
-								session.delete( entityTest );
-							}
-					);
 				}
 		);
 	}
@@ -81,10 +56,15 @@ public class EmbeddableBidirectionalCircularityTest {
 		scope.inTransaction(
 				session -> {
 					EntityTest entity = session.get( EntityTest.class, 1 );
+
 					EntityTest2 entity2 = entity.getEntity2();
-					assertSame( entity2.getEmbeddedAttribute().getEntity(), entity );
+					assertThat( entity2.getName(), is( "e2" ) );
+
+					EntityTest entity3 = entity2.getEntity();
+					assertThat( entity3.getName(), is( "e3" ) );
+
 					statementInspector.assertExecutedCount( 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 2 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", scope.getSessionFactory().getMaximumFetchDepth() );
 				}
 		);
 	}
@@ -94,14 +74,17 @@ public class EmbeddableBidirectionalCircularityTest {
 		@Id
 		private Integer id;
 
+		private String name;
+
 		@ManyToOne
 		private EntityTest2 entity2;
 
 		public EntityTest() {
 		}
 
-		public EntityTest(int id) {
+		public EntityTest(int id, String name) {
 			this.id = id;
+			this.name = name;
 		}
 
 		public Integer getId() {
@@ -119,6 +102,14 @@ public class EmbeddableBidirectionalCircularityTest {
 		public void setEntity2(EntityTest2 entity2) {
 			this.entity2 = entity2;
 		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
 	}
 
 	@Entity(name = "EntityTest2")
@@ -126,14 +117,17 @@ public class EmbeddableBidirectionalCircularityTest {
 		@Id
 		private Integer id;
 
-		@Embedded
-		private EmbeddableTest embeddedAttribute;
+		private String name;
+
+		@ManyToOne
+		private EntityTest entity;
 
 		public EntityTest2() {
 		}
 
-		public EntityTest2(int id) {
+		public EntityTest2(int id, String name) {
 			this.id = id;
+			this.name = name;
 		}
 
 		public Integer getId() {
@@ -144,36 +138,20 @@ public class EmbeddableBidirectionalCircularityTest {
 			this.id = id;
 		}
 
-		public EmbeddableTest getEmbeddedAttribute() {
-			return embeddedAttribute;
-		}
-
-		public void setEmbeddedAttribute(EmbeddableTest embeddedAttribute) {
-			this.embeddedAttribute = embeddedAttribute;
-		}
-	}
-
-	@Embeddable
-	public static class EmbeddableTest {
-		private String stringField;
-
-		@OneToOne(mappedBy = "entity2")
-		private EntityTest entity;
-
-		public String getStringField() {
-			return stringField;
-		}
-
-		public void setStringField(String stringField) {
-			this.stringField = stringField;
-		}
-
 		public EntityTest getEntity() {
 			return entity;
 		}
 
 		public void setEntity(EntityTest entity) {
 			this.entity = entity;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
 		}
 	}
 }

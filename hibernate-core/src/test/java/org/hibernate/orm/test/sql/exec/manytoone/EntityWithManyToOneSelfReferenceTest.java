@@ -96,6 +96,7 @@ public class EntityWithManyToOneSelfReferenceTest {
 
 	@Test
 	public void testGetEntity(SessionFactoryScope scope) {
+		Integer maximumFetchDepth = scope.getSessionFactory().getMaximumFetchDepth();
 		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
 		statementInspector.clear();
 		scope.inTransaction(
@@ -106,7 +107,11 @@ public class EntityWithManyToOneSelfReferenceTest {
 					);
 
 					statementInspector.assertExecutedCount( 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 1 );
+					statementInspector.assertNumberOfOccurrenceInQuery(
+							0,
+							"join",
+							maximumFetchDepth
+					);
 
 					assertThat( loaded, notNullValue() );
 					assertThat( loaded.getName(), is( "second" ) );
@@ -127,7 +132,11 @@ public class EntityWithManyToOneSelfReferenceTest {
 							1
 					);
 					statementInspector.assertExecutedCount( 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 1 );
+					statementInspector.assertNumberOfOccurrenceInQuery(
+							0,
+							"join",
+							maximumFetchDepth
+					);
 
 					assertThat( loaded, notNullValue() );
 					assertThat( loaded.getName(), is( "first" ) );
