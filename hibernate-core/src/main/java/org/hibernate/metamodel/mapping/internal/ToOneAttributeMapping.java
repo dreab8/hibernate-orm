@@ -183,40 +183,76 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 		//		2) The NavigablePath to the entity-valued-reference that is the "other side" of the circularity
 
 		final AssociationKey associationKey = foreignKeyDescriptor.getAssociationKey();
+		final NavigablePath parentOfParent = fetchablePath.getParent().getParent();
+		if ( parentOfParent == null ) {
+			return null;
+		}
 
 		if ( creationState.isAssociationKeyVisited( associationKey ) ) {
-			final NavigablePath parentOfParent = fetchablePath.getParent().getParent();
-			if ( parentOfParent == null ) {
-				return null;
-			}
 
-			ModelPart modelPart = creationState.resolveModelPart( parentOfParent );
 			NavigablePath parent = fetchablePath.getParent();
+			ModelPart modelPart = creationState.resolveModelPart( parent );
 			while ( modelPart instanceof EmbeddedAttributeMapping ) {
 				parent = parent.getParent();
 				modelPart = creationState.resolveModelPart( parent );
 			}
+
 			if ( this.mappedBy != null && parent.getFullPath().endsWith( this.mappedBy )  ) {
-				if ( entityMappingType.getJavaTypeDescriptor() == modelPart.getJavaTypeDescriptor() ) {
-					return createBiDirectionalFetch( fetchablePath, fetchParent );
-				}
+				/*
+					class Child {
+						@OneToOne(mappedBy = "biologicalChild")
+						private Mother mother;
+					}
+
+					class Mother {
+						@OneToOne
+						private Child biologicalChild;
+					}
+
+					fetchablePath= Mother.biologicalChild.mother
+					this.mappedBy = "biologicalChild"
+					parent.getFullPath() = "Mother.biologicalChild"
+				 */
+				return createBiDirectionalFetch( fetchablePath, fetchParent, parent.getParent() );
 			}
-			final ModelPart parentModelPart = creationState.resolveModelPart( fetchablePath.getParent() );
-			if ( parentModelPart instanceof ToOneAttributeMapping ) {
-				String mappedBy = ( (ToOneAttributeMapping) parentModelPart ).getMappedBy();
-				if ( mappedBy != null ) {
+
+			/*
+				check if mappedBy is on the other side of the association
+			 */
+//			final ModelPart otherSideAssociationModelPart = creationState.resolveModelPart( fetchablePath.getParent() );
+
+			if ( modelPart instanceof ToOneAttributeMapping ) {
+				String otherSideMappedBy = ( (ToOneAttributeMapping) modelPart ).getMappedBy();
+				if ( otherSideMappedBy != null ) {
 					String fullPath = fetchablePath.getFullPath();
-					if ( fullPath.endsWith( mappedBy ) ) {
-						return createBiDirectionalFetch( fetchablePath, fetchParent );
+					/*
+						class Child {
+							@OneToOne(mappedBy = "biologicalChild")
+							private Mother mother;
+						}
+
+						class Mother {
+							@OneToOne
+							private Child biologicalChild;
+						}
+
+						fetchablePath = "Child.mother.biologicalMother"
+						otherSideAssociationModelPart = ToOneAttributeMapping("Child.mother")
+						otherSideMappedBy = "biologicalMother"
+					 */
+
+					if ( fullPath.endsWith( otherSideMappedBy ) ) {
+						return createBiDirectionalFetch( fetchablePath, fetchParent, parent.getParent() );
 					}
 				}
 			}
-			if ( parentModelPart instanceof EntityCollectionPart ) {
-				String mappedBy = ( (PluralAttributeMapping) creationState.resolveModelPart(
-						parentOfParent ) ).getMappedBy();
-				if ( mappedBy != null ) {
-					if ( fetchablePath.getFullPath().endsWith( mappedBy ) ) {
-						return createBiDirectionalFetch( fetchablePath, fetchParent );
+
+			if ( modelPart instanceof EntityCollectionPart ) {
+				String otherSideMappedBy = ( (PluralAttributeMapping) creationState.resolveModelPart( parentOfParent ) )
+						.getMappedBy();
+				if ( otherSideMappedBy != null ) {
+					if ( fetchablePath.getFullPath().endsWith( otherSideMappedBy ) ) {
+						return createBiDirectionalFetch( fetchablePath, fetchParent,parent.getParent() );
 					}
 				}
 			}
@@ -229,22 +265,16 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 		return mappedBy;
 	}
 
-	private Fetch createBiDirectionalFetch(NavigablePath fetchablePath, FetchParent fetchParent) {
-		final EntityResultGraphNode referencedEntityReference = resolveEntityGraphNode( fetchParent );
-
-		if ( referencedEntityReference == null ) {
-			throw new HibernateException(
-					"Could not locate entity-valued reference for circular path `" + fetchablePath + "`"
-			);
-		}
-
-		NavigablePath parent = fetchablePath.getParent().getParent();
+	private Fetch createBiDirectionalFetch(
+			NavigablePath fetchablePath,
+			FetchParent fetchParent,
+			NavigablePath referencedNavigablePath) {
 		return new BiDirectionalFetchImpl(
 				FetchTiming.IMMEDIATE,
 				fetchablePath,
 				fetchParent,
 				this,
-				parent
+				referencedNavigablePath
 		);
 	}
 

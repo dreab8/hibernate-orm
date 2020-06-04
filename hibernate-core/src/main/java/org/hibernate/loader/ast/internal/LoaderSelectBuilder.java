@@ -211,7 +211,7 @@ public class LoaderSelectBuilder {
 				new SimpleFromClauseAccessImpl(),
 				lockOptions,
 				this::visitFetches,
-				numberOfKeysToLoad > 1,
+				numberOfKeysToLoad > 1 || restrictedPart instanceof ForeignKeyDescriptor,
 				creationContext
 		);
 

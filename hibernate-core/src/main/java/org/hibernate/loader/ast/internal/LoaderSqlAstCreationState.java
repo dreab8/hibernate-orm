@@ -51,7 +51,7 @@ public class LoaderSqlAstCreationState
 
 	private final QuerySpec querySpec;
 	private final SqlAliasBaseManager sqlAliasBaseManager;
-	private boolean forceIdentifierSelection;
+	private final boolean forceIdentifierSelection;
 	private final SqlAstCreationContext sf;
 	private final SqlAstQuerySpecProcessingStateImpl processingState;
 	private final FromClauseAccess fromClauseAccess;

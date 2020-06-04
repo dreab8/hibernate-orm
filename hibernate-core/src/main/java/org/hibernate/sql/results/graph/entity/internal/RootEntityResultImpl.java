@@ -69,7 +69,7 @@ public class RootEntityResultImpl extends AbstractFetchParent implements EntityR
 
 		EntityIdentifierMapping identifierMapping = entityDescriptor.getIdentifierMapping();
 		if ( identifierMapping instanceof SingleAttributeIdentifierMapping ) {
-			identifierResult = identifierMapping.createDomainResult(
+			identifierMapping.createDomainResult(
 					navigablePath.append( EntityIdentifierMapping.ROLE_LOCAL_NAME ),
 					entityTableGroup,
 					null,
@@ -77,8 +77,6 @@ public class RootEntityResultImpl extends AbstractFetchParent implements EntityR
 			);
 		}
 		else {
-			// TODO (6.0) : crete identifier result for CompositeIdentifierMapping
-			identifierResult = null;
 			visitCompositeIdentifierMapping( navigablePath, creationState, identifierMapping, entityTableGroup );
 		}
 
