@@ -81,10 +81,12 @@ public class EmbeddableWithManyToOneCircularityTest {
 		scope.inTransaction(
 				session -> {
 					EntityTest entity = session.get( EntityTest.class, 1 );
+
 					EntityTest2 entity2 = entity.getEntity2();
-					assertSame( entity2.getEmbeddedAttribute().getEntity(), entity );
+					assertSame( entity, entity2.getEmbeddedAttribute().getEntity() );
+
 					statementInspector.assertExecutedCount( 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 2 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 1 );
 				}
 		);
 	}
