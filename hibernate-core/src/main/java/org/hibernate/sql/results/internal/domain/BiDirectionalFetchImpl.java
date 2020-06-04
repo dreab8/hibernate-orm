@@ -176,9 +176,7 @@ public class BiDirectionalFetchImpl implements BiDirectionalFetch, Association {
 		public Object assemble(RowProcessingState rowProcessingState, JdbcValuesSourceProcessingOptions options) {
 			final EntityInitializer initializer = resolveCircularInitializer( rowProcessingState );
 			if ( initializer == null ) {
-
-				final Initializer parentInitializer = rowProcessingState.resolveInitializer(
-						circularPath.getParent() );
+				final Initializer parentInitializer = rowProcessingState.resolveInitializer( circularPath );
 				assert parentInitializer instanceof CollectionInitializer;
 				final CollectionInitializer circ = (CollectionInitializer) parentInitializer;
 				final CollectionKey collectionKey = circ.resolveCollectionKey( rowProcessingState );
@@ -189,8 +187,7 @@ public class BiDirectionalFetchImpl implements BiDirectionalFetch, Association {
 
 				final SharedSessionContractImplementor session = rowProcessingState.getJdbcValuesSourceProcessingState()
 						.getSession();
-				return session.getPersistenceContext()
-						.getEntity( entityKey );
+				return session.getPersistenceContext().getEntity( entityKey );
 
 			}
 			if ( initializer.getInitializedInstance() == null ) {
@@ -205,6 +202,9 @@ public class BiDirectionalFetchImpl implements BiDirectionalFetch, Association {
 			final Initializer initializer = rowProcessingState.resolveInitializer( circularPath );
 			if ( initializer instanceof EntityInitializer ) {
 				return (EntityInitializer) initializer;
+			}
+			if ( initializer instanceof CollectionInitializer ) {
+				return null;
 			}
 			final ModelPart initializedPart = initializer.getInitializedPart();
 

@@ -22,6 +22,7 @@ import org.hibernate.jpa.spi.JpaCompliance;
 import org.hibernate.mapping.Collection;
 import org.hibernate.mapping.IndexedCollection;
 import org.hibernate.mapping.List;
+import org.hibernate.mapping.OneToOne;
 import org.hibernate.mapping.Property;
 import org.hibernate.mapping.Value;
 import org.hibernate.metamodel.mapping.BasicValuedModelPart;
@@ -95,6 +96,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 	private final FetchStyle fetchStyle;
 
 	private final CascadeStyle cascadeStyle;
+	private final String mappedBy;
 
 	private final CollectionPersister collectionDescriptor;
 	private final String separateCollectionTable;
@@ -170,6 +172,7 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 		this.fetchStyle = fetchStyle;
 		this.cascadeStyle = cascadeStyle;
 		this.collectionDescriptor = collectionDescriptor;
+		this.mappedBy = bootDescriptor.getMappedByProperty();
 
 		this.sqlAliasStem = SqlAliasStemHelper.INSTANCE.generateStemFromAttributeName( attributeName );
 
@@ -375,6 +378,11 @@ public class PluralAttributeMappingImpl extends AbstractAttributeMapping impleme
 	@Override
 	public String getSeparateCollectionTable() {
 		return separateCollectionTable;
+	}
+
+	@Override
+	public String getMappedBy() {
+		return mappedBy;
 	}
 
 	@Override

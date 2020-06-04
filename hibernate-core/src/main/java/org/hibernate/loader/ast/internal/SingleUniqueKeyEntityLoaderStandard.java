@@ -20,7 +20,9 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.loader.ast.spi.SingleUniqueKeyEntityLoader;
 import org.hibernate.metamodel.mapping.EntityMappingType;
 import org.hibernate.metamodel.mapping.JdbcMapping;
+import org.hibernate.metamodel.mapping.ModelPart;
 import org.hibernate.metamodel.mapping.SingularAttributeMapping;
+import org.hibernate.metamodel.mapping.internal.ToOneAttributeMapping;
 import org.hibernate.query.spi.QueryOptions;
 import org.hibernate.query.spi.QueryOptionsAdapter;
 import org.hibernate.query.spi.QueryParameterBindings;
@@ -40,13 +42,17 @@ import org.hibernate.sql.exec.spi.JdbcSelect;
  */
 public class SingleUniqueKeyEntityLoaderStandard<T> implements SingleUniqueKeyEntityLoader<T> {
 	private final EntityMappingType entityDescriptor;
-	private final SingularAttributeMapping uniqueKeyAttribute;
+	private final ModelPart uniqueKeyAttribute;
 
 	public SingleUniqueKeyEntityLoaderStandard(
 			EntityMappingType entityDescriptor,
 			SingularAttributeMapping uniqueKeyAttribute) {
 		this.entityDescriptor = entityDescriptor;
-		this.uniqueKeyAttribute = uniqueKeyAttribute;
+		if ( uniqueKeyAttribute instanceof ToOneAttributeMapping ) {
+			this.uniqueKeyAttribute = ( (ToOneAttributeMapping) uniqueKeyAttribute ).getForeignKeyDescriptor();
+		}else {
+			this.uniqueKeyAttribute = uniqueKeyAttribute;
+		}
 	}
 
 	@Override

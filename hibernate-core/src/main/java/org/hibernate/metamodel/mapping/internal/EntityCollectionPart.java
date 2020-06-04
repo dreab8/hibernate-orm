@@ -39,7 +39,7 @@ import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
  * @author Steve Ebersole
  */
 public class EntityCollectionPart
-		implements CollectionPart, EntityAssociationMapping, EntityValuedFetchable, Association, FetchOptions {
+		implements CollectionPart, EntityAssociationMapping, EntityValuedFetchable, FetchOptions {
 	private final NavigableRole navigableRole;
 	private final CollectionPersister collectionDescriptor;
 	private final Nature nature;

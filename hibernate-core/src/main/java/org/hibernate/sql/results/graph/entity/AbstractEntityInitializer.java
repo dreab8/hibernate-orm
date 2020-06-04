@@ -339,8 +339,7 @@ public abstract class AbstractEntityInitializer extends AbstractFetchParentAcces
 		else {
 			id = identifierAssembler.assemble(
 					rowProcessingState,
-					jdbcValuesSourceProcessingState
-							.getProcessingOptions()
+					jdbcValuesSourceProcessingState.getProcessingOptions()
 			);
 		}
 
@@ -521,8 +520,6 @@ public abstract class AbstractEntityInitializer extends AbstractFetchParentAcces
 //		else {
 //			rowId = null;
 //		}
-
-
 
 		entityDescriptor.setIdentifier( entityInstance, entityIdentifier, session );
 

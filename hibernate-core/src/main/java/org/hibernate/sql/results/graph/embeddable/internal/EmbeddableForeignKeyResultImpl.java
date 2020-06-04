@@ -93,6 +93,7 @@ public class EmbeddableForeignKeyResultImpl<T>
 						false,
 						navigablePath.append( fetchable.getFetchableName() ),
 						domainResult,
+						false,
 						creationState
 				);
 			}

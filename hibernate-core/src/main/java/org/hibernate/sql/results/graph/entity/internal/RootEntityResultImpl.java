@@ -40,6 +40,7 @@ public class RootEntityResultImpl extends AbstractFetchParent implements EntityR
 	private final EntityValuedModelPart referencedModelPart;
 	private final DomainResult discriminatorResult;
 	private final DomainResult versionResult;
+	private DomainResult identifierResult;
 	private final LockMode lockMode;
 
 	public RootEntityResultImpl(
@@ -68,7 +69,7 @@ public class RootEntityResultImpl extends AbstractFetchParent implements EntityR
 
 		EntityIdentifierMapping identifierMapping = entityDescriptor.getIdentifierMapping();
 		if ( identifierMapping instanceof SingleAttributeIdentifierMapping ) {
-			identifierMapping.createDomainResult(
+			identifierResult = identifierMapping.createDomainResult(
 					navigablePath.append( EntityIdentifierMapping.ROLE_LOCAL_NAME ),
 					entityTableGroup,
 					null,
@@ -76,6 +77,8 @@ public class RootEntityResultImpl extends AbstractFetchParent implements EntityR
 			);
 		}
 		else {
+			// TODO (6.0) : crete identifier result for CompositeIdentifierMapping
+			identifierResult = null;
 			visitCompositeIdentifierMapping( navigablePath, creationState, identifierMapping, entityTableGroup );
 		}
 
@@ -195,7 +198,7 @@ public class RootEntityResultImpl extends AbstractFetchParent implements EntityR
 						this,
 						getNavigablePath(),
 						getLockMode(),
-						null,
+						identifierResult,
 						getDiscriminatorResult(),
 						getVersionResult(),
 						creationState

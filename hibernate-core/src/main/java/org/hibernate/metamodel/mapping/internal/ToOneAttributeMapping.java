@@ -58,7 +58,7 @@ import org.hibernate.type.ForeignKeyDirection;
  * @author Steve Ebersole
  */
 public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
-		implements EntityValuedFetchable, EntityAssociationMapping, Association, TableGroupJoinProducer {
+		implements EntityValuedFetchable, EntityAssociationMapping, TableGroupJoinProducer {
 
 	public enum Cardinality {
 		ONE_TO_ONE,
@@ -128,8 +128,9 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 		else {
 			assert bootValue instanceof OneToOne;
 			cardinality = Cardinality.ONE_TO_ONE;
-			this.mappedBy = ((OneToOne)bootValue).getMappedByProperty();
-			if(mappedBy == null){
+			this.mappedBy = ( (OneToOne) bootValue ).getMappedByProperty();
+
+			if ( mappedBy == null ) {
 				mappedBy = bootValue.getReferencedPropertyName();
 			}
 		}
@@ -190,13 +191,10 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 			}
 
 			ModelPart modelPart = creationState.resolveModelPart( parentOfParent );
-			NavigablePath parent = null;
+			NavigablePath parent = fetchablePath.getParent();
 			while ( modelPart instanceof EmbeddedAttributeMapping ) {
-				parent = parentOfParent.getParent();
+				parent = parent.getParent();
 				modelPart = creationState.resolveModelPart( parent );
-			}
-			if ( parent == null ) {
-				parent = parentOfParent;
 			}
 			if ( this.mappedBy != null && parent.getFullPath().endsWith( this.mappedBy )  ) {
 				if ( entityMappingType.getJavaTypeDescriptor() == modelPart.getJavaTypeDescriptor() ) {
@@ -209,6 +207,15 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 				if ( mappedBy != null ) {
 					String fullPath = fetchablePath.getFullPath();
 					if ( fullPath.endsWith( mappedBy ) ) {
+						return createBiDirectionalFetch( fetchablePath, fetchParent );
+					}
+				}
+			}
+			if ( parentModelPart instanceof EntityCollectionPart ) {
+				String mappedBy = ( (PluralAttributeMapping) creationState.resolveModelPart(
+						parentOfParent ) ).getMappedBy();
+				if ( mappedBy != null ) {
+					if ( fetchablePath.getFullPath().endsWith( mappedBy ) ) {
 						return createBiDirectionalFetch( fetchablePath, fetchParent );
 					}
 				}
@@ -335,19 +342,21 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 				1.1 EntityA -> EntityB : as keyResult we need ENTITY_B.id
 				1.2 EntityB -> EntityA : as keyResult we need ENTITY_B.entity_a_id (FK referring column)
 
-				The 1.1 case is always an eager, so we should not arrive at this point, but when max fetch depth is reached the value of the selected attribute is false so instead of an EntityFetchJoinedImpl an EntityFetchSelectImpl has to be created.
-
 			2. JoinTable
 
 		 */
 
-
+		boolean selectByUniqueKey;
 		if ( referringPrimaryKey ) {
+			// case 1.2
 			keyResult = foreignKeyDescriptor.createDomainResult( fetchablePath, parentTableGroup, creationState );
+			selectByUniqueKey = false;
 		}
 		else {
-			keyResult = ( (EntityPersister) getDeclaringType() ).getIdentifierMapping()
+			keyResult = ((EntityPersister) getDeclaringType()).getIdentifierMapping()
 					.createDomainResult( fetchablePath, parentTableGroup, null, creationState );
+			// case 1.1
+			selectByUniqueKey = true;
 		}
 
 		assert !selected;
@@ -359,6 +368,7 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 					isNullable,
 					fetchablePath,
 					keyResult,
+					selectByUniqueKey,
 					creationState
 			);
 		}

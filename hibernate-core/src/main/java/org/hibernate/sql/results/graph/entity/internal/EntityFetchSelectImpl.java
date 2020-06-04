@@ -8,7 +8,9 @@ package org.hibernate.sql.results.graph.entity.internal;
 
 import org.hibernate.LockMode;
 import org.hibernate.engine.FetchTiming;
+import org.hibernate.metamodel.mapping.EntityValuedModelPart;
 import org.hibernate.metamodel.mapping.internal.ToOneAttributeMapping;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.query.NavigablePath;
 import org.hibernate.sql.results.graph.AssemblerCreationState;
 import org.hibernate.sql.results.graph.DomainResult;
@@ -26,6 +28,7 @@ import org.hibernate.sql.results.graph.entity.EntityInitializer;
 public class EntityFetchSelectImpl extends AbstractNonJoinedEntityFetch {
 	private final boolean nullable;
 	private final DomainResult result;
+	private final boolean selectByUniqueKey;
 
 	public EntityFetchSelectImpl(
 			FetchParent fetchParent,
@@ -34,10 +37,12 @@ public class EntityFetchSelectImpl extends AbstractNonJoinedEntityFetch {
 			boolean nullable,
 			NavigablePath navigablePath,
 			DomainResult result,
+			boolean selectByUniqueKey,
 			DomainResultCreationState creationState) {
 		super( navigablePath, fetchedAttribute, fetchParent );
 		this.nullable = nullable;
 		this.result = result;
+		this.selectByUniqueKey = selectByUniqueKey;
 	}
 
 	@Override
@@ -54,12 +59,19 @@ public class EntityFetchSelectImpl extends AbstractNonJoinedEntityFetch {
 	public DomainResultAssembler createAssembler(FetchParentAccess parentAccess, AssemblerCreationState creationState) {
 		final EntityInitializer initializer = (EntityInitializer) creationState.resolveInitializer(
 				getNavigablePath(),
-				() -> new EntitySelectFetchInitializer(
-						getNavigablePath(),
-						getReferencedMappingContainer().getEntityPersister(),
-						result.createResultAssembler( creationState ),
-						nullable
-				)
+				() -> {
+
+					EntityPersister entityPersister = getReferencedMappingContainer().getEntityPersister();
+
+					return new EntitySelectFetchInitializer(
+							getFetchedMapping(),
+							getNavigablePath(),
+							entityPersister,
+							result.createResultAssembler( creationState ),
+							selectByUniqueKey,
+							nullable
+					);
+				}
 		);
 
 		return new EntityAssembler( getResultJavaTypeDescriptor(), initializer );
