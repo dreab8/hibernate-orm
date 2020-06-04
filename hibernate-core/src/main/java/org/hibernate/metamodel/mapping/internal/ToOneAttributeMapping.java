@@ -6,14 +6,12 @@
  */
 package org.hibernate.metamodel.mapping.internal;
 
-import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
 import org.hibernate.engine.FetchStrategy;
 import org.hibernate.engine.FetchTiming;
 import org.hibernate.mapping.ManyToOne;
 import org.hibernate.mapping.OneToOne;
 import org.hibernate.mapping.ToOne;
-import org.hibernate.metamodel.mapping.Association;
 import org.hibernate.metamodel.mapping.AssociationKey;
 import org.hibernate.metamodel.mapping.EntityAssociationMapping;
 import org.hibernate.metamodel.mapping.EntityMappingType;
@@ -24,7 +22,6 @@ import org.hibernate.metamodel.mapping.PluralAttributeMapping;
 import org.hibernate.metamodel.mapping.StateArrayContributorMetadataAccess;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hibernate.persister.entity.SingleTableEntityPersister;
 import org.hibernate.property.access.spi.PropertyAccess;
 import org.hibernate.query.NavigablePath;
 import org.hibernate.sql.ast.SqlAstJoinType;
@@ -44,7 +41,6 @@ import org.hibernate.sql.results.graph.DomainResult;
 import org.hibernate.sql.results.graph.DomainResultCreationState;
 import org.hibernate.sql.results.graph.Fetch;
 import org.hibernate.sql.results.graph.FetchParent;
-import org.hibernate.sql.results.graph.Fetchable;
 import org.hibernate.sql.results.graph.entity.EntityFetch;
 import org.hibernate.sql.results.graph.entity.EntityResultGraphNode;
 import org.hibernate.sql.results.graph.entity.EntityValuedFetchable;
@@ -178,12 +174,10 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 			NavigablePath fetchablePath,
 			FetchParent fetchParent,
 			DomainResultCreationState creationState) {
-		// NOTE - a circular fetch reference ultimately needs 2 pieces of information:
-		//		1) The NavigablePath that is circular (`fetchablePath`)
-		//		2) The NavigablePath to the entity-valued-reference that is the "other side" of the circularity
 
 		final AssociationKey associationKey = foreignKeyDescriptor.getAssociationKey();
 		final NavigablePath parentOfParent = fetchablePath.getParent().getParent();
+
 		if ( parentOfParent == null ) {
 			return null;
 		}
@@ -219,12 +213,8 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 			/*
 				check if mappedBy is on the other side of the association
 			 */
-//			final ModelPart otherSideAssociationModelPart = creationState.resolveModelPart( fetchablePath.getParent() );
-
-			if ( modelPart instanceof ToOneAttributeMapping ) {
-				String otherSideMappedBy = ( (ToOneAttributeMapping) modelPart ).getMappedBy();
-				if ( otherSideMappedBy != null ) {
-					String fullPath = fetchablePath.getFullPath();
+			final String otherSideMappedBy = getOthrerSideMappedBy( modelPart, parentOfParent, creationState );
+			if ( otherSideMappedBy != null ) {
 					/*
 						class Child {
 							@OneToOne(mappedBy = "biologicalChild")
@@ -241,21 +231,25 @@ public class ToOneAttributeMapping extends AbstractSingularAttributeMapping
 						otherSideMappedBy = "biologicalMother"
 					 */
 
-					if ( fullPath.endsWith( otherSideMappedBy ) ) {
-						return createBiDirectionalFetch( fetchablePath, fetchParent, parent.getParent() );
-					}
+				if ( fetchablePath.getFullPath().endsWith( otherSideMappedBy ) ) {
+					return createBiDirectionalFetch( fetchablePath, fetchParent, parent.getParent() );
 				}
 			}
+		}
 
-			if ( modelPart instanceof EntityCollectionPart ) {
-				String otherSideMappedBy = ( (PluralAttributeMapping) creationState.resolveModelPart( parentOfParent ) )
-						.getMappedBy();
-				if ( otherSideMappedBy != null ) {
-					if ( fetchablePath.getFullPath().endsWith( otherSideMappedBy ) ) {
-						return createBiDirectionalFetch( fetchablePath, fetchParent,parent.getParent() );
-					}
-				}
-			}
+		return null;
+	}
+
+	private String getOthrerSideMappedBy(
+			ModelPart modelPart,
+			NavigablePath parentOfParent,
+			DomainResultCreationState creationState) {
+		if ( modelPart instanceof ToOneAttributeMapping ) {
+			return ( (ToOneAttributeMapping) modelPart ).getMappedBy();
+		}
+
+		if ( modelPart instanceof EntityCollectionPart ) {
+			return ( (PluralAttributeMapping) creationState.resolveModelPart( parentOfParent ) ).getMappedBy();
 		}
 
 		return null;
