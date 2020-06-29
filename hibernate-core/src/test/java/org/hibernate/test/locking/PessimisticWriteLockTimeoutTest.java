@@ -9,9 +9,7 @@ import org.hibernate.dialect.PostgreSQL81Dialect;
 import org.hibernate.dialect.PostgreSQL95Dialect;
 import org.hibernate.dialect.SQLServer2005Dialect;
 
-import org.hibernate.testing.DialectChecks;
 import org.hibernate.testing.RequiresDialect;
-import org.hibernate.testing.RequiresDialectFeature;
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
 import org.hibernate.testing.jdbc.SQLStatementInterceptor;
 import org.junit.Before;
@@ -56,7 +54,6 @@ public class PessimisticWriteLockTimeoutTest
 	@Test
 	@RequiresDialect({ Oracle8iDialect.class, PostgreSQL81Dialect.class,
 			SQLServer2005Dialect.class } )
-	@RequiresDialectFeature(DialectChecks.SupportNoWait.class)
 	public void testNoWait()
 			throws NoSuchFieldException, IllegalAccessException {
 
@@ -82,7 +79,6 @@ public class PessimisticWriteLockTimeoutTest
 
 	@Test
 	@RequiresDialect({ Oracle8iDialect.class, PostgreSQL95Dialect.class })
-	@RequiresDialectFeature(DialectChecks.SupportNoWait.class)
 	public void testSkipLocked()
 			throws NoSuchFieldException, IllegalAccessException {
 

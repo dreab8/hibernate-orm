@@ -35,8 +35,6 @@ import org.hibernate.dialect.H2Dialect;
 import org.hibernate.dialect.MySQLDialect;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.jdbc.Work;
-import org.hibernate.testing.DialectChecks;
-import org.hibernate.testing.RequiresDialectFeature;
 import org.hibernate.testing.SkipForDialect;
 import org.junit.Test;
 
@@ -252,7 +250,7 @@ public class MultiTableTest extends LegacyTestCase {
 	}
 
 	@Test
-	@RequiresDialectFeature(DialectChecks.SupportNoWait.class)
+	@SkipForDialect(CockroachDB192Dialect.class)
 	public void testMultiTable() throws Exception {
 		Session s = openSession();
 		Transaction t = s.beginTransaction();
@@ -396,7 +394,7 @@ public class MultiTableTest extends LegacyTestCase {
 	}
 
 	@Test
-	@RequiresDialectFeature(DialectChecks.SupportNoWait.class)
+	@SkipForDialect(CockroachDB192Dialect.class)
 	public void testMultiTableGeneratedId() throws Exception {
 		Session s = openSession();
 		Transaction t = s.beginTransaction();

@@ -12,10 +12,7 @@ import org.hibernate.Session;
 import org.hibernate.dialect.*;
 import org.hibernate.query.Query;
 
-import org.hibernate.testing.DialectChecks;
 import org.hibernate.testing.RequiresDialect;
-import org.hibernate.testing.RequiresDialectFeature;
-import org.hibernate.testing.SkipForDialect;
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
 import org.junit.Test;
 
@@ -70,7 +67,6 @@ public abstract class AbstractSkipLockedTest
 
 	@Test
 	@RequiresDialect({ PostgreSQL95Dialect.class })
-	@RequiresDialectFeature(DialectChecks.SupportSkipLocked.class)
 	public void testPostgreSQLSkipLocked() {
 
 		doInHibernate( this::sessionFactory, session -> {

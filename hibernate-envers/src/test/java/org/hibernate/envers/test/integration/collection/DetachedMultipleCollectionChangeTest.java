@@ -25,6 +25,7 @@ import org.hibernate.envers.test.entities.collection.MultipleCollectionEntity;
 import org.hibernate.envers.test.entities.collection.MultipleCollectionRefEntity1;
 import org.hibernate.envers.test.entities.collection.MultipleCollectionRefEntity2;
 import org.hibernate.testing.SkipForDialect;
+import org.hibernate.testing.SkipForDialects;
 import org.hibernate.testing.TestForIssue;
 import org.hibernate.testing.jta.TestingJtaBootstrap;
 import org.hibernate.testing.jta.TestingJtaPlatformImpl;
@@ -226,6 +227,11 @@ public class DetachedMultipleCollectionChangeTest extends BaseEnversJPAFunctiona
 	}
 
 	@Test
+	@SkipForDialects( value = {
+			@SkipForDialect(value = CockroachDB192Dialect.class, comment = "requires serial_normalization=sql_sequence setting"),
+			@SkipForDialect(value = Oracle8iDialect.class,
+					comment = "Oracle does not support identity key generation")
+	})
 	@SkipForDialect(value = CockroachDB192Dialect.class, comment = "requires serial_normalization=sql_sequence setting")
 	public void testAuditJoinTable() throws Exception {
 		List<AuditJoinTableInfo> mceRe1AuditJoinTableInfos = getAuditJoinTableRows(
