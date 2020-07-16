@@ -145,7 +145,7 @@ public class DefaultRefreshEventListener implements RefreshEventListener {
 			final EntityKey key = source.generateEntityKey( id, persister );
 			persistenceContext.removeEntity( key );
 			if ( persister.hasCollections() ) {
-				new EvictVisitor( source, object ).process( object, persister );
+				new RefreshVisitor( source, object ).process( object, persister );
 			}
 		}
 

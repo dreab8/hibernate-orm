@@ -234,7 +234,7 @@ public class EntityReferenceInitializerImpl implements EntityReferenceInitialize
 		Object entityInstance = null;
 		// If an "optional" instance with an EntityKey equal to entityKey is available
 		// in the context, then use that instance.
-		if ( isReturn && context.getQueryParameters().getOptionalObject() != null ) {
+		if ( isReturn && context.shouldUseOptionalEntityInformation() && context.getQueryParameters().getOptionalObject() != null ) {
 			final EntityKey optionalEntityKey = ResultSetProcessorHelper.getOptionalObjectKey(
 					context.getQueryParameters(),
 					context.getSession()

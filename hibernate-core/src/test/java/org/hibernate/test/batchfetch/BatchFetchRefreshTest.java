@@ -7,6 +7,7 @@
 package org.hibernate.test.batchfetch;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.persistence.Column;
@@ -21,6 +22,7 @@ import javax.persistence.OneToMany;
 import org.hibernate.cfg.AvailableSettings;
 
 import org.hibernate.testing.junit4.BaseNonConfigCoreFunctionalTestCase;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,17 +32,18 @@ import static org.hibernate.testing.transaction.TransactionUtil.*;
 public class BatchFetchRefreshTest extends BaseNonConfigCoreFunctionalTestCase {
 
 	@Test
-
 	public void testRefreshWithBatch() {
 
 		doInHibernate( this::sessionFactory, session -> {
 
 			// Retrieve one of the parents into the session.
+
 			Parent parent = session.find(Parent.class, 1);
 			Assert.assertNotNull(parent);
 
 			// Retrieve children but keep their parents lazy!
 			// This allows batch fetching to do its thing when we refresh below.
+
 			session.createQuery( "FROM Child" ).getResultList();
 
 			session.refresh( parent, LockModeType.PESSIMISTIC_WRITE );
@@ -48,11 +51,39 @@ public class BatchFetchRefreshTest extends BaseNonConfigCoreFunctionalTestCase {
 			// Just something to force delazification of children on parent entity
 			// The parent is obviously attached to the session (we just refreshed it!)
 			parent.getChildren().size();
+			System.out.println("******************************************");
 
-			// Another interesting thing to note - em.getLockMode returns an incorrect value after the above refresh
 			Assert.assertEquals( LockModeType.PESSIMISTIC_WRITE, session.getLockMode( parent ) );
 		});
 	}
+
+	@Test
+	public void testRefreshWithBatch2() {
+
+		doInHibernate( this::sessionFactory, session -> {
+
+			// Retrieve one of the parents into the session.
+			System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+
+			Parent parent = session.find(Parent.class, 1);
+			Assert.assertNotNull(parent);
+
+			// Retrieve children but keep their parents lazy!
+			// This allows batch fetching to do its thing when we refresh below.
+
+			session.createQuery( "FROM Child" ).getResultList();
+			Set<Child> children = parent.getChildren();
+
+			session.refresh( parent, LockModeType.PESSIMISTIC_WRITE );
+
+			// Just something to force delazification of children on parent entity
+			// The parent is obviously attached to the session (we just refreshed it!)
+			children.size();
+
+			Assert.assertEquals( LockModeType.PESSIMISTIC_WRITE, session.getLockMode( parent ) );
+		});
+	}
+
 
 	@Before
 	public void setupData() {
@@ -89,6 +120,18 @@ public class BatchFetchRefreshTest extends BaseNonConfigCoreFunctionalTestCase {
 				Parent.class,
 				Child.class
 		};
+	}
+
+	@After
+	public void tearDown(){
+		inTransaction(
+				session -> {
+					List<Parent> parents = session.createQuery( "from Parent" ).list();
+					parents.forEach(
+							parent -> session.delete( parent )
+					);
+				}
+		);
 	}
 
 	@Override
