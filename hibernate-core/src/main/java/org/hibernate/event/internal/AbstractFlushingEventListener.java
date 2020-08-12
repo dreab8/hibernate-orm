@@ -21,6 +21,7 @@ import org.hibernate.engine.internal.CascadePoint;
 import org.hibernate.engine.internal.Collections;
 import org.hibernate.engine.jdbc.spi.JdbcCoordinator;
 import org.hibernate.engine.spi.ActionQueue;
+import org.hibernate.engine.spi.BatchFetchQueue;
 import org.hibernate.engine.spi.CascadingAction;
 import org.hibernate.engine.spi.CascadingActions;
 import org.hibernate.engine.spi.CollectionKey;
@@ -372,7 +373,8 @@ public abstract class AbstractFlushingEventListener implements JpaBootstrapSensi
 		
 		// the database has changed now, so the subselect results need to be invalidated
 		// the batch fetching queues should also be cleared - especially the collection batch fetching one
-		persistenceContext.getBatchFetchQueue().clear();
+		final BatchFetchQueue batchFetchQueue = persistenceContext.getBatchFetchQueue();
+		batchFetchQueue.clear();
 
 		persistenceContext.forEachCollectionEntry(
 				(persistentCollection, collectionEntry) -> {
@@ -390,6 +392,7 @@ public abstract class AbstractFlushingEventListener implements JpaBootstrapSensi
 								collectionEntry.getLoadedKey()
 						);
 						persistenceContext.addCollectionByKey( collectionKey, persistentCollection );
+						batchFetchQueue.addBatchLoadableCollection( persistentCollection, collectionEntry );
 					}
 				}, true
 		);
