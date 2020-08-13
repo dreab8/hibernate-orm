@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.hibernate.NotYetImplementedFor6Exception;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.util.collections.CollectionHelper;
@@ -22,6 +23,8 @@ import org.hibernate.metamodel.mapping.SingularAttributeMapping;
 import org.hibernate.metamodel.mapping.StateArrayContributorMetadataAccess;
 import org.hibernate.property.access.spi.PropertyAccess;
 import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.query.EntityIdentifierNavigablePath;
+import org.hibernate.query.NavigablePath;
 import org.hibernate.query.sqm.sql.SqmToSqlAstConverter;
 import org.hibernate.sql.ast.Clause;
 import org.hibernate.sql.ast.spi.SqlAstCreationState;
@@ -31,13 +34,17 @@ import org.hibernate.sql.ast.tree.expression.Expression;
 import org.hibernate.sql.ast.tree.expression.SqlTuple;
 import org.hibernate.sql.ast.tree.from.TableGroup;
 import org.hibernate.sql.ast.tree.from.TableReference;
+import org.hibernate.sql.results.graph.DomainResult;
+import org.hibernate.sql.results.graph.DomainResultCreationState;
+import org.hibernate.sql.results.graph.embeddable.internal.EmbeddableResultImpl;
+import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * Support for {@link javax.persistence.EmbeddedId}
  *
  * @author Andrea Boriero
  */
-public class EmbeddedIdentifierMappingImpl extends AbstractCompositeIdentifierMapping {
+public class EmbeddedIdentifierMappingImpl extends AbstractCompositeIdentifierMapping implements SingleAttributeIdentifierMapping {
 	private final String name;
 	private final PropertyAccess propertyAccess;
 
@@ -82,8 +89,7 @@ public class EmbeddedIdentifierMappingImpl extends AbstractCompositeIdentifierMa
 		propertyAccess.getSetter().set( entity, id, session.getFactory() );
 	}
 
-	@Override
-	public void visitJdbcValues(
+		public void visitJdbcValues(
 			Object value,
 			Clause clause,
 			JdbcValuesConsumer valuesConsumer,
@@ -175,6 +181,16 @@ public class EmbeddedIdentifierMappingImpl extends AbstractCompositeIdentifierMa
 	public Collection<SingularAttributeMapping> getAttributes() {
 		//noinspection unchecked
 		return (Collection) getEmbeddableTypeDescriptor().getAttributeMappings();
+	}
+
+	@Override
+	public PropertyAccess getPropertyAccess() {
+		return propertyAccess;
+	}
+
+	@Override
+	public String getAttributeName() {
+		return name;
 	}
 
 }
