@@ -228,7 +228,6 @@ import org.hibernate.type.TypeHelper;
 import org.hibernate.type.VersionType;
 import org.hibernate.type.descriptor.java.JavaTypeDescriptor;
 import org.hibernate.type.descriptor.java.MutabilityPlan;
-import org.hibernate.type.spi.TypeConfiguration;
 
 /**
  * Basic functionality for persisting an entity via JDBC
@@ -1364,28 +1363,6 @@ public abstract class AbstractEntityPersister
 				sqlAliasBase.generateNewAlias(),
 				false,
 				getFactory()
-		);
-	}
-
-	protected TableReferenceJoin createTableReferenceJoin(
-			int subClassTablePosition,
-			TableReference rootTableReference,
-			SqlAstJoinType sqlAstJoinType,
-			SqlAliasBase sqlAliasBase,
-			SqlExpressionResolver sqlExpressionResolver) {
-		final boolean nullable = isNullableSubclassTable( subClassTablePosition );
-
-		final TableReference joinedTableReference = new TableReference(
-				getSubclassTableName( subClassTablePosition ),
-				sqlAliasBase.generateNewAlias(),
-				nullable,
-				getFactory()
-		);
-
-		return new TableReferenceJoin(
-				nullable ? SqlAstJoinType.LEFT : sqlAstJoinType,
-				joinedTableReference,
-				generateJoinPredicate( rootTableReference, joinedTableReference, subClassTablePosition, sqlExpressionResolver )
 		);
 	}
 
@@ -6593,16 +6570,6 @@ public abstract class AbstractEntityPersister
 	public void generateEntityDefinition() {
 		prepareEntityIdentifierDefinition();
 		collectAttributeDefinitions();
-	}
-
-	@Override
-	public void visitJdbcTypes(
-			Consumer<JdbcMapping> action,
-			Clause clause,
-			TypeConfiguration typeConfiguration) {
-		getAttributeMappings().forEach(
-				attributeMapping -> attributeMapping.visitJdbcTypes( action, clause, typeConfiguration )
-		);
 	}
 
 	@Override
