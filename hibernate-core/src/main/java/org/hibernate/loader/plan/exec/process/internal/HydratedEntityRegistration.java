@@ -6,6 +6,8 @@
  */
 package org.hibernate.loader.plan.exec.process.internal;
 
+import java.util.Objects;
+
 import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.loader.plan.spi.EntityReference;
 
@@ -33,5 +35,21 @@ public class HydratedEntityRegistration {
 
 	public Object getInstance() {
 		return instance;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if ( this == o ) {
+			return true;
+		}
+		if ( o == null || getClass() != o.getClass() ) {
+			return false;
+		}
+		return Objects.equals( key, ((HydratedEntityRegistration) o).key );
+	}
+
+	@Override
+	public int hashCode() {
+		return key.hashCode();
 	}
 }

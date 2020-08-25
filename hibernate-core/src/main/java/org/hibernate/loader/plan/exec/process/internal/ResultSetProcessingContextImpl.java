@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,7 +55,7 @@ public class ResultSetProcessingContextImpl implements ResultSetProcessingContex
 	private List<HydratedEntityRegistration> currentRowHydratedEntityRegistrationList;
 
 	private Map<EntityReference,Set<EntityKey>> subselectLoadableEntityKeyMap;
-	private List<HydratedEntityRegistration> hydratedEntityRegistrationList;
+	private Set<HydratedEntityRegistration> hydratedEntityRegistrationList;
 	private int nRowsRead = 0;
 
 	private Map<EntityReference,EntityReferenceProcessingState> identifierResolutionContextMap;
@@ -266,6 +267,8 @@ public class ResultSetProcessingContextImpl implements ResultSetProcessingContex
 		);
 	}
 
+
+
 	/**
 	 * Package-protected
 	 */
@@ -283,7 +286,7 @@ public class ResultSetProcessingContextImpl implements ResultSetProcessingContex
 		// managing the running list of registrations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		final int sizeHint = currentRowHydratedEntityRegistrationList.size();
 		if ( hydratedEntityRegistrationList == null ) {
-			hydratedEntityRegistrationList = new ArrayList<>( sizeHint );
+			hydratedEntityRegistrationList = new LinkedHashSet<>( sizeHint );
 		}
 		hydratedEntityRegistrationList.addAll( currentRowHydratedEntityRegistrationList );
 
@@ -311,7 +314,7 @@ public class ResultSetProcessingContextImpl implements ResultSetProcessingContex
 		identifierResolutionContextMap.clear();
 	}
 
-	public List<HydratedEntityRegistration> getHydratedEntityRegistrationList() {
+	public Set<HydratedEntityRegistration> getHydratedEntityRegistrationList() {
 		return hydratedEntityRegistrationList;
 	}
 

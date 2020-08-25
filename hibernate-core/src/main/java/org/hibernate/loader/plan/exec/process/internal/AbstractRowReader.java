@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.engine.internal.TwoPhaseLoad;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -190,7 +191,7 @@ public abstract class AbstractRowReader implements RowReader {
 
 	@Override
 	public void finishUp(ResultSetProcessingContextImpl context, List<AfterLoadAction> afterLoadActionList) {
-		final List<HydratedEntityRegistration> hydratedEntityRegistrations = context.getHydratedEntityRegistrationList();
+		final Set<HydratedEntityRegistration> hydratedEntityRegistrations = context.getHydratedEntityRegistrationList();
 
 		// for arrays, we should end the collection load before resolving the entities, since the
 		// actual array instances are not instantiated during loading
@@ -231,7 +232,7 @@ public abstract class AbstractRowReader implements RowReader {
 	private void performTwoPhaseLoad(
 			PreLoadEvent preLoadEvent,
 			ResultSetProcessingContextImpl context,
-			List<HydratedEntityRegistration> hydratedEntityRegistrations) {
+			Set<HydratedEntityRegistration> hydratedEntityRegistrations) {
 		final int numberOfHydratedObjects = hydratedEntityRegistrations == null
 				? 0
 				: hydratedEntityRegistrations.size();
@@ -267,7 +268,7 @@ public abstract class AbstractRowReader implements RowReader {
 	}
 
 	protected void afterInitialize(ResultSetProcessingContextImpl context,
-			List<HydratedEntityRegistration> hydratedEntityRegistrations) {
+			Set<HydratedEntityRegistration> hydratedEntityRegistrations) {
 		if ( hydratedEntityRegistrations == null ) {
 			return;
 		}
@@ -280,7 +281,7 @@ public abstract class AbstractRowReader implements RowReader {
 	protected void postLoad(
 			PostLoadEvent postLoadEvent,
 			ResultSetProcessingContextImpl context,
-			List<HydratedEntityRegistration> hydratedEntityRegistrations,
+			Set<HydratedEntityRegistration> hydratedEntityRegistrations,
 			List<AfterLoadAction> afterLoadActionList) {
 		// Until this entire method is refactored w/ polymorphism, postLoad was
 		// split off from initializeEntity.  It *must* occur after
