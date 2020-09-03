@@ -65,8 +65,6 @@ import org.hibernate.classic.Lifecycle;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.lock.LockingStrategy;
-import org.hibernate.engine.FetchStrategy;
-import org.hibernate.engine.FetchStyle;
 import org.hibernate.engine.FetchTiming;
 import org.hibernate.engine.OptimisticLockStyle;
 import org.hibernate.engine.internal.CacheHelper;
@@ -1366,7 +1364,7 @@ public abstract class AbstractEntityPersister
 		);
 	}
 
-	private Predicate generateJoinPredicate(
+	protected Predicate generateJoinPredicate(
 			TableReference rootTableReference,
 			TableReference joinedTableReference,
 			int subClassTablePosition,
@@ -5776,7 +5774,7 @@ public abstract class AbstractEntityPersister
 	private EntityRowIdMapping rowIdMapping;
 	private EntityDiscriminatorMapping discriminatorMapping;
 
-	private Map<String, AttributeMapping> declaredAttributeMappings = new LinkedHashMap<>();
+	protected Map<String, AttributeMapping> declaredAttributeMappings = new LinkedHashMap<>();
 	private List<AttributeMapping> attributeMappings;
 	protected List<Fetchable> staticFetchableList;
 
@@ -5799,53 +5797,21 @@ public abstract class AbstractEntityPersister
 				.getBootModel()
 				.getEntityBinding( getEntityName() );
 
-		if ( superMappingType != null && shouldProcessSuperMapping() ) {
+		if ( superMappingType != null ) {
 			( (InFlightEntityMappingType) superMappingType ).prepareMappingModel( creationProcess );
-
-			this.identifierMapping = superMappingType.getIdentifierMapping();
-			this.versionMapping = superMappingType.getVersionMapping();
-			this.rowIdMapping = superMappingType.getRowIdMapping();
-			this.naturalIdMapping = superMappingType.getNaturalIdMapping();
-			this.discriminatorMapping = superMappingType.getDiscriminatorMapping();
+			if ( shouldProcessSuperMapping() ) {
+				this.discriminatorMapping = superMappingType.getDiscriminatorMapping();
+				this.identifierMapping = superMappingType.getIdentifierMapping();
+				this.naturalIdMapping = superMappingType.getNaturalIdMapping();
+				this.versionMapping = superMappingType.getVersionMapping();
+				this.rowIdMapping = superMappingType.getRowIdMapping();
+			}
+			else {
+				prepareMappingModel( creationProcess, bootEntityDescriptor );
+			}
 		}
 		else {
-			identifierMapping = creationProcess.processSubPart(
-					EntityIdentifierMapping.ROLE_LOCAL_NAME,
-					(role, creationProcess1) ->
-							generateIdentifierMapping( creationProcess, bootEntityDescriptor )
-			);
-
-			if ( getVersionType() == null ) {
-				versionMapping = null;
-			}
-			else {
-				final int versionPropertyIndex = getVersionProperty();
-				final String versionPropertyName = getPropertyNames()[ versionPropertyIndex ];
-
-				versionMapping = creationProcess.processSubPart(
-						versionPropertyName,
-						(role, creationProcess1) -> generateVersionMapping(
-								this,
-								(RootClass) bootEntityDescriptor,
-								creationProcess
-						)
-				);
-			}
-
-			if ( rowIdName == null ) {
-				rowIdMapping = null;
-			}
-			else {
-				rowIdMapping = creationProcess.processSubPart(
-						rowIdName,
-						(role, creationProcess1) -> new EntityRowIdMappingImpl( rowIdName, this.getTableName(), this)
-				);
-			}
-
-			buildDiscriminatorMapping();
-
-			// todo (6.0) : support for natural-id not yet implemented
-			naturalIdMapping = null;
+			prepareMappingModel( creationProcess, bootEntityDescriptor );
 		}
 
 		final EntityMetamodel currentEntityMetamodel = this.getEntityMetamodel();
@@ -5900,11 +5866,56 @@ public abstract class AbstractEntityPersister
 				"Entity(" + getEntityName() + ") `staticFetchableList` generator",
 				() -> {
 					staticFetchableList = new ArrayList<>( attributeMappings.size() );
-					visitAttributeMappings( attributeMapping -> staticFetchableList.add( (Fetchable) attributeMapping ) );
-					visitSubTypeAttributeMappings( attributeMapping -> staticFetchableList.add( (Fetchable) attributeMapping ) );
+					visitAttributeMappings( attributeMapping -> staticFetchableList.add( attributeMapping ) );
+					visitSubTypeAttributeMappings( attributeMapping -> staticFetchableList.add( attributeMapping ) );
 					return true;
 				}
 		);
+	}
+
+	private void prepareMappingModel(MappingModelCreationProcess creationProcess, PersistentClass bootEntityDescriptor) {
+		identifierMapping = creationProcess.processSubPart(
+				EntityIdentifierMapping.ROLE_LOCAL_NAME,
+				(role, process) ->
+						generateIdentifierMapping( process, bootEntityDescriptor )
+		);
+
+		versionMapping = buildVersionMapping( creationProcess, bootEntityDescriptor );
+
+		if ( rowIdName == null ) {
+			rowIdMapping = null;
+		}
+		else {
+			rowIdMapping = creationProcess.processSubPart(
+					rowIdName,
+					(role, process) -> new EntityRowIdMappingImpl( rowIdName, this.getTableName(), this)
+			);
+		}
+		// todo (6.0) : support for natural-id not yet implemented
+		naturalIdMapping = null;
+
+		discriminatorMapping = buildDiscriminatorMapping();
+	}
+
+	protected EntityVersionMapping buildVersionMapping(
+			MappingModelCreationProcess creationProcess,
+			PersistentClass bootEntityDescriptor) {
+		if ( getVersionType() == null ) {
+			return null;
+		}
+		else {
+			final int versionPropertyIndex = getVersionProperty();
+			final String versionPropertyName = getPropertyNames()[ versionPropertyIndex ];
+
+			return creationProcess.processSubPart(
+					versionPropertyName,
+					(role, creationProcess1) -> generateVersionMapping(
+							this,
+							bootEntityDescriptor,
+							creationProcess
+					)
+			);
+		}
 	}
 
 	protected static SqmMultiTableMutationStrategy interpretSqmMultiTableStrategy(
@@ -5947,12 +5958,12 @@ public abstract class AbstractEntityPersister
 		return stateArrayPosition;
 	}
 
-	protected void buildDiscriminatorMapping() {
+	protected EntityDiscriminatorMapping buildDiscriminatorMapping() {
 		if ( getDiscriminatorType() == null) {
-			discriminatorMapping = null;
+			return null;
 		}
 		else {
-			discriminatorMapping = new EntityDiscriminatorMappingImpl(
+			return new EntityDiscriminatorMappingImpl(
 					this,
 					getTableName(),
 					getDiscriminatorColumnReaders(),
@@ -6033,7 +6044,7 @@ public abstract class AbstractEntityPersister
 	}
 
 
-	private EntityIdentifierMapping generateIdentifierMapping(MappingModelCreationProcess creationProcess, PersistentClass bootEntityDescriptor) {
+	protected EntityIdentifierMapping generateIdentifierMapping(MappingModelCreationProcess creationProcess, PersistentClass bootEntityDescriptor) {
 		final Type idType = getIdentifierType();
 
 		if ( idType instanceof CompositeType ) {
@@ -6071,7 +6082,7 @@ public abstract class AbstractEntityPersister
 		);
 	}
 
-	private EntityIdentifierMapping generateNonEncapsulatedCompositeIdentifierMapping(
+	protected EntityIdentifierMapping generateNonEncapsulatedCompositeIdentifierMapping(
 			MappingModelCreationProcess creationProcess,
 			PersistentClass bootEntityDescriptor,
 			CompositeType cidType) {
@@ -6093,9 +6104,9 @@ public abstract class AbstractEntityPersister
 	 * @param bootModelRootEntityDescriptor The boot-time entity descriptor for the "root entity" in the hierarchy
 	 * @param creationProcess The SF creation process - access to useful things
 	 */
-	private static EntityVersionMapping generateVersionMapping(
+	protected static EntityVersionMapping generateVersionMapping(
 			AbstractEntityPersister entityPersister,
-			RootClass bootModelRootEntityDescriptor,
+			PersistentClass bootModelRootEntityDescriptor,
 			MappingModelCreationProcess creationProcess) {
 		final BasicValue bootModelVersionValue = (BasicValue) bootModelRootEntityDescriptor.getVersion().getValue();
 		final BasicValue.Resolution<?> basicTypeResolution = bootModelVersionValue.resolve();
