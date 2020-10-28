@@ -447,8 +447,6 @@ public class SingleTableEntityPersister extends AbstractEntityPersister {
 			}
 		}
 
-		initLockers();
-
 		initSubclassPropertyAliasesMap( persistentClass );
 
 		postConstruct( creationContext.getMetadata() );
