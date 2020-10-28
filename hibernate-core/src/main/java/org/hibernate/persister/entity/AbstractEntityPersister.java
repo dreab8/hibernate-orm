@@ -105,6 +105,7 @@ import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.internal.FilterHelper;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.internal.util.collections.ArrayHelper;
+import org.hibernate.internal.util.collections.CollectionHelper;
 import org.hibernate.internal.util.collections.LockModeEnumMap;
 import org.hibernate.jdbc.Expectation;
 import org.hibernate.jdbc.Expectations;
@@ -297,7 +298,7 @@ public abstract class AbstractEntityPersister
 	private final boolean[] propertyUniqueness;
 	private final boolean[] propertySelectable;
 
-	private final List<Integer> lobProperties = new ArrayList<>();
+	private final List<Integer> lobProperties;
 
 	//information about lazy properties of this class
 	private final String[] lazyPropertyNames;
@@ -811,6 +812,7 @@ public abstract class AbstractEntityPersister
 		ArrayList lazyTypes = new ArrayList();
 		ArrayList lazyColAliases = new ArrayList();
 
+		final ArrayList<Integer> lobPropertiesLocalCollector = new ArrayList<>();
 		iter = bootDescriptor.getPropertyClosureIterator();
 		i = 0;
 		boolean foundFormula = false;
@@ -873,12 +875,13 @@ public abstract class AbstractEntityPersister
 			propertyUniqueness[i] = prop.getValue().isAlternateUniqueKey();
 
 			if ( prop.isLob() && dialect.forceLobAsLastValue() ) {
-				lobProperties.add( i );
+				lobPropertiesLocalCollector.add( i );
 			}
 
 			i++;
 
 		}
+		this.lobProperties = CollectionHelper.toSmallList( lobPropertiesLocalCollector );
 		hasFormulaProperties = foundFormula;
 		lazyPropertyColumnAliases = ArrayHelper.to2DStringArray( lazyColAliases );
 		lazyPropertyNames = ArrayHelper.toStringArray( lazyNames );
