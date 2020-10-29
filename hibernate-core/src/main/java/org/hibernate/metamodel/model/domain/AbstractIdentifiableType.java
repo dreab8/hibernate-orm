@@ -331,13 +331,19 @@ public abstract class AbstractIdentifiableType<J>
 				throw new IllegalStateException( "Non-aggregated id attributes were already set" );
 			}
 
-			for ( SingularPersistentAttribute idAttribute : (Set<SingularPersistentAttribute>) idAttributes ) {
-				if ( AbstractIdentifiableType.this == idAttribute.getDeclaringType() ) {
-					addAttribute( idAttribute );
-				}
-			}
+			if ( idAttributes.isEmpty() ) {
+				AbstractIdentifiableType.this.nonAggregatedIdAttributes = (Set) idAttributes;
 
-			AbstractIdentifiableType.this.nonAggregatedIdAttributes = (Set) idAttributes;
+			}
+			else {
+				for ( SingularPersistentAttribute idAttribute : (Set<SingularPersistentAttribute>) idAttributes ) {
+					if ( AbstractIdentifiableType.this == idAttribute.getDeclaringType() ) {
+						addAttribute( idAttribute );
+					}
+				}
+
+				AbstractIdentifiableType.this.nonAggregatedIdAttributes = (Set) idAttributes;
+			}
 		}
 
 		@Override

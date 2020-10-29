@@ -8,6 +8,7 @@ package org.hibernate.persister.entity;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -291,6 +292,8 @@ public class SingleTableEntityPersister extends AbstractEntityPersister {
 		isInverseSubclassTable = ArrayHelper.toBooleanArray( isInverses );
 		isNullableSubclassTable = ArrayHelper.toBooleanArray( isNullables );
 		hasSequentialSelects = hasDeferred;
+
+		this.sequentialSelectStringsByEntityName = hasSequentialSelects ? new HashMap<>() : Collections.EMPTY_MAP;
 
 		// DISCRIMINATOR
 
