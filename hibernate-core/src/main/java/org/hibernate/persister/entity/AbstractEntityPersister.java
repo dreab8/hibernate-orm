@@ -95,6 +95,7 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.engine.spi.ValueInclusion;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.LoadEvent;
+import org.hibernate.graph.spi.RootGraphImplementor;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.id.PostInsertIdentifierGenerator;
 import org.hibernate.id.PostInsertIdentityPersister;
@@ -335,7 +336,7 @@ public abstract class AbstractEntityPersister
 	// dynamic filters attached to the class-level
 	private final FilterHelper filterHelper;
 
-	private final Set<String> affectingFetchProfileNames = new HashSet<>();
+	private volatile Set<String> affectingFetchProfileNames;
 
 	private final LockModeEnumMap<LockingStrategy> lockers = new LockModeEnumMap<>();
 
@@ -4566,23 +4567,30 @@ public abstract class AbstractEntityPersister
 	}
 
 	public void registerAffectingFetchProfile(String fetchProfileName) {
+		if ( affectingFetchProfileNames == null ) {
+			this.affectingFetchProfileNames = new HashSet<>();
+		}
 		affectingFetchProfileNames.add( fetchProfileName );
 	}
 
 	@Override
 	public boolean isAffectedByEntityGraph(LoadQueryInfluencers loadQueryInfluencers) {
-		if ( loadQueryInfluencers.getEffectiveEntityGraph().getGraph() == null ) {
+		final RootGraphImplementor<?> graph = loadQueryInfluencers.getEffectiveEntityGraph().getGraph();
+		if ( graph == null ) {
 			return false;
 		}
 
-		return loadQueryInfluencers.getEffectiveEntityGraph().getGraph().appliesTo( getEntityName() );
+		return graph.appliesTo( getEntityName() );
 	}
 
 	@Override
 	public boolean isAffectedByEnabledFetchProfiles(LoadQueryInfluencers loadQueryInfluencers) {
-		for ( String s : loadQueryInfluencers.getEnabledFetchProfileNames() ) {
-			if ( affectingFetchProfileNames.contains( s ) ) {
-				return true;
+		final Set<String> fetchProfileNames = this.affectingFetchProfileNames;
+		if ( fetchProfileNames != null ) {
+			for ( String s : loadQueryInfluencers.getEnabledFetchProfileNames() ) {
+				if ( fetchProfileNames.contains( s ) ) {
+					return true;
+				}
 			}
 		}
 		return false;
