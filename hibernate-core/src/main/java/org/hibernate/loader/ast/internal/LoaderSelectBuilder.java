@@ -596,9 +596,7 @@ public class LoaderSelectBuilder {
 			FetchParent fetchParent,
 			QuerySpec querySpec,
 			LoaderSqlAstCreationState creationState) {
-		if ( log.isTraceEnabled() ) {
-			log.tracef( "Starting visitation of FetchParent's Fetchables : %s", fetchParent.getNavigablePath() );
-		}
+		log.tracef( "Starting visitation of FetchParent's Fetchables : %s", fetchParent.getNavigablePath() );
 
 		final List<Fetch> fetches = new ArrayList<>();
 		final List<String> bagRoles = new ArrayList<>();
@@ -679,6 +677,7 @@ public class LoaderSelectBuilder {
 			);
 
 			if ( biDirectionalFetch != null ) {
+				log.debugf( "Generating bi-directional fetch %s", fetchablePath );
 				fetches.add( biDirectionalFetch );
 				return;
 			}
@@ -770,7 +769,7 @@ public class LoaderSelectBuilder {
 						);
 					}
 				}
-
+				log.debugf( "Generating %s for path %s", fetch.getClass().getSimpleName(), fetchablePath );
 				fetches.add( fetch );
 			}
 			finally {

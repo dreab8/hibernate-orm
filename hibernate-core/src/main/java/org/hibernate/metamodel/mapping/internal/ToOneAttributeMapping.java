@@ -308,7 +308,7 @@ public class ToOneAttributeMapping
 							private Child stepMother;
 						}
 
-				We have a cirularity but it is not bidirectional
+				We have a circularity but it is not bidirectional
 			 */
 			if ( isKeyReferringSide ) {
 				final TableGroup parentTableGroup = creationState

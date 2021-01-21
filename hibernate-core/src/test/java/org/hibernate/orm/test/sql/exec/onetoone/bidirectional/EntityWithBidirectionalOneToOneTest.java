@@ -16,7 +16,6 @@ import org.hibernate.validator.internal.util.Contracts;
 
 import org.hibernate.testing.jdbc.SQLStatementInspector;
 import org.hibernate.testing.orm.junit.DomainModel;
-import org.hibernate.testing.orm.junit.FailureExpected;
 import org.hibernate.testing.orm.junit.ServiceRegistry;
 import org.hibernate.testing.orm.junit.SessionFactory;
 import org.hibernate.testing.orm.junit.SessionFactoryScope;
@@ -76,7 +75,6 @@ public class EntityWithBidirectionalOneToOneTest {
 	}
 
 	@Test
-	@FailureExpected( reason = "Change to attribute ordering triggered a problem with circularity detection", jiraKey = "HHH-14403" )
 	public void testGetMother(SessionFactoryScope scope) {
 		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
 		statementInspector.clear();
@@ -121,7 +119,7 @@ public class EntityWithBidirectionalOneToOneTest {
 				fetchablePath org.hibernate.orm.test.sql.exec.onetoone.bidirectional.EntityWithBidirectionalOneToOneTest$Mother.adopted.stepMother --- Circular ---
 			 */
 			statementInspector.assertExecutedCount( 1 );
-			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 4 );
+			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 5 );
 
 		} );
 	}
@@ -168,7 +166,7 @@ public class EntityWithBidirectionalOneToOneTest {
 			assertSame( adoptedChild.getBiologicalMother(), mother );
 
 			statementInspector.assertExecutedCount( 1 );
-			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 4 );
+			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 5 );
 		} );
 	}
 
@@ -228,9 +226,8 @@ public class EntityWithBidirectionalOneToOneTest {
 			assertThat( anotherChild.getName(), equalTo( "Igor" ) );
 			assertSame(  biologicalMother, anotherChild.getMother() );
 
-			statementInspector.assertExecutedCount( 2 );
-			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 4);
-			statementInspector.assertNumberOfOccurrenceInQuery( 1, "join", 4);
+			statementInspector.assertExecutedCount( 1 );
+			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 5);
 		} );
 	}
 
@@ -285,7 +282,6 @@ public class EntityWithBidirectionalOneToOneTest {
 	}
 
 	@Test
-	@FailureExpected( reason = "Change to attribute ordering triggered a problem with circularity detection", jiraKey = "HHH-14403" )
 	public void testGetAdoptedChild(SessionFactoryScope scope) {
 		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
 		statementInspector.clear();
@@ -315,27 +311,26 @@ public class EntityWithBidirectionalOneToOneTest {
 			);
 			assertThat( adoptedChild.getBiologicalMother(), nullValue() );
 
-			statementInspector.assertExecutedCount( 2 );
+			statementInspector.assertExecutedCount( 1 );
 			/*
 				fetchablePath: AdoptedChild.biologicalMother --- NO circular ---
 				fetchablePath: AdoptedChild.biologicalMother.biologicalChild --- NO circular ---
 				fetchablePath: AdoptedChild.biologicalMother.biologicalChild.mother --- Circular ---
 				fetchablePath: AdoptedChild.biologicalMother.adopted --- NO circular ---
 				fetchablePath: AdoptedChild.biologicalMother.adopted.biologicalMother --- NO circular ---
-				fetchablePath: AdoptedChild.biologicalMother.adopted.biologicalMother.biologicalChild --- NO circular --- [N.b is is not circular because adoped is an instance of AdoptedChild while biologicalChild is an instance of Child]
+				fetchablePath: AdoptedChild.biologicalMother.adopted.biologicalMother.biologicalChild --- NO circular --- [N.b is is not circular because adopted is an instance of AdoptedChild while biologicalChild is an instance of Child]
 				fetchablePath: AdoptedChild.biologicalMother.adopted.biologicalMother.adopted --- NO circular ---
 				fetchablePath: AdoptedChild.biologicalMother.adopted.biologicalMother.adopted.biologicalMother --- NO circular ---
 				fetchablePath: AdoptedChild.biologicalMother.adopted.biologicalMother.adopted.biologicalMother.biologicalChild --- NO circular ---
 				fetchablePath: AdoptedChild.biologicalMother.adopted.biologicalMother.adopted.biologicalMother.adopted --- NO circular ---
-				fetchablePath: AdoptedChild.biologicalMother.adopted.biologicalMother.adopted.stepMother --- Circular ---
+				fetchablePath: AdoptedChild.biologicalMother.adopted.biologicalMother.adopted.stepMother --- NO Circular ---
 				fetchablePath: AdoptedChild.biologicalMother.adopted.stepMother --- Circular ---
 				fetchablePath: AdoptedChild.stepMother --- NO circular ---
 				fetchablePath: AdoptedChild.stepMother.biologicalChild --- NO circular ---
 				fetchablePath: AdoptedChild.stepMother.biologicalChild.mother --- Circular ---
 				fetchablePath: AdoptedChild.stepMother.adopted --- Circular ---
 			 */
-			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 3 );
-			statementInspector.assertNumberOfOccurrenceInQuery( 1, "join", 4 );
+			statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 5 );
 		} );
 	}
 
@@ -408,7 +403,7 @@ public class EntityWithBidirectionalOneToOneTest {
 	}
 
 	@Test
-	@FailureExpected( reason = "Change to attribute ordering triggered a problem with circularity detection", jiraKey = "HHH-14403" )
+//	@FailureExpected( reason = "Change to attribute ordering triggered a problem with circularity detection", jiraKey = "HHH-14403" )
 	public void testHqlSelectMother(SessionFactoryScope scope) {
 		SQLStatementInspector statementInspector = (SQLStatementInspector) scope.getStatementInspector();
 		statementInspector.clear();
@@ -424,12 +419,10 @@ public class EntityWithBidirectionalOneToOneTest {
 					Child child = mother.getBiologicalChild();
 					assertThat( child, notNullValue() );
 					assertThat( child.getName(), is( "Luis" ) );
-					statementInspector.assertExecutedCount( 3 );
+					statementInspector.assertExecutedCount( 2 );
 					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 1 );
-					// Mother.biologicalChild
-					statementInspector.assertNumberOfOccurrenceInQuery( 1, "join", 4 );
-					// Mother.adopted
-					statementInspector.assertNumberOfOccurrenceInQuery( 2, "join", 3 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 1, "join", 5 );
+//					statementInspector.assertNumberOfOccurrenceInQuery( 2, "join", 3 );
 				}
 		);
 	}
@@ -451,7 +444,7 @@ public class EntityWithBidirectionalOneToOneTest {
 					assertThat( mother.getName(), is( "Giulia" ) );
 					statementInspector.assertExecutedCount( 2 );
 					statementInspector.assertNumberOfOccurrenceInQuery( 0, "join", 1 );
-					statementInspector.assertNumberOfOccurrenceInQuery( 1, "join", 4 );
+					statementInspector.assertNumberOfOccurrenceInQuery( 1, "join", 5 );
 				}
 		);
 	}

@@ -40,6 +40,8 @@ import org.hibernate.sql.ast.tree.select.QuerySpec;
 import org.hibernate.sql.results.graph.DomainResultCreationState;
 import org.hibernate.sql.results.graph.Fetch;
 import org.hibernate.sql.results.graph.FetchParent;
+import org.hibernate.sql.results.graph.embeddable.EmbeddableResult;
+import org.hibernate.sql.results.graph.embeddable.internal.EmbeddableResultImpl;
 
 /**
  * Helper used when generating the database-snapshot select query
@@ -130,7 +132,30 @@ public class LoaderSqlAstCreationState
 
 	@Override
 	public List<Fetch> visitFetches(FetchParent fetchParent) {
-		return fetchProcessor.visitFetches( fetchParent, processingState.getInflightQueryPart().getFirstQuerySpec(), this );
+		if ( fetchParent instanceof EmbeddableResult ) {
+			return fetchProcessor.visitFetches(
+					fetchParent,
+					processingState.getInflightQueryPart().getFirstQuerySpec(),
+					this
+			);
+		}
+		else {
+			final Set<AssociationKey> currentLevelVisitedAssociationKeys = new HashSet<>( visitedAssociationKeys.size() );
+			currentLevelVisitedAssociationKeys.addAll( visitedAssociationKeys );
+			/*
+				A Depth-first visiting strategy is used for fetches, but we do not want to consider visited Association Keys
+				of fetches belonging to a deeper level, so `currentLevelVisitedAssociationKeys` keeps track of the current set of visited keys and
+				when backtracking `visitedAssociationKeys` is restored to the state it has before.
+			*/
+			final List<Fetch> fetches = fetchProcessor.visitFetches(
+					fetchParent,
+					processingState.getInflightQueryPart().getFirstQuerySpec(),
+					this
+			);
+
+			visitedAssociationKeys = currentLevelVisitedAssociationKeys;
+			return fetches;
+		}
 	}
 
 	@Override

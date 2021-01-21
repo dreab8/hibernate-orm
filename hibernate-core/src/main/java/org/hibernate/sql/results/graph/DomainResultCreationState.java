@@ -33,7 +33,7 @@ public interface DomainResultCreationState {
 	default void registerVisitedAssociationKey(AssociationKey associationKey){
 	}
 
-	default boolean isAssociationKeyVisited(AssociationKey associationKey){
+	default boolean isAssociationKeyVisited(AssociationKey associationKey) {
 		return false;
 	}
 
