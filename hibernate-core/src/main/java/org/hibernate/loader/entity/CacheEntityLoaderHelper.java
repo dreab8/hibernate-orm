@@ -7,6 +7,11 @@
 package org.hibernate.loader.entity;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.persistence.AttributeNode;
+import javax.persistence.EntityGraph;
 
 import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
@@ -15,12 +20,15 @@ import org.hibernate.cache.spi.access.EntityDataAccess;
 import org.hibernate.cache.spi.entry.CacheEntry;
 import org.hibernate.cache.spi.entry.ReferenceCacheEntryImpl;
 import org.hibernate.cache.spi.entry.StandardCacheEntryImpl;
+import org.hibernate.cfg.NotYetImplementedException;
+import org.hibernate.collection.internal.AbstractPersistentCollection;
 import org.hibernate.engine.internal.CacheHelper;
 import org.hibernate.engine.internal.StatefulPersistenceContext;
 import org.hibernate.engine.internal.TwoPhaseLoad;
 import org.hibernate.engine.internal.Versioning;
 import org.hibernate.engine.spi.EntityEntry;
 import org.hibernate.engine.spi.EntityKey;
+import org.hibernate.engine.spi.LoadQueryInfluencers;
 import org.hibernate.engine.spi.ManagedEntity;
 import org.hibernate.engine.spi.PersistenceContext;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
@@ -31,6 +39,7 @@ import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.LoadEvent;
 import org.hibernate.event.spi.LoadEventListener;
 import org.hibernate.event.spi.PostLoadEvent;
+import org.hibernate.graph.internal.AbstractGraph;
 import org.hibernate.internal.CoreLogging;
 import org.hibernate.internal.CoreMessageLogger;
 import org.hibernate.persister.entity.EntityPersister;
@@ -308,6 +317,31 @@ public class CacheEntityLoaderHelper extends AbstractLockUpgradeEventListener {
 		values = ( (StandardCacheEntryImpl) entry ).assemble(
 				entity, entityId, subclassPersister, session.getInterceptor(), session
 		);
+
+		final LoadQueryInfluencers queryInfluencers = session.getLoadQueryInfluencers();
+		EntityGraph<?> graph = queryInfluencers.getEffectiveEntityGraph().getGraph();
+
+		if ( graph == null ) {
+			graph = queryInfluencers.getLoadGraph();
+		}
+
+		if ( graph != null ) {
+			final Set<String> attributeList = new HashSet<>();
+			final String entityJavaType = ((AbstractGraph)graph).getGraphedType().getJavaType().getName();
+			for ( AttributeNode<?> attribute : graph.getAttributeNodes() ) {
+				attributeList.add( entityJavaType + "." + attribute.getAttributeName() );
+				if ( attribute.getSubgraphs().size() > 0 ) {
+					throw new NotYetImplementedException( "SubGraphs are not supported ATM!!!" );
+				}
+			}
+			for ( Object value : values ) {
+				if ( value instanceof AbstractPersistentCollection
+						&& attributeList.contains( ( (AbstractPersistentCollection) value ).getRole() ) ) {
+					persistenceContext.addNonLazyCollection( (AbstractPersistentCollection) value );
+				}
+			}
+		}
+
 		if ( ( (StandardCacheEntryImpl) entry ).isDeepCopyNeeded() ) {
 			TypeHelper.deepCopy(
 					values,
