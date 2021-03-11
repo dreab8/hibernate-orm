@@ -19,6 +19,7 @@ import java.util.TreeMap;
 import javax.persistence.Access;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
@@ -104,6 +105,7 @@ class PropertyContainer {
 				fields,
 				getters
 		);
+		assertTypesAreResolvable();
 	}
 
 	private void preFilter(List<XProperty> fields, List<XProperty> getters) {
@@ -213,6 +215,7 @@ class PropertyContainer {
 
 				persistentAttributeMap.put( getter.getName(), getter );
 				persistentAttributesFromGetters.put( name, getter );
+				assertTypesAreResolvable();
 			}
 		}
 	}
@@ -230,13 +233,13 @@ class PropertyContainer {
 	}
 
 	public Collection<XProperty> getProperties() {
-		assertTypesAreResolvable();
 		return Collections.unmodifiableCollection( persistentAttributeMap.values() );
 	}
 
 	private void assertTypesAreResolvable() {
 		for ( XProperty xProperty : persistentAttributeMap.values() ) {
-			if ( !xProperty.isTypeResolved() && !discoverTypeWithoutReflection( xProperty ) ) {
+			final XClass declaringClass = xProperty.getDeclaringClass();
+			if ( declaringClass.getAnnotation( MappedSuperclass.class ) == null && !xProperty.isTypeResolved() && !discoverTypeWithoutReflection( xProperty ) ) {
 				String msg = "Property " + StringHelper.qualify( xClass.getName(), xProperty.getName() ) +
 						" has an unbound type and no explicit target entity. Resolve this Generic usage issue" +
 						" or set an explicit target attribute (eg @OneToMany(target=) or use an explicit @Type";
