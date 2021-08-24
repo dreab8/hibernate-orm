@@ -144,7 +144,7 @@ public class MetadataContext {
 	}
 
 	public Set<EmbeddableDomainType<?>> getEmbeddableTypeSet() {
-		return new HashSet<>( embeddables.values() );
+		return new HashSet<>( componentByEmbeddable.keySet() );
 	}
 
 	public Map<Class<?>, MappedSuperclassDomainType<?>> getMappedSuperclassTypeMap() {

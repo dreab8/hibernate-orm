@@ -80,6 +80,8 @@ public class JpaMetamodelImpl implements JpaMetamodel {
 	private final Map<Class, EmbeddableDomainType<?>> jpaEmbeddableDescriptorMap = new ConcurrentHashMap<>();
 	private final Map<String, Map<Class<?>, Enum<?>>> allowedEnumLiteralTexts = new ConcurrentHashMap<>();
 
+	private final Set<EmbeddableType<?>> jpaEmbeddables = ConcurrentHashMap.newKeySet(); // to remove when we will force to have one EmbeddableType per Class
+
 	private final transient Map<String, RootGraphImplementor> entityGraphMap = new ConcurrentHashMap<>();
 
 	private final Map<Class, SqmPolymorphicRootDescriptor<?>> polymorphicEntityReferenceMap = new ConcurrentHashMap<>();
@@ -259,7 +261,7 @@ public class JpaMetamodelImpl implements JpaMetamodel {
 
 	@Override
 	public Set<EmbeddableType<?>> getEmbeddables() {
-		return new HashSet<>( jpaEmbeddableDescriptorMap.values() );
+		return jpaEmbeddables;
 	}
 
 	@Override
@@ -513,6 +515,7 @@ public class JpaMetamodelImpl implements JpaMetamodel {
 			this.jpaMappedSuperclassTypeMap.putAll( context.getMappedSuperclassTypeMap() );
 
 			for ( EmbeddableDomainType<?> embeddable : context.getEmbeddableTypeSet() ) {
+				this.jpaEmbeddables.add( embeddable );
 				this.jpaEmbeddableDescriptorMap.put( embeddable.getJavaType(), embeddable );
 			}
 			Stream.concat(
