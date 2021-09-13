@@ -2126,6 +2126,8 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 		if ( pathSource instanceof PluralPersistentAttribute ) {
 			assert modelPart instanceof PluralAttributeMapping;
 
+			adjustSqmJoinFetch( sqmJoin, sqmJoinNavigablePath );
+
 			final PluralAttributeMapping pluralAttributeMapping = (PluralAttributeMapping) modelPart;
 
 			joinPath = getJoinNavigablePath(
@@ -2187,6 +2189,24 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 
 		consumeExplicitJoins( sqmJoin, joinedTableGroup );
 
+	}
+
+	private void adjustSqmJoinFetch(SqmAttributeJoin<?, ?> sqmJoin, NavigablePath sqmJoinNavigablePath) {
+		if ( statement instanceof SqmSelectStatement ) {
+			SqmSelectStatement selectStatement = (SqmSelectStatement) statement;
+			final List<SqmSelection<?>> selections = selectStatement.getQuerySpec()
+					.getSelectClause()
+					.getSelections();
+			for ( SqmSelection selection : selections ) {
+				final SqmSelectableNode selectableNode = selection.getSelectableNode();
+				if ( selectableNode instanceof SqmEntityValuedSimplePath
+						&& sqmJoinNavigablePath.equals(
+						( (SqmEntityValuedSimplePath) selectableNode ).getNavigablePath().getParent() )
+				) {
+					sqmJoin.setFetched();
+				}
+			}
+		}
 	}
 
 	private NavigablePath getJoinNavigablePath(

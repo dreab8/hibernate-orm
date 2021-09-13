@@ -48,6 +48,8 @@ public class DiscriminatedCollectionTests {
 	@AfterEach
 	public void dropTestData(SessionFactoryScope scope) {
 		scope.inTransaction( (session) -> {
+
+
 			session.remove( session.load( Client.class, 1 ) );
 		} );
 	}
@@ -55,11 +57,21 @@ public class DiscriminatedCollectionTests {
 	@Test
 	public void testHqlNonFetchJoins(SessionFactoryScope scope) {
 		scope.inTransaction( (session) -> {
-			final String queryString = "select c, da from Client c inner join c.debitAccounts da";
+			final String queryString = "select  da, c from Client c inner join c.debitAccounts da";
 			final List<Object[]> clients = session.createQuery( queryString, Object[].class ).getResultList();
 			assertThat( clients ).hasSize( 1 );
 		} );
 	}
+
+	@Test
+	public void testHqlFetchJoins(SessionFactoryScope scope) {
+		scope.inTransaction( (session) -> {
+			final String queryString = "select c, da from Client c inner join fetch c.debitAccounts da";
+			final List<Object[]> clients = session.createQuery( queryString, Object[].class ).getResultList();
+			assertThat( clients ).hasSize( 1 );
+		} );
+	}
+
 
 	@Test
 	public void test(SessionFactoryScope scope) {

@@ -8,6 +8,7 @@ package org.hibernate.sql.ast.spi;
 
 import java.util.function.Function;
 
+import org.hibernate.metamodel.mapping.CollectionPart;
 import org.hibernate.query.NavigablePath;
 import org.hibernate.sql.ast.SqlTreeCreationException;
 import org.hibernate.sql.ast.tree.from.TableGroup;
@@ -55,7 +56,15 @@ public interface FromClauseAccess {
 	 */
 	default TableGroup resolveTableGroup(NavigablePath navigablePath, Function<NavigablePath, TableGroup> creator) {
 		TableGroup tableGroup = findTableGroup( navigablePath );
+
 		if ( tableGroup == null ) {
+			if ( navigablePath.getFullPath().endsWith( CollectionPart.Nature.ELEMENT.getName() ) ) {
+				tableGroup = findTableGroup( navigablePath.getParent() );
+				if ( tableGroup != null ) {
+					registerTableGroup( navigablePath, tableGroup );
+					return tableGroup;
+				}
+			}
 			tableGroup = creator.apply( navigablePath );
 			registerTableGroup( navigablePath, tableGroup );
 		}

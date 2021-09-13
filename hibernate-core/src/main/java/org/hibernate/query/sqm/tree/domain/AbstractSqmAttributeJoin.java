@@ -36,7 +36,7 @@ public abstract class AbstractSqmAttributeJoin<O,T>
 		implements SqmAttributeJoin<O,T> {
 	private static final Logger log = Logger.getLogger( AbstractSqmAttributeJoin.class );
 
-	private final boolean fetched;
+	private boolean fetched;
 
 	private SqmPredicate onClausePredicate;
 
@@ -155,4 +155,8 @@ public abstract class AbstractSqmAttributeJoin<O,T>
 		return getSqmJoinType().getCorrespondingJpaJoinType();
 	}
 
+	@Override
+	public void setFetched(){
+		fetched = true;
+	}
 }

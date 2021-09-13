@@ -47,4 +47,6 @@ public interface SqmAttributeJoin<O,T> extends SqmQualifiedJoin<O,T>, JpaFetch<O
 			super( message, cause );
 		}
 	}
+
+	void setFetched();
 }
