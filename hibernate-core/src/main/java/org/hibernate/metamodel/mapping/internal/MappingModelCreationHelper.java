@@ -1533,9 +1533,14 @@ public class MappingModelCreationHelper {
 
 			final FetchTiming fetchTiming;
 
-			if ( fetchStyle == FetchStyle.JOIN
+			if ( value.isLazy() && value.isUnwrapProxy() &&
+					entityPersister.getBytecodeEnhancementMetadata().isEnhancedForLazyLoading() ) {
+				fetchTiming = FetchTiming.DELAYED;
+			}
+			else
+				if ( fetchStyle == FetchStyle.JOIN
 					|| !value.isLazy()
-					|| value instanceof OneToOne && value.isNullable()
+					|| (value instanceof OneToOne && value.isNullable() )
 					|| value instanceof ManyToOne && value.isNullable() && ( (ManyToOne) value ).isIgnoreNotFound() ) {
 				fetchTiming = FetchTiming.IMMEDIATE;
 			}

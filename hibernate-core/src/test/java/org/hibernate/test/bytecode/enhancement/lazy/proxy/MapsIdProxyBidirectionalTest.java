@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.orm.test.bytecode.enhancement.lazy.proxy;
+package org.hibernate.test.bytecode.enhancement.lazy.proxy;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -14,8 +14,6 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.LazyToOne;
-import org.hibernate.annotations.LazyToOneOption;
 import org.hibernate.boot.SessionFactoryBuilder;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
@@ -72,6 +70,7 @@ public class MapsIdProxyBidirectionalTest extends BaseNonConfigCoreFunctionalTes
 
 	@Test
 	@TestForIssue(jiraKey = "HHH-13814")
+	@FailureExpected( jiraKey = "HHH-13814")
 	public void testMappedByAssociation() {
 		inTransaction(
 				session -> {
