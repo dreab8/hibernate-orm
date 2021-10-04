@@ -204,7 +204,7 @@ public class CacheEntityLoaderHelper {
 	 * @return The entity from the second-level cache, or null.
 	 */
 	public Object loadFromSecondLevelCache(
-			final EventSource source,
+			final SharedSessionContractImplementor source,
 			final Object entity,
 			final LockMode lockMode,
 			final EntityPersister persister,
@@ -233,7 +233,7 @@ public class CacheEntityLoaderHelper {
 	private Object getFromSharedCache(
 			final Object entityId,
 			final EntityPersister persister,
-			SessionImplementor source) {
+			SharedSessionContractImplementor source) {
 		final EntityDataAccess cache = persister.getCacheAccessStrategy();
 		final SessionFactoryImplementor factory = source.getFactory();
 		final Object ck = cache.generateCacheKey(
@@ -266,7 +266,7 @@ public class CacheEntityLoaderHelper {
 			final Object instanceToLoad,
 			final EntityPersister persister,
 			final Object ce,
-			final EventSource source,
+			final SharedSessionContractImplementor source,
 			final EntityKey entityKey) {
 
 		CacheEntry entry = (CacheEntry) persister.getCacheEntryStructure().destructure( ce, source.getFactory() );
@@ -301,7 +301,7 @@ public class CacheEntityLoaderHelper {
 
 	private Object convertCacheReferenceEntryToEntity(
 			ReferenceCacheEntryImpl referenceCacheEntry,
-			EventSource session,
+			SharedSessionContractImplementor session,
 			EntityKey entityKey) {
 		final Object entity = referenceCacheEntry.getReference();
 
@@ -317,7 +317,7 @@ public class CacheEntityLoaderHelper {
 
 	private void makeEntityCircularReferenceSafe(
 			ReferenceCacheEntryImpl referenceCacheEntry,
-			EventSource session,
+			SharedSessionContractImplementor session,
 			Object entity,
 			EntityKey entityKey) {
 
@@ -346,7 +346,7 @@ public class CacheEntityLoaderHelper {
 	private Object convertCacheEntryToEntity(
 			CacheEntry entry,
 			Object entityId,
-			EventSource source,
+			SharedSessionContractImplementor source,
 			EntityPersister persister,
 			Object instanceToLoad,
 			EntityKey entityKey) {

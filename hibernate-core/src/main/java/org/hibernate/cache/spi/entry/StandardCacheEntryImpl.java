@@ -11,6 +11,7 @@ import java.io.Serializable;
 import org.hibernate.AssertionFailure;
 import org.hibernate.HibernateException;
 import org.hibernate.Interceptor;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.event.service.spi.EventListenerGroup;
 import org.hibernate.event.service.spi.EventListenerRegistry;
@@ -126,7 +127,7 @@ public class StandardCacheEntryImpl implements CacheEntry {
 			final Object id,
 			final EntityPersister persister,
 			final Interceptor interceptor,
-			final EventSource session) throws HibernateException {
+			final SharedSessionContractImplementor session) throws HibernateException {
 		if ( !persister.getEntityName().equals( subclass ) ) {
 			throw new AssertionFailure( "Tried to assemble a different subclass instance" );
 		}
@@ -141,7 +142,7 @@ public class StandardCacheEntryImpl implements CacheEntry {
 		//persister.setIdentifier(instance, id); //before calling interceptor, for consistency with normal load
 
 		//TODO: reuse the PreLoadEvent
-		final PreLoadEvent preLoadEvent = new PreLoadEvent( session )
+		final PreLoadEvent preLoadEvent = new PreLoadEvent( (EventSource) session )
 				.setEntity( instance )
 				.setState( state )
 				.setId( id )
