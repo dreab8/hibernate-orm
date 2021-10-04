@@ -20,6 +20,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
 
 import org.hibernate.Hibernate;
@@ -143,7 +144,7 @@ public class LoadANonExistingNotFoundEntityTest extends BaseNonConfigCoreFunctio
 		doInHibernate(
 				this::sessionFactory, session -> {
 					// Add "not found" associations
-					session.createQuery( "update Employee set employer_id = id" ).executeUpdate();
+					session.createNativeQuery( "update Employee set employer_id = 0 ").executeUpdate();
 				}
 		);
 	}
@@ -181,7 +182,7 @@ public class LoadANonExistingNotFoundEntityTest extends BaseNonConfigCoreFunctio
 		private String name;
 
 		@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-		@JoinColumn(foreignKey = @ForeignKey(value= ConstraintMode.NO_CONSTRAINT))
+		@JoinColumn(name = "employer_id",foreignKey = @ForeignKey(value= ConstraintMode.NO_CONSTRAINT))
 		@NotFound(action=NotFoundAction.IGNORE)
 		private Employer employer;
 	}
