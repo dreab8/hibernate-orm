@@ -189,7 +189,7 @@ public class EntitySelectFetchInitializer extends AbstractFetchParentAccess impl
 				entityName,
 				entityIdentifier,
 				true,
-				referencedModelPart.isNullable() || referencedModelPart.isIgnoreNotFound()
+				referencedModelPart.isInternalLoadNullable()
 		);
 
 		if ( EntityLoadingLogger.DEBUG_ENABLED ) {

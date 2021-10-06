@@ -1671,20 +1671,22 @@ public abstract class AbstractEntityPersister
 					continue;
 				}
 
+				final int lazyIndex = fetchGroupAttributeDescriptor.getLazyIndex();
+				if ( lazyIndex < values.length ) {
+					final Object selectedValue = values[lazyIndex];
 
-				final Object selectedValue = values[fetchGroupAttributeDescriptor.getLazyIndex()];
-
-				final boolean set = initializeLazyProperty(
-						fieldName,
-						entity,
-						session,
-						entry,
-						fetchGroupAttributeDescriptor.getLazyIndex(),
-						selectedValue
-				);
-				if ( set ) {
-					result = selectedValue;
-					interceptor.attributeInitialized( fetchGroupAttributeDescriptor.getName() );
+					final boolean set = initializeLazyProperty(
+							fieldName,
+							entity,
+							session,
+							entry,
+							lazyIndex,
+							selectedValue
+					);
+					if ( set ) {
+						result = selectedValue;
+						interceptor.attributeInitialized( fetchGroupAttributeDescriptor.getName() );
+					}
 				}
 
 			}

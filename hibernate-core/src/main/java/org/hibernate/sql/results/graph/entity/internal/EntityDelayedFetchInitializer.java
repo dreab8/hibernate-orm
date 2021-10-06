@@ -120,31 +120,32 @@ public class EntityDelayedFetchInitializer extends AbstractFetchParentAccess imp
 							else {
 								entityInstance = persistenceContext.getEntity( entityKey );
 								if ( entityInstance == null ) {
-									entityInstance = rowProcessingState.getSession()
-											.internalLoad(
-													concreteDescriptor.getEntityName(),
-													identifier,
-													false,
-													referencedModelPart.isInternalLoadNullable()
+									if ( concreteDescriptor.hasProxy()  ) {
+										entityInstance = concreteDescriptor.createProxy(
+												identifier,
+												rowProcessingState.getSession()
+										);
+										persistenceContext.getBatchFetchQueue().addBatchLoadableEntityKey( entityKey );
+										persistenceContext.addProxy( entityKey, entityInstance );
+									}
+									else if ( concreteDescriptor.getBytecodeEnhancementMetadata()
+											.isEnhancedForLazyLoading() && !concreteDescriptor.isAbstract() ) {
+										entityInstance = concreteDescriptor.getBytecodeEnhancementMetadata()
+												.createEnhancedProxy(
+														entityKey,
+														true,
+														rowProcessingState.getSession()
+												);
+									}else {
+										entityInstance = rowProcessingState.getSession()
+												.internalLoad(
+														concreteDescriptor.getEntityName(),
+														identifier,
+														false,
+														referencedModelPart.isInternalLoadNullable()
 //													!referencedModelPart.isConstrained() || referencedModelPart.isIgnoreNotFound()
-											);
-//									if ( concreteDescriptor.hasProxy() || concreteDescriptor.isAbstract() ) {
-//										entityInstance = concreteDescriptor.createProxy(
-//												identifier,
-//												rowProcessingState.getSession()
-//										);
-//										persistenceContext.getBatchFetchQueue().addBatchLoadableEntityKey( entityKey );
-//										persistenceContext.addProxy( entityKey, entityInstance );
-//									}
-//									else if ( concreteDescriptor.getBytecodeEnhancementMetadata()
-//											.isEnhancedForLazyLoading() ) {
-//										entityInstance = concreteDescriptor.getBytecodeEnhancementMetadata()
-//												.createEnhancedProxy(
-//														entityKey,
-//														true,
-//														rowProcessingState.getSession()
-//												);
-//									}
+												);
+									}
 								}
 							}
 						}
