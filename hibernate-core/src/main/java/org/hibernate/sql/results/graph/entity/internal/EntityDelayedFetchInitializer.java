@@ -120,7 +120,7 @@ public class EntityDelayedFetchInitializer extends AbstractFetchParentAccess imp
 							else {
 								entityInstance = persistenceContext.getEntity( entityKey );
 								if ( entityInstance == null ) {
-									if ( concreteDescriptor.hasProxy()  ) {
+									if ( concreteDescriptor.hasProxy() ) {
 										entityInstance = concreteDescriptor.createProxy(
 												identifier,
 												rowProcessingState.getSession()
@@ -136,7 +136,8 @@ public class EntityDelayedFetchInitializer extends AbstractFetchParentAccess imp
 														true,
 														rowProcessingState.getSession()
 												);
-									}else {
+									}
+									else {
 										entityInstance = rowProcessingState.getSession()
 												.internalLoad(
 														concreteDescriptor.getEntityName(),
