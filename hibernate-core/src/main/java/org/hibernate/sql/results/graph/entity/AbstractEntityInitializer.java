@@ -578,6 +578,8 @@ public abstract class AbstractEntityInitializer extends AbstractFetchParentAcces
 			return existingLoadingEntry.getEntityInstance();
 		}
 
+		assert existingLoadingEntry == null || existingLoadingEntry.getEntityInstance() == null;
+
 		Object instance = null;
 
 		// this isEntityReturn bit is just for entity loaders, not hql/criteria
@@ -939,5 +941,9 @@ public abstract class AbstractEntityInitializer extends AbstractFetchParentAcces
 		resolvedEntityState = null;
 		identifierInitializers.forEach( initializer -> initializer.finishUpRow( rowProcessingState ) );
 		clearParentResolutionListeners();
+	}
+
+	public Map<AttributeMapping, DomainResultAssembler> getAssemblerMap() {
+		return assemblerMap;
 	}
 }
