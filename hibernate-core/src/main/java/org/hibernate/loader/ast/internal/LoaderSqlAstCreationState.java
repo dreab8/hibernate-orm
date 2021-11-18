@@ -6,11 +6,10 @@
  */
 package org.hibernate.loader.ast.internal;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import jakarta.persistence.CacheRetrieveMode;
-import jakarta.persistence.CacheStoreMode;
+import java.util.Map;
 
 import org.hibernate.FlushMode;
 import org.hibernate.LockMode;
@@ -39,6 +38,9 @@ import org.hibernate.sql.results.graph.DomainResultCreationState;
 import org.hibernate.sql.results.graph.Fetch;
 import org.hibernate.sql.results.graph.FetchParent;
 
+import jakarta.persistence.CacheRetrieveMode;
+import jakarta.persistence.CacheStoreMode;
+
 /**
  * Helper used when generating the database-snapshot select query
  */
@@ -58,7 +60,7 @@ public class LoaderSqlAstCreationState
 
 	private boolean resolvingCircularFetch;
 	private ForeignKeyDescriptor.Nature currentlyResolvingForeignKeySide;
-	private Set<AssociationKey> visitedAssociationKeys = new HashSet<>();
+	private Map<AssociationKey, List<Integer>> visitedAssociationKeysAtLevels = new HashMap<>();
 
 	public LoaderSqlAstCreationState(
 			QueryPart queryPart,
@@ -148,13 +150,28 @@ public class LoaderSqlAstCreationState
 	}
 
 	@Override
-	public void registerVisitedAssociationKey(AssociationKey associationKey) {
-		visitedAssociationKeys.add( associationKey );
+	public void registerVisitedAssociationKey(AssociationKey associationKey, NavigablePath path) {
+		List<Integer> levels = visitedAssociationKeysAtLevels.get( associationKey );
+		if ( levels == null ) {
+			levels = new ArrayList<>();
+			visitedAssociationKeysAtLevels.put( associationKey, levels );
+		}
+		levels.add( path.getLevel() );
 	}
 
 	@Override
-	public boolean isAssociationKeyVisited(AssociationKey associationKey) {
-		return visitedAssociationKeys.contains( associationKey );
+	public boolean isAssociationKeyVisited(AssociationKey associationKey, NavigablePath path) {
+		final int level = path.getLevel();
+		List<Integer> levels = visitedAssociationKeysAtLevels.get( associationKey );
+		if ( levels == null ) {
+			return false;
+		}
+		for ( Integer l : levels ) {
+			if ( l < level ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override

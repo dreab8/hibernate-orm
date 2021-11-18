@@ -23,9 +23,16 @@ public class NavigablePath implements DotIdentifierSequence, Serializable {
 	private final String fullPath;
 	private final String unaliasedLocalName;
 	private final String identifierForTableGroup;
+	private final Integer level;
 
 	public NavigablePath(NavigablePath parent, String navigableName) {
 		this.parent = parent;
+		if ( parent != null ) {
+			this.level = parent.getLevel() + 1;
+		}
+		else {
+			this.level = 0;
+		}
 
 		// the _identifierMapper is a "hidden property" on entities with composite keys.
 		// concatenating it will prevent the path from correctly being used to look up
@@ -62,6 +69,7 @@ public class NavigablePath implements DotIdentifierSequence, Serializable {
 		this.fullPath = alias == null ? rootName : rootName + "(" + alias + ")";
 		this.unaliasedLocalName = StringHelper.unqualify( rootName );
 		identifierForTableGroup = rootName;
+		level = 0;
 	}
 
 	public NavigablePath(NavigablePath parent, String property, String alias) {
@@ -70,6 +78,12 @@ public class NavigablePath implements DotIdentifierSequence, Serializable {
 				: property + '(' + alias + ')';
 
 		this.parent = parent;
+		if ( parent != null ) {
+			this.level = parent.getLevel() + 1;
+		}
+		else {
+			this.level = 0;
+		}
 
 		// the _identifierMapper is a "hidden property" on entities with composite keys.
 		// concatenating it will prevent the path from correctly being used to look up
@@ -107,6 +121,12 @@ public class NavigablePath implements DotIdentifierSequence, Serializable {
 			String unaliasedLocalName,
 			String identifierForTableGroup) {
 		this.parent = parent;
+		if ( parent != null ) {
+			this.level = parent.getLevel() + 1;
+		}
+		else {
+			this.level = 0;
+		}
 		this.fullPath = fullPath;
 		this.unaliasedLocalName = unaliasedLocalName;
 		this.identifierForTableGroup = identifierForTableGroup;
@@ -163,6 +183,10 @@ public class NavigablePath implements DotIdentifierSequence, Serializable {
 			navigablePath = navigablePath.getParent();
 		}
 		return false;
+	}
+
+	public int getLevel() {
+		return level;
 	}
 
 	@Override

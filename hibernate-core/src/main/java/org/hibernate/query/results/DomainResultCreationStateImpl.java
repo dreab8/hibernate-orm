@@ -175,15 +175,6 @@ public class DomainResultCreationStateImpl
 	}
 
 	@Override
-	public void registerVisitedAssociationKey(AssociationKey associationKey) {
-	}
-
-	@Override
-	public boolean isAssociationKeyVisited(AssociationKey associationKey) {
-		return false;
-	}
-
-	@Override
 	public ModelPart resolveModelPart(NavigablePath navigablePath) {
 		final TableGroup tableGroup = fromClauseAccess.findTableGroup( navigablePath );
 		if ( tableGroup != null ) {

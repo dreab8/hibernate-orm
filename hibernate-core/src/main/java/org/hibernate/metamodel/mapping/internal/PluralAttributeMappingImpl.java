@@ -362,7 +362,7 @@ public class PluralAttributeMappingImpl
 
 		// This is only used for collection initialization where we know the owner is available, so we mark it as visited
 		// which will cause bidirectional to-one associations to be treated as such and avoid a join
-		creationState.registerVisitedAssociationKey( fkDescriptor.getAssociationKey() );
+		creationState.registerVisitedAssociationKey( fkDescriptor.getAssociationKey(), navigablePath );
 
 		//noinspection unchecked
 		return new CollectionDomainResult( navigablePath, this, resultVariable, tableGroup, creationState );
@@ -378,7 +378,7 @@ public class PluralAttributeMappingImpl
 			DomainResultCreationState creationState) {
 		final SqlAstCreationState sqlAstCreationState = creationState.getSqlAstCreationState();
 
-		creationState.registerVisitedAssociationKey( fkDescriptor.getAssociationKey() );
+		creationState.registerVisitedAssociationKey( fkDescriptor.getAssociationKey(), fetchablePath );
 
 		if ( fetchTiming == FetchTiming.IMMEDIATE ) {
 			if ( selected ) {

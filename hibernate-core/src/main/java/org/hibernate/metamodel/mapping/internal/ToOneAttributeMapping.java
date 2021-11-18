@@ -667,7 +667,7 @@ public class ToOneAttributeMapping
 			DomainResultCreationState creationState) {
 		final AssociationKey associationKey = foreignKeyDescriptor.getAssociationKey();
 
-		if ( creationState.isAssociationKeyVisited( associationKey )
+		if ( creationState.isAssociationKeyVisited( associationKey, fetchablePath )
 				|| bidirectionalAttributeName != null && !creationState.isRegisteringVisitedAssociationKeys() ) {
 			NavigablePath parentNavigablePath = fetchablePath.getParent();
 			assert parentNavigablePath.equals( fetchParent.getNavigablePath() );
@@ -1034,14 +1034,15 @@ public class ToOneAttributeMapping
 				);
 			}
 
-			creationState.registerVisitedAssociationKey( foreignKeyDescriptor.getAssociationKey() );
+			creationState.registerVisitedAssociationKey( foreignKeyDescriptor.getAssociationKey(), fetchablePath );
 			if ( cardinality == Cardinality.LOGICAL_ONE_TO_ONE && bidirectionalAttributeName != null ) {
 				final ModelPart bidirectionalModelPart = entityMappingType.findSubPart( bidirectionalAttributeName );
 				// Add the inverse association key side as well to be able to resolve to a CircularFetch
 				if ( bidirectionalModelPart instanceof ToOneAttributeMapping ) {
 					final ToOneAttributeMapping bidirectionalAttribute = (ToOneAttributeMapping) bidirectionalModelPart;
 					creationState.registerVisitedAssociationKey(
-							bidirectionalAttribute.getForeignKeyDescriptor().getAssociationKey()
+							bidirectionalAttribute.getForeignKeyDescriptor().getAssociationKey(),
+							fetchablePath
 					);
 				}
 			}

@@ -425,7 +425,7 @@ public class EntityCollectionPart
 			boolean selected,
 			String resultVariable,
 			DomainResultCreationState creationState) {
-		creationState.registerVisitedAssociationKey( getForeignKeyDescriptor().getAssociationKey() );
+		creationState.registerVisitedAssociationKey( getForeignKeyDescriptor().getAssociationKey(), fetchablePath );
 
 		final TableGroup partTableGroup = resolveTableGroup( fetchablePath, creationState );
 		return new EntityFetchJoinedImpl( fetchParent, this, partTableGroup, selected, fetchablePath, creationState );
