@@ -35,6 +35,7 @@ import org.hibernate.QueryException;
 import org.hibernate.boot.model.process.internal.InferredBasicValueResolver;
 import org.hibernate.dialect.function.TimestampaddFunction;
 import org.hibernate.dialect.function.TimestampdiffFunction;
+import org.hibernate.engine.FetchStyle;
 import org.hibernate.engine.FetchTiming;
 import org.hibernate.engine.profile.FetchProfile;
 import org.hibernate.engine.spi.LoadQueryInfluencers;
@@ -76,7 +77,6 @@ import org.hibernate.metamodel.mapping.MappingModelExpressable;
 import org.hibernate.metamodel.mapping.ModelPart;
 import org.hibernate.metamodel.mapping.ModelPartContainer;
 import org.hibernate.metamodel.mapping.PluralAttributeMapping;
-import org.hibernate.metamodel.mapping.Restrictable;
 import org.hibernate.metamodel.mapping.SqlExpressable;
 import org.hibernate.metamodel.mapping.ValueMapping;
 import org.hibernate.metamodel.mapping.internal.EmbeddedCollectionPart;
@@ -114,7 +114,6 @@ import org.hibernate.sql.ast.tree.from.QueryPartTableGroup;
 import org.hibernate.sql.ast.tree.from.QueryPartTableReference;
 import org.hibernate.sql.ast.tree.from.TableReference;
 import org.hibernate.sql.exec.internal.VersionTypeSeedParameterSpecification;
-import org.hibernate.persister.collection.CollectionPersister;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.persister.entity.Joinable;
 import org.hibernate.query.BinaryArithmeticOperator;
@@ -126,8 +125,6 @@ import org.hibernate.query.QueryLogging;
 import org.hibernate.query.SemanticException;
 import org.hibernate.query.TemporalUnit;
 import org.hibernate.query.UnaryArithmeticOperator;
-import org.hibernate.query.criteria.JpaPath;
-import org.hibernate.query.internal.QueryHelper;
 import org.hibernate.query.spi.QueryOptions;
 import org.hibernate.query.spi.QueryParameterBinding;
 import org.hibernate.query.spi.QueryParameterBindings;
@@ -138,10 +135,8 @@ import org.hibernate.query.sqm.SqmPathSource;
 import org.hibernate.query.sqm.SqmQuerySource;
 import org.hibernate.query.sqm.function.AbstractSqmSelfRenderingFunctionDescriptor;
 import org.hibernate.query.sqm.function.SelfRenderingAggregateFunctionSqlAstExpression;
-import org.hibernate.query.sqm.function.SelfRenderingFunctionSqlAstExpression;
 import org.hibernate.query.sqm.internal.DomainParameterXref;
 import org.hibernate.query.sqm.internal.SqmMappingModelHelper;
-import org.hibernate.query.sqm.produce.function.internal.PatternRenderer;
 import org.hibernate.query.sqm.spi.BaseSemanticQueryWalker;
 import org.hibernate.query.sqm.sql.internal.BasicValuedPathInterpretation;
 import org.hibernate.query.sqm.sql.internal.DiscriminatedAssociationPathInterpretation;
@@ -157,7 +152,6 @@ import org.hibernate.query.sqm.sql.internal.SqmMapEntryResult;
 import org.hibernate.query.sqm.sql.internal.SqmParameterInterpretation;
 import org.hibernate.query.sqm.sql.internal.SqmPathInterpretation;
 import org.hibernate.query.sqm.sql.internal.TypeHelper;
-import org.hibernate.query.sqm.tree.SqmJoinType;
 import org.hibernate.query.sqm.tree.SqmStatement;
 import org.hibernate.query.sqm.tree.SqmTypedNode;
 import org.hibernate.query.sqm.tree.cte.SqmCteContainer;
@@ -170,8 +164,6 @@ import org.hibernate.query.sqm.tree.domain.AbstractSqmSpecificPluralPartPath;
 import org.hibernate.query.sqm.tree.domain.NonAggregatedCompositeSimplePath;
 import org.hibernate.query.sqm.tree.domain.SqmAnyValuedSimplePath;
 import org.hibernate.query.sqm.tree.domain.SqmBasicValuedSimplePath;
-import org.hibernate.query.sqm.tree.domain.SqmCorrelatedRootJoin;
-import org.hibernate.query.sqm.tree.domain.SqmCorrelation;
 import org.hibernate.query.sqm.tree.domain.SqmEmbeddedValuedSimplePath;
 import org.hibernate.query.sqm.tree.domain.SqmEntityValuedSimplePath;
 import org.hibernate.query.sqm.tree.domain.SqmIndexedCollectionAccessPath;
@@ -183,7 +175,6 @@ import org.hibernate.query.sqm.tree.domain.SqmMinIndexPath;
 import org.hibernate.query.sqm.tree.domain.SqmPath;
 import org.hibernate.query.sqm.tree.domain.SqmPluralValuedSimplePath;
 import org.hibernate.query.sqm.tree.domain.SqmTreatedPath;
-import org.hibernate.query.sqm.tree.domain.SqmTreatedRoot;
 import org.hibernate.query.sqm.tree.expression.Conversion;
 import org.hibernate.query.sqm.tree.expression.JpaCriteriaParameter;
 import org.hibernate.query.sqm.tree.expression.SqmAliasedNodeRef;
@@ -208,7 +199,6 @@ import org.hibernate.query.sqm.tree.expression.SqmJpaCriteriaParameterWrapper;
 import org.hibernate.query.sqm.tree.expression.SqmLiteral;
 import org.hibernate.query.sqm.tree.expression.SqmLiteralEntityType;
 import org.hibernate.query.sqm.tree.expression.SqmLiteralNull;
-import org.hibernate.query.sqm.tree.expression.SqmModifiedSubQueryExpression;
 import org.hibernate.query.sqm.tree.expression.SqmNamedParameter;
 import org.hibernate.query.sqm.tree.expression.SqmParameter;
 import org.hibernate.query.sqm.tree.expression.SqmParameterizedEntityType;
@@ -227,7 +217,6 @@ import org.hibernate.query.sqm.tree.from.SqmFromClause;
 import org.hibernate.query.sqm.tree.from.SqmJoin;
 import org.hibernate.query.sqm.tree.from.SqmRoot;
 import org.hibernate.query.sqm.tree.insert.SqmInsertSelectStatement;
-import org.hibernate.query.sqm.tree.insert.SqmInsertStatement;
 import org.hibernate.query.sqm.tree.insert.SqmInsertValuesStatement;
 import org.hibernate.query.sqm.tree.insert.SqmValues;
 import org.hibernate.query.sqm.tree.predicate.SqmAndPredicate;
@@ -304,21 +293,16 @@ import org.hibernate.sql.ast.tree.expression.ExtractUnit;
 import org.hibernate.sql.ast.tree.expression.Format;
 import org.hibernate.sql.ast.tree.expression.JdbcLiteral;
 import org.hibernate.sql.ast.tree.expression.JdbcParameter;
-import org.hibernate.sql.ast.tree.expression.ModifiedSubQueryExpression;
-import org.hibernate.sql.ast.tree.expression.Over;
 import org.hibernate.sql.ast.tree.expression.QueryLiteral;
 import org.hibernate.sql.ast.tree.expression.SelfRenderingExpression;
-import org.hibernate.sql.ast.tree.expression.SelfRenderingSqlFragmentExpression;
 import org.hibernate.sql.ast.tree.expression.SqlSelectionExpression;
 import org.hibernate.sql.ast.tree.expression.SqlTuple;
 import org.hibernate.sql.ast.tree.expression.Star;
 import org.hibernate.sql.ast.tree.expression.Summarization;
 import org.hibernate.sql.ast.tree.expression.TrimSpecification;
 import org.hibernate.sql.ast.tree.expression.UnaryOperation;
-import org.hibernate.sql.ast.tree.from.CorrelatedPluralTableGroup;
 import org.hibernate.sql.ast.tree.from.CorrelatedTableGroup;
 import org.hibernate.sql.ast.tree.from.LazyTableGroup;
-import org.hibernate.sql.ast.tree.from.PluralTableGroup;
 import org.hibernate.sql.ast.tree.from.TableGroup;
 import org.hibernate.sql.ast.tree.from.TableGroupJoin;
 import org.hibernate.sql.ast.tree.from.TableGroupJoinProducer;
@@ -329,7 +313,6 @@ import org.hibernate.sql.ast.tree.predicate.BetweenPredicate;
 import org.hibernate.sql.ast.tree.predicate.BooleanExpressionPredicate;
 import org.hibernate.sql.ast.tree.predicate.ComparisonPredicate;
 import org.hibernate.sql.ast.tree.predicate.ExistsPredicate;
-import org.hibernate.sql.ast.tree.predicate.FilterPredicate;
 import org.hibernate.sql.ast.tree.predicate.GroupedPredicate;
 import org.hibernate.sql.ast.tree.predicate.InListPredicate;
 import org.hibernate.sql.ast.tree.predicate.InSubQueryPredicate;
@@ -351,7 +334,6 @@ import org.hibernate.sql.ast.tree.update.Assignment;
 import org.hibernate.sql.ast.tree.update.UpdateStatement;
 import org.hibernate.sql.exec.internal.JdbcParameterImpl;
 import org.hibernate.sql.exec.internal.JdbcParametersImpl;
-import org.hibernate.sql.exec.internal.VersionTypeSeedParameterSpecification;
 import org.hibernate.sql.exec.spi.ExecutionContext;
 import org.hibernate.sql.exec.spi.JdbcParameterBindings;
 import org.hibernate.sql.exec.spi.JdbcParameters;
@@ -5932,16 +5914,14 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 						.getCollectionDescriptor()
 						.getCollectionType()
 						.getAssociatedJoinable( getCreationContext().getSessionFactory() );
-				if ( joinable instanceof Restrictable ) {
-					( (Restrictable) joinable ).applyBaseRestrictions(
-							(predicate) -> addCollectionFilterPredicate( tableGroup.getGroupAlias(), predicate ),
-							tableGroup,
-							true,
-							getLoadQueryInfluencers().getEnabledFilters(),
-							null,
-							this
-					);
-				}
+				joinable.applyBaseRestrictions(
+						(predicate) -> addCollectionFilterPredicate( tableGroup.getGroupAlias(), predicate ),
+						tableGroup,
+						true,
+						getLoadQueryInfluencers().getEnabledFilters(),
+						null,
+						this
+				);
 
 				pluralAttributeMapping.applyBaseManyToManyRestrictions(
 						(predicate) -> {
