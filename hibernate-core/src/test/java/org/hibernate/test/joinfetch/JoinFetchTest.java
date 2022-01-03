@@ -35,6 +35,11 @@ public class JoinFetchTest extends BaseCoreFunctionalTestCase {
 	}
 
 	@Override
+	protected String getBaseForMappings() {
+		return "org/hibernate/test/";
+	}
+
+	@Override
 	public void configure(Configuration cfg) {
 		cfg.setProperty( Environment.MAX_FETCH_DEPTH, "10" );
 		cfg.setProperty( Environment.USE_SECOND_LEVEL_CACHE, "false" );

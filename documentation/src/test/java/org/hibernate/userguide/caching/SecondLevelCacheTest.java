@@ -28,7 +28,6 @@ import org.hibernate.orm.test.jpa.BaseEntityManagerFunctionalTestCase;
 import org.hibernate.stat.CacheRegionStatistics;
 import org.hibernate.stat.Statistics;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.hibernate.testing.transaction.TransactionUtil.doInJPA;
@@ -38,8 +37,6 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Vlad Mihalcea
  */
-@Ignore
-//@FailureExpected( jiraKey = "HHH-12146", message = "No idea why those changes cause this to fail, especially in the way it does" )
 public class SecondLevelCacheTest extends BaseEntityManagerFunctionalTestCase {
 
     @Override
