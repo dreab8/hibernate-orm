@@ -46,7 +46,32 @@ public class TypedQueryResultListTest extends BaseEntityManagerFunctionalTestCas
 
 			query.setParameter( "name", "usr1" );
 			List<Parent> entityList = query.getResultList();
-			assertThat( entityList.size(), is( 1 ) );
+			assertThat( entityList.size(), is( 2 ) );
+		} );
+
+
+	}
+
+	@Test
+	public void testIt2() {
+		doInJPA( this::entityManagerFactory, entityManager -> {
+			Parent parent1 = new Parent( 1, "usr1", null );
+			Parent parent2 = new Parent( 1, "usr2", null );
+			entityManager.persist( parent1 );
+			entityManager.persist( parent2 );
+
+			TypedQuery<Parent> query = entityManager.createQuery(
+					"select parent " +
+							"from Parent parent " +
+							"where exists (select 1 " +
+							"from Parent otherParent " +
+							"where lower(otherParent.text) like :name and (parent = otherParent.sourceParent or parent.number = otherParent.number))",
+					Parent.class
+			);
+
+			query.setParameter( "name", "usr1" );
+			List<Parent> entityList = query.getResultList();
+			assertThat( entityList.size(), is( 2 ) );
 		} );
 
 
