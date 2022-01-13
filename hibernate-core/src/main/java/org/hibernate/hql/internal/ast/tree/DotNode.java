@@ -24,6 +24,7 @@ import org.hibernate.persister.entity.Queryable;
 import org.hibernate.sql.JoinType;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.EntityType;
+import org.hibernate.type.OneToOneType;
 import org.hibernate.type.Type;
 
 import antlr.SemanticException;
@@ -396,9 +397,12 @@ public class DotNode extends FromReferenceNode implements DisplayableNode, Selec
 			parentAsDotNode = (DotNode) parent;
 			property = parentAsDotNode.propertyName;
 			joinIsNeeded = generateJoin && (
-					entityType.isNullable() ||
+					(entityType instanceof OneToOneType && entityType.isNullable()) ||
 							!isReferenceToPrimaryKey( parentAsDotNode.propertyName, entityType )
 			);
+//			joinIsNeeded = generateJoin && (
+//							!isReferenceToPrimaryKey( parentAsDotNode.propertyName, entityType )
+//			);
 		}
 		else if ( !getWalker().isSelectStatement() ) {
 			// in non-select queries, the only time we should need to join is if we are in a subquery from clause
