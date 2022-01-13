@@ -24,6 +24,7 @@ import org.hibernate.persister.entity.Queryable;
 import org.hibernate.sql.JoinType;
 import org.hibernate.type.CollectionType;
 import org.hibernate.type.EntityType;
+import org.hibernate.type.OneToOneType;
 import org.hibernate.type.Type;
 
 import antlr.SemanticException;
@@ -389,6 +390,7 @@ public class DotNode extends FromReferenceNode implements DisplayableNode, Selec
 		String property = propertyName;
 		final boolean joinIsNeeded;
 
+
 		if ( isDotNode( parent ) ) {
 			// our parent is another dot node, meaning we are being further dereferenced.
 			// thus we need to generate a join unless the association is non-nullable and
@@ -399,6 +401,9 @@ public class DotNode extends FromReferenceNode implements DisplayableNode, Selec
 					entityType.isNullable() ||
 							!isReferenceToPrimaryKey( parentAsDotNode.propertyName, entityType )
 			);
+			if ( generateJoin && isReferenceToPrimaryKey( parentAsDotNode.propertyName, entityType ) ) {
+				joinType = JoinType.LEFT_OUTER_JOIN;
+			}
 		}
 		else if ( !getWalker().isSelectStatement() ) {
 			// in non-select queries, the only time we should need to join is if we are in a subquery from clause
