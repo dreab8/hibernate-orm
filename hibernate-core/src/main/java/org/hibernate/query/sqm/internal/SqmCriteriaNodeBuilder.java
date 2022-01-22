@@ -1423,7 +1423,7 @@ public class SqmCriteriaNodeBuilder implements NodeBuilder, SqmCreationContext, 
 	 */
 	@Override
 	public <T> SqmExpression<T> value(T value, SqmExpression<? extends T> typeInferenceSource) {
-		if ( criteriaValueHandlingMode == ValueHandlingMode.INLINE ) {
+		if ( criteriaValueHandlingMode == ValueHandlingMode.INLINE || isJpaQueryComplianceEnabled() ) {
 			return literal( value, typeInferenceSource );
 		}
 
