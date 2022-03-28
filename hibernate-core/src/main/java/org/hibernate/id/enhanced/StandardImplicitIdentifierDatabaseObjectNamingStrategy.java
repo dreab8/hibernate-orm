@@ -52,7 +52,6 @@ public class StandardImplicitIdentifierDatabaseObjectNamingStrategy implements I
 			String rootTableName,
 			Map<?, ?> configValues,
 			ServiceRegistry serviceRegistry) {
-		final String annotationGeneratorName = ConfigurationHelper.getString( IdentifierGenerator.GENERATOR_NAME, configValues );
 		final String base = ConfigurationHelper.getString( IMPLICIT_NAME_BASE, configValues );
 		final String suffix = ConfigurationHelper.getString( CONFIG_SEQUENCE_PER_ENTITY_SUFFIX, configValues, DEF_SEQUENCE_SUFFIX );
 
@@ -66,6 +65,7 @@ public class StandardImplicitIdentifierDatabaseObjectNamingStrategy implements I
 			}
 		}
 
+		final String annotationGeneratorName = ConfigurationHelper.getString( IdentifierGenerator.GENERATOR_NAME, configValues );
 		if ( StringHelper.isNotEmpty( annotationGeneratorName ) ) {
 			return annotationGeneratorName;
 		}
