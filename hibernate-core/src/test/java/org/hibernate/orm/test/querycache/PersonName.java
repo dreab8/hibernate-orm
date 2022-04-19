@@ -76,4 +76,13 @@ public class PersonName {
 		result = 31 * result + ( last != null ? last.hashCode() : 0 );
 		return result;
 	}
+
+	@Override
+	public String toString() {
+		return "PersonName{" +
+				"first='" + first + '\'' +
+				", middle='" + middle + '\'' +
+				", last='" + last + '\'' +
+				'}';
+	}
 }

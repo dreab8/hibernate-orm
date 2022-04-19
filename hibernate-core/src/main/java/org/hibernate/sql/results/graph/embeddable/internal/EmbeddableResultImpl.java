@@ -33,6 +33,7 @@ import org.hibernate.type.descriptor.java.JavaType;
 public class EmbeddableResultImpl<T> extends AbstractFetchParent implements EmbeddableResultGraphNode, DomainResult<T>, EmbeddableResult<T> {
 	private final String resultVariable;
 	private final boolean containsAnyNonScalars;
+	private final NavigablePath initializerNavigablePath;
 
 	public EmbeddableResultImpl(
 			NavigablePath navigablePath,
@@ -41,6 +42,12 @@ public class EmbeddableResultImpl<T> extends AbstractFetchParent implements Embe
 			DomainResultCreationState creationState) {
 		super( modelPart.getEmbeddableTypeDescriptor(), navigablePath );
 		this.resultVariable = resultVariable;
+		/*
+			This path is needed to be sure to use a different initializer in case for this path there is registered also an EmbeddableFetchImpl,
+			this because Jakarta spec requires that if the result of a query corresponds to an embeddable,
+			the embeddable instance should not be part of the state of any managed entity. So we need different initializers in order to have different instances.
+		 */
+		this.initializerNavigablePath = navigablePath.append( "{embeddable_result}" );
 
 		final FromClauseAccess fromClauseAccess = creationState.getSqlAstCreationState().getFromClauseAccess();
 
@@ -114,7 +121,7 @@ public class EmbeddableResultImpl<T> extends AbstractFetchParent implements Embe
 			FetchParentAccess parentAccess,
 			AssemblerCreationState creationState) {
 		final EmbeddableInitializer initializer = (EmbeddableInitializer) creationState.resolveInitializer(
-				getNavigablePath(),
+				initializerNavigablePath,
 				getReferencedModePart(),
 				() -> new EmbeddableResultInitializer(
 						this,
