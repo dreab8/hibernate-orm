@@ -166,7 +166,7 @@ public class CompleteResultBuilderBasicValuedStandard implements CompleteResultB
 		if ( !Objects.equals( explicitType, that.explicitType ) ) {
 			return false;
 		}
-		return explicitJavaType.equals( that.explicitJavaType );
+		return Objects.equals( explicitJavaType, that.explicitJavaType );
 	}
 
 	@Override
