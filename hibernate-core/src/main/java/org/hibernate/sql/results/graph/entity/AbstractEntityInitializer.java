@@ -54,7 +54,6 @@ import org.hibernate.sql.results.graph.DomainResultAssembler;
 import org.hibernate.sql.results.graph.Fetch;
 import org.hibernate.sql.results.graph.Fetchable;
 import org.hibernate.sql.results.graph.basic.BasicResultAssembler;
-import org.hibernate.sql.results.graph.entity.internal.EntityResultInitializer;
 import org.hibernate.sql.results.internal.NullValueAssembler;
 import org.hibernate.sql.results.jdbc.spi.JdbcValuesSourceProcessingState;
 import org.hibernate.sql.results.jdbc.spi.RowProcessingState;
@@ -432,9 +431,8 @@ public abstract class AbstractEntityInitializer extends AbstractFetchParentAcces
 			return;
 		}
 
-		final SharedSessionContractImplementor session = rowProcessingState
-				.getJdbcValuesSourceProcessingState()
-				.getSession();
+		final JdbcValuesSourceProcessingState jdbcValuesSourceProcessingState = rowProcessingState.getJdbcValuesSourceProcessingState();
+		final SharedSessionContractImplementor session = jdbcValuesSourceProcessingState.getSession();
 
 		final PersistenceContext persistenceContext = session.getPersistenceContext();
 		// Special case map proxy to avoid stack overflows
@@ -477,6 +475,9 @@ public abstract class AbstractEntityInitializer extends AbstractFetchParentAcces
 			final Object existingEntity = persistenceContext.getEntity( entityKey );
 			if ( existingEntity != null ) {
 				this.entityInstance = existingEntity;
+				if ( existingLoadingEntry == null && isExistingEntityInitialized( existingEntity ) ) {
+					this.isInitialized = true;
+				}
 			}
 			else if ( this.isEntityResultInitializer() && entityInstanceFromExecutionContext != null ) {
 				this.entityInstance = entityInstanceFromExecutionContext;
@@ -505,6 +506,26 @@ public abstract class AbstractEntityInitializer extends AbstractFetchParentAcces
 				}
 			}
 		}
+	}
+
+	private boolean isExistingEntityInitialized(Object existingEntity) {
+		final LazyInitializer lazyInitializer = HibernateProxy.extractLazyInitializer( entityInstance );
+		if ( lazyInitializer != null ) {
+			if ( lazyInitializer.isUninitialized() ) {
+				return false;
+			}
+			return true;
+		}
+		else if ( isPersistentAttributeInterceptable( existingEntity ) ) {
+			final PersistentAttributeInterceptor persistentAttributeInterceptor = asPersistentAttributeInterceptable(
+					entityInstance ).$$_hibernate_getInterceptor();
+			if ( persistentAttributeInterceptor == null || persistentAttributeInterceptor instanceof EnhancementAsProxyLazinessInterceptor )  {
+				return false;
+			}
+			return true;
+		}
+
+		return true;
 	}
 
 	/**
@@ -988,6 +1009,11 @@ public abstract class AbstractEntityInitializer extends AbstractFetchParentAcces
 				listener.onPreLoad( preLoadEvent );
 			}
 		}
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return isInitialized;
 	}
 
 	@Override
