@@ -47,7 +47,6 @@ public class JdbcValuesSourceProcessingStateStandardImpl implements JdbcValuesSo
 	private final BiConsumer<EntityKey,LoadingEntityEntry> loadingEntityEntryConsumer;
 
 	private Map<EntityKey, LoadingEntityEntry> loadingEntityMap;
-	private Map<EntityKey, Initializer> initializerMap;
 	private Map<EntityUniqueKey, Initializer> initializerByUniquKeyMap;
 	private Map<CollectionKey, LoadingCollectionEntry> loadingCollectionMap;
 	private List<CollectionInitializer> arrayInitializers;
@@ -114,17 +113,6 @@ public class JdbcValuesSourceProcessingStateStandardImpl implements JdbcValuesSo
 	}
 
 	@Override
-	public void registerInitilaizer(
-			EntityKey entityKey,
-			Initializer initializer) {
-		if ( initializerMap == null ) {
-			initializerMap = new HashMap<>();
-		}
-		initializerMap.put( entityKey, initializer );
-
-	}
-
-	@Override
 	public void registerInitilaizer(EntityUniqueKey entityKey, Initializer initializer) {
 		if ( initializerByUniquKeyMap == null ) {
 			initializerByUniquKeyMap = new HashMap<>();
@@ -135,11 +123,6 @@ public class JdbcValuesSourceProcessingStateStandardImpl implements JdbcValuesSo
 	@Override
 	public Initializer findInitializer(EntityUniqueKey entityKey) {
 		return initializerByUniquKeyMap == null ? null : initializerByUniquKeyMap.get( entityKey );
-	}
-
-	@Override
-	public Initializer findInitializer(EntityKey entityKey) {
-		return initializerMap == null ? null : initializerMap.get( entityKey );
 	}
 
 	@Override

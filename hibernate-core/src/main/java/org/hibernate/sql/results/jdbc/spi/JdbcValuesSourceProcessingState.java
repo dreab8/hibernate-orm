@@ -12,7 +12,6 @@ import org.hibernate.engine.spi.EntityUniqueKey;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.event.spi.PostLoadEvent;
 import org.hibernate.event.spi.PreLoadEvent;
-import org.hibernate.mapping.UniqueKey;
 import org.hibernate.sql.results.graph.Initializer;
 import org.hibernate.sql.results.spi.LoadContexts;
 import org.hibernate.sql.results.graph.collection.LoadingCollectionEntry;
@@ -59,14 +58,8 @@ public interface JdbcValuesSourceProcessingState {
 			LoadingEntityEntry loadingEntry);
 
 	void registerInitilaizer(
-			EntityKey entityKey,
-			Initializer initializer);
-
-	void registerInitilaizer(
 			EntityUniqueKey entityKey,
 			Initializer initializer);
-
-	Initializer findInitializer(EntityKey entityKey);
 
 	Initializer findInitializer(EntityUniqueKey entityKey);
 

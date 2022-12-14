@@ -393,10 +393,6 @@ public abstract class AbstractEntityInitializer extends AbstractFetchParentAcces
 		//		2) build the EntityKey
 		this.entityKey = new EntityKey( id, concreteDescriptor );
 
-		if ( jdbcValuesSourceProcessingState.findInitializer( entityKey ) == null ) {
-			jdbcValuesSourceProcessingState.registerInitilaizer( entityKey, this );
-		}
-
 		//		3) schedule the EntityKey for batch loading, if possible
 		if ( concreteDescriptor.isBatchLoadable() ) {
 			if ( !session.getPersistenceContext().containsEntity( entityKey ) ) {
