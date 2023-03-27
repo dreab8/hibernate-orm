@@ -9,9 +9,12 @@ package org.hibernate.cache.internal;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.hibernate.Internal;
+import org.hibernate.cache.MutableCacheKeyBuilder;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.internal.util.ValueHolder;
 import org.hibernate.persister.entity.EntityPersister;
@@ -33,12 +36,58 @@ public class NaturalIdCacheKey implements Serializable {
 	// "transient" is important here -- NaturalIdCacheKey needs to be Serializable
 	private transient ValueHolder<String> toString;
 
-	public NaturalIdCacheKey(Object naturalIdValues, EntityPersister persister, SharedSessionContractImplementor session) {
-		this( naturalIdValues, persister, persister.getRootEntityName(), session );
-	}
 
-	public NaturalIdCacheKey(Object naturalIdValues, EntityPersister persister, String entityName, SharedSessionContractImplementor session) {
-		this( persister.getNaturalIdMapping().disassemble( naturalIdValues, session ), entityName, session.getTenantIdentifier(), persister.getNaturalIdMapping().calculateHashCode( naturalIdValues, session ) );
+
+	public static class NaturalIdCacheKeyBuilder implements MutableCacheKeyBuilder {
+
+		private Object naturalIdValues;
+		private final String entityName;
+		private final String tenantIdentifier;
+		private final EntityPersister persister;
+		private final SharedSessionContractImplementor session;
+
+		private List<Object> values = new ArrayList<>();
+		private int hashCode;
+
+		public NaturalIdCacheKeyBuilder(
+				Object naturalIdValues,
+				EntityPersister persister,
+				String entityName,
+				SharedSessionContractImplementor session) {
+			this.naturalIdValues = naturalIdValues;
+			this.entityName = entityName;
+			this.tenantIdentifier = session.getTenantIdentifier();
+			this.persister = persister;
+			this.session = session;
+		}
+
+		public NaturalIdCacheKeyBuilder(
+				Object naturalIdValues,
+				EntityPersister persister,
+				SharedSessionContractImplementor session) {
+			this( naturalIdValues, persister, persister.getRootEntityName(), session );
+		}
+
+		@Override
+		public void addValue(Object value) {
+			values.add( value );
+		}
+
+		@Override
+		public void addHashCode(int hashCode) {
+			this.hashCode = 37 * this.hashCode + hashCode;
+		}
+
+		@Override
+		public NaturalIdCacheKey build() {
+			persister.getNaturalIdMapping().addToCacheKey( this, naturalIdValues, session );
+			return new NaturalIdCacheKey(
+					values.toArray( new Object[0] ),
+					entityName,
+					tenantIdentifier,
+					hashCode
+			);
+		}
 	}
 
 	@Internal
