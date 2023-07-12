@@ -15,6 +15,7 @@ import org.hibernate.metamodel.mapping.EmbeddableValuedModelPart;
 import org.hibernate.metamodel.mapping.EntityMappingType;
 import org.hibernate.metamodel.mapping.NonAggregatedIdentifierMapping;
 import org.hibernate.metamodel.mapping.SelectableMappings;
+import org.hibernate.metamodel.mapping.ValuedModelPart;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.property.access.spi.Getter;
@@ -265,5 +266,10 @@ public class VirtualIdEmbeddable extends AbstractEmbeddableMapping implements Id
 		else {
 			return super.compare( value1, value2 );
 		}
+	}
+
+	@Override
+	protected int getOffset(int currentIndex, ValuedModelPart keyPart) {
+		return keyPart.getNavigableRole().equals( idMapping.getNavigableRole() ) ? 0 : currentIndex;
 	}
 }

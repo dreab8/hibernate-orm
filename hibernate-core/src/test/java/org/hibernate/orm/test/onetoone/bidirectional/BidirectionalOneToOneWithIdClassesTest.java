@@ -40,9 +40,9 @@ public class BidirectionalOneToOneWithIdClassesTest {
 			ssr = new StandardServiceRegistryBuilder( new BootstrapServiceRegistryBuilder().build() ).build();
 
 			new MetadataSources( ssr )
-					.addAnnotatedClass( SpecialPricePoint.class )
-					.addAnnotatedClass( SpecialProduct.class )
-					.addAnnotatedClass( SpecialOperator.class ).buildMetadata()
+					.addAnnotatedClass( PricePoint.class )
+					.addAnnotatedClass( Product.class )
+					.addAnnotatedClass( Operator.class ).buildMetadata()
 					.getSessionFactoryBuilder()
 					.build();
 		}
@@ -56,7 +56,7 @@ public class BidirectionalOneToOneWithIdClassesTest {
 
 	@Entity(name = "SpecialOperator")
 	@Table(name = "SPECIAL_OPERATORS")
-	public static class SpecialOperator {
+	public static class Operator {
 
 		@Id
 		private String operatorId;
@@ -66,53 +66,63 @@ public class BidirectionalOneToOneWithIdClassesTest {
 	}
 
 	@Embeddable
-	public static class SpecialOperatorPK implements Serializable {
+	public static class OperatorPK implements Serializable {
 		String operatorId;
 	}
 
 	@Entity(name = "SpecialPricePoint")
-	@Table(name = "SPECIAL_OPERATOR_PRICES_POINTS")
-	@IdClass(SpecialPricePointPK.class)
-	public static class SpecialPricePoint {
+	@Table(name = "OPERATOR_PRICES_POINTS")
+	@IdClass(PricePointPK.class)
+	public static class PricePoint {
 
 		@ManyToOne
 		@MapsId
-		private SpecialOperator operator;
+		private Operator operator;
 
 		@Id
 		String wholesalePrice;
 
 		@OneToOne
-		private SpecialProduct product;
+		private Product product;
 	}
 
 	@Embeddable
-	public static class SpecialPricePointPK implements Serializable {
+	public static class PricePointPK implements Serializable {
 		@Embedded
-		SpecialOperatorPK operator;
+		OperatorPK operator;
 
 		String wholesalePrice;
 	}
 
 	@Table(name = "SPECIAL_PRODUCTS")
 	@Entity(name = "SpecialProduct")
-	@IdClass(SpecialProductPK.class)
-	public static class SpecialProduct {
+	@IdClass(ProductPK.class)
+	public static class Product {
 
 		@Id
 		private String productId;
 
 		@OneToOne(optional = false, mappedBy = "product")
 		@MapsId
-		private SpecialPricePoint wholesalePrice;
+		private PricePoint wholesalePrice;
 	}
+	/*
+	PRODUCT(productId , operatorId,  wholesalePrice) ID ProductPK
+
+	Fk PricePoint.product ----> producId + wholesalePrice ( operatorId, wholesalePrice )
+
+	FK Product.wholesalePrice -----> operatorId, wholesalePrice <-- toOne
+
+	PRICEPOINT(operatorId,  wholesalePrice, productId)
+
+	 */
 
 	@Embeddable
-	public static class SpecialProductPK implements Serializable {
+	public static class ProductPK implements Serializable {
 
 		String productId;
 
 		@Embedded
-		SpecialPricePointPK wholesalePrice;
+		PricePointPK wholesalePrice;
 	}
 }

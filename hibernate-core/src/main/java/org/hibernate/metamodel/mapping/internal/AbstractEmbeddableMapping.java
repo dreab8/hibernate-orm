@@ -45,6 +45,7 @@ import org.hibernate.metamodel.mapping.SelectableConsumer;
 import org.hibernate.metamodel.mapping.SelectableMapping;
 import org.hibernate.metamodel.mapping.SelectableMappings;
 import org.hibernate.metamodel.mapping.SelectablePath;
+import org.hibernate.metamodel.mapping.ValuedModelPart;
 import org.hibernate.metamodel.model.domain.NavigableRole;
 import org.hibernate.metamodel.spi.EmbeddableRepresentationStrategy;
 import org.hibernate.persister.entity.EntityPersister;
@@ -176,11 +177,12 @@ public abstract class AbstractEmbeddableMapping implements EmbeddableMappingType
 					// and the callback is re-queued.
 					throw new IllegalStateException( "Not yet ready: " + original );
 				}
+				final int offset = getOffset( currentIndex,  foreignKeyDescriptor.getKeyPart() );
 				final ToOneAttributeMapping toOne = original.copy(
 						declaringType,
 						declaringTableGroupProducer
 				);
-				final int offset = currentIndex;
+
 				toOne.setIdentifyingColumnsTableExpression(
 						selectableMappings.getSelectable( offset ).getContainingTableExpression()
 				);
@@ -216,6 +218,10 @@ public abstract class AbstractEmbeddableMapping implements EmbeddableMappingType
 			mappings.add( attributeMapping );
 		}
 		return true;
+	}
+
+	protected int getOffset(int currentIndex, ValuedModelPart keyPart){
+		return currentIndex;
 	}
 
 	protected boolean finishInitialization(
