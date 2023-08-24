@@ -12,12 +12,18 @@ import java.util.function.Consumer;
 import org.hibernate.metamodel.mapping.EntityValuedModelPart;
 import org.hibernate.metamodel.mapping.ModelPart;
 import org.hibernate.metamodel.mapping.ModelPartContainer;
+import org.hibernate.persister.entity.AbstractEntityPersister;
 import org.hibernate.spi.NavigablePath;
 import org.hibernate.query.sqm.sql.internal.DomainResultProducer;
 import org.hibernate.query.sqm.sql.internal.SqmPathInterpretation;
 import org.hibernate.sql.ast.SqlAstJoinType;
 import org.hibernate.sql.ast.SqlAstWalker;
 import org.hibernate.sql.ast.tree.SqlAstNode;
+import org.hibernate.sql.ast.tree.Statement;
+import org.hibernate.sql.ast.tree.delete.DeleteStatement;
+import org.hibernate.sql.ast.tree.insert.InsertStatement;
+import org.hibernate.sql.ast.tree.select.SelectStatement;
+import org.hibernate.sql.ast.tree.update.UpdateStatement;
 import org.hibernate.sql.results.graph.DomainResult;
 import org.hibernate.sql.results.graph.DomainResultCreationState;
 
@@ -43,7 +49,7 @@ public interface TableGroup extends SqlAstNode, ColumnReferenceQualifier, SqmPat
 	List<TableGroupJoin> getTableGroupJoins();
 
 	List<TableGroupJoin> getNestedTableGroupJoins();
-	
+
 	boolean canUseInnerJoins();
 
 	default boolean isLateral() {
@@ -66,37 +72,37 @@ public interface TableGroup extends SqlAstNode, ColumnReferenceQualifier, SqmPat
 	 * select *
 	 * from entity1 e
 	 * left join (
-	 * 	 collection_table c1
-	 * 	 join association a on a.id = c1.target_id
+	 * collection_table c1
+	 * join association a on a.id = c1.target_id
 	 * ) on c1.entity_id = e.id and c1.key = 1
 	 * </code>
-	 *
+	 * <p>
 	 * is modeled as
 	 *
 	 * <code>
 	 * TableGroup(
-	 *     primaryTableReference = TableReference(entity1, e),
-	 *     tableGroupJoins = [
-	 *         TableGroupJoin(
-	 *             TableGroup(
-	 *                 primaryTableReference = TableReference(collection_table, c1),
-	 *                 nestedTableGroupJoins = [
-	 *                     TableGroupJoin(
-	 *                         TableGroup(
-	 *                             primaryTableReference = TableReference(association, a)
-	 *                         )
-	 *                     )
-	 *                 ]
-	 *             )
-	 *         )
-	 *     ]
+	 * primaryTableReference = TableReference(entity1, e),
+	 * tableGroupJoins = [
+	 * TableGroupJoin(
+	 * TableGroup(
+	 * primaryTableReference = TableReference(collection_table, c1),
+	 * nestedTableGroupJoins = [
+	 * TableGroupJoin(
+	 * TableGroup(
+	 * primaryTableReference = TableReference(association, a)
+	 * )
+	 * )
+	 * ]
+	 * )
+	 * )
+	 * ]
 	 * )
 	 * </code>
-	 *
+	 * <p>
 	 * This is necessary to correctly retain the cardinality of an HQL join like e.g.
 	 *
 	 * <code>
-	 *     from Entity1 e left join e.collectionAssociation c on key(c) = 1
+	 * from Entity1 e left join e.collectionAssociation c on key(c) = 1
 	 * </code>
 	 */
 	void addNestedTableGroupJoin(TableGroupJoin join);
@@ -105,7 +111,52 @@ public interface TableGroup extends SqlAstNode, ColumnReferenceQualifier, SqmPat
 
 	void visitNestedTableGroupJoins(Consumer<TableGroupJoin> consumer);
 
-	void applyAffectedTableNames(Consumer<String> nameCollector);
+	default void applyAffectedTableNames(Consumer<String> nameCollector, Statement statement){
+		if ( isInitialized() ) {
+			if ( (statement instanceof SelectStatement  || statement instanceof InsertStatement) && getModelPart() instanceof AbstractEntityPersister ) {
+				String[] querySpaces = (String[]) ( (AbstractEntityPersister) getModelPart() ).getQuerySpaces();
+				for ( int i = 0; i < querySpaces.length; i++ ) {
+					nameCollector.accept(  querySpaces[i] );
+				}
+			}
+			TableReference primaryTableReference = getPrimaryTableReference();
+			if ( primaryTableReference.isNamedTableReference() ) {
+				List<String> affectedTableNames = primaryTableReference.getAffectedTableNames();
+				for(String tableName : affectedTableNames) {
+					nameCollector.accept( tableName );
+				}
+			}
+			if ( statement instanceof SelectStatement ) {
+				for ( TableReferenceJoin join : getTableReferenceJoins() ) {
+					List<String> affectedTableNames = join.getJoinedTableReference().getAffectedTableNames();
+					for ( String tableName : affectedTableNames ) {
+						nameCollector.accept( tableName );
+					}
+				}
+			}
+		}
+
+		for ( TableGroupJoin join : getNestedTableGroupJoins() ) {
+			applyAffectedTableNames( nameCollector, statement, join );
+		}
+
+		for ( TableGroupJoin join : getTableGroupJoins() ) {
+			applyAffectedTableNames( nameCollector, statement, join );
+		}
+	}
+
+	private static void applyAffectedTableNames(Consumer<String> nameCollector, Statement statement, TableGroupJoin join) {
+		TableGroup joinedGroup = join.getJoinedGroup();
+		if ( joinedGroup instanceof VirtualTableGroup  ) {
+			joinedGroup.applyAffectedTableNames( nameCollector, statement );
+		}
+		else if ( joinedGroup.isInitialized() ) {
+			joinedGroup.applyAffectedTableNames( nameCollector, statement );
+		}
+		else if ( joinedGroup instanceof LazyTableGroup ) {
+			joinedGroup.applyAffectedTableNames( nameCollector, statement );
+		}
+	}
 
 	TableReference getPrimaryTableReference();
 

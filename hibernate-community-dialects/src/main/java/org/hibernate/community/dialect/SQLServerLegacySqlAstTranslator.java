@@ -104,7 +104,7 @@ public class SQLServerLegacySqlAstTranslator<T extends JdbcOperation> extends Ab
 			return false;
 		}
 		final TableReference tableReference = tableGroup.getPrimaryTableReference();
-		if ( tableReference instanceof NamedTableReference ) {
+		if ( tableReference.isNamedTableReference() ) {
 			return renderNamedTableReference( (NamedTableReference) tableReference, lockMode );
 		}
 		tableReference.accept( this );

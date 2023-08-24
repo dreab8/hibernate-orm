@@ -60,4 +60,6 @@ public interface Predicate extends Expression, DomainResultProducer<Boolean> {
 				sqlAstCreationState.getCreationContext().getMappingMetamodel().getTypeConfiguration()
 		);
 	}
+
+
 }

@@ -8,13 +8,16 @@ package org.hibernate.query.sqm.sql;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.metamodel.mapping.MappingModelExpressible;
 import org.hibernate.query.sqm.tree.expression.SqmParameter;
 import org.hibernate.sql.ast.spi.FromClauseAccess;
 import org.hibernate.sql.ast.spi.SqlExpressionResolver;
+import org.hibernate.sql.ast.tree.AbstractUpdateOrDeleteStatement;
 import org.hibernate.sql.ast.tree.Statement;
 import org.hibernate.sql.ast.tree.expression.JdbcParameter;
+import org.hibernate.sql.ast.tree.select.SelectStatement;
 
 /**
  * @author Christian Beikov
@@ -25,6 +28,7 @@ public class StandardSqmTranslation<T extends Statement> implements SqmTranslati
 	private final Map<SqmParameter<?>, List<List<JdbcParameter>>> jdbcParamMap;
 	private final Map<SqmParameter<?>, MappingModelExpressible<?>> parameterMappingModelTypeMap;
 	private final SqlExpressionResolver sqlExpressionResolver;
+	private final Set<String> affectedTableNames;
 	private final FromClauseAccess fromClauseAccess;
 
 	public StandardSqmTranslation(
@@ -32,11 +36,18 @@ public class StandardSqmTranslation<T extends Statement> implements SqmTranslati
 			Map<SqmParameter<?>, List<List<JdbcParameter>>> jdbcParamMap,
 			Map<SqmParameter<?>, MappingModelExpressible<?>> parameterMappingModelTypeMap,
 			SqlExpressionResolver sqlExpressionResolver,
+			Set<String> affectedTableNames,
 			FromClauseAccess fromClauseAccess) {
 		this.sqlAst = sqlAst;
 		this.jdbcParamMap = jdbcParamMap;
 		this.parameterMappingModelTypeMap = parameterMappingModelTypeMap;
 		this.sqlExpressionResolver = sqlExpressionResolver;
+		if(sqlAst instanceof AbstractUpdateOrDeleteStatement ){
+			this.affectedTableNames = ((AbstractUpdateOrDeleteStatement)sqlAst).getAffectedTableNames();
+		}
+		else {
+			this.affectedTableNames = affectedTableNames;
+		}
 		this.fromClauseAccess = fromClauseAccess;
 	}
 
@@ -53,6 +64,11 @@ public class StandardSqmTranslation<T extends Statement> implements SqmTranslati
 	@Override
 	public Map<SqmParameter<?>, MappingModelExpressible<?>> getSqmParameterMappingModelTypeResolutions() {
 		return parameterMappingModelTypeMap;
+	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		return affectedTableNames;
 	}
 
 	@Override

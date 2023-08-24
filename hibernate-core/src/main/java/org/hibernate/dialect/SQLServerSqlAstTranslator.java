@@ -103,7 +103,7 @@ public class SQLServerSqlAstTranslator<T extends JdbcOperation> extends SqlAstTr
 			return false;
 		}
 		final TableReference tableReference = tableGroup.getPrimaryTableReference();
-		if ( tableReference instanceof NamedTableReference ) {
+		if ( tableReference.isNamedTableReference() ) {
 			return renderNamedTableReference( (NamedTableReference) tableReference, lockMode );
 		}
 		tableReference.accept( this );

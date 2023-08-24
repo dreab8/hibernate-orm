@@ -59,7 +59,7 @@ public class DB2zSqlAstTranslator<T extends JdbcOperation> extends DB2SqlAstTran
 			return false;
 		}
 		final TableReference tableReference = tableGroup.getPrimaryTableReference();
-		if ( tableReference instanceof NamedTableReference ) {
+		if ( tableReference.isNamedTableReference() ) {
 			return renderNamedTableReference( (NamedTableReference) tableReference, lockMode );
 		}
 		// DB2 z/OS we need the "table" qualifier for table valued functions or lateral sub-queries

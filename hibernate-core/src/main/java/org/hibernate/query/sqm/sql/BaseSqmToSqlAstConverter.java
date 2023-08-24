@@ -279,6 +279,7 @@ import org.hibernate.sql.ast.spi.SqlAstProcessingState;
 import org.hibernate.sql.ast.spi.SqlAstQueryPartProcessingState;
 import org.hibernate.sql.ast.spi.SqlExpressionResolver;
 import org.hibernate.sql.ast.spi.SqlSelection;
+import org.hibernate.sql.ast.tree.AbstractStatement;
 import org.hibernate.sql.ast.tree.SqlAstNode;
 import org.hibernate.sql.ast.tree.Statement;
 import org.hibernate.sql.ast.tree.cte.CteColumn;
@@ -515,6 +516,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 
 	private final Set<AssociationKey> visitedAssociationKeys = new HashSet<>();
 	private final MappingMetamodel domainModel;
+	private final Set<TableGroup> affectedTableGroups = new HashSet<>();
 
 	public BaseSqmToSqlAstConverter(
 			SqlAstCreationContext creationContext,
@@ -774,12 +776,20 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 		final SqmStatement<?> sqmStatement = getStatement();
 		//noinspection unchecked
 		final T statement = (T) sqmStatement.accept( this );
+
 		pruneTableGroupJoins();
+		final Set<String> affectedTableNames = new HashSet<>();
+
+		for ( TableGroup tableGroup : affectedTableGroups ) {
+			tableGroup.applyAffectedTableNames( affectedTableNames::add, statement );
+		}
+		( (AbstractStatement) statement ).setAffectedTableNames( affectedTableNames );
 		return new StandardSqmTranslation<>(
 				statement,
 				getJdbcParamsBySqmParam(),
 				sqmParameterMappingModelTypes,
 				lastPoppedProcessingState.getSqlExpressionResolver(),
+				affectedTableNames,
 				getFromClauseAccess()
 		);
 	}
@@ -833,7 +843,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 			}
 
 			getFromClauseAccess().registerTableGroup( rootPath, rootTableGroup );
-
+			registerAffetcedTableNames( rootTableGroup );
 			final List<Assignment> assignments = visitSetClause( sqmStatement.getSetClause() );
 			addVersionedAssignment( assignments::add, sqmStatement );
 
@@ -1106,7 +1116,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 					this
 			);
 			getFromClauseAccess().registerTableGroup( rootPath, rootTableGroup );
-
+			registerAffetcedTableNames( rootTableGroup );
 			if ( !rootTableGroup.getTableReferenceJoins().isEmpty() ) {
 				throw new HibernateException( "Not expecting multiple table references for an SQM DELETE" );
 			}
@@ -1189,7 +1199,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 			);
 
 			getFromClauseAccess().registerTableGroup( rootPath, rootTableGroup );
-
+			registerAffetcedTableNames( rootTableGroup );
 			insertStatement = new InsertSelectStatement(
 					cteContainer,
 					(NamedTableReference) rootTableGroup.getPrimaryTableReference(),
@@ -1296,7 +1306,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 			}
 
 			getFromClauseAccess().registerTableGroup( rootPath, rootTableGroup );
-
+			registerAffetcedTableNames( rootTableGroup );
 			final InsertSelectStatement insertStatement = new InsertSelectStatement(
 					cteContainer,
 					(NamedTableReference) rootTableGroup.getPrimaryTableReference(),
@@ -2663,6 +2673,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 			}
 
 			fromClauseIndex.register( from, tableGroup );
+			registerAffetcedTableNames( tableGroup );
 			registerPluralTableGroupParts( tableGroup );
 			// Note that we do not need to register the correlated table group to the from clause
 			// because that is never "rendered" in the subquery anyway.
@@ -2741,6 +2752,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 		log.tracef( "Resolved SqmRoot [%s] to new TableGroup [%s]", sqmRoot, tableGroup );
 
 		fromClauseIndex.register( sqmRoot, tableGroup );
+		registerAffetcedTableNames( tableGroup );
 		currentQuerySpec.getFromClause().addRoot( tableGroup );
 
 		consumeJoins( sqmRoot, fromClauseIndex, tableGroup );
@@ -2824,9 +2836,34 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 
 	private void registerSqmFromTableGroup(SqmFrom<?, ?> sqmFrom, TableGroup tableGroup) {
 		getFromClauseIndex().register( sqmFrom, tableGroup );
+		registerAffetcedTableNames( tableGroup );
 		// We also need to register the table group for the treats
-		for ( SqmFrom<?, ?> sqmTreat : sqmFrom.getSqmTreats() ) {
-			getFromClauseAccess().registerTableGroup( sqmTreat.getNavigablePath(), tableGroup );
+		if ( tableGroup instanceof PluralTableGroup ) {
+			final PluralTableGroup pluralTableGroup = (PluralTableGroup) tableGroup;
+			for ( SqmFrom<?, ?> sqmTreat : sqmFrom.getSqmTreats() ) {
+				final TableGroup elementTableGroup = pluralTableGroup.getElementTableGroup();
+				if ( elementTableGroup != null ) {
+					getFromClauseAccess().registerTableGroup(
+							sqmTreat.getNavigablePath().append( CollectionPart.Nature.ELEMENT.getName() ),
+							elementTableGroup
+					);
+					registerAffetcedTableNames( elementTableGroup );
+				}
+				final TableGroup indexTableGroup = pluralTableGroup.getIndexTableGroup();
+				if ( indexTableGroup != null ) {
+					getFromClauseAccess().registerTableGroup(
+							sqmTreat.getNavigablePath().append( CollectionPart.Nature.INDEX.getName() ),
+							indexTableGroup
+					);
+					registerAffetcedTableNames( indexTableGroup );
+				}
+			}
+		}
+		else {
+			for ( SqmFrom<?, ?> sqmTreat : sqmFrom.getSqmTreats() ) {
+				getFromClauseAccess().registerTableGroup( sqmTreat.getNavigablePath(), tableGroup );
+				registerAffetcedTableNames( tableGroup );
+			}
 		}
 	}
 
@@ -3611,6 +3648,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 				if ( createdTableGroup != null ) {
 					if ( sqmPath instanceof SqmTreatedPath<?, ?> ) {
 						fromClauseIndex.register( sqmPath, createdTableGroup );
+						registerAffetcedTableNames( createdTableGroup );
 					}
 				}
 			}
@@ -3649,6 +3687,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 			final TableGroup newTableGroup;
 			if ( parentPath instanceof SqmTreatedPath<?, ?> ) {
 				fromClauseIndex.register( parentPath, createdParentTableGroup );
+				registerAffetcedTableNames( createdParentTableGroup );
 				newTableGroup = createdParentTableGroup;
 			}
 			else if ( createdParentTableGroup instanceof PluralTableGroup ) {
@@ -3712,6 +3751,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 				}
 			}
 		}
+		registerAffetcedTableNames( parentTableGroup );
 	}
 
 	private void prepareForSelection(SqmPath<?> selectionPath) {
@@ -3842,12 +3882,17 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 			}
 
 			fromClauseIndex.register( joinedPath, tableGroup );
+			registerAffetcedTableNames( tableGroup );
 			registerPluralTableGroupParts( joinedPath.getNavigablePath(), tableGroup );
 		}
 		else {
 			tableGroup = null;
 		}
 		return tableGroup;
+	}
+
+	private void registerAffetcedTableNames(TableGroup tableGroup) {
+		affectedTableGroups.add( tableGroup );
 	}
 
 	private boolean isMappedByOrNotFoundToOne(TableGroupJoinProducer joinProducer) {
@@ -3875,21 +3920,25 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 	private void registerPluralTableGroupParts(NavigablePath navigablePath, TableGroup tableGroup) {
 		if ( tableGroup instanceof PluralTableGroup ) {
 			final PluralTableGroup pluralTableGroup = (PluralTableGroup) tableGroup;
-			if ( pluralTableGroup.getElementTableGroup() != null ) {
+			final TableGroup elementTableGroup = pluralTableGroup.getElementTableGroup();
+			if ( elementTableGroup != null ) {
 				getFromClauseAccess().registerTableGroup(
 						navigablePath == null || navigablePath == tableGroup.getNavigablePath()
-								? pluralTableGroup.getElementTableGroup().getNavigablePath()
+								? elementTableGroup.getNavigablePath()
 								: navigablePath.append( CollectionPart.Nature.ELEMENT.getName() ),
-						pluralTableGroup.getElementTableGroup()
+						elementTableGroup
 				);
+				registerAffetcedTableNames( elementTableGroup );
 			}
-			if ( pluralTableGroup.getIndexTableGroup() != null ) {
+			final TableGroup indexTableGroup = pluralTableGroup.getIndexTableGroup();
+			if ( indexTableGroup != null ) {
 				getFromClauseAccess().registerTableGroup(
 						navigablePath == null || navigablePath == tableGroup.getNavigablePath()
-								? pluralTableGroup.getIndexTableGroup().getNavigablePath()
+								? indexTableGroup.getNavigablePath()
 								: navigablePath.append( CollectionPart.Nature.INDEX.getName() ),
-						pluralTableGroup.getIndexTableGroup()
+						indexTableGroup
 				);
+				registerAffetcedTableNames( indexTableGroup );
 			}
 		}
 	}
@@ -4543,6 +4592,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 			);
 
 			getFromClauseAccess().registerTableGroup( pluralPath.getNavigablePath(), tableGroup );
+			registerAffetcedTableNames( tableGroup );
 			registerPluralTableGroupParts( tableGroup );
 			subQuerySpec.getFromClause().addRoot( tableGroup );
 
@@ -4697,6 +4747,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 			);
 
 			getFromClauseAccess().registerTableGroup( pluralPartPath.getNavigablePath(), tableGroup );
+			registerAffetcedTableNames( tableGroup );
 			registerPluralTableGroupParts( tableGroup );
 			subQuerySpec.getFromClause().addRoot( tableGroup );
 
@@ -4841,6 +4892,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 				);
 
 				getFromClauseAccess().registerTableGroup( pluralPartPath.getNavigablePath(), tableGroup );
+				registerAffetcedTableNames( tableGroup );
 				registerPluralTableGroupParts( tableGroup );
 				subQuerySpec.getFromClause().addRoot( tableGroup );
 
@@ -5003,6 +5055,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 					);
 				}
 				parentFromClauseAccess.registerTableGroup( lateralTableGroup.getNavigablePath(), lateralTableGroup );
+				registerAffetcedTableNames( lateralTableGroup );
 				if ( jdbcTypeCount == 1 ) {
 					return new SelfRenderingFunctionSqlAstExpression(
 							pathName,
@@ -7448,6 +7501,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 			);
 
 			getFromClauseAccess().registerTableGroup( pluralPath.getNavigablePath(), tableGroup );
+			registerAffetcedTableNames( tableGroup );
 			registerPluralTableGroupParts( tableGroup );
 			subQuerySpec.getFromClause().addRoot( tableGroup );
 
@@ -7609,6 +7663,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 					parentNavPath,
 					tableGroup
 			);
+			registerAffetcedTableNames( tableGroup );
 			registerPluralTableGroupParts( tableGroup );
 
 			final PluralAttributeMapping pluralAttributeMapping = (PluralAttributeMapping) visitPluralValuedPath(
@@ -8670,4 +8725,7 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 				&& ( entityGraphTraversalState != null || getLoadQueryInfluencers().hasEnabledFetchProfiles() );
 	}
 
+	public Set<TableGroup> getAffectedTableGroups() {
+		return affectedTableGroups;
+	}
 }

@@ -8,8 +8,10 @@ package org.hibernate.query.sqm.mutation.internal.temptable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -54,6 +56,7 @@ import org.hibernate.sql.ast.tree.predicate.InSubQueryPredicate;
 import org.hibernate.sql.ast.tree.predicate.Predicate;
 import org.hibernate.sql.ast.tree.select.QuerySpec;
 import org.hibernate.sql.ast.tree.select.SelectClause;
+import org.hibernate.sql.ast.tree.select.SelectStatement;
 import org.hibernate.sql.ast.tree.update.Assignment;
 import org.hibernate.sql.ast.tree.update.UpdateStatement;
 import org.hibernate.sql.exec.spi.ExecutionContext;
@@ -438,12 +441,21 @@ public class UpdateExecutionDelegate implements TableBasedUpdateHandler.Executio
 	}
 
 	private int executeUpdate(QuerySpec idTableSubQuery, ExecutionContext executionContext, List<Assignment> assignments, NamedTableReference dmlTableReference, SqlAstTranslatorFactory sqlAstTranslatorFactory, JdbcMutationExecutor jdbcMutationExecutor, Expression keyExpression) {
+		SelectStatement selectStatement = new SelectStatement( idTableSubQuery );
 		final UpdateStatement sqlAst = new UpdateStatement(
 				dmlTableReference,
 				assignments,
-				new InSubQueryPredicate( keyExpression, idTableSubQuery, false )
+				new InSubQueryPredicate( keyExpression, selectStatement, false, null )
 		);
 
+		final Set<String> affectedTableNames = new HashSet<>();
+		for ( TableGroup tableGroup : sqmConverter.getAffectedTableGroups() ) {
+			tableGroup.applyAffectedTableNames( affectedTableNames::add, sqlAst );
+		}
+		for ( TableGroup tableGroup : idTableSubQuery.getFromClause().getRoots() ) {
+			tableGroup.applyAffectedTableNames( affectedTableNames::add, selectStatement );
+		}
+		sqlAst.setAffectedTableNames( affectedTableNames );
 		final JdbcOperationQueryMutation jdbcUpdate = sqlAstTranslatorFactory
 				.buildMutationTranslator( sessionFactory, sqlAst )
 				.translate( jdbcParameterBindings, executionContext.getQueryOptions() );

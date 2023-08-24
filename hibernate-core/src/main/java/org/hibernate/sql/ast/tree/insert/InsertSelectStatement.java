@@ -8,9 +8,11 @@ package org.hibernate.sql.ast.tree.insert;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import org.hibernate.sql.ast.SqlAstWalker;
@@ -19,6 +21,7 @@ import org.hibernate.sql.ast.tree.cte.CteContainer;
 import org.hibernate.sql.ast.tree.cte.CteStatement;
 import org.hibernate.sql.ast.tree.expression.ColumnReference;
 import org.hibernate.sql.ast.tree.from.NamedTableReference;
+import org.hibernate.sql.ast.tree.from.TableGroup;
 import org.hibernate.sql.ast.tree.select.QueryPart;
 
 /**
@@ -36,6 +39,7 @@ public class InsertSelectStatement extends AbstractMutationStatement implements 
 	private List<ColumnReference> targetColumnReferences;
 	private QueryPart sourceSelectStatement;
 	private List<Values> valuesList = new ArrayList<>();
+
 
 	public InsertSelectStatement(NamedTableReference targetTable) {
 		this( null, targetTable, Collections.emptyList() );
@@ -103,5 +107,23 @@ public class InsertSelectStatement extends AbstractMutationStatement implements 
 	@Override
 	public void accept(SqlAstWalker walker) {
 		walker.visitInsertStatement( this );
+	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		if ( affectedTableName == null ) {
+			affectedTableName = new HashSet<>();
+
+			if ( sourceSelectStatement != null ) {
+				getSourceSelectStatement().visitQuerySpecs(
+						querySpec -> {
+							for ( TableGroup tableGroup : querySpec.getFromClause().getRoots() ) {
+								tableGroup.applyAffectedTableNames( affectedTableName::add, this );
+							}
+						}
+				);
+			}
+		}
+		return affectedTableName;
 	}
 }

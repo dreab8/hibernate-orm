@@ -7,9 +7,11 @@
 package org.hibernate.sql.ast.tree.select;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.metamodel.mapping.JdbcMapping;
 import org.hibernate.metamodel.mapping.JdbcMappingContainer;
@@ -22,6 +24,9 @@ import org.hibernate.sql.ast.tree.SqlAstNode;
 import org.hibernate.sql.ast.tree.cte.CteContainer;
 import org.hibernate.sql.ast.tree.cte.CteStatement;
 import org.hibernate.sql.ast.tree.expression.Expression;
+import org.hibernate.sql.ast.tree.from.TableGroup;
+import org.hibernate.sql.ast.tree.predicate.InSubQueryPredicate;
+import org.hibernate.sql.ast.tree.predicate.Predicate;
 import org.hibernate.sql.results.graph.DomainResult;
 import org.hibernate.sql.results.graph.DomainResultCreationState;
 import org.hibernate.sql.results.graph.basic.BasicResult;
@@ -131,5 +136,28 @@ public class SelectStatement extends AbstractStatement implements SqlAstNode, Ex
 			case 0:
 				return null;
 		}
+	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		if ( affectedTableName == null ) {
+			affectedTableName = new HashSet<>();
+			queryPart.visitQuerySpecs(
+					querySpec -> {
+						for( TableGroup tableGroup :querySpec.getFromClause().getRoots()){
+							tableGroup.applyAffectedTableNames( affectedTableName::add, this );
+						}
+
+						final Predicate whereClauseRestrictions = querySpec.getWhereClauseRestrictions();
+						if ( whereClauseRestrictions instanceof InSubQueryPredicate ) {
+							affectedTableName.addAll(
+									( (InSubQueryPredicate) whereClauseRestrictions ).getSubQuery()
+											.getAffectedTableNames() );
+						}
+					}
+			);
+
+		}
+		return affectedTableName;
 	}
 }

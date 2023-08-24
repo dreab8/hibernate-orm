@@ -9,7 +9,6 @@ package org.hibernate.sql.ast.tree.cte;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import org.hibernate.metamodel.mapping.ModelPartContainer;
 import org.hibernate.spi.NavigablePath;
@@ -75,27 +74,26 @@ public class CteTableGroup extends AbstractTableGroup {
 			return getPrimaryTableReference();
 		}
 		for ( TableGroupJoin tableGroupJoin : getNestedTableGroupJoins() ) {
-			final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
-					.getPrimaryTableReference()
-					.getTableReference( navigablePath, tableExpression, resolve );
-			if ( groupTableReference != null ) {
-				return groupTableReference;
+			if ( resolve || tableGroupJoin.isInitialized() ) {
+				final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
+						.getPrimaryTableReference()
+						.getTableReference( navigablePath, tableExpression, resolve );
+				if ( groupTableReference != null ) {
+					return groupTableReference;
+				}
 			}
 		}
 		for ( TableGroupJoin tableGroupJoin : getTableGroupJoins() ) {
-			final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
-					.getPrimaryTableReference()
-					.getTableReference( navigablePath, tableExpression, resolve );
-			if ( groupTableReference != null ) {
-				return groupTableReference;
+			if ( resolve || tableGroupJoin.isInitialized() ) {
+				final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
+						.getPrimaryTableReference()
+						.getTableReference( navigablePath, tableExpression, resolve );
+				if ( groupTableReference != null ) {
+					return groupTableReference;
+				}
 			}
 		}
 		return null;
-	}
-
-	@Override
-	public void applyAffectedTableNames(Consumer<String> nameCollector) {
-		nameCollector.accept( cteTableReference.getTableExpression() );
 	}
 
 	@Override
@@ -107,4 +105,5 @@ public class CteTableGroup extends AbstractTableGroup {
 	public List<TableReferenceJoin> getTableReferenceJoins() {
 		return Collections.emptyList();
 	}
+
 }

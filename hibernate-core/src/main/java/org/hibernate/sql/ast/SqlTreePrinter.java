@@ -141,7 +141,7 @@ public class SqlTreePrinter {
 		if ( !tableGroup.isInitialized() ) {
 			return;
 		}
-		if ( tableGroup.getPrimaryTableReference() instanceof NamedTableReference ) {
+		if ( tableGroup.getPrimaryTableReference().isNamedTableReference() ) {
 			logWithIndentation(
 					"primaryTableReference : %s as %s",
 					tableGroup.getPrimaryTableReference().getTableId(),

@@ -8,7 +8,6 @@ package org.hibernate.query.results;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.hibernate.metamodel.mapping.ModelPartContainer;
 import org.hibernate.spi.NavigablePath;
@@ -37,10 +36,6 @@ public class TableGroupImpl extends AbstractTableGroup {
 	@Override
 	public String getGroupAlias() {
 		return getSourceAlias();
-	}
-
-	@Override
-	public void applyAffectedTableNames(Consumer<String> nameCollector) {
 	}
 
 	@Override

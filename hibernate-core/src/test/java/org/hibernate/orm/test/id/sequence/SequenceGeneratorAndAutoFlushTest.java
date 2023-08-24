@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 
 import org.hibernate.testing.orm.junit.EntityManagerFactoryScope;
@@ -74,7 +75,12 @@ public class SequenceGeneratorAndAutoFlushTest {
 					final Person person = new Person( account );
 					account.addChild( person );
 
-					(entityManager.unwrap( Session.class )).createQuery( "select t from Ticket t where t.owner in (:owners)" ).setParameter( "owners", List.of( person ) ).scroll();
+					ScrollableResults<Ticket> tickets = ( entityManager.unwrap( Session.class ) ).createQuery(
+							"select t from Ticket t where t.owner in (:owners)" ).setParameter(
+							"owners",
+							List.of( person )
+					).scroll();
+					Ticket ticket = tickets.get();
 				}
 		);
 	}

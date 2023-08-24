@@ -72,4 +72,8 @@ public interface TableReference extends SqlAstNode, ColumnReferenceQualifier {
 			NavigablePath navigablePath,
 			String tableExpression,
 			boolean resolve);
+
+	default boolean isNamedTableReference() {
+		return false;
+	}
 }

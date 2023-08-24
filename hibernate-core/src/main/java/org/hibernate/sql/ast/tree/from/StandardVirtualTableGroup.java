@@ -7,7 +7,6 @@
 package org.hibernate.sql.ast.tree.from;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.hibernate.metamodel.mapping.EmbeddableMappingType;
 import org.hibernate.metamodel.mapping.MappingType;
@@ -65,11 +64,6 @@ public class StandardVirtualTableGroup extends AbstractTableGroup implements Vir
 	@Override
 	public boolean canUseInnerJoins() {
 		return underlyingTableGroup.canUseInnerJoins();
-	}
-
-	@Override
-	public void applyAffectedTableNames(Consumer<String> nameCollector) {
-		underlyingTableGroup.applyAffectedTableNames( nameCollector );
 	}
 
 	@Override

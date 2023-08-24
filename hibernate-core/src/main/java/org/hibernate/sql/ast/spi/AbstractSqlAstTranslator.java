@@ -823,49 +823,111 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 	}
 
 	protected JdbcOperationQueryDelete translateDelete(DeleteStatement sqlAst) {
+		final Set<String> affectedTableName = sqlAst.getAffectedTableNames();
+
 		visitDeleteStatement( sqlAst );
+		int tablegroupSize = affectedTableName.size();
+		int oldSize = getAffectedTableNames().size();
+		String newNames = "";
+		for (String table : affectedTableName){
+			newNames += " " + table;
+		}
+
+		String oldNames = "";
+		for (String table : getAffectedTableNames()){
+			oldNames += " " + table;
+		}
+
+		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize  + " : " + newNames + " - old " + oldSize + " : " + oldNames +" -- " + getSql();
+
 
 		return new JdbcOperationQueryDelete(
 				getSql(),
 				getParameterBinders(),
-				getAffectedTableNames(),
+				affectedTableName,
 				getAppliedParameterBindings()
 		);
 	}
 
 	protected JdbcOperationQueryUpdate translateUpdate(UpdateStatement sqlAst) {
+		final Set<String> affectedTableName = sqlAst.getAffectedTableNames();
+
 		visitUpdateStatement( sqlAst );
+
+		int tablegroupSize = affectedTableName.size();
+		int oldSize = getAffectedTableNames().size();
+		String newNames = "";
+		for (String table : affectedTableName){
+			newNames += " " + table;
+		}
+
+		String oldNames = "";
+		for (String table : getAffectedTableNames()){
+			oldNames += " " + table;
+		}
+
+		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize  + " : " + newNames + " - old " + oldSize + " : " + oldNames +" -- " + getSql();
 
 		return new JdbcOperationQueryUpdate(
 				getSql(),
 				getParameterBinders(),
-				getAffectedTableNames(),
+				affectedTableName,
 				getAppliedParameterBindings()
 		);
 	}
 
 	protected JdbcOperationQueryInsert translateInsert(InsertSelectStatement sqlAst) {
+		final Set<String> affectedTableName = sqlAst.getAffectedTableNames();
+
 		visitInsertStatement( sqlAst );
+
+		int tablegroupSize = affectedTableName.size();
+		int oldSize = getAffectedTableNames().size();
+		String newNames = "";
+		for (String table : affectedTableName){
+			newNames += " " + table;
+		}
+
+		String oldNames = "";
+		for (String table : getAffectedTableNames()){
+			oldNames += " " + table;
+		}
+
+		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize  + " : " + newNames + " - old " + oldSize + " : " + oldNames +" -- " + getSql();
 
 		return new JdbcOperationQueryInsertImpl(
 				getSql(),
 				getParameterBinders(),
-				getAffectedTableNames()
+				affectedTableNames
 		);
 	}
 
 	protected JdbcOperationQuerySelect translateSelect(SelectStatement selectStatement) {
 		logDomainResultGraph( selectStatement.getDomainResultDescriptors() );
 		logSqlAst( selectStatement );
-
+		final Set<String> affectedTableName = selectStatement.getAffectedTableNames();
 		visitSelectStatement( selectStatement );
+
+		int tablegroupSize = affectedTableName.size();
+		int oldSize = getAffectedTableNames().size();
+		String newNames = "";
+		for (String table : affectedTableName){
+			newNames += " " + table;
+		}
+
+		String oldNames = "";
+		for (String table : getAffectedTableNames()){
+			oldNames += " " + table;
+		}
+
+		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize  + " : " + newNames + " - old " + oldSize + " : " + oldNames +" -- " + getSql();
 
 		final int rowsToSkip;
 		return new JdbcOperationQuerySelect(
 				getSql(),
 				getParameterBinders(),
 				buildJdbcValuesMappingProducer( selectStatement ),
-				getAffectedTableNames(),
+				affectedTableName,
 				rowsToSkip = getRowsToSkip( selectStatement, getJdbcParameterBindings() ),
 				getMaxRows( selectStatement, getJdbcParameterBindings(), rowsToSkip ),
 				getAppliedParameterBindings(),
@@ -5481,7 +5543,7 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 			return false;
 		}
 		final TableReference tableReference = tableGroup.getPrimaryTableReference();
-		if ( tableReference instanceof NamedTableReference ) {
+		if ( tableReference.isNamedTableReference() ) {
 			return renderNamedTableReference( (NamedTableReference) tableReference, lockMode );
 		}
 		final DerivedTableReference derivedTableReference = (DerivedTableReference) tableReference;

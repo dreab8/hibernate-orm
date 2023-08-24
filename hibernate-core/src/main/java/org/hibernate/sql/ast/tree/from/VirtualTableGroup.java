@@ -6,6 +6,8 @@
  */
 package org.hibernate.sql.ast.tree.from;
 
+import java.util.Set;
+
 /**
  * Marker interface for TableGroup impls that are virtual - should not be rendered
  * into the SQL.
@@ -19,4 +21,10 @@ public interface VirtualTableGroup extends TableGroup {
 	default boolean isVirtual() {
 		return true;
 	}
+
+	@Override
+	default boolean isInitialized(){
+		return getUnderlyingTableGroup().isInitialized();
+	}
+
 }

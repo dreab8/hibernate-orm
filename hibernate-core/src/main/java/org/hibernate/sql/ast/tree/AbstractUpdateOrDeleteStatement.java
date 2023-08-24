@@ -52,4 +52,21 @@ public abstract class AbstractUpdateOrDeleteStatement extends AbstractMutationSt
 	public Predicate getRestriction() {
 		return restriction;
 	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		if ( affectedTableName == null ) {
+			affectedTableName = new HashSet<>();
+			affectedTableName.addAll( getTargetTable().getAffectedTableNames() );
+			for ( TableGroup tableGroup : getFromClause().getRoots() ) {
+				tableGroup.applyAffectedTableNames( affectedTableName::add, this );
+			}
+			if ( restriction instanceof InSubQueryPredicate ) {
+				SelectStatement subQuery = ( (InSubQueryPredicate) restriction ).getSubQuery();
+				affectedTableName.addAll( subQuery.getAffectedTableNames() );
+			}
+		}
+		return affectedTableName;
+	}
+
 }

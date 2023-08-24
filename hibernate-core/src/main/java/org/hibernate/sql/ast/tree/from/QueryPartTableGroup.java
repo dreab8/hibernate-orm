@@ -9,7 +9,6 @@ package org.hibernate.sql.ast.tree.from;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.spi.NavigablePath;
@@ -89,27 +88,26 @@ public class QueryPartTableGroup extends AbstractTableGroup {
 			return getPrimaryTableReference();
 		}
 		for ( TableGroupJoin tableGroupJoin : getNestedTableGroupJoins() ) {
-			final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
-					.getPrimaryTableReference()
-					.getTableReference( navigablePath, tableExpression, resolve );
-			if ( groupTableReference != null ) {
-				return groupTableReference;
+			if ( resolve || tableGroupJoin.isInitialized() ) {
+				final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
+						.getPrimaryTableReference()
+						.getTableReference( navigablePath, tableExpression, resolve );
+				if ( groupTableReference != null ) {
+					return groupTableReference;
+				}
 			}
 		}
 		for ( TableGroupJoin tableGroupJoin : getTableGroupJoins() ) {
-			final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
-					.getPrimaryTableReference()
-					.getTableReference( navigablePath, tableExpression, resolve );
-			if ( groupTableReference != null ) {
-				return groupTableReference;
+			if ( resolve || tableGroupJoin.isInitialized() ) {
+				final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
+						.getPrimaryTableReference()
+						.getTableReference( navigablePath, tableExpression, resolve );
+				if ( groupTableReference != null ) {
+					return groupTableReference;
+				}
 			}
 		}
 		return null;
-	}
-
-	@Override
-	public void applyAffectedTableNames(Consumer<String> nameCollector) {
-		queryPartTableReference.applyAffectedTableNames( nameCollector );
 	}
 
 	@Override

@@ -133,7 +133,6 @@ public class ConcreteSqmSelectQueryPlan<R> implements SelectQueryPlan<R> {
 						jdbcParameterBindings
 				);
 
-				session.autoFlushIfRequired( jdbcSelect.getAffectedTableNames() );
 				return session.getFactory().getJdbcServices().getJdbcSelectExecutor().list(
 						jdbcSelect,
 						jdbcParameterBindings,
@@ -161,7 +160,6 @@ public class ConcreteSqmSelectQueryPlan<R> implements SelectQueryPlan<R> {
 				final JdbcSelectExecutor jdbcSelectExecutor = session.getFactory()
 						.getJdbcServices()
 						.getJdbcSelectExecutor();
-				session.autoFlushIfRequired( jdbcSelect.getAffectedTableNames() );
 				return jdbcSelectExecutor.scroll(
 						jdbcSelect,
 						scrollMode,
@@ -321,7 +319,10 @@ public class ConcreteSqmSelectQueryPlan<R> implements SelectQueryPlan<R> {
 		else {
 			// If the translation depends on parameter bindings or it isn't compatible with the current query options,
 			// we have to rebuild the JdbcSelect, which is still better than having to translate from SQM to SQL AST again
-			if ( localCopy.jdbcSelect.dependsOnParameterBindings() ) {
+			boolean dependsOnParameterBindings = localCopy.jdbcSelect.dependsOnParameterBindings();
+			if ( dependsOnParameterBindings ) {
+				executionContext.getSession().autoFlushIfRequired( localCopy.jdbcSelect.getAffectedTableNames() );
+
 				jdbcParameterBindings = createJdbcParameterBindings( localCopy, executionContext );
 			}
 			// If the translation depends on the limit or lock options, we have to rebuild the JdbcSelect
@@ -335,6 +336,9 @@ public class ConcreteSqmSelectQueryPlan<R> implements SelectQueryPlan<R> {
 				jdbcParameterBindings = localCopy.firstParameterBindings;
 				localCopy.firstParameterBindings = null;
 				cacheableSqmInterpretation = localCopy;
+			}
+			else if ( !dependsOnParameterBindings ) {
+				executionContext.getSession().autoFlushIfRequired( localCopy.jdbcSelect.getAffectedTableNames() );
 			}
 		}
 
@@ -383,6 +387,8 @@ public class ConcreteSqmSelectQueryPlan<R> implements SelectQueryPlan<R> {
 								true
 						)
 						.translate();
+
+		session.autoFlushIfRequired( sqmInterpretation.getAffectedTableNames() );
 
 		final FromClauseAccess tableGroupAccess = sqmInterpretation.getFromClauseAccess();
 

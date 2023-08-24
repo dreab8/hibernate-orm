@@ -118,13 +118,6 @@ public class LazyTableGroup extends DelegatingTableGroup {
 	}
 
 	@Override
-	public void applyAffectedTableNames(Consumer<String> nameCollector) {
-		if ( tableGroup != null ) {
-			tableGroup.applyAffectedTableNames( nameCollector );
-		}
-	}
-
-	@Override
 	public List<TableReferenceJoin> getTableReferenceJoins() {
 		return tableGroup == null ? Collections.emptyList() : tableGroup.getTableReferenceJoins();
 	}
@@ -272,7 +265,7 @@ public class LazyTableGroup extends DelegatingTableGroup {
 		return getTableGroup().getTableReference( navigablePath, modelPart, tableExpression, resolve );
 	}
 
-	public static interface ParentTableGroupUseChecker {
+	public interface ParentTableGroupUseChecker {
 		boolean canUseParentTableGroup(TableGroupProducer producer, NavigablePath navigablePath, ValuedModelPart valuedModelPart);
 	}
 }

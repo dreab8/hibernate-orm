@@ -170,6 +170,8 @@ public class NativeSelectQueryPlanImpl<R> implements NativeSelectQueryPlan<R> {
 			);
 		}
 
+		executionContext.getSession().autoFlushIfRequired( affectedTableNames );
+
 		final JdbcOperationQuerySelect jdbcSelect = new JdbcOperationQuerySelect(
 				sql,
 				jdbcParameterBinders,

@@ -157,11 +157,6 @@ public abstract class DelegatingTableGroup implements TableGroup {
 	}
 
 	@Override
-	public void applyAffectedTableNames(Consumer<String> nameCollector) {
-		getTableGroup().applyAffectedTableNames( nameCollector );
-	}
-
-	@Override
 	public TableReference getPrimaryTableReference() {
 		return getTableGroup().getPrimaryTableReference();
 	}

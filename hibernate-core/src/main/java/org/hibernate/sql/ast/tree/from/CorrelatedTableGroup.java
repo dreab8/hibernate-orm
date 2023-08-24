@@ -103,19 +103,23 @@ public class CorrelatedTableGroup extends AbstractTableGroup {
 			return tableReference;
 		}
 		for ( TableGroupJoin tableGroupJoin : getNestedTableGroupJoins() ) {
-			final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
-					.getPrimaryTableReference()
-					.getTableReference( navigablePath, modelPart, tableExpression, resolve );
-			if ( groupTableReference != null ) {
-				return groupTableReference;
+			if ( resolve || tableGroupJoin.isInitialized() ) {
+				final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
+						.getPrimaryTableReference()
+						.getTableReference( navigablePath, modelPart, tableExpression, resolve );
+				if ( groupTableReference != null ) {
+					return groupTableReference;
+				}
 			}
 		}
 		for ( TableGroupJoin tableGroupJoin : getTableGroupJoins() ) {
-			final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
-					.getPrimaryTableReference()
-					.getTableReference( navigablePath, modelPart, tableExpression, resolve );
-			if ( groupTableReference != null ) {
-				return groupTableReference;
+			if ( resolve || tableGroupJoin.isInitialized() ) {
+				final TableReference groupTableReference = tableGroupJoin.getJoinedGroup()
+						.getPrimaryTableReference()
+						.getTableReference( navigablePath, modelPart, tableExpression, resolve );
+				if ( groupTableReference != null ) {
+					return groupTableReference;
+				}
 			}
 		}
 		return null;
@@ -151,11 +155,6 @@ public class CorrelatedTableGroup extends AbstractTableGroup {
 			}
 		}
 		return null;
-	}
-
-	@Override
-	public void applyAffectedTableNames(Consumer<String> nameCollector) {
-		getPrimaryTableReference().applyAffectedTableNames( nameCollector );
 	}
 
 	@Override

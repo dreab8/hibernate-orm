@@ -112,4 +112,8 @@ public class NamedTableReference extends AbstractTableReference {
 		return getTableExpression() + "(" + getIdentificationVariable() + ')';
 	}
 
+	@Override
+	public boolean isNamedTableReference() {
+		return true;
+	}
 }

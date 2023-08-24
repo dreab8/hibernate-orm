@@ -8,7 +8,6 @@ package org.hibernate.sql.ast.tree.from;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.hibernate.persister.entity.UnionSubclassEntityPersister;
 import org.hibernate.spi.NavigablePath;
@@ -27,10 +26,6 @@ public class UnionTableGroup extends AbstractTableGroup {
 			String sourceAlias) {
 		super( canUseInnerJoins, navigablePath, modelPart, sourceAlias, null, null );
 		this.tableReference = tableReference;
-	}
-
-	@Override
-	public void applyAffectedTableNames(Consumer<String> nameCollector) {
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -105,7 +106,8 @@ public class TableBasedUpdateHandler
 	protected ExecutionDelegate resolveDelegate(DomainQueryExecutionContext executionContext) {
 		final SessionFactoryImplementor sessionFactory = getSessionFactory();
 		final MappingMetamodel domainModel = sessionFactory.getRuntimeMetamodels().getMappingMetamodel();
-		final EntityPersister entityDescriptor = domainModel.getEntityDescriptor( getSqmDeleteOrUpdateStatement().getTarget().getEntityName() );
+		final SqmUpdateStatement<?> sqmDeleteOrUpdateStatement = getSqmDeleteOrUpdateStatement();
+		final EntityPersister entityDescriptor = domainModel.getEntityDescriptor( sqmDeleteOrUpdateStatement.getTarget().getEntityName() );
 
 		final String rootEntityName = entityDescriptor.getRootEntityName();
 		final EntityPersister rootEntityDescriptor = domainModel.getEntityDescriptor( rootEntityName );
@@ -114,8 +116,8 @@ public class TableBasedUpdateHandler
 
 		final MultiTableSqmMutationConverter converterDelegate = new MultiTableSqmMutationConverter(
 				entityDescriptor,
-				getSqmDeleteOrUpdateStatement(),
-				getSqmDeleteOrUpdateStatement().getTarget(),
+				sqmDeleteOrUpdateStatement,
+				sqmDeleteOrUpdateStatement.getTarget(),
 				domainParameterXref,
 				executionContext.getQueryOptions(),
 				executionContext.getSession().getLoadQueryInfluencers(),
@@ -147,7 +149,7 @@ public class TableBasedUpdateHandler
 		final Map<SqmParameter<?>, MappingModelExpressible<?>> paramTypeResolutions = new LinkedHashMap<>();
 
 		converterDelegate.visitSetClause(
-				getSqmDeleteOrUpdateStatement().getSetClause(),
+				sqmDeleteOrUpdateStatement.getSetClause(),
 				assignments::add,
 				(sqmParameter, mappingType, jdbcParameters) -> {
 					parameterResolutions.computeIfAbsent(
@@ -157,7 +159,8 @@ public class TableBasedUpdateHandler
 					paramTypeResolutions.put( sqmParameter, mappingType );
 				}
 		);
-		converterDelegate.addVersionedAssignment( assignments::add, getSqmDeleteOrUpdateStatement() );
+
+		converterDelegate.addVersionedAssignment( assignments::add, sqmDeleteOrUpdateStatement );
 
 		// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		// visit the where-clause using our special converter, collecting information

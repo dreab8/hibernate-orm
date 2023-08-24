@@ -116,7 +116,7 @@ public class SpannerSqlAstTranslator<T extends JdbcOperation> extends AbstractSq
 			return false;
 		}
 		final TableReference tableReference = tableGroup.getPrimaryTableReference();
-		if ( tableReference instanceof NamedTableReference ) {
+		if ( tableReference.isNamedTableReference() ) {
 			return renderNamedTableReference( (NamedTableReference) tableReference, lockMode );
 		}
 		final DerivedTableReference derivedTableReference = (DerivedTableReference) tableReference;

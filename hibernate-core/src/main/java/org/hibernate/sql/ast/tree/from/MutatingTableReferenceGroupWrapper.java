@@ -70,11 +70,6 @@ public class MutatingTableReferenceGroupWrapper implements TableGroup {
 	}
 
 	@Override
-	public void applyAffectedTableNames(Consumer<String> nameCollector) {
-		nameCollector.accept( mutatingTableReference.getTableExpression() );
-	}
-
-	@Override
 	public String getSourceAlias() {
 		return null;
 	}

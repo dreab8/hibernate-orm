@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.hibernate.engine.spi.SessionFactoryImplementor;
@@ -95,15 +94,6 @@ public class StandardTableGroup extends AbstractTableGroup {
 	}
 
 	@Override
-	public void applyAffectedTableNames(Consumer<String> nameCollector) {
-		// todo (6.0) : if we implement dynamic TableReference creation, this still needs to return the expressions for all mapped tables not just the ones with a TableReference at this time
-		getPrimaryTableReference().applyAffectedTableNames( nameCollector );
-		for ( TableReferenceJoin tableReferenceJoin : tableJoins ) {
-			tableReferenceJoin.getJoinedTableReference().applyAffectedTableNames( nameCollector );
-		}
-	}
-
-	@Override
 	public TableReference getPrimaryTableReference() {
 		return primaryTableReference;
 	}
@@ -161,15 +151,19 @@ public class StandardTableGroup extends AbstractTableGroup {
 		}
 
 		for ( TableGroupJoin tableGroupJoin : getNestedTableGroupJoins() ) {
-			final TableReference primaryTableReference = tableGroupJoin.getJoinedGroup().getPrimaryTableReference();
-			if ( primaryTableReference.getTableReference( navigablePath, tableExpression, resolve ) != null ) {
-				return primaryTableReference;
+			if ( resolve || tableGroupJoin.isInitialized() ) {
+				final TableReference primaryTableReference = tableGroupJoin.getJoinedGroup().getPrimaryTableReference();
+				if ( primaryTableReference.getTableReference( navigablePath, tableExpression, resolve ) != null ) {
+					return primaryTableReference;
+				}
 			}
 		}
 		for ( TableGroupJoin tableGroupJoin : getTableGroupJoins() ) {
-			final TableReference primaryTableReference = tableGroupJoin.getJoinedGroup().getPrimaryTableReference();
-			if ( primaryTableReference.getTableReference( navigablePath, tableExpression, resolve ) != null ) {
-				return primaryTableReference;
+			if ( resolve || tableGroupJoin.isInitialized() ) {
+				final TableReference primaryTableReference = tableGroupJoin.getJoinedGroup().getPrimaryTableReference();
+				if ( primaryTableReference.getTableReference( navigablePath, tableExpression, resolve ) != null ) {
+					return primaryTableReference;
+				}
 			}
 		}
 

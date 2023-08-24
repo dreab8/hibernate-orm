@@ -8,6 +8,7 @@ package org.hibernate.sql.ast.tree;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.hibernate.sql.ast.tree.cte.CteContainer;
 import org.hibernate.sql.ast.tree.cte.CteObject;
@@ -20,6 +21,7 @@ public abstract class AbstractStatement implements Statement, CteContainer {
 
 	private final Map<String, CteStatement> cteStatements;
 	private final Map<String, CteObject> cteObjects;
+	protected Set<String> affectedTableName;
 
 	public AbstractStatement(CteContainer cteContainer) {
 		if ( cteContainer == null ) {
@@ -65,4 +67,11 @@ public abstract class AbstractStatement implements Statement, CteContainer {
 			throw new IllegalArgumentException( "A CTE object with the name " + cteObject.getName() + " already exists" );
 		}
 	}
+
+	public abstract Set<String> getAffectedTableNames();
+
+	public void setAffectedTableNames(Set<String> affectedTableNames){
+		this.affectedTableName = affectedTableNames;
+	}
+
 }

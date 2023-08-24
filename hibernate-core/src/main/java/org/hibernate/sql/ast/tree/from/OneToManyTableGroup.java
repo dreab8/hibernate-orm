@@ -79,11 +79,6 @@ public class OneToManyTableGroup extends AbstractColumnReferenceQualifier implem
 	}
 
 	@Override
-	public void applyAffectedTableNames(Consumer<String> nameCollector) {
-		elementTableGroup.applyAffectedTableNames( nameCollector );
-	}
-
-	@Override
 	public TableReference getPrimaryTableReference() {
 		return elementTableGroup.getPrimaryTableReference();
 	}
