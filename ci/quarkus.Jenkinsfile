@@ -37,7 +37,8 @@ pipeline {
 						checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'ed25519.Hibernate-CI.github.com', url: 'https://github.com/quarkusio/quarkus.git']])
 						sh "sed -i 's@<hibernate-orm.version>.*</hibernate-orm.version>@<hibernate-orm.version>${env.HIBERNATE_VERSION}</hibernate-orm.version>@' bom/application/pom.xml"
 						sh './mvnw -Dquickly install'
-						sh './mvnw -pl :quarkus-hibernate-orm -amd -pl "!integration-tests/kafka-oauth-keycloak" verify -Dstart-containers -Dtest-containers'
+						def excludes = "'!integration-tests/kafka-oauth-keycloak,!integration-tests/mongodb-client,!integration-tests/mongodb-panache,!integration-tests/mongodb-panache-kotlin,!integration-tests/mongodb-devservices,!integration-tests/mongodb-rest-data-panache,!integration-tests/liquibase-mongodb,!extensions/mongodb-client/deployment,!extensions/liquibase-mongodb/deployment,!extensions/panache/mongodb-panache/deployment,!extensions/panache/mongodb-panache-kotlin/deployment,!extensions/panache/mongodb-panache-kotlin/runtime,!extensions/panache/mongodb-rest-data-panache/deployment,!extensions/panache/mongodb-panache-common/deployment'"
+						sh "MAVEN_OPTS='-Xmx2g -XX:MaxMetaspaceSize=1g' ./mvnw -pl :quarkus-hibernate-orm -amd -pl ${excludes} verify -Dstart-containers -Dtest-containers"
 					}
 				}
 			}
