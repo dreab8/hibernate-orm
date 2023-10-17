@@ -30,18 +30,16 @@ pipeline {
 						).trim()
 					}
 					dir('.release/quarkus') {
-// 						sh "git clone -b orm-update --single-branch https://github.com/beikov/quarkus.git . || git reset --hard && git clean -fx && git pull"
-// 						sh "git clone -b main --single-branch https://github.com/quarkusio/quarkus.git . || git reset --hard && git clean -fx && git pull"
-						sh "git clone -b 3.5 --single-branch https://github.com/quarkusio/quarkus.git . || git reset --hard && git clean -fx && git pull"
+// 						sh 'git clone -b orm-update --single-branch https://github.com/beikov/quarkus.git . || git reset --hard && git pull'
+// 						sh 'git clone -b main --single-branch https://github.com/quarkusio/quarkus.git . || git reset --hard && git pull'
+						sh 'git clone -b 3.5 --single-branch https://github.com/quarkusio/quarkus.git . || git reset --hard && git pull'
 						sh "sed -i 's@<hibernate-orm.version>.*</hibernate-orm.version>@<hibernate-orm.version>${env.HIBERNATE_VERSION}</hibernate-orm.version>@' bom/application/pom.xml"
 						// Need to override the default maven configuration this way, because there is no other way to do it
 						sh "sed -i 's/-Xmx5g/-Xmx2g/' ./.mvn/jvm.config"
 						sh "echo -e '\\n-XX:MaxMetaspaceSize=1g'>>./.mvn/jvm.config"
-						sh "./mvnw -Dquickly install"
-						// Need to kill the gradle daemons started during the Maven install run
-						sh "pkill -f '.*GradleDaemon.*'"
+						sh './mvnw -Dquickly install'
 						def excludes = "'!integration-tests/kafka-oauth-keycloak,!integration-tests/mongodb-client,!integration-tests/mongodb-panache,!integration-tests/mongodb-panache-kotlin,!integration-tests/mongodb-devservices,!integration-tests/mongodb-rest-data-panache,!integration-tests/liquibase-mongodb,!extensions/mongodb-client/deployment,!extensions/liquibase-mongodb/deployment,!extensions/panache/mongodb-panache/deployment,!extensions/panache/mongodb-panache-kotlin/deployment,!extensions/panache/mongodb-panache-kotlin/runtime,!extensions/panache/mongodb-rest-data-panache/deployment,!extensions/panache/mongodb-panache-common/deployment'"
-						sh "./mvnw -pl :quarkus-hibernate-orm -amd -pl ${excludes} verify -Dstart-containers -Dtest-containers -Dskip.gradle.build"
+						sh "./mvnw -pl :quarkus-hibernate-orm -amd -pl ${excludes} verify -Dstart-containers -Dtest-containers"
 					}
 				}
 			}
