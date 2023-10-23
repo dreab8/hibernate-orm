@@ -6,9 +6,13 @@
  */
 package org.hibernate.sql.ast.tree.predicate;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.hibernate.metamodel.mapping.JdbcMappingContainer;
 import org.hibernate.sql.ast.SqlAstWalker;
 import org.hibernate.sql.ast.tree.expression.Expression;
+import org.hibernate.sql.ast.tree.select.SelectStatement;
 
 /**
  * @author Steve Ebersole
@@ -18,6 +22,7 @@ public class LikePredicate extends AbstractPredicate {
 	private final Expression pattern;
 	private final Expression escapeCharacter;
 	private final boolean isCaseSensitive;
+	private final Set<String> affectedTableNames;
 
 	public LikePredicate(Expression matchExpression, Expression pattern) {
 		this( matchExpression, pattern, null );
@@ -50,6 +55,12 @@ public class LikePredicate extends AbstractPredicate {
 		this.pattern = pattern;
 		this.escapeCharacter = escapeCharacter;
 		this.isCaseSensitive = isCaseSensitive;
+		if ( matchExpression instanceof SelectStatement ) {
+			affectedTableNames = ( (SelectStatement) matchExpression ).getAffectedTableNames();
+		}
+		else {
+			affectedTableNames = Collections.emptySet();
+		}
 	}
 
 	public Expression getMatchExpression() {
@@ -71,5 +82,10 @@ public class LikePredicate extends AbstractPredicate {
 	@Override
 	public void accept(SqlAstWalker sqlTreeWalker) {
 		sqlTreeWalker.visitLikePredicate( this );
+	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		return affectedTableNames;
 	}
 }

@@ -2838,32 +2838,8 @@ public abstract class BaseSqmToSqlAstConverter<T extends Statement> extends Base
 		getFromClauseIndex().register( sqmFrom, tableGroup );
 		registerAffetcedTableNames( tableGroup );
 		// We also need to register the table group for the treats
-		if ( tableGroup instanceof PluralTableGroup ) {
-			final PluralTableGroup pluralTableGroup = (PluralTableGroup) tableGroup;
-			for ( SqmFrom<?, ?> sqmTreat : sqmFrom.getSqmTreats() ) {
-				final TableGroup elementTableGroup = pluralTableGroup.getElementTableGroup();
-				if ( elementTableGroup != null ) {
-					getFromClauseAccess().registerTableGroup(
-							sqmTreat.getNavigablePath().append( CollectionPart.Nature.ELEMENT.getName() ),
-							elementTableGroup
-					);
-					registerAffetcedTableNames( elementTableGroup );
-				}
-				final TableGroup indexTableGroup = pluralTableGroup.getIndexTableGroup();
-				if ( indexTableGroup != null ) {
-					getFromClauseAccess().registerTableGroup(
-							sqmTreat.getNavigablePath().append( CollectionPart.Nature.INDEX.getName() ),
-							indexTableGroup
-					);
-					registerAffetcedTableNames( indexTableGroup );
-				}
-			}
-		}
-		else {
-			for ( SqmFrom<?, ?> sqmTreat : sqmFrom.getSqmTreats() ) {
-				getFromClauseAccess().registerTableGroup( sqmTreat.getNavigablePath(), tableGroup );
-				registerAffetcedTableNames( tableGroup );
-			}
+		for ( SqmFrom<?, ?> sqmTreat : sqmFrom.getSqmTreats() ) {
+			getFromClauseAccess().registerTableGroup( sqmTreat.getNavigablePath(), tableGroup );
 		}
 	}
 

@@ -823,13 +823,13 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 	}
 
 	protected JdbcOperationQueryDelete translateDelete(DeleteStatement sqlAst) {
-		final Set<String> affectedTableName = sqlAst.getAffectedTableNames();
+		final Set<String> affectedTableNames = sqlAst.getAffectedTableNames();
 
 		visitDeleteStatement( sqlAst );
-		int tablegroupSize = affectedTableName.size();
+		int tablegroupSize = affectedTableNames.size();
 		int oldSize = getAffectedTableNames().size();
 		String newNames = "";
-		for (String table : affectedTableName){
+		for (String table : affectedTableNames){
 			newNames += " " + table;
 		}
 
@@ -844,20 +844,20 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 		return new JdbcOperationQueryDelete(
 				getSql(),
 				getParameterBinders(),
-				affectedTableName,
+				affectedTableNames,
 				getAppliedParameterBindings()
 		);
 	}
 
 	protected JdbcOperationQueryUpdate translateUpdate(UpdateStatement sqlAst) {
-		final Set<String> affectedTableName = sqlAst.getAffectedTableNames();
+		final Set<String> affectedTableNames = sqlAst.getAffectedTableNames();
 
 		visitUpdateStatement( sqlAst );
 
-		int tablegroupSize = affectedTableName.size();
+		int tablegroupSize = affectedTableNames.size();
 		int oldSize = getAffectedTableNames().size();
 		String newNames = "";
-		for (String table : affectedTableName){
+		for (String table : affectedTableNames){
 			newNames += " " + table;
 		}
 
@@ -871,20 +871,20 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 		return new JdbcOperationQueryUpdate(
 				getSql(),
 				getParameterBinders(),
-				affectedTableName,
+				affectedTableNames,
 				getAppliedParameterBindings()
 		);
 	}
 
 	protected JdbcOperationQueryInsert translateInsert(InsertSelectStatement sqlAst) {
-		final Set<String> affectedTableName = sqlAst.getAffectedTableNames();
+		final Set<String> affectedTableNames = sqlAst.getAffectedTableNames();
 
 		visitInsertStatement( sqlAst );
 
-		int tablegroupSize = affectedTableName.size();
+		int tablegroupSize = affectedTableNames.size();
 		int oldSize = getAffectedTableNames().size();
 		String newNames = "";
-		for (String table : affectedTableName){
+		for (String table : affectedTableNames){
 			newNames += " " + table;
 		}
 
@@ -898,20 +898,20 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 		return new JdbcOperationQueryInsertImpl(
 				getSql(),
 				getParameterBinders(),
-				affectedTableNames
+				this.affectedTableNames
 		);
 	}
 
 	protected JdbcOperationQuerySelect translateSelect(SelectStatement selectStatement) {
 		logDomainResultGraph( selectStatement.getDomainResultDescriptors() );
 		logSqlAst( selectStatement );
-		final Set<String> affectedTableName = selectStatement.getAffectedTableNames();
+		final Set<String> affectedTableNames = selectStatement.getAffectedTableNames();
 		visitSelectStatement( selectStatement );
 
-		int tablegroupSize = affectedTableName.size();
+		int tablegroupSize = affectedTableNames.size();
 		int oldSize = getAffectedTableNames().size();
 		String newNames = "";
-		for (String table : affectedTableName){
+		for (String table : affectedTableNames){
 			newNames += " " + table;
 		}
 
@@ -927,7 +927,7 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 				getSql(),
 				getParameterBinders(),
 				buildJdbcValuesMappingProducer( selectStatement ),
-				affectedTableName,
+				affectedTableNames,
 				rowsToSkip = getRowsToSkip( selectStatement, getJdbcParameterBindings() ),
 				getMaxRows( selectStatement, getJdbcParameterBindings(), rowsToSkip ),
 				getAppliedParameterBindings(),

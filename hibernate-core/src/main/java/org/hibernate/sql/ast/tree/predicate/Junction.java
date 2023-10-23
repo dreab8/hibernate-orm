@@ -7,7 +7,10 @@
 package org.hibernate.sql.ast.tree.predicate;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.metamodel.mapping.JdbcMappingContainer;
 import org.hibernate.sql.ast.SqlAstWalker;
@@ -30,6 +33,7 @@ public class Junction implements Predicate {
 	private final Nature nature;
 	private final JdbcMappingContainer expressionType;
 	private final List<Predicate> predicates;
+	private Set<String> affectedTableNames;
 
 	public Junction() {
 		this( Nature.CONJUNCTION );
@@ -52,10 +56,18 @@ public class Junction implements Predicate {
 		this.nature = nature;
 		this.expressionType = expressionType;
 		this.predicates = predicates;
+		affectedTableNames = new HashSet<>();
+		for ( Predicate predicate : predicates ) {
+			affectedTableNames.addAll( predicate.getAffectedTableNames() );
+		}
 	}
 
 	public void add(Predicate predicate) {
 		predicates.add( predicate );
+		if ( affectedTableNames == null ) {
+			affectedTableNames = new HashSet<>();
+		}
+		affectedTableNames.addAll( predicate.getAffectedTableNames() );
 	}
 
 	public Nature getNature() {
@@ -79,5 +91,13 @@ public class Junction implements Predicate {
 	@Override
 	public JdbcMappingContainer getExpressionType() {
 		return expressionType;
+	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		if ( affectedTableNames == null ) {
+			affectedTableNames = Collections.emptySet();
+		}
+		return affectedTableNames;
 	}
 }

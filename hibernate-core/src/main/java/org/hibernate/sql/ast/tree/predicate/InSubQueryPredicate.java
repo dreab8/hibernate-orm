@@ -6,6 +6,9 @@
  */
 package org.hibernate.sql.ast.tree.predicate;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.hibernate.metamodel.mapping.JdbcMappingContainer;
 import org.hibernate.sql.ast.SqlAstWalker;
 import org.hibernate.sql.ast.tree.expression.Expression;
@@ -18,6 +21,7 @@ import org.hibernate.sql.ast.tree.select.SelectStatement;
 public class InSubQueryPredicate extends AbstractPredicate {
 	private final Expression testExpression;
 	private final SelectStatement subQuery;
+	private Set<String> affectedTableNames;
 
 	public InSubQueryPredicate(Expression testExpression, QueryPart subQuery, boolean negated) {
 		this( testExpression, new SelectStatement( subQuery ), negated, null );
@@ -27,6 +31,10 @@ public class InSubQueryPredicate extends AbstractPredicate {
 		super( expressionType, negated );
 		this.testExpression = testExpression;
 		this.subQuery = subQuery;
+		affectedTableNames = subQuery.getAffectedTableNames();
+		if ( testExpression instanceof SelectStatement ) {
+			affectedTableNames.addAll( ( (SelectStatement) testExpression ).getAffectedTableNames() );
+		}
 	}
 
 	public Expression getTestExpression() {
@@ -40,5 +48,10 @@ public class InSubQueryPredicate extends AbstractPredicate {
 	@Override
 	public void accept(SqlAstWalker sqlTreeWalker) {
 		sqlTreeWalker.visitInSubQueryPredicate( this );
+	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		return affectedTableNames;
 	}
 }

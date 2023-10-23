@@ -7,7 +7,10 @@
 package org.hibernate.sql.ast.tree.predicate;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.engine.spi.FilterDefinition;
 import org.hibernate.internal.FilterImpl;
@@ -28,6 +31,8 @@ public class FilterPredicate implements Predicate {
 	private final List<FilterFragmentPredicate> fragments = new ArrayList<>();
 
 	private List<FilterJdbcParameter> parameters;
+
+	private final Set<String> affectedTableNames = Collections.emptySet();
 
 	public FilterPredicate() {
 	}
@@ -70,6 +75,11 @@ public class FilterPredicate implements Predicate {
 		return null;
 	}
 
+	@Override
+	public Set<String> getAffectedTableNames() {
+		return affectedTableNames;
+	}
+
 	public static class FilterFragmentParameter {
 		private final String filterName;
 		private final String parameterName;
@@ -104,6 +114,7 @@ public class FilterPredicate implements Predicate {
 		private final FilterImpl filter;
 		private final String sqlFragment;
 		private final List<FilterFragmentParameter> parameters;
+		private final Set<String> affectedTableNames = Collections.emptySet();
 
 		public FilterFragmentPredicate(String sqlFragment, FilterImpl filter, List<String> parameterNames) {
 			this.filter = filter;
@@ -154,6 +165,11 @@ public class FilterPredicate implements Predicate {
 		@Override
 		public boolean isEmpty() {
 			return false;
+		}
+
+		@Override
+		public Set<String> getAffectedTableNames() {
+			return affectedTableNames;
 		}
 	}
 }

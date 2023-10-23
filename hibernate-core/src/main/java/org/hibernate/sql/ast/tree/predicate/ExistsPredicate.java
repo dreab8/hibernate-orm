@@ -6,6 +6,8 @@
  */
 package org.hibernate.sql.ast.tree.predicate;
 
+import java.util.Set;
+
 import org.hibernate.metamodel.mapping.JdbcMappingContainer;
 import org.hibernate.sql.ast.SqlAstWalker;
 import org.hibernate.sql.ast.tree.select.QueryPart;
@@ -19,6 +21,7 @@ public class ExistsPredicate implements Predicate {
 	private final boolean negated;
 	private final SelectStatement expression;
 	private final JdbcMappingContainer expressionType;
+	private final Set<String> affectedTableNames;
 
 	public ExistsPredicate(QueryPart expression, boolean negated, JdbcMappingContainer expressionType) {
 		this( new SelectStatement( expression ), negated, expressionType );
@@ -28,6 +31,7 @@ public class ExistsPredicate implements Predicate {
 		this.negated = negated;
 		this.expression = expression;
 		this.expressionType = expressionType;
+		affectedTableNames = expression.getAffectedTableNames();
 	}
 
 	public SelectStatement getExpression() {
@@ -51,5 +55,10 @@ public class ExistsPredicate implements Predicate {
 	@Override
 	public JdbcMappingContainer getExpressionType() {
 		return expressionType;
+	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		return affectedTableNames;
 	}
 }

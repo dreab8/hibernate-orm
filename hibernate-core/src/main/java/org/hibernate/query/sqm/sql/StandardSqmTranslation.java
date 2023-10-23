@@ -42,8 +42,9 @@ public class StandardSqmTranslation<T extends Statement> implements SqmTranslati
 		this.jdbcParamMap = jdbcParamMap;
 		this.parameterMappingModelTypeMap = parameterMappingModelTypeMap;
 		this.sqlExpressionResolver = sqlExpressionResolver;
-		if(sqlAst instanceof AbstractUpdateOrDeleteStatement ){
-			this.affectedTableNames = ((AbstractUpdateOrDeleteStatement)sqlAst).getAffectedTableNames();
+		if ( sqlAst instanceof AbstractUpdateOrDeleteStatement ) {
+			this.affectedTableNames = ( (AbstractUpdateOrDeleteStatement) sqlAst ).getAffectedTableNames();
+			this.affectedTableNames.addAll( affectedTableNames );
 		}
 		else {
 			this.affectedTableNames = affectedTableNames;

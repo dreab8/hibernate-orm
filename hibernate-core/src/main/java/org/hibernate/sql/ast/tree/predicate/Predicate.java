@@ -6,6 +6,8 @@
  */
 package org.hibernate.sql.ast.tree.predicate;
 
+import java.util.Set;
+
 import org.hibernate.metamodel.mapping.JdbcMapping;
 import org.hibernate.query.sqm.sql.internal.DomainResultProducer;
 import org.hibernate.sql.ast.spi.SqlAstCreationState;
@@ -32,6 +34,8 @@ public interface Predicate extends Expression, DomainResultProducer<Boolean> {
 	}
 
 	boolean isEmpty();
+
+	Set<String> getAffectedTableNames();
 
 	@Override
 	default DomainResult<Boolean> createDomainResult(String resultVariable, DomainResultCreationState creationState) {

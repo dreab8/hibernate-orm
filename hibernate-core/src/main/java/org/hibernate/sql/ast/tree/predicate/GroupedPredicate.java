@@ -6,6 +6,8 @@
  */
 package org.hibernate.sql.ast.tree.predicate;
 
+import java.util.Set;
+
 import org.hibernate.metamodel.mapping.JdbcMappingContainer;
 import org.hibernate.sql.ast.SqlAstWalker;
 
@@ -14,9 +16,11 @@ import org.hibernate.sql.ast.SqlAstWalker;
  */
 public class GroupedPredicate implements Predicate {
 	private final Predicate subPredicate;
+	private final Set<String> affectedTableNames;
 
 	public GroupedPredicate(Predicate subPredicate) {
 		this.subPredicate = subPredicate;
+		affectedTableNames = subPredicate.getAffectedTableNames();
 	}
 
 	public Predicate getSubPredicate() {
@@ -36,5 +40,10 @@ public class GroupedPredicate implements Predicate {
 	@Override
 	public JdbcMappingContainer getExpressionType() {
 		return subPredicate.getExpressionType();
+	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		return affectedTableNames;
 	}
 }

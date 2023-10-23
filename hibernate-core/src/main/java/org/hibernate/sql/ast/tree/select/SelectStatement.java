@@ -8,11 +8,10 @@ package org.hibernate.sql.ast.tree.select;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+import org.hibernate.internal.util.collections.CollectionHelper;
 import org.hibernate.metamodel.mapping.JdbcMapping;
 import org.hibernate.metamodel.mapping.JdbcMappingContainer;
 import org.hibernate.query.sqm.sql.internal.DomainResultProducer;
@@ -22,10 +21,8 @@ import org.hibernate.sql.ast.spi.SqlSelection;
 import org.hibernate.sql.ast.tree.AbstractStatement;
 import org.hibernate.sql.ast.tree.SqlAstNode;
 import org.hibernate.sql.ast.tree.cte.CteContainer;
-import org.hibernate.sql.ast.tree.cte.CteStatement;
 import org.hibernate.sql.ast.tree.expression.Expression;
 import org.hibernate.sql.ast.tree.from.TableGroup;
-import org.hibernate.sql.ast.tree.predicate.InSubQueryPredicate;
 import org.hibernate.sql.ast.tree.predicate.Predicate;
 import org.hibernate.sql.results.graph.DomainResult;
 import org.hibernate.sql.results.graph.DomainResultCreationState;
@@ -140,24 +137,30 @@ public class SelectStatement extends AbstractStatement implements SqlAstNode, Ex
 
 	@Override
 	public Set<String> getAffectedTableNames() {
-		if ( affectedTableName == null ) {
-			affectedTableName = new HashSet<>();
+		if ( affectedTableNames == null ) {
 			queryPart.visitQuerySpecs(
 					querySpec -> {
-						for( TableGroup tableGroup :querySpec.getFromClause().getRoots()){
-							tableGroup.applyAffectedTableNames( affectedTableName::add, this );
+						for ( TableGroup tableGroup : querySpec.getFromClause().getRoots() ) {
+							if ( affectedTableNames == null ) {
+								affectedTableNames = new HashSet<>();
+							}
+							tableGroup.applyAffectedTableNames( affectedTableNames::add, this );
 						}
 
 						final Predicate whereClauseRestrictions = querySpec.getWhereClauseRestrictions();
-						if ( whereClauseRestrictions instanceof InSubQueryPredicate ) {
-							affectedTableName.addAll(
-									( (InSubQueryPredicate) whereClauseRestrictions ).getSubQuery()
-											.getAffectedTableNames() );
+						if ( whereClauseRestrictions != null ) {
+							if ( affectedTableNames == null ) {
+								affectedTableNames = new HashSet<>();
+							}
+							this.affectedTableNames.addAll( whereClauseRestrictions.getAffectedTableNames() );
 						}
 					}
 			);
 
 		}
-		return affectedTableName;
+		if ( affectedTableNames == null ) {
+			affectedTableNames = Collections.emptySet();
+		}
+		return affectedTableNames;
 	}
 }

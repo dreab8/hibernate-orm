@@ -21,7 +21,7 @@ public abstract class AbstractStatement implements Statement, CteContainer {
 
 	private final Map<String, CteStatement> cteStatements;
 	private final Map<String, CteObject> cteObjects;
-	protected Set<String> affectedTableName;
+	protected Set<String> affectedTableNames;
 
 	public AbstractStatement(CteContainer cteContainer) {
 		if ( cteContainer == null ) {
@@ -71,7 +71,7 @@ public abstract class AbstractStatement implements Statement, CteContainer {
 	public abstract Set<String> getAffectedTableNames();
 
 	public void setAffectedTableNames(Set<String> affectedTableNames){
-		this.affectedTableName = affectedTableNames;
+		this.affectedTableNames = affectedTableNames;
 	}
 
 }

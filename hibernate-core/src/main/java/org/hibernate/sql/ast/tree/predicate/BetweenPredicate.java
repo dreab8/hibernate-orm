@@ -6,9 +6,14 @@
  */
 package org.hibernate.sql.ast.tree.predicate;
 
+import java.util.Collections;
+import java.util.Set;
+
+import org.hibernate.internal.util.collections.CollectionHelper;
 import org.hibernate.metamodel.mapping.JdbcMappingContainer;
 import org.hibernate.sql.ast.SqlAstWalker;
 import org.hibernate.sql.ast.tree.expression.Expression;
+import org.hibernate.sql.ast.tree.select.SelectStatement;
 
 /**
  * @author Steve Ebersole
@@ -17,6 +22,7 @@ public class BetweenPredicate extends AbstractPredicate {
 	private final Expression expression;
 	private final Expression lowerBound;
 	private final Expression upperBound;
+	private final Set<String> affectedTableNames;
 
 	public BetweenPredicate(
 			Expression expression,
@@ -28,6 +34,12 @@ public class BetweenPredicate extends AbstractPredicate {
 		this.expression = expression;
 		this.lowerBound = lowerBound;
 		this.upperBound = upperBound;
+		if ( expression instanceof SelectStatement ) {
+			affectedTableNames = ( (SelectStatement) expression ).getAffectedTableNames();
+		}
+		else {
+			affectedTableNames = Collections.emptySet();
+		}
 	}
 
 	public Expression getExpression() {
@@ -45,5 +57,10 @@ public class BetweenPredicate extends AbstractPredicate {
 	@Override
 	public void accept(SqlAstWalker sqlTreeWalker) {
 		sqlTreeWalker.visitBetweenPredicate( this );
+	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		return affectedTableNames;
 	}
 }

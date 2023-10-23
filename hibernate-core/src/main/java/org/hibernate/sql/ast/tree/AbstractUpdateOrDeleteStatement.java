@@ -7,13 +7,18 @@
 package org.hibernate.sql.ast.tree;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.sql.ast.tree.cte.CteContainer;
 import org.hibernate.sql.ast.tree.expression.ColumnReference;
 import org.hibernate.sql.ast.tree.from.FromClause;
 import org.hibernate.sql.ast.tree.from.NamedTableReference;
+import org.hibernate.sql.ast.tree.from.TableGroup;
+import org.hibernate.sql.ast.tree.predicate.InSubQueryPredicate;
 import org.hibernate.sql.ast.tree.predicate.Predicate;
+import org.hibernate.sql.ast.tree.select.SelectStatement;
 
 public abstract class AbstractUpdateOrDeleteStatement extends AbstractMutationStatement {
 	private final FromClause fromClause;
@@ -55,18 +60,18 @@ public abstract class AbstractUpdateOrDeleteStatement extends AbstractMutationSt
 
 	@Override
 	public Set<String> getAffectedTableNames() {
-		if ( affectedTableName == null ) {
-			affectedTableName = new HashSet<>();
-			affectedTableName.addAll( getTargetTable().getAffectedTableNames() );
+		if ( affectedTableNames == null ) {
+			affectedTableNames = new HashSet<>();
+			affectedTableNames.addAll( getTargetTable().getAffectedTableNames() );
 			for ( TableGroup tableGroup : getFromClause().getRoots() ) {
-				tableGroup.applyAffectedTableNames( affectedTableName::add, this );
+				tableGroup.applyAffectedTableNames( affectedTableNames::add, this );
 			}
 			if ( restriction instanceof InSubQueryPredicate ) {
 				SelectStatement subQuery = ( (InSubQueryPredicate) restriction ).getSubQuery();
-				affectedTableName.addAll( subQuery.getAffectedTableNames() );
+				affectedTableNames.addAll( subQuery.getAffectedTableNames() );
 			}
 		}
-		return affectedTableName;
+		return affectedTableNames;
 	}
 
 }

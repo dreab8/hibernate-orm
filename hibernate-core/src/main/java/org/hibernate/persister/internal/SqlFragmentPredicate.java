@@ -6,6 +6,9 @@
  */
 package org.hibernate.persister.internal;
 
+import java.util.Collections;
+import java.util.Set;
+
 import org.hibernate.metamodel.mapping.JdbcMappingContainer;
 import org.hibernate.sql.ast.SqlAstWalker;
 import org.hibernate.sql.ast.tree.predicate.Predicate;
@@ -15,6 +18,7 @@ import org.hibernate.sql.ast.tree.predicate.Predicate;
  */
 public class SqlFragmentPredicate implements Predicate {
 	private final String fragment;
+	private final Set<String> affectedTableNames = Collections.emptySet();
 
 	public SqlFragmentPredicate(String fragment) {
 		this.fragment = fragment;
@@ -37,5 +41,10 @@ public class SqlFragmentPredicate implements Predicate {
 	@Override
 	public boolean isEmpty() {
 		return false;
+	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		return affectedTableNames;
 	}
 }

@@ -9,19 +9,17 @@ package org.hibernate.sql.ast.tree.insert;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
 import org.hibernate.sql.ast.SqlAstWalker;
 import org.hibernate.sql.ast.tree.AbstractMutationStatement;
 import org.hibernate.sql.ast.tree.cte.CteContainer;
-import org.hibernate.sql.ast.tree.cte.CteStatement;
 import org.hibernate.sql.ast.tree.expression.ColumnReference;
 import org.hibernate.sql.ast.tree.from.NamedTableReference;
 import org.hibernate.sql.ast.tree.from.TableGroup;
+import org.hibernate.sql.ast.tree.predicate.Predicate;
 import org.hibernate.sql.ast.tree.select.QueryPart;
 
 /**
@@ -111,19 +109,29 @@ public class InsertSelectStatement extends AbstractMutationStatement implements 
 
 	@Override
 	public Set<String> getAffectedTableNames() {
-		if ( affectedTableName == null ) {
-			affectedTableName = new HashSet<>();
-
+		if ( affectedTableNames == null ) {
+			affectedTableNames = new HashSet<>();
 			if ( sourceSelectStatement != null ) {
-				getSourceSelectStatement().visitQuerySpecs(
+				sourceSelectStatement.visitQuerySpecs(
 						querySpec -> {
 							for ( TableGroup tableGroup : querySpec.getFromClause().getRoots() ) {
-								tableGroup.applyAffectedTableNames( affectedTableName::add, this );
+								if ( affectedTableNames == null ) {
+									affectedTableNames = new HashSet<>();
+								}
+								tableGroup.applyAffectedTableNames( affectedTableNames::add, this );
+							}
+
+							final Predicate whereClauseRestrictions = querySpec.getWhereClauseRestrictions();
+							if ( whereClauseRestrictions != null ) {
+								if ( affectedTableNames == null ) {
+									affectedTableNames = new HashSet<>();
+								}
+								this.affectedTableNames.addAll( whereClauseRestrictions.getAffectedTableNames() );
 							}
 						}
 				);
 			}
 		}
-		return affectedTableName;
+		return affectedTableNames;
 	}
 }

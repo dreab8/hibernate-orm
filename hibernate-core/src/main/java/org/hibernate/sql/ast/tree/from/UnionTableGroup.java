@@ -48,4 +48,6 @@ public class UnionTableGroup extends AbstractTableGroup {
 		}
 		return super.getTableReference( navigablePath, tableExpression, resolve );
 	}
+
+
 }

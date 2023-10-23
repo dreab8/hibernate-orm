@@ -13,17 +13,16 @@ import org.hibernate.metamodel.mapping.EntityValuedModelPart;
 import org.hibernate.metamodel.mapping.ModelPart;
 import org.hibernate.metamodel.mapping.ModelPartContainer;
 import org.hibernate.persister.entity.AbstractEntityPersister;
-import org.hibernate.spi.NavigablePath;
 import org.hibernate.query.sqm.sql.internal.DomainResultProducer;
 import org.hibernate.query.sqm.sql.internal.SqmPathInterpretation;
+import org.hibernate.spi.NavigablePath;
 import org.hibernate.sql.ast.SqlAstJoinType;
 import org.hibernate.sql.ast.SqlAstWalker;
 import org.hibernate.sql.ast.tree.SqlAstNode;
 import org.hibernate.sql.ast.tree.Statement;
-import org.hibernate.sql.ast.tree.delete.DeleteStatement;
+import org.hibernate.sql.ast.tree.insert.InsertSelectStatement;
 import org.hibernate.sql.ast.tree.insert.InsertStatement;
 import org.hibernate.sql.ast.tree.select.SelectStatement;
-import org.hibernate.sql.ast.tree.update.UpdateStatement;
 import org.hibernate.sql.results.graph.DomainResult;
 import org.hibernate.sql.results.graph.DomainResultCreationState;
 
@@ -111,24 +110,24 @@ public interface TableGroup extends SqlAstNode, ColumnReferenceQualifier, SqmPat
 
 	void visitNestedTableGroupJoins(Consumer<TableGroupJoin> consumer);
 
-	default void applyAffectedTableNames(Consumer<String> nameCollector, Statement statement){
+	default void applyAffectedTableNames(Consumer<String> nameCollector, Statement statement) {
 		if ( isInitialized() ) {
-			if ( (statement instanceof SelectStatement  || statement instanceof InsertStatement) && getModelPart() instanceof AbstractEntityPersister ) {
+			if ( ( statement instanceof SelectStatement || statement instanceof InsertSelectStatement || statement instanceof InsertStatement ) && getModelPart() instanceof AbstractEntityPersister ) {
 				String[] querySpaces = (String[]) ( (AbstractEntityPersister) getModelPart() ).getQuerySpaces();
 				for ( int i = 0; i < querySpaces.length; i++ ) {
-					nameCollector.accept(  querySpaces[i] );
+					nameCollector.accept( querySpaces[i] );
 				}
 			}
-			TableReference primaryTableReference = getPrimaryTableReference();
+			final TableReference primaryTableReference = getPrimaryTableReference();
 			if ( primaryTableReference.isNamedTableReference() ) {
-				List<String> affectedTableNames = primaryTableReference.getAffectedTableNames();
-				for(String tableName : affectedTableNames) {
+				final List<String> affectedTableNames = primaryTableReference.getAffectedTableNames();
+				for ( String tableName : affectedTableNames ) {
 					nameCollector.accept( tableName );
 				}
 			}
-			if ( statement instanceof SelectStatement ) {
+			if ( statement instanceof SelectStatement || statement instanceof InsertSelectStatement ) {
 				for ( TableReferenceJoin join : getTableReferenceJoins() ) {
-					List<String> affectedTableNames = join.getJoinedTableReference().getAffectedTableNames();
+					final List<String> affectedTableNames = join.getJoinedTableReference().getAffectedTableNames();
 					for ( String tableName : affectedTableNames ) {
 						nameCollector.accept( tableName );
 					}
@@ -145,9 +144,12 @@ public interface TableGroup extends SqlAstNode, ColumnReferenceQualifier, SqmPat
 		}
 	}
 
-	private static void applyAffectedTableNames(Consumer<String> nameCollector, Statement statement, TableGroupJoin join) {
-		TableGroup joinedGroup = join.getJoinedGroup();
-		if ( joinedGroup instanceof VirtualTableGroup  ) {
+	private static void applyAffectedTableNames(
+			Consumer<String> nameCollector,
+			Statement statement,
+			TableGroupJoin join) {
+		final TableGroup joinedGroup = join.getJoinedGroup();
+		if ( joinedGroup instanceof VirtualTableGroup ) {
 			joinedGroup.applyAffectedTableNames( nameCollector, statement );
 		}
 		else if ( joinedGroup.isInitialized() ) {

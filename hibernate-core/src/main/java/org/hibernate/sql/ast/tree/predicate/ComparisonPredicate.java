@@ -6,10 +6,15 @@
  */
 package org.hibernate.sql.ast.tree.predicate;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hibernate.metamodel.mapping.JdbcMappingContainer;
 import org.hibernate.query.sqm.ComparisonOperator;
 import org.hibernate.sql.ast.SqlAstWalker;
 import org.hibernate.sql.ast.tree.expression.Expression;
+import org.hibernate.sql.ast.tree.select.SelectStatement;
 
 /**
  * @author Steve Ebersole
@@ -19,6 +24,7 @@ public class ComparisonPredicate implements Predicate {
 	private final ComparisonOperator operator;
 	private final Expression rightHandExpression;
 	private final JdbcMappingContainer expressionType;
+	private Set<String> affectedTableNames;
 
 	public ComparisonPredicate(
 			Expression leftHandExpression,
@@ -36,6 +42,18 @@ public class ComparisonPredicate implements Predicate {
 		this.operator = operator;
 		this.rightHandExpression = rightHandExpression;
 		this.expressionType = expressionType;
+		affectedTableNames = new HashSet<>();
+		if ( leftHandExpression instanceof SelectStatement ) {
+			affectedTableNames.addAll( ( (SelectStatement) leftHandExpression ).getAffectedTableNames() );
+		}
+
+		if ( rightHandExpression instanceof SelectStatement ) {
+			affectedTableNames.addAll( ( (SelectStatement) rightHandExpression ).getAffectedTableNames() );
+		}
+
+		if ( affectedTableNames == null ) {
+			affectedTableNames = Collections.emptySet();
+		}
 	}
 
 	public Expression getLeftHandExpression() {
@@ -53,6 +71,11 @@ public class ComparisonPredicate implements Predicate {
 	@Override
 	public boolean isEmpty() {
 		return false;
+	}
+
+	@Override
+	public Set<String> getAffectedTableNames() {
+		return affectedTableNames;
 	}
 
 	@Override

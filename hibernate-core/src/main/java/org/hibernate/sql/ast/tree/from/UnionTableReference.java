@@ -6,6 +6,7 @@
  */
 package org.hibernate.sql.ast.tree.from;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
 
