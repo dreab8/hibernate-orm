@@ -151,6 +151,7 @@ import org.hibernate.sql.ast.tree.from.TableGroupJoin;
 import org.hibernate.sql.ast.tree.from.TableGroupProducer;
 import org.hibernate.sql.ast.tree.from.TableReference;
 import org.hibernate.sql.ast.tree.from.TableReferenceJoin;
+import org.hibernate.sql.ast.tree.from.UnionTableReference;
 import org.hibernate.sql.ast.tree.from.ValuesTableReference;
 import org.hibernate.sql.ast.tree.from.VirtualTableGroup;
 import org.hibernate.sql.ast.tree.insert.InsertSelectStatement;
@@ -920,7 +921,7 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 			oldNames += " " + table;
 		}
 
-		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize  + " : " + newNames + " - old " + oldSize + " : " + oldNames +" -- " + getSql();
+		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize  + " : " + newNames + " - old " + oldSize + " : " + oldNames +" , -- Executed query : " + getSql();
 
 		final int rowsToSkip;
 		return new JdbcOperationQuerySelect(
@@ -5756,7 +5757,9 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 	}
 
 	protected void registerAffectedTable(NamedTableReference tableReference) {
-		registerAffectedTable( tableReference.getTableExpression() );
+		if ( !( tableReference instanceof UnionTableReference ) ) {
+			registerAffectedTable( tableReference.getTableExpression() );
+		}
 	}
 
 	protected void registerAffectedTable(String tableExpression) {

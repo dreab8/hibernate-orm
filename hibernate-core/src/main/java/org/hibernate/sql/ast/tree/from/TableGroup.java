@@ -112,14 +112,14 @@ public interface TableGroup extends SqlAstNode, ColumnReferenceQualifier, SqmPat
 
 	default void applyAffectedTableNames(Consumer<String> nameCollector, Statement statement) {
 		if ( isInitialized() ) {
-			if ( ( statement instanceof SelectStatement || statement instanceof InsertSelectStatement || statement instanceof InsertStatement ) && getModelPart() instanceof AbstractEntityPersister ) {
+			if ( getModelPart() instanceof AbstractEntityPersister ) {
 				String[] querySpaces = (String[]) ( (AbstractEntityPersister) getModelPart() ).getQuerySpaces();
 				for ( int i = 0; i < querySpaces.length; i++ ) {
 					nameCollector.accept( querySpaces[i] );
 				}
 			}
 			final TableReference primaryTableReference = getPrimaryTableReference();
-			if ( primaryTableReference.isNamedTableReference() ) {
+			if ( primaryTableReference.isNamedTableReference() && !( primaryTableReference instanceof UnionTableReference ) ) {
 				final List<String> affectedTableNames = primaryTableReference.getAffectedTableNames();
 				for ( String tableName : affectedTableNames ) {
 					nameCollector.accept( tableName );
@@ -127,21 +127,26 @@ public interface TableGroup extends SqlAstNode, ColumnReferenceQualifier, SqmPat
 			}
 			if ( statement instanceof SelectStatement || statement instanceof InsertSelectStatement ) {
 				for ( TableReferenceJoin join : getTableReferenceJoins() ) {
-					final List<String> affectedTableNames = join.getJoinedTableReference().getAffectedTableNames();
-					for ( String tableName : affectedTableNames ) {
-						nameCollector.accept( tableName );
+					final NamedTableReference joinedTableReference = join.getJoinedTableReference();
+					if ( !( joinedTableReference instanceof UnionTableReference ) ) {
+						final List<String> affectedTableNames = joinedTableReference.getAffectedTableNames();
+						for ( String tableName : affectedTableNames ) {
+							nameCollector.accept( tableName );
+						}
 					}
 				}
 			}
+
+			for ( TableGroupJoin join : getNestedTableGroupJoins() ) {
+				applyAffectedTableNames( nameCollector, statement, join );
+			}
+
+			for ( TableGroupJoin join : getTableGroupJoins() ) {
+				applyAffectedTableNames( nameCollector, statement, join );
+			}
 		}
 
-		for ( TableGroupJoin join : getNestedTableGroupJoins() ) {
-			applyAffectedTableNames( nameCollector, statement, join );
-		}
 
-		for ( TableGroupJoin join : getTableGroupJoins() ) {
-			applyAffectedTableNames( nameCollector, statement, join );
-		}
 	}
 
 	private static void applyAffectedTableNames(
@@ -149,13 +154,7 @@ public interface TableGroup extends SqlAstNode, ColumnReferenceQualifier, SqmPat
 			Statement statement,
 			TableGroupJoin join) {
 		final TableGroup joinedGroup = join.getJoinedGroup();
-		if ( joinedGroup instanceof VirtualTableGroup ) {
-			joinedGroup.applyAffectedTableNames( nameCollector, statement );
-		}
-		else if ( joinedGroup.isInitialized() ) {
-			joinedGroup.applyAffectedTableNames( nameCollector, statement );
-		}
-		else if ( joinedGroup instanceof LazyTableGroup ) {
+		if ( joinedGroup.isInitialized()) {
 			joinedGroup.applyAffectedTableNames( nameCollector, statement );
 		}
 	}
