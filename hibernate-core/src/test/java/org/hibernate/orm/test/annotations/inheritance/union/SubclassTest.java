@@ -44,6 +44,17 @@ public class SubclassTest  {
 				s -> {
 					s.persist( doc );
 					s.persist( folder );
+					CriteriaBuilder criteriaBuilder = s.getCriteriaBuilder();
+					CriteriaQuery<File> criteria = criteriaBuilder.createQuery( File.class );
+					criteria.from( File.class );
+					List<File> result = s.createQuery( criteria ).list();
+//					List result = s.createCriteria( File.class ).list();
+					assertNotNull( result );
+					assertEquals( 2, result.size() );
+					File f2 = result.get( 0 );
+					checkClassType( f2, doc, folder );
+					f2 = result.get( 1 );
+					checkClassType( f2, doc, folder );
 				}
 		);
 

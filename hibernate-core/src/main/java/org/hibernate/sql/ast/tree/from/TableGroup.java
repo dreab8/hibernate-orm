@@ -119,20 +119,20 @@ public interface TableGroup extends SqlAstNode, ColumnReferenceQualifier, SqmPat
 				}
 			}
 			final TableReference primaryTableReference = getPrimaryTableReference();
-			if ( primaryTableReference.isNamedTableReference() && !( primaryTableReference instanceof UnionTableReference ) ) {
-				final List<String> affectedTableNames = primaryTableReference.getAffectedTableNames();
-				for ( String tableName : affectedTableNames ) {
-					nameCollector.accept( tableName );
-				}
+			if ( primaryTableReference.isNamedTableReference() ) {
+				primaryTableReference.visitAffectedTableNames( name -> {
+					nameCollector.accept( name );
+					return null;
+				} );
 			}
 			if ( statement instanceof SelectStatement || statement instanceof InsertSelectStatement ) {
 				for ( TableReferenceJoin join : getTableReferenceJoins() ) {
 					final NamedTableReference joinedTableReference = join.getJoinedTableReference();
 					if ( !( joinedTableReference instanceof UnionTableReference ) ) {
-						final List<String> affectedTableNames = joinedTableReference.getAffectedTableNames();
-						for ( String tableName : affectedTableNames ) {
-							nameCollector.accept( tableName );
-						}
+						joinedTableReference.visitAffectedTableNames( name -> {
+							nameCollector.accept( name );
+							return null;
+						} );
 					}
 				}
 			}

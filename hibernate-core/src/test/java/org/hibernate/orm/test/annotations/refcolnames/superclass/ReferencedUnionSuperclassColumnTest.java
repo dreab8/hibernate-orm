@@ -15,6 +15,7 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+
 import org.hibernate.testing.orm.junit.DomainModel;
 import org.hibernate.testing.orm.junit.SessionFactory;
 import org.hibernate.testing.orm.junit.SessionFactoryScope;
@@ -23,6 +24,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SessionFactory
 @DomainModel(annotatedClasses = {
@@ -35,35 +38,54 @@ import java.util.Set;
 public class ReferencedUnionSuperclassColumnTest {
 
 	@Test
+	void testAutoFlush(SessionFactoryScope scope) {
+		LocalBranch localBranch = new LocalBranch();
+		localBranch.branchId = "local";
+		DivisionHead divisionHead = new DivisionHead();
+		divisionHead.branchId = "head";
+		localBranch.divisionHead = divisionHead;
+		divisionHead.localBranches.add( localBranch );
+		scope.inTransaction(
+				s -> {
+					s.persist( divisionHead );
+					// the find should trigger a flush of the session
+					DivisionHead dh = s.find( DivisionHead.class, divisionHead.id );
+					assertThat( dh ).isNotNull();
+				}
+		);
+	}
+
+
+	@Test
 	void test(SessionFactoryScope scope) {
 		LocalBranch localBranch = new LocalBranch();
 		localBranch.branchId = "local";
 		DivisionHead divisionHead = new DivisionHead();
 		divisionHead.branchId = "head";
 		localBranch.divisionHead = divisionHead;
-		divisionHead.localBranches.add(localBranch);
-		scope.inTransaction( s -> s.persist(divisionHead));
+		divisionHead.localBranches.add( localBranch );
+		scope.inTransaction( s -> s.persist( divisionHead ) );
 		scope.inTransaction( s -> {
-			DivisionHead dh = s.find(DivisionHead.class, divisionHead.id);
-			Assertions.assertEquals(1, dh.localBranches.size());
-		});
+			DivisionHead dh = s.find( DivisionHead.class, divisionHead.id );
+			Assertions.assertEquals( 1, dh.localBranches.size() );
+		} );
 		scope.inTransaction( s -> {
-			LocalBranch lb = s.find(LocalBranch.class, localBranch.id);
-			Assertions.assertEquals(divisionHead.id, lb.divisionHead.id);
-		});
+			LocalBranch lb = s.find( LocalBranch.class, localBranch.id );
+			Assertions.assertEquals( divisionHead.id, lb.divisionHead.id );
+		} );
 		scope.inTransaction( s -> {
-			LocalBranch lb = s.createQuery("from LocalBranch left join fetch divisionHead", LocalBranch.class)
+			LocalBranch lb = s.createQuery( "from LocalBranch left join fetch divisionHead", LocalBranch.class )
 					.getSingleResult();
-			Assertions.assertEquals(divisionHead.id, lb.divisionHead.id);
-		});
+			Assertions.assertEquals( divisionHead.id, lb.divisionHead.id );
+		} );
 		scope.inTransaction( s -> {
-			DivisionHead dh = s.createQuery("from DivisionHead left join fetch localBranches", DivisionHead.class)
+			DivisionHead dh = s.createQuery( "from DivisionHead left join fetch localBranches", DivisionHead.class )
 					.getSingleResult();
-			Assertions.assertEquals(1, dh.localBranches.size());
-		});
+			Assertions.assertEquals( 1, dh.localBranches.size() );
+		} );
 	}
 
-	@Entity(name="Branch")
+	@Entity(name = "Branch")
 	@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 	@DiscriminatorColumn(name = "branch_type", discriminatorType = DiscriminatorType.STRING)
 	public static class Branch {
@@ -75,7 +97,7 @@ public class ReferencedUnionSuperclassColumnTest {
 		String branchId;
 	}
 
-	@Entity(name="LocalBranch")
+	@Entity(name = "LocalBranch")
 	@DiscriminatorValue("LOCAL")
 	public static class LocalBranch extends Branch {
 		@ManyToOne(fetch = FetchType.LAZY)
@@ -87,7 +109,7 @@ public class ReferencedUnionSuperclassColumnTest {
 		// getters and setters
 	}
 
-	@Entity(name="DivisionHead")
+	@Entity(name = "DivisionHead")
 	@DiscriminatorValue("DIVISION")
 	public static class DivisionHead extends Branch {
 		@ManyToOne(fetch = FetchType.LAZY)
@@ -102,7 +124,7 @@ public class ReferencedUnionSuperclassColumnTest {
 		// getters and setters
 	}
 
-	@Entity(name="RegionHead")
+	@Entity(name = "RegionHead")
 	@DiscriminatorValue("REGION")
 	public static class RegionHead extends Branch {
 		@ManyToOne(fetch = FetchType.LAZY)
@@ -117,7 +139,7 @@ public class ReferencedUnionSuperclassColumnTest {
 		// getters and setters
 	}
 
-	@Entity(name="CircleHead")
+	@Entity(name = "CircleHead")
 	@DiscriminatorValue("CIRCLE")
 	public static class CircleHead extends Branch {
 		@OneToMany(mappedBy = "circleHead", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

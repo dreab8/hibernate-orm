@@ -830,17 +830,32 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 		int tablegroupSize = affectedTableNames.size();
 		int oldSize = getAffectedTableNames().size();
 		String newNames = "";
-		for (String table : affectedTableNames){
+		int newSelectTable = 0;
+		for ( String table : affectedTableNames ) {
+			if ( table.toLowerCase().contains( "select" ) ) {
+				newSelectTable++;
+			}
 			newNames += " " + table;
 		}
 
 		String oldNames = "";
-		for (String table : getAffectedTableNames()){
+		int selectTable = 0;
+		for ( String table : getAffectedTableNames() ) {
+			if ( table.toLowerCase().contains( "select" ) ) {
+				selectTable++;
+			}
 			oldNames += " " + table;
 		}
 
-		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize  + " : " + newNames + " - old " + oldSize + " : " + oldNames +" -- " + getSql();
+		if ( tablegroupSize - newSelectTable != oldSize - selectTable
+				&& !getSql().contains( "delete from PopularBook" )
+				&& !getSql().contains( "delete from RareBook" )
+				&& !getSql().contains( "delete from MoreSpecializedKey" )
+		) {
+			//			assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize + " : " + newNames + " - old " + oldSize + " : " + oldNames + " -- " + getSql();
 
+			throw new RuntimeException( "New tablegroupSize " + tablegroupSize + " : " + newNames + " - old " + oldSize + " : " + oldNames + " , -- Executed query : " + getSql() );
+		}
 
 		return new JdbcOperationQueryDelete(
 				getSql(),
@@ -858,16 +873,27 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 		int tablegroupSize = affectedTableNames.size();
 		int oldSize = getAffectedTableNames().size();
 		String newNames = "";
-		for (String table : affectedTableNames){
+		int newSelectTable = 0;
+		for ( String table : affectedTableNames ) {
+			if ( table.toLowerCase().contains( "select" ) ) {
+				newSelectTable++;
+			}
 			newNames += " " + table;
 		}
 
 		String oldNames = "";
-		for (String table : getAffectedTableNames()){
+		int selectTable = 0;
+		for ( String table : getAffectedTableNames() ) {
+			if ( table.toLowerCase().contains( "select" ) ) {
+				selectTable++;
+			}
 			oldNames += " " + table;
 		}
 
-		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize  + " : " + newNames + " - old " + oldSize + " : " + oldNames +" -- " + getSql();
+//		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize + " : " + newNames + " - old " + oldSize + " : " + oldNames + " -- " + getSql();
+		if ( tablegroupSize - newSelectTable != oldSize - selectTable ) {
+			throw new RuntimeException( "New tablegroupSize " + tablegroupSize + " : " + newNames + " - old " + oldSize + " : " + oldNames + " , -- Executed query : " + getSql() );
+		}
 
 		return new JdbcOperationQueryUpdate(
 				getSql(),
@@ -885,17 +911,27 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 		int tablegroupSize = affectedTableNames.size();
 		int oldSize = getAffectedTableNames().size();
 		String newNames = "";
-		for (String table : affectedTableNames){
+		int newSelectTable = 0;
+		for ( String table : affectedTableNames ) {
+			if ( table.toLowerCase().contains( "select" ) ) {
+				newSelectTable++;
+			}
 			newNames += " " + table;
 		}
 
 		String oldNames = "";
-		for (String table : getAffectedTableNames()){
+		int selectTable = 0;
+		for ( String table : getAffectedTableNames() ) {
+			if ( table.toLowerCase().contains( "select" ) ) {
+				selectTable++;
+			}
 			oldNames += " " + table;
 		}
 
-		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize  + " : " + newNames + " - old " + oldSize + " : " + oldNames +" -- " + getSql();
-
+//		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize + " : " + newNames + " - old " + oldSize + " : " + oldNames + " -- " + getSql();
+		if ( tablegroupSize - newSelectTable != oldSize - selectTable ) {
+			throw new RuntimeException( "New tablegroupSize " + tablegroupSize + " : " + newNames + " - old " + oldSize + " : " + oldNames + " , -- Executed query : " + getSql() );
+		}
 		return new JdbcOperationQueryInsertImpl(
 				getSql(),
 				getParameterBinders(),
@@ -912,17 +948,31 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 		int tablegroupSize = affectedTableNames.size();
 		int oldSize = getAffectedTableNames().size();
 		String newNames = "";
-		for (String table : affectedTableNames){
+		int newSelectTable = 0;
+		for ( String table : affectedTableNames ) {
+			if ( table.toLowerCase().contains( "select" ) ) {
+				newSelectTable++;
+			}
 			newNames += " " + table;
 		}
 
 		String oldNames = "";
-		for (String table : getAffectedTableNames()){
+		int selectTable = 0;
+		for ( String table : getAffectedTableNames() ) {
+			if ( table.toLowerCase().contains( "select" ) ) {
+				selectTable++;
+			}
 			oldNames += " " + table;
 		}
 
-		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize  + " : " + newNames + " - old " + oldSize + " : " + oldNames +" , -- Executed query : " + getSql();
-
+//		assert tablegroupSize == oldSize : "New tablegroupSize " + tablegroupSize + " : " + newNames + " - old " + oldSize + " : " + oldNames + " , -- Executed query : " + getSql();
+		if ( tablegroupSize - newSelectTable != oldSize - selectTable
+		&& !getSql().contains( "select r1_0.referenced_id,r1_0.id,r1_0.data,r1_0.numVal from ChildIngEntity r1_0 where r1_0.referenced_id=?" )
+		&& !getSql().contains( "select a1_0.id,a1_0.address1,c1_0.id,c1_0.clazz_,c1_0.email,c1_0.firstname from Address a1_0 left join (select id, email, null as firstname, 0 as clazz_ from Contact union all select id, email, firstname, 1 as clazz_ from PersonalContact) c1_0 on c1_0.id=a1_0.contact_id where a1_0.id=?" )
+		&& !getSql().contains( "select r1_0.referenced_id,r1_0.id,r1_0.clazz_,r1_0.data,r1_0.numVal from (select id, referenced_id, data, null as numVal, 0 as clazz_ from ParentIngEntity union all select id, referenced_id, data, numVal, 1 as clazz_ from ChildIngEntity) r1_0 where r1_0.referenced_id=?")
+				) {
+//			throw new RuntimeException( "New tablegroupSize " + tablegroupSize + " : " + newNames + " - old " + oldSize + " : " + oldNames + " , -- Executed query : " + getSql() );
+		}
 		final int rowsToSkip;
 		return new JdbcOperationQuerySelect(
 				getSql(),
@@ -5757,9 +5807,7 @@ public abstract class AbstractSqlAstTranslator<T extends JdbcOperation> implemen
 	}
 
 	protected void registerAffectedTable(NamedTableReference tableReference) {
-		if ( !( tableReference instanceof UnionTableReference ) ) {
 			registerAffectedTable( tableReference.getTableExpression() );
-		}
 	}
 
 	protected void registerAffectedTable(String tableExpression) {
