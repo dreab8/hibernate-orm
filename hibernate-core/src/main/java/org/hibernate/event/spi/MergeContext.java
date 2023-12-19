@@ -75,6 +75,8 @@ public class MergeContext implements Map<Object,Object> {
 	private final EventSource session;
 	private final EntityCopyObserver entityCopyObserver;
 
+	private final Map<Object,Object> copiedCompositeId = new IdentityHashMap<>(10);
+
 	private final Map<Object,Object> mergeToManagedEntityXref = new IdentityHashMap<>(10);
 		// key is an entity to be merged;
 		// value is the associated managed entity (result) in the persistence context.
@@ -370,5 +372,13 @@ public class MergeContext implements Map<Object,Object> {
 		}
 		// Entity was not found in current persistence context. Use Object#toString() method.
 		return "[" + entity + "]";
+	}
+
+	public void addCopiedCompositeId(Object originalId, Object copiedId){
+		this.copiedCompositeId.putIfAbsent( originalId, copiedId );
+	}
+
+	public Object getCopiedCompositeId(Object originalId) {
+		return this.copiedCompositeId.get( originalId );
 	}
 }
