@@ -25,6 +25,7 @@ import org.hibernate.engine.spi.EntityKey;
 import org.hibernate.engine.spi.PersistenceContext;
 import org.hibernate.engine.spi.PersistentAttributeInterceptor;
 import org.hibernate.engine.spi.SelfDirtinessTracker;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.event.spi.EntityCopyObserver;
 import org.hibernate.event.spi.EventSource;
@@ -40,8 +41,10 @@ import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.LazyInitializer;
 import org.hibernate.stat.spi.StatisticsImplementor;
 import org.hibernate.type.CollectionType;
+import org.hibernate.type.CompositeType;
 import org.hibernate.type.EntityType;
 import org.hibernate.type.ForeignKeyDirection;
+import org.hibernate.type.Type;
 import org.hibernate.type.TypeHelper;
 
 import static org.hibernate.engine.internal.ManagedTypeHelper.asPersistentAttributeInterceptable;
@@ -145,7 +148,7 @@ public class DefaultMergeEventListener
 	}
 
 	private void merge(MergeEvent event, MergeContext copiedAlready, Object entity) {
-		switch ( entityState( event, entity ) ) {
+		switch ( entityState( event, entity, copiedAlready ) ) {
 			case DETACHED:
 				entityIsDetached( event, copiedAlready );
 				break;
@@ -177,17 +180,56 @@ public class DefaultMergeEventListener
 		}
 	}
 
-	private static EntityState entityState(MergeEvent event, Object entity) {
+	private static EntityState entityState(MergeEvent event, Object entity,  MergeContext copiedAlready) {
 		final EventSource source = event.getSession();
 		// Check the persistence context for an entry relating to this
 		// entity to be merged...
 		final PersistenceContext persistenceContext = source.getPersistenceContextInternal();
 		EntityEntry entry = persistenceContext.getEntry( entity );
 		if ( entry == null ) {
-			EntityPersister persister = source.getEntityPersister( event.getEntityName(), entity );
-			Object id = persister.getIdentifier( entity, source );
+			final EntityPersister persister = source.getEntityPersister( event.getEntityName(), entity );
+			final Object id = persister.getIdentifier( entity, source );
 			if ( id != null ) {
-				final EntityKey entityKey = source.generateEntityKey( id, persister );
+				final EntityKey entityKey;
+				try {
+					entityKey = source.generateEntityKey( id, persister );
+				}
+				catch (NullPointerException npe) {
+					/*
+					 Having:
+					e.g.
+					@Entity
+					class Middle {
+						@Id
+						@GeneratedValue
+						private Long id;
+
+						@OneToMany(mappedBy = "middle", cascade = { CascadeType.MERGE, CascadeType.PERSIST })
+						private List<Bottom> bottoms;
+					}
+
+					@Entity
+					class Bottom {
+						@Id
+						@ManyToOne(optional = false, cascade = CascadeType.MERGE)
+						@JoinColumn(name = "middle_id", nullable = false)
+						private Middle middle;
+					}
+
+					Merging a new instance of Middle :
+
+					Middle middle = new Middle( );
+					Bottom bottom = new Bottom( );
+					middle.setBottom(bottom);
+					bottom.setMiddle(middle);
+					session.merge( middle );
+
+					during the cascade of Bottom, its id is not null but contains an instance of Middle having id == null;
+					this will cause a NPE when trying to get the hashcode for its key.
+					 */
+
+					return EntityState.TRANSIENT;
+				}
 				final Object managedEntity = persistenceContext.getEntity( entityKey );
 				entry = persistenceContext.getEntry( managedEntity );
 				if ( entry != null ) {
@@ -201,6 +243,60 @@ public class DefaultMergeEventListener
 			}
 		}
 		return getEntityState( entity, event.getEntityName(), entry, source, false );
+	}
+
+	private static Object getId(
+			Object entity,
+			EntityPersister persister,
+			EventSource session,
+			MergeContext mergeContext) {
+		final Object id = persister.getIdentifier( entity, session );
+		if ( id != null && persister.getIdentifierType().isComponentType() ) {
+			/*
+			this is needed in case of composite id containing an association with a generated identifier, in such a case
+			generating the EntityKey will cause a NPE when trying to get the hashcode of the null id
+			 */
+			return copyCompositeTypeId( id, (CompositeType) persister.getIdentifierType(), session, mergeContext );
+		}
+		return id;
+	}
+
+	private static Object copyCompositeTypeId(
+			Object id,
+			CompositeType compositeType,
+			EventSource session,
+			MergeContext mergeContext) {
+		final SessionFactoryImplementor sessionFactory = session.getSessionFactory();
+		final Object idCopy = compositeType.deepCopy( id, sessionFactory );
+		final Type[] subtypes = compositeType.getSubtypes();
+		final Object[] propertyValues = compositeType.getPropertyValues( id );
+		final Object[] copyValues = compositeType.getPropertyValues( idCopy );
+		for ( int i = 0; i < subtypes.length; i++ ) {
+			final Type subtype = subtypes[i];
+			if ( subtype.isEntityType() ) {
+				// the value of the copy in the MergeContext has the id assigned
+				final Object o = mergeContext.get( propertyValues[i] );
+				if ( o != null ) {
+					copyValues[i] = o;
+				}
+				else {
+					copyValues[i] = subtype.deepCopy( propertyValues[i], sessionFactory );
+				}
+			}
+			else if ( subtype.isComponentType() ) {
+				copyValues[i] = copyCompositeTypeId(
+						propertyValues[i],
+						(CompositeType) subtype,
+						session,
+						mergeContext
+				);
+			}
+			else {
+				copyValues[i] = subtype.deepCopy( propertyValues[i], sessionFactory );
+			}
+		}
+		compositeType.setPropertyValues( idCopy, copyValues );
+		return idCopy;
 	}
 
 	protected void entityIsPersistent(MergeEvent event, MergeContext copyCache) {
@@ -222,7 +318,7 @@ public class DefaultMergeEventListener
 		final EventSource session = event.getSession();
 		final String entityName = event.getEntityName();
 		final EntityPersister persister = session.getEntityPersister( entityName, entity );
-		final Object id = persister.getIdentifier( entity, session );
+		final Object id = getId( entity, persister, session, copyCache );
 		final Object copy = copyEntity( copyCache, entity, session, persister, id );
 
 		// cascade first, so that all unsaved objects get their
@@ -232,7 +328,6 @@ public class DefaultMergeEventListener
 		copyValues( persister, entity, copy, session, copyCache, ForeignKeyDirection.FROM_PARENT );
 
 		saveTransientEntity( copy, entityName, event.getRequestedId(), session, copyCache );
-		persister.setIdentifier( entity, persister.getIdentifier( copy, session ), session );
 
 		// cascade first, so that all unsaved objects get their
 		// copy created before we actually copy
@@ -329,7 +424,7 @@ public class DefaultMergeEventListener
 
 		Object id = getDetachedEntityId( event, entity, persister );
 		// we must clone embedded composite identifiers, or we will get back the same instance that we pass in
-		final Object clonedIdentifier = persister.getIdentifierType().deepCopy( id, source.getFactory() );
+		final Object clonedIdentifier = getId( entity, persister, source, copyCache );
 		// apply the special MERGE fetch profile and perform the resolution (Session#get)
 		final Object result = source.getLoadQueryInfluencers().fromInternalFetchProfile(
 				CascadingFetchProfile.MERGE,
