@@ -22,6 +22,7 @@ import org.hibernate.models.spi.MutableAnnotationTarget;
 import org.hibernate.models.spi.MutableAnnotationUsage;
 import org.hibernate.models.spi.MutableClassDetails;
 import org.hibernate.models.spi.MutableMemberDetails;
+import org.hibernate.models.spi.SourceModelBuildingContext;
 
 import jakarta.persistence.AccessType;
 
@@ -140,21 +141,21 @@ public class XmlProcessingHelper {
 			Class<A> annotationType,
 			MutableAnnotationTarget target,
 			XmlDocumentContext xmlDocumentContext) {
+		final SourceModelBuildingContext modelBuildingContext = xmlDocumentContext.getModelBuildingContext();
 		return new DynamicAnnotationUsage<>(
-				xmlDocumentContext.getModelBuildingContext()
-						.getAnnotationDescriptorRegistry()
-						.getDescriptor( annotationType ),
-				target
+				modelBuildingContext.getAnnotationDescriptorRegistry().getDescriptor( annotationType ),
+				target,
+				modelBuildingContext
 		);
 	}
 
 	public static <A extends Annotation> MutableAnnotationUsage<A> makeNestedAnnotation(
 			Class<A> annotationType,
 			XmlDocumentContext xmlDocumentContext) {
+		final SourceModelBuildingContext modelBuildingContext = xmlDocumentContext.getModelBuildingContext();
 		return new DynamicAnnotationUsage<>(
-				xmlDocumentContext.getModelBuildingContext()
-						.getAnnotationDescriptorRegistry()
-						.getDescriptor( annotationType )
+				modelBuildingContext.getAnnotationDescriptorRegistry().getDescriptor( annotationType ),
+				modelBuildingContext
 		);
 	}
 
