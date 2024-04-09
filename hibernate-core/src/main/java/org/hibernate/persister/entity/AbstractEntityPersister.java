@@ -4736,7 +4736,7 @@ public abstract class AbstractEntityPersister
 		if ( insertGeneratedValuesProcessor == null ) {
 			throw new UnsupportedOperationException( "Entity has no insert-generated properties - `" + getEntityName() + "`" );
 		}
-		insertGeneratedValuesProcessor.processGeneratedValues( entity, id, state, generatedValues, session );
+		insertGeneratedValuesProcessor.processGeneratedValues( entity, id, state, generatedValues, INSERT, session );
 	}
 
 	protected List<? extends ModelPart> initInsertGeneratedProperties(List<AttributeMapping> generatedAttributes) {
@@ -4776,7 +4776,7 @@ public abstract class AbstractEntityPersister
 		if ( updateGeneratedValuesProcessor == null ) {
 			throw new AssertionFailure( "Entity has no update-generated properties - `" + getEntityName() + "`" );
 		}
-		updateGeneratedValuesProcessor.processGeneratedValues( entity, id, state, generatedValues, session );
+		updateGeneratedValuesProcessor.processGeneratedValues( entity, id, state, generatedValues, UPDATE, session );
 	}
 
 	protected List<? extends ModelPart> initUpdateGeneratedProperties(List<AttributeMapping> generatedAttributes) {

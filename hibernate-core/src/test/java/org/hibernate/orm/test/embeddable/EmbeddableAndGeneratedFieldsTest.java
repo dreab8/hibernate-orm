@@ -73,6 +73,7 @@ public class EmbeddableAndGeneratedFieldsTest {
 											" name varchar(255)," +
 											" insert_generated_prop_0 integer," +
 											" update_generated_prop_0 integer, " +
+											" update_generated_prop_01 integer, " +
 											" never_generated_prop_0 integer, " +
 
 											" non_generated_prop_1 integer, " +
@@ -268,7 +269,7 @@ public class EmbeddableAndGeneratedFieldsTest {
 		assertThat( insertQuery ).doesNotContain( "update_generated_prop_0" );
 		assertThat( insertQuery ).doesNotContain( "update_generated_prop_1" );
 		assertThat( insertQuery ).doesNotContain( "update_generated_prop_3" );
-		assertThat( insertQuery ).doesNotContain( "update_generated_prop_31" );
+		assertThat( insertQuery ).contains( "update_generated_prop_31" );
 
 		assertThat( insertQuery ).doesNotContain( "insert_generated_prop_0" );
 		assertThat( insertQuery ).doesNotContain( "insert_generated_prop_1" );
@@ -288,13 +289,13 @@ public class EmbeddableAndGeneratedFieldsTest {
 		assertThat( updateQuery ).contains( "never_generated_prop_0" );
 		assertThat( updateQuery ).contains( "never_generated_prop_1" );
 
-		assertThat( updateQuery ).contains( "insert_generated_prop_0" );
-		assertThat( updateQuery ).contains( "insert_generated_prop_1" );
+		assertThat( updateQuery ).doesNotContain( "insert_generated_prop_0" );
+		assertThat( updateQuery ).doesNotContain( "insert_generated_prop_1" );
 
 		assertThat( updateQuery ).doesNotContain( "update_generated_prop_0" );
 		assertThat( updateQuery ).doesNotContain( "update_generated_prop_1" );
 		assertThat( updateQuery ).doesNotContain( "update_generated_prop_3" );
-		assertThat( updateQuery ).doesNotContain( "update_generated_prop_31" );
+		assertThat( updateQuery ).contains( "update_generated_prop_31" );
 
 		assertThat( updateQuery ).doesNotContain( "always_generated_prop_1" );
 		assertThat( updateQuery ).doesNotContain( "always_generated_prop_2" );
@@ -437,6 +438,8 @@ public class EmbeddableAndGeneratedFieldsTest {
 
 		private Integer updateGenerateProp0;
 
+		private Integer updateGenerateProp01;
+
 		private Integer neverGeneratedProp0;
 
 		private EmbeddableValue embeddableValue;
@@ -508,6 +511,17 @@ public class EmbeddableAndGeneratedFieldsTest {
 
 		public void setNeverGeneratedProp0(Integer neverGeneratedProp0) {
 			this.neverGeneratedProp0 = neverGeneratedProp0;
+		}
+
+
+		@Column(name = "update_generated_prop_01")
+		@Generated(value = GenerationTime.UPDATE, writable = true)
+		public Integer getUpdateGenerateProp01() {
+			return updateGenerateProp01;
+		}
+
+		public void setUpdateGenerateProp01(Integer updateGenerateProp01) {
+			this.updateGenerateProp01 = updateGenerateProp01;
 		}
 
 		@Embedded
@@ -687,7 +701,7 @@ public class EmbeddableAndGeneratedFieldsTest {
 			this.updateGeneratedProperty3 = updateGeneratedProperty3;
 		}
 
-		@Generated(GenerationTime.UPDATE)
+		@Generated(value = GenerationTime.UPDATE, writable = true)
 		@Column(name = "update_generated_prop_31")
 		public Integer getUpdateGeneratedProperty31() {
 			return updateGeneratedProperty31;

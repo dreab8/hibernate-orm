@@ -326,8 +326,10 @@ public class EntityMetamodel implements Serializable {
 				else {
 					generators[i] = generator;
 					if ( generatedWithNoParameter( generator ) ) {
-						propertyInsertability[i] = false;
-						propertyUpdateability[i] = false;
+						if ( !( attribute instanceof EntityBasedCompositionAttribute ) ) {
+							propertyInsertability[i] = false;
+							propertyUpdateability[i] = false;
+						}
 					}
 					if ( generator.generatesOnInsert() ) {
 						if ( generator.generatedOnExecution() ) {
