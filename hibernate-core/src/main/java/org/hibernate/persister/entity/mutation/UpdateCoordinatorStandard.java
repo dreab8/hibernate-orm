@@ -912,8 +912,9 @@ public class UpdateCoordinatorStandard extends AbstractMutationCoordinator imple
 						);
 					}
 					else if ( jdbcMapping instanceof SingularAttributeMapping ) {
-						Generator generator = ( (SingularAttributeMapping) jdbcMapping ).getGenerator();
-						boolean valueGenerated = isValueGenerated( generator );
+						final SingularAttributeMapping singularAttributeMapping = (SingularAttributeMapping) jdbcMapping;
+						final Generator generator = singularAttributeMapping.getGenerator();
+						final boolean valueGenerated = isValueGenerated( generator );
 						if ( valueGenerated ) {
 							if ( isValueGenerationInSql( generator, dialect )
 									&& ( (OnExecutionGenerator) generator ).writePropertyValue() ) {
@@ -936,12 +937,12 @@ public class UpdateCoordinatorStandard extends AbstractMutationCoordinator imple
 						else {
 							if ( entityPersister().getEntityMetamodel().isDynamicUpdate()
 									&& dirtinessChecker != null ) {
-								if ( dirtinessChecker.isDirty( attributeIndex, attributeMapping ).isDirty() ) {
+								if ( dirtinessChecker.isDirty( valueIndex, singularAttributeMapping ).isDirty() ) {
 									decomposeAttributeMapping(
 											session,
 											bindings,
 											tableMapping,
-											(SingularAttributeMapping) jdbcMapping,
+											singularAttributeMapping,
 											jdbcValue
 									);
 								}
@@ -951,7 +952,7 @@ public class UpdateCoordinatorStandard extends AbstractMutationCoordinator imple
 										session,
 										bindings,
 										tableMapping,
-										(SingularAttributeMapping) jdbcMapping,
+										singularAttributeMapping,
 										jdbcValue
 								);
 							}

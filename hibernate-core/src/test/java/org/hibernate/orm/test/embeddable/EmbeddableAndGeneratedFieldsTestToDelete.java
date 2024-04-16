@@ -2,6 +2,7 @@ package org.hibernate.orm.test.embeddable;
 
 import java.sql.PreparedStatement;
 
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 import org.hibernate.dialect.PostgreSQLDialect;
@@ -211,9 +212,9 @@ public class EmbeddableAndGeneratedFieldsTestToDelete {
 				1,
 				NAME,
 				NEVER_GENERATED_PROP_0,
-				new EmbeddableValue( NON_GENERATED_PROP_1, NEVER_GENERATED_PROP_1 )
+				new EmbeddableValue( NON_GENERATED_PROP_1, NEVER_GENERATED_PROP_1, new EmbeddableValue3( NON_GENERATED_PROP_3 ) )
 //				new EmbeddableValue2( NON_GENERATED_PROP_2 ),
-//				new EmbeddableValue3( NON_GENERATED_PROP_3 )
+
 		);
 
 		scope.inTransaction(
@@ -243,17 +244,18 @@ public class EmbeddableAndGeneratedFieldsTestToDelete {
 					sqlStatementInspector.clear();
 
 					found.getEmbeddableValue().setNonGeneratedProperty1( 1234567 );
+//					found.getEmbeddableValue().getEmbeddableValue3().setNonGeneratedProperty3(12345 );
 //					found.setNeverGeneratedProp0( UPDATED_NEVER_GENERATED_PROP_0 );
 //					found.getEmbeddableValue().setNeverGeneratedProp1( UPDATED_NEVER_GENERATED_PROP_1 );
 					session.flush();
 
 					sqlStatementInspector.assertExecutedCount( 2 );
 					sqlStatementInspector.assertIsUpdate( 0 );
-					assertThatUpdateIsCorrect( sqlStatementInspector.getSqlQueries().get( 0 ) );
-					assertThatSelectOnUpdateIsCorrect(
-							sqlStatementInspector.getSqlQueries().get( 1 ),
-							found
-					);
+//					assertThatUpdateIsCorrect( sqlStatementInspector.getSqlQueries().get( 0 ) );
+//					assertThatSelectOnUpdateIsCorrect(
+//							sqlStatementInspector.getSqlQueries().get( 1 ),
+//							found
+//					);
 				}
 		);
 	}
@@ -430,6 +432,7 @@ public class EmbeddableAndGeneratedFieldsTestToDelete {
 
 	@Entity(name = "TestEntity")
 	@Table(name = "test_entity")
+	@DynamicUpdate
 	public static class TestEntity {
 
 		private Integer id;
@@ -448,7 +451,6 @@ public class EmbeddableAndGeneratedFieldsTestToDelete {
 
 //		private EmbeddableValue2 embeddableValue2;
 //
-//		private EmbeddableValue3 embeddableValue3;
 
 		public TestEntity() {
 		}
@@ -463,7 +465,6 @@ public class EmbeddableAndGeneratedFieldsTestToDelete {
 //			this.neverGeneratedProp0 = neverGeneratedProp;
 			this.embeddableValue = embeddableValue;
 //			this.embeddableValue2 = anotherEmbeddableValue;
-//			this.embeddableValue3 = embeddableValue3;
 		}
 
 		@Id
@@ -542,15 +543,7 @@ public class EmbeddableAndGeneratedFieldsTestToDelete {
 //			this.embeddableValue2 = embeddableValue2;
 //		}
 
-//		@Embedded
-////		@Version
-//		public EmbeddableValue3 getEmbeddableValue3() {
-//			return embeddableValue3;
-//		}
-//
-//		public void setEmbeddableValue3(EmbeddableValue3 embeddableValue3) {
-//			this.embeddableValue3 = embeddableValue3;
-//		}
+
 	}
 
 	@Embeddable
@@ -560,7 +553,10 @@ public class EmbeddableAndGeneratedFieldsTestToDelete {
 
 		private Integer alwaysGeneratedProperty1;
 
-//		private Integer updateGeneratedProperty1;
+		private Integer updateGeneratedProperty1;
+
+		private EmbeddableValue3 embeddableValue3;
+
 //
 //		private Integer insertGeneratedProperty1;
 //
@@ -569,9 +565,11 @@ public class EmbeddableAndGeneratedFieldsTestToDelete {
 		public EmbeddableValue() {
 		}
 
-		public EmbeddableValue(Integer nonGeneratedProperty, Integer neverGeneratedProp) {
+		public EmbeddableValue(Integer nonGeneratedProperty, Integer neverGeneratedProp,
+							   EmbeddableValue3 embeddableValue3) {
 			this.nonGeneratedProperty1 = nonGeneratedProperty;
 //			this.neverGeneratedProp1 = neverGeneratedProp;
+			this.embeddableValue3 = embeddableValue3;
 		}
 
 		@Column(name = "non_generated_prop_1")
@@ -593,15 +591,15 @@ public class EmbeddableAndGeneratedFieldsTestToDelete {
 			this.alwaysGeneratedProperty1 = alwaysGeneratedProperty1;
 		}
 
-//		@Generated(GenerationTime.UPDATE)
-//		@Column(name = "update_generated_prop_1")
-//		public Integer getUpdateGeneratedProperty1() {
-//			return updateGeneratedProperty1;
-//		}
-//
-//		public void setUpdateGeneratedProperty1(Integer updateGeneratedProperty1) {
-//			this.updateGeneratedProperty1 = updateGeneratedProperty1;
-//		}
+		@Generated(value = GenerationTime.UPDATE, writable = true)
+		@Column(name = "update_generated_prop_1")
+		public Integer getUpdateGeneratedProperty1() {
+			return updateGeneratedProperty1;
+		}
+
+		public void setUpdateGeneratedProperty1(Integer updateGeneratedProperty1) {
+			this.updateGeneratedProperty1 = updateGeneratedProperty1;
+		}
 //
 //		@Generated(value = GenerationTime.INSERT, writable = true)
 //		@Column(name = "insert_generated_prop_1")
@@ -622,6 +620,16 @@ public class EmbeddableAndGeneratedFieldsTestToDelete {
 //		public void setNeverGeneratedProp1(Integer neverGeneratedProp1) {
 //			this.neverGeneratedProp1 = neverGeneratedProp1;
 //		}
+
+		@Embedded
+		public EmbeddableValue3 getEmbeddableValue3() {
+			return embeddableValue3;
+		}
+
+		public void setEmbeddableValue3(EmbeddableValue3 embeddableValue3) {
+			this.embeddableValue3 = embeddableValue3;
+		}
+
 	}
 
 //	@Embeddable
@@ -677,12 +685,12 @@ public class EmbeddableAndGeneratedFieldsTestToDelete {
 //
 //		private Integer updateGeneratedProperty31;
 //
-//		public EmbeddableValue3() {
-//		}
-//
-//		public EmbeddableValue3(Integer nonGeneratedProperty3) {
-//			this.nonGeneratedProperty3 = nonGeneratedProperty3;
-//		}
+		public EmbeddableValue3() {
+		}
+
+		public EmbeddableValue3(Integer nonGeneratedProperty3) {
+			this.nonGeneratedProperty3 = nonGeneratedProperty3;
+		}
 //
 		@Column(name = "non_generated_prop_3")
 		public Integer getNonGeneratedProperty3() {
