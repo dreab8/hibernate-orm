@@ -872,14 +872,14 @@ public class LoaderSelectBuilder {
 			}
 			final Generator generator = fetchable.asAttributeMapping().getGenerator();
 			final EventType timing = creationState.getTiming();
-			if ( timing != null ) {
-				// we want to select only the generated properties
-				if ( generator == null
-						|| generator.getEventTypes().size() == 0 // don't select properties annotated with `@Generated(GenerationTime.NEVER)`
-						|| !generator.getEventTypes().contains( timing ) ) {
-					return;
-				}
-			}
+//			if ( timing != null ) {
+//				// we want to select only the generated properties
+//				if ( generator == null
+//						|| generator.getEventTypes().size() == 0 && generator. // don't select properties annotated with `@Generated(GenerationTime.NEVER)`
+//						|| !generator.getEventTypes().contains( timing ) ) {
+//					return;
+//				}
+//			}
 
 			final NavigablePath fetchablePath;
 

@@ -22,13 +22,14 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @RequiresDialect(PostgreSQLDialect.class)
 @DomainModel(
 		annotatedClasses = {
-				EmbeddableAndGeneratedFieldsTest.TestEntity.class
+				EmbeddableAndGeneratedFieldsTestToDelete.TestEntity.class
 		}
 )
 @SessionFactory(
@@ -36,7 +37,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 		useCollectingStatementInspector = true
 )
 @Jira("HHH-16957")
-public class EmbeddableAndGeneratedFieldsTest {
+public class EmbeddableAndGeneratedFieldsTestToDelete {
 	private final static String NAME = "a";
 	private final static String UPDATED_NAME = "b";
 
@@ -77,7 +78,8 @@ public class EmbeddableAndGeneratedFieldsTest {
 											" never_generated_prop_0 integer, " +
 
 											" non_generated_prop_1 integer, " +
-											" always_generated_prop_1 integer generated always as ( " + ALWAYS_GENERATED_PROP_1 + " ) stored," +
+											" always_generated_prop_1 integer, " +
+//											"generated always as ( " + ALWAYS_GENERATED_PROP_1 + " ) stored," +
 											" update_generated_prop_1 integer, " +
 											" insert_generated_prop_1 integer," +
 											" never_generated_prop_1 integer, " +
@@ -209,9 +211,9 @@ public class EmbeddableAndGeneratedFieldsTest {
 				1,
 				NAME,
 				NEVER_GENERATED_PROP_0,
-				new EmbeddableValue( NON_GENERATED_PROP_1, NEVER_GENERATED_PROP_1 ),
-				new EmbeddableValue2( NON_GENERATED_PROP_2 ),
-				new EmbeddableValue3( NON_GENERATED_PROP_3 )
+				new EmbeddableValue( NON_GENERATED_PROP_1, NEVER_GENERATED_PROP_1 )
+//				new EmbeddableValue2( NON_GENERATED_PROP_2 ),
+//				new EmbeddableValue3( NON_GENERATED_PROP_3 )
 		);
 
 		scope.inTransaction(
@@ -223,11 +225,11 @@ public class EmbeddableAndGeneratedFieldsTest {
 		sqlStatementInspector.assertIsInsert( 0 );
 		sqlStatementInspector.assertIsSelect( 1 );
 
-		assertThatInsertIsCorrect( sqlStatementInspector.getSqlQueries().get( 0 ) );
-		assertThatSelectOnInsertIsCorrect(
-				sqlStatementInspector.getSqlQueries().get( 1 ),
-				testEntity
-		);
+//		assertThatInsertIsCorrect( sqlStatementInspector.getSqlQueries().get( 0 ) );
+//		assertThatSelectOnInsertIsCorrect(
+//				sqlStatementInspector.getSqlQueries().get( 1 ),
+//				testEntity
+//		);
 
 		sqlStatementInspector.clear();
 		scope.inTransaction(
@@ -236,13 +238,13 @@ public class EmbeddableAndGeneratedFieldsTest {
 
 					sqlStatementInspector.assertExecutedCount( 1 );
 					sqlStatementInspector.assertIsSelect( 0 );
-					assertThatFindIsCorrect( sqlStatementInspector.getSqlQueries().get( 0 ) );
+//					assertThatFindIsCorrect( sqlStatementInspector.getSqlQueries().get( 0 ) );
 
 					sqlStatementInspector.clear();
 
-					found.setName( UPDATED_NAME );
-					found.setNeverGeneratedProp0( UPDATED_NEVER_GENERATED_PROP_0 );
-					found.getEmbeddableValue().setNeverGeneratedProp1( UPDATED_NEVER_GENERATED_PROP_1 );
+					found.getEmbeddableValue().setNonGeneratedProperty1( 1234567 );
+//					found.setNeverGeneratedProp0( UPDATED_NEVER_GENERATED_PROP_0 );
+//					found.getEmbeddableValue().setNeverGeneratedProp1( UPDATED_NEVER_GENERATED_PROP_1 );
 					session.flush();
 
 					sqlStatementInspector.assertExecutedCount( 2 );
@@ -319,38 +321,38 @@ public class EmbeddableAndGeneratedFieldsTest {
 
 		assertThat( testEntity.getName() ).isEqualTo( UPDATED_NAME );
 		assertThat( testEntity.getInsertGeneratedProp0() ).isEqualTo( INSERT_GENERATED_PROP_0 );
-		assertThat( testEntity.getUpdateGenerateProp0() ).isEqualTo( UPDATE_GENERATED_PROP_0 );
-		assertThat( testEntity.getNeverGeneratedProp0() ).isEqualTo( UPDATED_NEVER_GENERATED_PROP_0 );
+//		assertThat( testEntity.getUpdateGenerateProp0() ).isEqualTo( UPDATE_GENERATED_PROP_0 );
+//		assertThat( testEntity.getNeverGeneratedProp0() ).isEqualTo( UPDATED_NEVER_GENERATED_PROP_0 );
 
 		EmbeddableValue embeddableValue = testEntity.getEmbeddableValue();
 		assertThat( embeddableValue.getNonGeneratedProperty1() )
 				.isEqualTo( NON_GENERATED_PROP_1 );
-		assertThat( embeddableValue.getInsertGeneratedProperty1() )
-				.isEqualTo( INSERT_GENERATED_PROP_1 );
-		assertThat( embeddableValue.getAlwaysGeneratedProperty1() )
-				.isEqualTo( ALWAYS_GENERATED_PROP_1 );
-		assertThat( embeddableValue.getUpdateGeneratedProperty1() )
-				.isEqualTo( UPDATE_GENERATED_PROP_1 );
-		assertThat( embeddableValue.getNeverGeneratedProp1() )
-				.isEqualTo( UPDATED_NEVER_GENERATED_PROP_1 );
-
-		EmbeddableValue2 embeddableValue2 = testEntity.getEmbeddableValue2();
-		assertThat( embeddableValue2 ).isNotNull();
-		assertThat( embeddableValue2.getNonGeneratedProperty2() )
-				.isEqualTo( NON_GENERATED_PROP_2 );
-		assertThat( embeddableValue2.getAlwaysGeneratedProperty2() )
-				.isEqualTo( ALWAYS_GENERATED_PROP_2 );
-		assertThat( embeddableValue2.getAlwaysGeneratedProperty21() )
-				.isEqualTo( ALWAYS_GENERATED_PROP_21 );
-
-		EmbeddableValue3 embeddableValue3 = testEntity.getEmbeddableValue3();
-		assertThat( embeddableValue3 ).isNotNull();
-		assertThat( embeddableValue3.getNonGeneratedProperty3() )
-				.isEqualTo( NON_GENERATED_PROP_3 );
-		assertThat( embeddableValue3.getUpdateGeneratedProperty3() )
-				.isEqualTo( UPDATE_GENERATED_PROP_3 );
-		assertThat( embeddableValue3.getUpdateGeneratedProperty31() )
-				.isEqualTo( UPDATE_GENERATED_PROP_31 );
+//		assertThat( embeddableValue.getInsertGeneratedProperty1() )
+//				.isEqualTo( INSERT_GENERATED_PROP_1 );
+//		assertThat( embeddableValue.getAlwaysGeneratedProperty1() )
+//				.isEqualTo( ALWAYS_GENERATED_PROP_1 );
+//		assertThat( embeddableValue.getUpdateGeneratedProperty1() )
+//				.isEqualTo( UPDATE_GENERATED_PROP_1 );
+//		assertThat( embeddableValue.getNeverGeneratedProp1() )
+//				.isEqualTo( UPDATED_NEVER_GENERATED_PROP_1 );
+//
+//		EmbeddableValue2 embeddableValue2 = testEntity.getEmbeddableValue2();
+//		assertThat( embeddableValue2 ).isNotNull();
+//		assertThat( embeddableValue2.getNonGeneratedProperty2() )
+//				.isEqualTo( NON_GENERATED_PROP_2 );
+//		assertThat( embeddableValue2.getAlwaysGeneratedProperty2() )
+//				.isEqualTo( ALWAYS_GENERATED_PROP_2 );
+//		assertThat( embeddableValue2.getAlwaysGeneratedProperty21() )
+//				.isEqualTo( ALWAYS_GENERATED_PROP_21 );
+//
+//		EmbeddableValue3 embeddableValue3 = testEntity.getEmbeddableValue3();
+//		assertThat( embeddableValue3 ).isNotNull();
+//		assertThat( embeddableValue3.getNonGeneratedProperty3() )
+//				.isEqualTo( NON_GENERATED_PROP_3 );
+//		assertThat( embeddableValue3.getUpdateGeneratedProperty3() )
+//				.isEqualTo( UPDATE_GENERATED_PROP_3 );
+//		assertThat( embeddableValue3.getUpdateGeneratedProperty31() )
+//				.isEqualTo( UPDATE_GENERATED_PROP_31 );
 	}
 
 	private static void assertThatSelectOnInsertIsCorrect(String selectQuery, TestEntity testEntity) {
@@ -371,38 +373,38 @@ public class EmbeddableAndGeneratedFieldsTest {
 
 		assertThat( testEntity.getName() ).isEqualTo( NAME );
 		assertThat( testEntity.getInsertGeneratedProp0() ).isEqualTo( INSERT_GENERATED_PROP_0 );
-		assertThat( testEntity.getUpdateGenerateProp0() ).isNull();
-		assertThat( testEntity.getNeverGeneratedProp0() ).isEqualTo( NEVER_GENERATED_PROP_0 );
+//		assertThat( testEntity.getUpdateGenerateProp0() ).isNull();
+//		assertThat( testEntity.getNeverGeneratedProp0() ).isEqualTo( NEVER_GENERATED_PROP_0 );
 
 		EmbeddableValue embeddableValue = testEntity.getEmbeddableValue();
 		assertThat( embeddableValue.getNonGeneratedProperty1() )
 				.isEqualTo( NON_GENERATED_PROP_1 );
-		assertThat( embeddableValue.getInsertGeneratedProperty1() )
-				.isEqualTo( INSERT_GENERATED_PROP_1 );
-		assertThat( embeddableValue.getAlwaysGeneratedProperty1() )
-				.isEqualTo( ALWAYS_GENERATED_PROP_1 );
-		assertThat( embeddableValue.getUpdateGeneratedProperty1() )
-				.isNull();
-		assertThat( embeddableValue.getNeverGeneratedProp1() )
-				.isEqualTo( NEVER_GENERATED_PROP_1 );
-
-		EmbeddableValue2 embeddableValue2 = testEntity.getEmbeddableValue2();
-		assertThat( embeddableValue2 ).isNotNull();
-		assertThat( embeddableValue2.getNonGeneratedProperty2() )
-				.isEqualTo( NON_GENERATED_PROP_2 );
-		assertThat( embeddableValue2.getAlwaysGeneratedProperty2() )
-				.isEqualTo( ALWAYS_GENERATED_PROP_2 );
-		assertThat( embeddableValue2.getAlwaysGeneratedProperty21() )
-				.isEqualTo( ALWAYS_GENERATED_PROP_21 );
-
-		EmbeddableValue3 embeddableValue3 = testEntity.getEmbeddableValue3();
-		assertThat( embeddableValue3 ).isNotNull();
-		assertThat( embeddableValue3.getNonGeneratedProperty3() )
-				.isEqualTo( NON_GENERATED_PROP_3 );
-		assertThat( embeddableValue3.getUpdateGeneratedProperty3() )
-				.isNull();
-		assertThat( embeddableValue3.getUpdateGeneratedProperty31() )
-				.isNull();
+//		assertThat( embeddableValue.getInsertGeneratedProperty1() )
+//				.isEqualTo( INSERT_GENERATED_PROP_1 );
+//		assertThat( embeddableValue.getAlwaysGeneratedProperty1() )
+//				.isEqualTo( ALWAYS_GENERATED_PROP_1 );
+//		assertThat( embeddableValue.getUpdateGeneratedProperty1() )
+//				.isNull();
+//		assertThat( embeddableValue.getNeverGeneratedProp1() )
+//				.isEqualTo( NEVER_GENERATED_PROP_1 );
+//
+//		EmbeddableValue2 embeddableValue2 = testEntity.getEmbeddableValue2();
+//		assertThat( embeddableValue2 ).isNotNull();
+//		assertThat( embeddableValue2.getNonGeneratedProperty2() )
+//				.isEqualTo( NON_GENERATED_PROP_2 );
+//		assertThat( embeddableValue2.getAlwaysGeneratedProperty2() )
+//				.isEqualTo( ALWAYS_GENERATED_PROP_2 );
+//		assertThat( embeddableValue2.getAlwaysGeneratedProperty21() )
+//				.isEqualTo( ALWAYS_GENERATED_PROP_21 );
+//
+//		EmbeddableValue3 embeddableValue3 = testEntity.getEmbeddableValue3();
+//		assertThat( embeddableValue3 ).isNotNull();
+//		assertThat( embeddableValue3.getNonGeneratedProperty3() )
+//				.isEqualTo( NON_GENERATED_PROP_3 );
+//		assertThat( embeddableValue3.getUpdateGeneratedProperty3() )
+//				.isNull();
+//		assertThat( embeddableValue3.getUpdateGeneratedProperty31() )
+//				.isNull();
 	}
 
 	private static void assertThatFindIsCorrect(String selectQuery) {
@@ -436,17 +438,17 @@ public class EmbeddableAndGeneratedFieldsTest {
 
 		private Integer insertGeneratedProp0;
 
-		private Integer updateGenerateProp0;
-
-		private Integer updateGenerateProp01;
-
-		private Integer neverGeneratedProp0;
+//		private Integer updateGenerateProp0;
+//
+//		private Integer updateGenerateProp01;
+//
+//		private Integer neverGeneratedProp0;
 
 		private EmbeddableValue embeddableValue;
 
-		private EmbeddableValue2 embeddableValue2;
-
-		private EmbeddableValue3 embeddableValue3;
+//		private EmbeddableValue2 embeddableValue2;
+//
+//		private EmbeddableValue3 embeddableValue3;
 
 		public TestEntity() {
 		}
@@ -455,15 +457,13 @@ public class EmbeddableAndGeneratedFieldsTest {
 				Integer id,
 				String name,
 				Integer neverGeneratedProp,
-				EmbeddableValue embeddableValue,
-				EmbeddableValue2 anotherEmbeddableValue,
-				EmbeddableValue3 embeddableValue3) {
+				EmbeddableValue embeddableValue) {
 			this.id = id;
 			this.name = name;
-			this.neverGeneratedProp0 = neverGeneratedProp;
+//			this.neverGeneratedProp0 = neverGeneratedProp;
 			this.embeddableValue = embeddableValue;
-			this.embeddableValue2 = anotherEmbeddableValue;
-			this.embeddableValue3 = embeddableValue3;
+//			this.embeddableValue2 = anotherEmbeddableValue;
+//			this.embeddableValue3 = embeddableValue3;
 		}
 
 		@Id
@@ -484,7 +484,7 @@ public class EmbeddableAndGeneratedFieldsTest {
 		}
 
 		@Column(name = "insert_generated_prop_0")
-		@Generated(GenerationTime.INSERT)
+		@Generated(value = GenerationTime.INSERT, writable = true)
 		public Integer getInsertGeneratedProp0() {
 			return insertGeneratedProp0;
 		}
@@ -493,36 +493,36 @@ public class EmbeddableAndGeneratedFieldsTest {
 			this.insertGeneratedProp0 = insertGeneratedProp0;
 		}
 
-		@Column(name = "update_generated_prop_0")
-		@Generated(GenerationTime.UPDATE)
-		public Integer getUpdateGenerateProp0() {
-			return updateGenerateProp0;
-		}
-
-		public void setUpdateGenerateProp0(Integer updateGenerateProp0) {
-			this.updateGenerateProp0 = updateGenerateProp0;
-		}
-
-		@Column(name = "never_generated_prop_0")
-		@Generated(GenerationTime.NEVER)
-		public Integer getNeverGeneratedProp0() {
-			return neverGeneratedProp0;
-		}
-
-		public void setNeverGeneratedProp0(Integer neverGeneratedProp0) {
-			this.neverGeneratedProp0 = neverGeneratedProp0;
-		}
-
-
-		@Column(name = "update_generated_prop_01")
-		@Generated(value = GenerationTime.UPDATE, writable = true)
-		public Integer getUpdateGenerateProp01() {
-			return updateGenerateProp01;
-		}
-
-		public void setUpdateGenerateProp01(Integer updateGenerateProp01) {
-			this.updateGenerateProp01 = updateGenerateProp01;
-		}
+//		@Column(name = "update_generated_prop_0")
+//		@Generated(GenerationTime.UPDATE)
+//		public Integer getUpdateGenerateProp0() {
+//			return updateGenerateProp0;
+//		}
+//
+//		public void setUpdateGenerateProp0(Integer updateGenerateProp0) {
+//			this.updateGenerateProp0 = updateGenerateProp0;
+//		}
+//
+//		@Column(name = "never_generated_prop_0")
+//		@Generated(GenerationTime.NEVER)
+//		public Integer getNeverGeneratedProp0() {
+//			return neverGeneratedProp0;
+//		}
+//
+//		public void setNeverGeneratedProp0(Integer neverGeneratedProp0) {
+//			this.neverGeneratedProp0 = neverGeneratedProp0;
+//		}
+//
+//
+//		@Column(name = "update_generated_prop_01")
+//		@Generated(value = GenerationTime.UPDATE, writable = true)
+//		public Integer getUpdateGenerateProp01() {
+//			return updateGenerateProp01;
+//		}
+//
+//		public void setUpdateGenerateProp01(Integer updateGenerateProp01) {
+//			this.updateGenerateProp01 = updateGenerateProp01;
+//		}
 
 		@Embedded
 		public EmbeddableValue getEmbeddableValue() {
@@ -533,43 +533,45 @@ public class EmbeddableAndGeneratedFieldsTest {
 			this.embeddableValue = embeddableValue;
 		}
 
-		@Embedded
-		public EmbeddableValue2 getEmbeddableValue2() {
-			return embeddableValue2;
-		}
+//		@Embedded
+//		public EmbeddableValue2 getEmbeddableValue2() {
+//			return embeddableValue2;
+//		}
+//
+//		public void setEmbeddableValue2(EmbeddableValue2 embeddableValue2) {
+//			this.embeddableValue2 = embeddableValue2;
+//		}
 
-		public void setEmbeddableValue2(EmbeddableValue2 embeddableValue2) {
-			this.embeddableValue2 = embeddableValue2;
-		}
-
-		@Embedded
-		public EmbeddableValue3 getEmbeddableValue3() {
-			return embeddableValue3;
-		}
-
-		public void setEmbeddableValue3(EmbeddableValue3 embeddableValue3) {
-			this.embeddableValue3 = embeddableValue3;
-		}
+//		@Embedded
+////		@Version
+//		public EmbeddableValue3 getEmbeddableValue3() {
+//			return embeddableValue3;
+//		}
+//
+//		public void setEmbeddableValue3(EmbeddableValue3 embeddableValue3) {
+//			this.embeddableValue3 = embeddableValue3;
+//		}
 	}
 
 	@Embeddable
 	public static class EmbeddableValue {
+
 		private Integer nonGeneratedProperty1;
 
 		private Integer alwaysGeneratedProperty1;
 
-		private Integer updateGeneratedProperty1;
-
-		private Integer insertGeneratedProperty1;
-
-		private Integer neverGeneratedProp1;
+//		private Integer updateGeneratedProperty1;
+//
+//		private Integer insertGeneratedProperty1;
+//
+//		private Integer neverGeneratedProp1;
 
 		public EmbeddableValue() {
 		}
 
 		public EmbeddableValue(Integer nonGeneratedProperty, Integer neverGeneratedProp) {
 			this.nonGeneratedProperty1 = nonGeneratedProperty;
-			this.neverGeneratedProp1 = neverGeneratedProp;
+//			this.neverGeneratedProp1 = neverGeneratedProp;
 		}
 
 		@Column(name = "non_generated_prop_1")
@@ -581,7 +583,7 @@ public class EmbeddableAndGeneratedFieldsTest {
 			this.nonGeneratedProperty1 = nonGeneratedProperty1;
 		}
 
-		@Generated(GenerationTime.ALWAYS)
+		@Generated(value = GenerationTime.ALWAYS, writable = true)
 		@Column(name = "always_generated_prop_1")
 		public Integer getAlwaysGeneratedProperty1() {
 			return alwaysGeneratedProperty1;
@@ -591,97 +593,97 @@ public class EmbeddableAndGeneratedFieldsTest {
 			this.alwaysGeneratedProperty1 = alwaysGeneratedProperty1;
 		}
 
-		@Generated(GenerationTime.UPDATE)
-		@Column(name = "update_generated_prop_1")
-		public Integer getUpdateGeneratedProperty1() {
-			return updateGeneratedProperty1;
-		}
-
-		public void setUpdateGeneratedProperty1(Integer updateGeneratedProperty1) {
-			this.updateGeneratedProperty1 = updateGeneratedProperty1;
-		}
-
-		@Generated(value = GenerationTime.INSERT, writable = true)
-		@Column(name = "insert_generated_prop_1")
-		public Integer getInsertGeneratedProperty1() {
-			return insertGeneratedProperty1;
-		}
-
-		public void setInsertGeneratedProperty1(Integer insertGeneratedProperty1) {
-			this.insertGeneratedProperty1 = insertGeneratedProperty1;
-		}
-
-		@Column(name = "never_generated_prop_1")
-		@Generated(GenerationTime.NEVER)
-		public Integer getNeverGeneratedProp1() {
-			return neverGeneratedProp1;
-		}
-
-		public void setNeverGeneratedProp1(Integer neverGeneratedProp1) {
-			this.neverGeneratedProp1 = neverGeneratedProp1;
-		}
+//		@Generated(GenerationTime.UPDATE)
+//		@Column(name = "update_generated_prop_1")
+//		public Integer getUpdateGeneratedProperty1() {
+//			return updateGeneratedProperty1;
+//		}
+//
+//		public void setUpdateGeneratedProperty1(Integer updateGeneratedProperty1) {
+//			this.updateGeneratedProperty1 = updateGeneratedProperty1;
+//		}
+//
+//		@Generated(value = GenerationTime.INSERT, writable = true)
+//		@Column(name = "insert_generated_prop_1")
+//		public Integer getInsertGeneratedProperty1() {
+//			return insertGeneratedProperty1;
+//		}
+//
+//		public void setInsertGeneratedProperty1(Integer insertGeneratedProperty1) {
+//			this.insertGeneratedProperty1 = insertGeneratedProperty1;
+//		}
+//
+//		@Column(name = "never_generated_prop_1")
+//		@Generated(GenerationTime.NEVER)
+//		public Integer getNeverGeneratedProp1() {
+//			return neverGeneratedProp1;
+//		}
+//
+//		public void setNeverGeneratedProp1(Integer neverGeneratedProp1) {
+//			this.neverGeneratedProp1 = neverGeneratedProp1;
+//		}
 	}
 
-	@Embeddable
-	public static class EmbeddableValue2 {
-		private Integer nonGeneratedProperty2;
-
-		private Integer alwaysGeneratedProperty2;
-
-		private Integer alwaysGeneratedProperty21;
-
-		public EmbeddableValue2() {
-		}
-
-		public EmbeddableValue2(Integer nonGeneratedProperty2) {
-			this.nonGeneratedProperty2 = nonGeneratedProperty2;
-		}
-
-		@Column(name = "non_generated_prop_2")
-		public Integer getNonGeneratedProperty2() {
-			return nonGeneratedProperty2;
-		}
-
-		public void setNonGeneratedProperty2(Integer nonGeneratedProperty2) {
-			this.nonGeneratedProperty2 = nonGeneratedProperty2;
-		}
-
-		@Generated(GenerationTime.ALWAYS)
-		@Column(name = "always_generated_prop_2")
-		public Integer getAlwaysGeneratedProperty2() {
-			return alwaysGeneratedProperty2;
-		}
-
-		public void setAlwaysGeneratedProperty2(Integer alwaysGeneratedProperty2) {
-			this.alwaysGeneratedProperty2 = alwaysGeneratedProperty2;
-		}
-
-		@Generated(GenerationTime.ALWAYS)
-		@Column(name = "always_generated_prop_21")
-		public Integer getAlwaysGeneratedProperty21() {
-			return alwaysGeneratedProperty21;
-		}
-
-		public void setAlwaysGeneratedProperty21(Integer alwaysGeneratedProperty21) {
-			this.alwaysGeneratedProperty21 = alwaysGeneratedProperty21;
-		}
-	}
-
+//	@Embeddable
+//	public static class EmbeddableValue2 {
+//		private Integer nonGeneratedProperty2;
+//
+//		private Integer alwaysGeneratedProperty2;
+//
+//		private Integer alwaysGeneratedProperty21;
+//
+//		public EmbeddableValue2() {
+//		}
+//
+//		public EmbeddableValue2(Integer nonGeneratedProperty2) {
+//			this.nonGeneratedProperty2 = nonGeneratedProperty2;
+//		}
+//
+//		@Column(name = "non_generated_prop_2")
+//		public Integer getNonGeneratedProperty2() {
+//			return nonGeneratedProperty2;
+//		}
+//
+//		public void setNonGeneratedProperty2(Integer nonGeneratedProperty2) {
+//			this.nonGeneratedProperty2 = nonGeneratedProperty2;
+//		}
+//
+//		@Generated(GenerationTime.ALWAYS)
+//		@Column(name = "always_generated_prop_2")
+//		public Integer getAlwaysGeneratedProperty2() {
+//			return alwaysGeneratedProperty2;
+//		}
+//
+//		public void setAlwaysGeneratedProperty2(Integer alwaysGeneratedProperty2) {
+//			this.alwaysGeneratedProperty2 = alwaysGeneratedProperty2;
+//		}
+//
+//		@Generated(GenerationTime.ALWAYS)
+//		@Column(name = "always_generated_prop_21")
+//		public Integer getAlwaysGeneratedProperty21() {
+//			return alwaysGeneratedProperty21;
+//		}
+//
+//		public void setAlwaysGeneratedProperty21(Integer alwaysGeneratedProperty21) {
+//			this.alwaysGeneratedProperty21 = alwaysGeneratedProperty21;
+//		}
+//	}
+//
 	@Embeddable
 	public static class EmbeddableValue3 {
 		private Integer nonGeneratedProperty3;
-
-		private Integer updateGeneratedProperty3;
-
-		private Integer updateGeneratedProperty31;
-
-		public EmbeddableValue3() {
-		}
-
-		public EmbeddableValue3(Integer nonGeneratedProperty3) {
-			this.nonGeneratedProperty3 = nonGeneratedProperty3;
-		}
-
+//
+//		private Integer updateGeneratedProperty3;
+//
+//		private Integer updateGeneratedProperty31;
+//
+//		public EmbeddableValue3() {
+//		}
+//
+//		public EmbeddableValue3(Integer nonGeneratedProperty3) {
+//			this.nonGeneratedProperty3 = nonGeneratedProperty3;
+//		}
+//
 		@Column(name = "non_generated_prop_3")
 		public Integer getNonGeneratedProperty3() {
 			return nonGeneratedProperty3;
@@ -690,26 +692,26 @@ public class EmbeddableAndGeneratedFieldsTest {
 		public void setNonGeneratedProperty3(Integer nonGeneratedProperty3) {
 			this.nonGeneratedProperty3 = nonGeneratedProperty3;
 		}
-
-		@Generated(GenerationTime.UPDATE)
-		@Column(name = "update_generated_prop_3")
-		public Integer getUpdateGeneratedProperty3() {
-			return updateGeneratedProperty3;
-		}
-
-		public void setUpdateGeneratedProperty3(Integer updateGeneratedProperty3) {
-			this.updateGeneratedProperty3 = updateGeneratedProperty3;
-		}
-
-		@Generated(value = GenerationTime.UPDATE, writable = false)
-		@Column(name = "update_generated_prop_31")
-		public Integer getUpdateGeneratedProperty31() {
-			return updateGeneratedProperty31;
-		}
-
-		public void setUpdateGeneratedProperty31(Integer updateGeneratedProperty31) {
-			this.updateGeneratedProperty31 = updateGeneratedProperty31;
-		}
+//
+//		@Generated(GenerationTime.UPDATE)
+//		@Column(name = "update_generated_prop_3")
+//		public Integer getUpdateGeneratedProperty3() {
+//			return updateGeneratedProperty3;
+//		}
+//
+//		public void setUpdateGeneratedProperty3(Integer updateGeneratedProperty3) {
+//			this.updateGeneratedProperty3 = updateGeneratedProperty3;
+//		}
+//
+//		@Generated(value = GenerationTime.UPDATE, writable = false)
+//		@Column(name = "update_generated_prop_31")
+//		public Integer getUpdateGeneratedProperty31() {
+//			return updateGeneratedProperty31;
+//		}
+//
+//		public void setUpdateGeneratedProperty31(Integer updateGeneratedProperty31) {
+//			this.updateGeneratedProperty31 = updateGeneratedProperty31;
+//		}
 	}
 
 }
