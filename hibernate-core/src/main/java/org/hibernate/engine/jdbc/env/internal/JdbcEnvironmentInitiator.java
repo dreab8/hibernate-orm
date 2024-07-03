@@ -25,6 +25,7 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 import org.hibernate.engine.jdbc.internal.JdbcCoordinatorImpl;
 import org.hibernate.engine.jdbc.internal.JdbcServicesImpl;
 import org.hibernate.engine.jdbc.spi.JdbcServices;
+import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.event.internal.EmptyEventManager;
 import org.hibernate.event.spi.EventManager;
@@ -264,6 +265,7 @@ public class JdbcEnvironmentInitiator implements StandardServiceInitiator<JdbcEn
 		final TemporaryJdbcSessionOwner temporaryJdbcSessionOwner = new TemporaryJdbcSessionOwner(
 				jdbcConnectionAccess,
 				jdbcServices,
+				new SqlExceptionHelper( false ),
 				registry
 		);
 		temporaryJdbcSessionOwner.transactionCoordinator = registry.getService( TransactionCoordinatorBuilder.class )
@@ -276,7 +278,7 @@ public class JdbcEnvironmentInitiator implements StandardServiceInitiator<JdbcEn
 			return temporaryJdbcSessionOwner.transactionCoordinator.createIsolationDelegate().delegateWork(
 					new AbstractReturningWork<>() {
 						@Override
-						public JdbcEnvironmentImpl execute(Connection connection) throws SQLException {
+						public JdbcEnvironmentImpl execute(Connection connection) {
 							try {
 								final DatabaseMetaData dbmd = connection.getMetaData();
 								logDatabaseAndDriver( dbmd );
@@ -569,6 +571,7 @@ public class JdbcEnvironmentInitiator implements StandardServiceInitiator<JdbcEn
 		private final boolean connectionProviderDisablesAutoCommit;
 		private final PhysicalConnectionHandlingMode connectionHandlingMode;
 		private final JpaCompliance jpaCompliance;
+		private final SqlExceptionHelper sqlExceptionHelper;
 		private static final EmptyJdbcObserver EMPTY_JDBC_OBSERVER = EmptyJdbcObserver.INSTANCE;
 		TransactionCoordinator transactionCoordinator;
 		private final EmptyEventManager eventManager;
@@ -576,9 +579,11 @@ public class JdbcEnvironmentInitiator implements StandardServiceInitiator<JdbcEn
 		public TemporaryJdbcSessionOwner(
 				JdbcConnectionAccess jdbcConnectionAccess,
 				JdbcServices jdbcServices,
+				SqlExceptionHelper sqlExceptionHelper,
 				ServiceRegistryImplementor serviceRegistry) {
 			this.jdbcConnectionAccess = jdbcConnectionAccess;
 			this.jdbcServices = jdbcServices;
+			this.sqlExceptionHelper = sqlExceptionHelper;
 			this.serviceRegistry = serviceRegistry;
 			final ConfigurationService configurationService = serviceRegistry.getService( ConfigurationService.class );
 			this.jtaTrackByThread = configurationService.getSetting( JTA_TRACK_BY_THREAD, BOOLEAN, true );
@@ -737,6 +742,11 @@ public class JdbcEnvironmentInitiator implements StandardServiceInitiator<JdbcEn
 		@Override
 		public boolean isActive() {
 			return true;
+		}
+
+		@Override
+		public SqlExceptionHelper getSqlExceptionHelper() {
+			return sqlExceptionHelper;
 		}
 
 		private static class EmptyJdbcObserver implements JdbcObserver{
