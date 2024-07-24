@@ -621,40 +621,6 @@ public interface Session extends SharedSessionContract, EntityManager {
 	void replicate(String entityName, Object object, ReplicationMode replicationMode) ;
 
 	/**
-	 * Persist the given transient instance, first assigning a generated identifier.
-	 * (Or using the current value of the identifier property if the {@code assigned}
-	 * generator is used.) This operation cascades to associated instances if the
-	 * association is mapped with
-	 * {@link org.hibernate.annotations.CascadeType#SAVE_UPDATE}.
-	 * <p>
-	 * This operation is very similar to {@link #persist(Object)}.
-	 *
-	 * @param object a transient instance of a persistent class
-	 *
-	 * @return the generated identifier
-	 *
-	 * @deprecated use {@link #persist(Object)}
-	 */
-	@Deprecated(since = "6.0")
-	Object save(Object object);
-
-	/**
-	 * Persist the given transient instance, first assigning a generated identifier.
-	 * (Or using the current value of the identifier property if the {@code assigned}
-	 * generator is used.)  This operation cascades to associated instances if the
-	 * association is mapped with {@link org.hibernate.annotations.CascadeType#SAVE_UPDATE}.
-	 *
-	 * @param entityName the entity name
-	 * @param object a transient instance of a persistent class
-	 *
-	 * @return the generated identifier
-	 *
-	 * @deprecated use {@link #persist(String, Object)}
-	 */
-	@Deprecated(since = "6.0")
-	Object save(String entityName, Object object);
-
-	/**
 	 * Either {@link #save(Object)} or {@link #update(Object)} the given
 	 * instance, depending upon resolution of the unsaved-value checks (see the
 	 * manual for discussion of unsaved-value checking).

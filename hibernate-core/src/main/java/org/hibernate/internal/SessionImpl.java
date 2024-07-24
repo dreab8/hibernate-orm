@@ -660,16 +660,6 @@ public class SessionImpl
 
 	// save() operations ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	@Override @Deprecated
-	public Object save(Object obj) throws HibernateException {
-		return save( null, obj );
-	}
-
-	@Override @Deprecated
-	public Object save(String entityName, Object object) throws HibernateException {
-		return fireSave( new SaveOrUpdateEvent( entityName, object, this ) );
-	}
-
 	private Object fireSave(final SaveOrUpdateEvent event) {
 		checkOpen();
 		checkTransactionSynchStatus();

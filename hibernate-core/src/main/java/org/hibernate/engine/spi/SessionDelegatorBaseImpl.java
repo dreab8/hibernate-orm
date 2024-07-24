@@ -859,16 +859,6 @@ public class SessionDelegatorBaseImpl implements SessionImplementor {
 	}
 
 	@Override
-	public Object save(Object object) {
-		return delegate.save( object );
-	}
-
-	@Override
-	public Object save(String entityName, Object object) {
-		return delegate.save( entityName, object );
-	}
-
-	@Override
 	public void saveOrUpdate(Object object) {
 		delegate.saveOrUpdate( object );
 	}
