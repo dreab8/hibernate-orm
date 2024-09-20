@@ -50,6 +50,12 @@ public class ByteArrayNaturalIdTest {
 							.load();
 
 					assertThat( testEntity ).as( "Loading the entity by its natural id failed" ).isNotNull();
+					TestEntity testEntity2 = session.byNaturalId( TestEntity.class )
+							.using( "naturalId2", NATURAL_ID_1 )
+							.using( "naturalId1", new byte[] { 1, 3 } )
+							.load();
+					assertThat( testEntity2 ).as( "Loading the entity using wrong natural id failed" ).isNull();
+
 				}
 		);
 	}
