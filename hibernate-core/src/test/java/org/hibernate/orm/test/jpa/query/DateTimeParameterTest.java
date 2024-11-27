@@ -10,6 +10,7 @@ import java.util.List;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Id;
+import jakarta.persistence.Parameter;
 import jakarta.persistence.Query;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -17,6 +18,8 @@ import jakarta.persistence.TemporalType;
 
 import org.hibernate.orm.test.jpa.BaseEntityManagerFunctionalTestCase;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -35,8 +38,6 @@ public class DateTimeParameterTest extends BaseEntityManagerFunctionalTestCase {
 
 	@Test
 	public void testBindingCalendarAsDate() {
-		createTestData();
-
 		EntityManager em = getOrCreateEntityManager();
 		em.getTransaction().begin();
 
@@ -50,8 +51,6 @@ public class DateTimeParameterTest extends BaseEntityManagerFunctionalTestCase {
 			em.getTransaction().rollback();
 			em.close();
 		}
-
-		deleteTestData();
 	}
 
 	@Test
@@ -71,7 +70,58 @@ public class DateTimeParameterTest extends BaseEntityManagerFunctionalTestCase {
 		}
 	}
 
-	private void createTestData() {
+
+	@Test
+	public void testBindingNullNativeQueryPositional() {
+		EntityManager em = getOrCreateEntityManager();
+		em.getTransaction().begin();
+
+		try {
+			final Query query = em.createNativeQuery( "update Thing set someDate = ?1 where id = 1" );
+			//noinspection deprecation
+			query.setParameter( 1, (Date) null, TemporalType.DATE );
+			assertEquals( 1, query.executeUpdate() );
+		}
+		finally {
+			em.getTransaction().rollback();
+			em.close();
+		}
+	}
+
+	@Test
+	public void testBindingNullNativeQueryNamed() {
+		EntityManager em = getOrCreateEntityManager();
+		em.getTransaction().begin();
+		try {
+			final Query query = em.createNativeQuery( "update Thing set someDate = :me where id = 1" );
+			Parameter<Date> p = new Parameter<>() {
+				@Override
+				public String getName() {
+					return "me";
+				}
+
+				@Override
+				public Integer getPosition() {
+					return null;
+				}
+
+				@Override
+				public Class<Date> getParameterType() {
+					return Date.class;
+				}
+			};
+			//noinspection deprecation
+			query.setParameter( p, null, TemporalType.DATE );
+			assertEquals( 1, query.executeUpdate() );
+		}
+		finally {
+			em.getTransaction().rollback();
+			em.close();
+		}
+	}
+
+	@Before
+	public void createTestData() {
 		EntityManager em = getOrCreateEntityManager();
 		em.getTransaction().begin();
 		em.persist( new Thing( 1, "test", now, now, now ) );
@@ -79,7 +129,8 @@ public class DateTimeParameterTest extends BaseEntityManagerFunctionalTestCase {
 		em.close();
 	}
 
-	private void deleteTestData() {
+	@After
+	public void deleteTestData() {
 		EntityManager em = getOrCreateEntityManager();
 		em.getTransaction().begin();
 		em.createQuery( "delete Thing" ).executeUpdate();
