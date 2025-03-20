@@ -238,4 +238,9 @@ public class RowProcessingStateStandardImpl extends BaseExecutionContext impleme
 	public boolean upgradeLocks() {
 		return executionContext.upgradeLocks();
 	}
+
+	@Override
+	public boolean isRefresh() {
+		return executionContext.isRefresh();
+	}
 }

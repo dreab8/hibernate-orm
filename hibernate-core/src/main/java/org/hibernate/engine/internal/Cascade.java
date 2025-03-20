@@ -14,6 +14,7 @@ import org.hibernate.bytecode.enhance.spi.interceptor.LazyAttributeLoadingInterc
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.CascadeStyle;
 import org.hibernate.engine.spi.CascadingAction;
+import org.hibernate.engine.spi.CascadingActions;
 import org.hibernate.engine.spi.CollectionEntry;
 import org.hibernate.engine.spi.EntityEntry;
 import org.hibernate.engine.spi.PersistenceContext;
@@ -503,24 +504,26 @@ public final class Cascade {
 		final CollectionPersister persister =
 				eventSource.getFactory().getMappingMetamodel()
 						.getCollectionDescriptor( type.getRole() );
-		final Type elemType = persister.getElementType();
-		//cascade to current collection elements
-		if ( elemType instanceof EntityType || elemType instanceof AnyType || elemType instanceof ComponentType ) {
-			cascadeCollectionElements(
-				action,
-				cascadePoint == CascadePoint.AFTER_INSERT_BEFORE_DELETE
-						? CascadePoint.AFTER_INSERT_BEFORE_DELETE_VIA_COLLECTION
-						: cascadePoint,
-				eventSource,
-				componentPath,
-				parent,
-				child,
-				type,
-				style,
-				elemType,
-				anything,
-				persister.isCascadeDeleteEnabled()
-			);
+		if ( action != CascadingActions.REFRESH ) {
+			final Type elemType = persister.getElementType();
+			//cascade to current collection elements
+			if ( elemType instanceof EntityType || elemType instanceof AnyType || elemType instanceof ComponentType ) {
+				cascadeCollectionElements(
+						action,
+						cascadePoint == CascadePoint.AFTER_INSERT_BEFORE_DELETE
+								? CascadePoint.AFTER_INSERT_BEFORE_DELETE_VIA_COLLECTION
+								: cascadePoint,
+						eventSource,
+						componentPath,
+						parent,
+						child,
+						type,
+						style,
+						elemType,
+						anything,
+						persister.isCascadeDeleteEnabled()
+				);
+			}
 		}
 	}
 

@@ -115,6 +115,66 @@ public class SingleIdLoadPlan<T> implements SingleEntityLoadPlan {
 		return load( restrictedValue, null, readOnly, singleResultExpected, session );
 	}
 
+	public T refresh(
+			Object restrictedValue,
+			Boolean readOnly,
+			Boolean singleResultExpected,
+			SharedSessionContractImplementor session) {
+		return load( restrictedValue, null, readOnly, singleResultExpected, session );
+	}
+
+	public T refresh(
+			Object restrictedValue,
+			Object entityInstance,
+			Boolean readOnly,
+			Boolean singleResultExpected,
+			SharedSessionContractImplementor session) {
+		final int jdbcTypeCount = restrictivePart.getJdbcTypeCount();
+		assert jdbcParameters.size() % jdbcTypeCount == 0;
+
+		final JdbcParameterBindings jdbcParameterBindings = new JdbcParameterBindingsImpl( jdbcTypeCount );
+
+		int offset = 0;
+		while ( offset < jdbcParameters.size() ) {
+			offset += jdbcParameterBindings.registerParametersForEachJdbcValue(
+					restrictedValue,
+					offset,
+					restrictivePart,
+					jdbcParameters,
+					session
+			);
+		}
+		assert offset == jdbcParameters.size();
+		final QueryOptions queryOptions = new SimpleQueryOptions( lockOptions, readOnly );
+		final Callback callback = new CallbackImpl();
+
+		final List<T> list = session.getJdbcServices().getJdbcSelectExecutor().list(
+				jdbcSelect,
+				jdbcParameterBindings,
+				new SingleIdExecutionContext(
+						session,
+						entityInstance,
+						restrictedValue,
+						entityMappingType.getRootEntityDescriptor(),
+						queryOptions,
+						true,
+						callback
+				),
+				getRowTransformer(),
+				null,
+				singleResultExpected ? ListResultsConsumer.UniqueSemantic.ASSERT : ListResultsConsumer.UniqueSemantic.FILTER,
+				1
+		);
+
+		if ( list.isEmpty() ) {
+			return null;
+		}
+
+		final T entity = list.get( 0 );
+		callback.invokeAfterLoadActions( entity, entityMappingType, session );
+		return entity;
+	}
+
 	public T load(
 			Object restrictedValue,
 			Object entityInstance,
@@ -149,6 +209,7 @@ public class SingleIdLoadPlan<T> implements SingleEntityLoadPlan {
 						restrictedValue,
 						entityMappingType.getRootEntityDescriptor(),
 						queryOptions,
+						false,
 						callback
 				),
 				getRowTransformer(),
@@ -172,18 +233,21 @@ public class SingleIdLoadPlan<T> implements SingleEntityLoadPlan {
 		private final EntityMappingType rootEntityDescriptor;
 		private final QueryOptions queryOptions;
 		private final Callback callback;
+		private final boolean isRefresh;
 
 		public SingleIdExecutionContext(
 				SharedSessionContractImplementor session,
 				Object entityInstance,
 				Object restrictedValue,
 				EntityMappingType rootEntityDescriptor, QueryOptions queryOptions,
+				boolean isRefresh,
 				Callback callback) {
 			super( session );
 			this.entityInstance = entityInstance;
 			this.restrictedValue = restrictedValue;
 			this.rootEntityDescriptor = rootEntityDescriptor;
 			this.queryOptions = queryOptions;
+			this.isRefresh = isRefresh;
 			this.callback = callback;
 		}
 
@@ -212,5 +276,9 @@ public class SingleIdLoadPlan<T> implements SingleEntityLoadPlan {
 			return callback;
 		}
 
+		@Override
+		public boolean isRefresh() {
+			return isRefresh;
+		}
 	}
 }

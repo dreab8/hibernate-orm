@@ -89,6 +89,7 @@ public class DefaultRefreshEventListener implements RefreshEventListener {
 						lazyInitializer,
 						null,
 						persister.getIdentifier( object, event.getSession() ),
+						isReadOnly( null, persister, lazyInitializer, source ),
 						persistenceContext
 				);
 				if ( lazyInitializer != null ) {
@@ -162,18 +163,24 @@ public class DefaultRefreshEventListener implements RefreshEventListener {
 				refreshedAlready
 		);
 
+		boolean isReadonly;
 		if ( entry != null ) {
+			// check if it's read-only before removing it from the PersistenceContext
+			isReadonly = isReadOnly( entry, persister, null, source );
 			persistenceContext.removeEntityHolder( entry.getEntityKey() );
 			if ( persister.hasCollections() ) {
 				new EvictVisitor( source, object ).process( object, persister );
 			}
 			persistenceContext.removeEntry( object );
 		}
+		else {
+			isReadonly = isReadOnly( entry, persister, null, source );
+		}
 
 		evictEntity( object, persister, id, source );
 		evictCachedCollections( persister, id, source );
 
-		refresh( event, object, source, persister, null, entry, id, persistenceContext );
+		refresh( event, object, source, persister, null, entry, id, isReadonly, persistenceContext );
 	}
 
 	private static void refresh(
@@ -184,6 +191,7 @@ public class DefaultRefreshEventListener implements RefreshEventListener {
 			LazyInitializer lazyInitializer,
 			EntityEntry entry,
 			Object id,
+			boolean readOnly,
 			PersistenceContext persistenceContext) {
 		final BytecodeEnhancementMetadata instrumentationMetadata = persister.getInstrumentationMetadata();
 		if ( object != null && instrumentationMetadata.isEnhancedForLazyLoading() ) {
@@ -199,6 +207,7 @@ public class DefaultRefreshEventListener implements RefreshEventListener {
 				() -> doRefresh( event, source, object, entry, persister, lazyInitializer, id, persistenceContext )
 		);
 		UnresolvableObjectException.throwIfNull( result, id, persister.getEntityName() );
+		source.setReadOnly( result, readOnly );
 	}
 
 	private static void evictEntity(Object object, EntityPersister persister, Object id, EventSource source) {
@@ -270,7 +279,7 @@ public class DefaultRefreshEventListener implements RefreshEventListener {
 			postRefreshLockMode = null;
 		}
 
-		final Object result = persister.load( id, object, lockOptionsToUse, source );
+		final Object result = persister.refresh( id, object, lockOptionsToUse, source );
 		if ( result != null ) {
 			// apply `postRefreshLockMode`, if needed
 			if ( postRefreshLockMode != null ) {
@@ -278,8 +287,6 @@ public class DefaultRefreshEventListener implements RefreshEventListener {
 				//		- however, the refresh operation actually creates a new entry, so get it
 				persistenceContext.getEntry( result ).setLockMode( postRefreshLockMode );
 			}
-
-			source.setReadOnly( result, isReadOnly( entry, persister, lazyInitializer, source ) );
 		}
 		return result;
 	}

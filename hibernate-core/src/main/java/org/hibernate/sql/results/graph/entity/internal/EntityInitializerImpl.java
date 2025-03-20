@@ -85,6 +85,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import static org.hibernate.bytecode.enhance.spi.LazyPropertyInitializer.UNFETCHED_PROPERTY;
 import static org.hibernate.engine.internal.ManagedTypeHelper.asPersistentAttributeInterceptable;
 import static org.hibernate.engine.internal.ManagedTypeHelper.isPersistentAttributeInterceptable;
+import static org.hibernate.engine.spi.CascadingActions.REFRESH;
 import static org.hibernate.internal.util.NullnessUtil.castNonNull;
 import static org.hibernate.loader.internal.CacheLoadHelper.loadFromSecondLevelCache;
 import static org.hibernate.proxy.HibernateProxy.extractLazyInitializer;
@@ -1109,7 +1110,10 @@ public class EntityInitializerImpl extends AbstractInitializer<EntityInitializer
 				data.setInstance( data.entityInstanceForNotify = existingEntity );
 				if ( data.entityHolder.getEntityInitializer() == null ) {
 					assert data.entityHolder.isInitialized() == isExistingEntityInitialized( existingEntity );
-					if ( data.entityHolder.isInitialized() ) {
+					if ( forceLoading( data ) ) {
+						registerLoadingEntity( data, existingEntity );
+					}
+					else if ( data.entityHolder.isInitialized() ) {
 						data.setState( State.INITIALIZED );
 					}
 					else if ( isResultInitializer() ) {
@@ -1668,6 +1672,9 @@ public class EntityInitializerImpl extends AbstractInitializer<EntityInitializer
 	}
 
 	protected boolean skipInitialization(EntityInitializerData data) {
+		if ( forceLoading( data ) ) {
+			return false;
+		}
 		if ( data.entityHolder.getEntityInitializer() != this ) {
 			return true;
 		}
@@ -1704,6 +1711,25 @@ public class EntityInitializerImpl extends AbstractInitializer<EntityInitializer
 				return false;
 			}
 		}
+	}
+
+	private boolean forceLoading(EntityInitializerData data) {
+		final boolean isRefreshCascade;
+		if ( parent != null ) {
+			isRefreshCascade = getAttributeMapping().getAttributeMetadata()
+					.getCascadeStyle()
+					.doCascade( REFRESH );
+		}
+		else {
+			return false;
+		}
+		return isRefreshCascade && data.getRowProcessingState().isRefresh();
+	}
+
+	private AttributeMapping getAttributeMapping() {
+		return parent instanceof AbstractImmediateCollectionInitializer ?
+				parent.getInitializedPart().asAttributeMapping()
+				: referencedModelPart.asAttributeMapping();
 	}
 
 	private boolean isReadOnly(RowProcessingState rowProcessingState, SharedSessionContractImplementor persistenceContext) {
@@ -1805,7 +1831,7 @@ public class EntityInitializerImpl extends AbstractInitializer<EntityInitializer
 
 	@Override
 	public String toString() {
-		return "EntityJoinedFetchInitializer(" + LoggingHelper.toLoggableString( getNavigablePath() ) + ")";
+		return "EntityInitializer(" + LoggingHelper.toLoggableString( getNavigablePath() ) + ")";
 	}
 
 	//#########################

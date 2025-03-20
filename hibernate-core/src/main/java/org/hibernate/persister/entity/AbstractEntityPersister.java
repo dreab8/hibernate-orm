@@ -3496,6 +3496,11 @@ public abstract class AbstractEntityPersister
 	}
 
 	@Override
+	public Object refresh(Object id, Object optionalObject, LockOptions lockOptions, SharedSessionContractImplementor session) {
+		return doRefresh( id, optionalObject, lockOptions, null, session );
+	}
+
+	@Override
 	public Object load(Object id, Object optionalObject, LockOptions lockOptions, SharedSessionContractImplementor session, Boolean readOnly)
 			throws HibernateException {
 		return doLoad( id, optionalObject, lockOptions, readOnly, session );
@@ -3511,6 +3516,18 @@ public abstract class AbstractEntityPersister
 		return optionalObject == null
 				? loader.load( id, lockOptions, readOnly, session )
 				: loader.load( id, optionalObject, lockOptions, readOnly, session );
+	}
+
+	private Object doRefresh(Object id, Object optionalObject, LockOptions lockOptions, Boolean readOnly, SharedSessionContractImplementor session)
+			throws HibernateException {
+		if ( LOG.isTraceEnabled() ) {
+			LOG.tracev( "Fetching entity: {0}", infoString( this, id, getFactory() ) );
+		}
+
+		final SingleIdEntityLoader<?> loader = determineLoaderToUse( session );
+		return optionalObject == null
+				? loader.refresh( id, lockOptions, readOnly, session )
+				: loader.refresh( id, optionalObject, lockOptions, readOnly, session );
 	}
 
 	protected SingleIdEntityLoader<?> determineLoaderToUse(SharedSessionContractImplementor session) {

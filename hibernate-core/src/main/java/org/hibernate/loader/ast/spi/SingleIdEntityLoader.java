@@ -19,8 +19,15 @@ public interface SingleIdEntityLoader<T> extends SingleEntityLoader<T> {
 	@Override
 	T load(Object pkValue, LockOptions lockOptions, Boolean readOnly, SharedSessionContractImplementor session);
 
+	default T refresh(Object pkValue, LockOptions lockOptions, Boolean readOnly, SharedSessionContractImplementor session){
+		return load( pkValue, lockOptions, readOnly, session );
+	}
 
 	T load(Object pkValue, Object entityInstance, LockOptions lockOptions, Boolean readOnly, SharedSessionContractImplementor session);
+
+	default T refresh(Object pkValue, Object entityInstance, LockOptions lockOptions, Boolean readOnly, SharedSessionContractImplementor session){
+		return load( pkValue, entityInstance, lockOptions, readOnly, session );
+	}
 
 	/**
 	 * Load by primary key value, populating the passed entity instance.  Used to initialize an uninitialized

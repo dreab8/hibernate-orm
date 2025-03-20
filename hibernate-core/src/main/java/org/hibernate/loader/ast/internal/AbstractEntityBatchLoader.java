@@ -54,6 +54,11 @@ public abstract class AbstractEntityBatchLoader<T>
 	}
 
 	@Override
+	public T refresh(Object pkValue, Object entityInstance, LockOptions lockOptions, Boolean readOnly, SharedSessionContractImplementor session) {
+		return super.refresh( pkValue, entityInstance, lockOptions, readOnly, session );
+	}
+
+	@Override
 	public T load(
 			Object id,
 			Object entityInstance,

@@ -103,4 +103,8 @@ public interface ExecutionContext {
 		return false;
 	}
 
+	default boolean isRefresh(){
+		return false;
+	}
+
 }

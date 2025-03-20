@@ -611,6 +611,10 @@ public interface EntityPersister extends EntityMappingType, EntityMutationTarget
 	 */
 	Object load(Object id, Object optionalObject, LockOptions lockOptions, SharedSessionContractImplementor session);
 
+	default Object refresh(Object id, Object optionalObject, LockOptions lockOptions, SharedSessionContractImplementor session) {
+		return load( id, optionalObject, lockOptions, session );
+	}
+
 	default Object load(Object id, Object optionalObject, LockOptions lockOptions, SharedSessionContractImplementor session, Boolean readOnly)
 			throws HibernateException {
 		return load( id, optionalObject, lockOptions, session );
