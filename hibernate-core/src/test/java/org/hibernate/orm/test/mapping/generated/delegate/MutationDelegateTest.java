@@ -62,7 +62,7 @@ public class MutationDelegateTest {
 
 			assertThat( entity.getName() ).isEqualTo( "default_name" );
 
-			assertThat( inspector.getSqlQueries().get( 0 ) ).contains( "insert" );
+			inspector.assertIsInsert( 0 );
 			inspector.assertExecutedCount(
 					delegate != null && delegate.supportsArbitraryValues() ? 1 : 2
 			);
@@ -88,7 +88,7 @@ public class MutationDelegateTest {
 			assertThat( entity.getUpdateDate() ).isNotNull();
 
 			inspector.assertIsSelect( 0 );
-			assertThat( inspector.getSqlQueries().get( 0 ) ).contains( "update" );
+			inspector.assertIsUpdate( 1 );
 			inspector.assertExecutedCount(
 					delegate != null && delegate.supportsArbitraryValues() ? 2 : 3
 			);
@@ -111,8 +111,7 @@ public class MutationDelegateTest {
 			session.flush();
 
 			assertThat( entity.getName() ).isEqualTo( "default_name" );
-
-			assertThat( inspector.getSqlQueries().get( 0 ) ).contains( "insert" );
+			inspector.assertIsInsert( 0 );
 			inspector.assertExecutedCount(
 					delegate != null && delegate.supportsArbitraryValues() ? 1 : 2
 			);
@@ -133,7 +132,7 @@ public class MutationDelegateTest {
 			session.flush();
 
 			assertThat( entity.getUpdateDate() ).isNotNull();
-			assertThat( inspector.getSqlQueries().get( 0 ) ).contains( "update" );
+			inspector.assertIsUpdate( 0 );
 			inspector.assertNumberOfOccurrenceInQueryNoSpace( 0, "id_column", shouldHaveRowId ? 0 : 1 );
 		} );
 		scope.inSession( session -> assertThat( session.find( ValuesAndRowId.class, 1 ).getUpdateDate() ).isNotNull() );
@@ -156,7 +155,7 @@ public class MutationDelegateTest {
 
 			assertThat( entity.getName() ).isEqualTo( "default_name" );
 
-			assertThat( inspector.getSqlQueries().get( 0 ) ).contains( "insert" );
+			inspector.assertIsInsert( 0 );
 			final boolean isUniqueKeyDelegate = delegate instanceof UniqueKeySelectingDelegate;
 			inspector.assertExecutedCount(
 					delegate == null || isUniqueKeyDelegate ? 2 : 1
