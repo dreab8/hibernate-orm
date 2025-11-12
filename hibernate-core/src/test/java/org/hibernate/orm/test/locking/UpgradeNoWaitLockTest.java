@@ -48,6 +48,25 @@ public class UpgradeNoWaitLockTest {
 		);
 	}
 
+	@Test
+	@JiraKey( "HHH-19924" )
+	public void testFindIdOfPersistedEntity(SessionFactoryScope scope) {
+		long childId = 1L;
+		Child child = new Child( childId, "And" );
+		scope.inTransaction(
+				session ->
+						session.persist( child )
+		);
+
+		scope.inTransaction(
+				session -> {
+					Child c = session.find( Child.class, childId, LockMode.UPGRADE_NOWAIT );
+					assertThat( c ).isNotNull();
+					assertThat( c.getId() ).isEqualTo( childId );
+				}
+		);
+	}
+
 	@Entity(name = "Parent")
 	public static class Parent {
 
