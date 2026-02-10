@@ -29,7 +29,7 @@ import static org.hibernate.engine.internal.Versioning.getVersion;
  *
  * @author Gail Badner
  */
-public abstract class AbstractEntityInsertAction extends EntityAction {
+public abstract class AbstractEntityInsertAction extends EntityAction implements EntityInsertActionInterface {
 	private transient Object[] state;
 	private final boolean isVersionIncrementDisabled;
 	private boolean isExecuted;

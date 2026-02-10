@@ -31,6 +31,7 @@ import org.hibernate.action.internal.EntityActionVetoException;
 import org.hibernate.action.internal.EntityDeleteAction;
 import org.hibernate.action.internal.EntityIdentityInsertAction;
 import org.hibernate.action.internal.EntityInsertAction;
+import org.hibernate.action.internal.EntityInsertActionInterface;
 import org.hibernate.action.internal.EntityUpdateAction;
 import org.hibernate.action.internal.OrphanRemovalAction;
 import org.hibernate.action.internal.QueuedOperationCollectionAction;
@@ -80,7 +81,7 @@ public class ActionQueue implements TransactionCompletionCallbacks {
 
 	// Object insertions, updates, and deletions have list semantics because
 	// they must happen in the right order to respect referential integrity
-	private ExecutableList<AbstractEntityInsertAction> insertions;
+	private ExecutableList<EntityInsertActionInterface> insertions;
 	private ExecutableList<EntityDeleteAction> deletions;
 	private ExecutableList<EntityUpdateAction> updates;
 
@@ -100,7 +101,7 @@ public class ActionQueue implements TransactionCompletionCallbacks {
 
 
 	private transient boolean isTransactionCoordinatorShared;
-	private TransactionCompletionCallbacksImplementor transactionCompletionCallbacks;;
+	private TransactionCompletionCallbacksImplementor transactionCompletionCallbacks;
 
 	// Extract this as a constant to perform efficient iterations:
 	// method values() otherwise allocates a new array on each invocation.
@@ -959,14 +960,14 @@ public class ActionQueue implements TransactionCompletionCallbacks {
 	 * Scheduling serially means, that there is an order which doesn't violate the FK constraint dependencies.
 	 * The inserts of insert groups which can't be scheduled, are going to be inserted in the original order.
 	 */
-	private static class InsertActionSorter implements ExecutableList.Sorter<AbstractEntityInsertAction> {
+	public static class InsertActionSorter implements ExecutableList.Sorter<EntityInsertActionInterface> {
 		/**
 		 * Singleton access
 		 */
 		public static final InsertActionSorter INSTANCE = new InsertActionSorter();
 
 		private static class InsertInfo {
-			private final AbstractEntityInsertAction insertAction;
+			private final EntityInsertActionInterface insertAction;
 			// Inserts in this set must be executed before this insert
 			private Set<InsertInfo> transitiveIncomingDependencies;
 			// Child dependencies of i.e. one-to-many or inverse one-to-one
@@ -975,7 +976,7 @@ public class ActionQueue implements TransactionCompletionCallbacks {
 			// The current index of the insert info within an insert schedule
 			private int index;
 
-			private InsertInfo(AbstractEntityInsertAction insertAction, int index) {
+			private InsertInfo(EntityInsertActionInterface insertAction, int index) {
 				this.insertAction = insertAction;
 				this.index = index;
 			}
@@ -1103,7 +1104,7 @@ public class ActionQueue implements TransactionCompletionCallbacks {
 		/**
 		 * Sort the insert actions.
 		 */
-		public void sort(List<AbstractEntityInsertAction> insertions) {
+		public void sort(List<EntityInsertActionInterface> insertions) {
 			final int insertInfoCount = insertions.size();
 			// Build up dependency metadata for insert actions
 			final InsertInfo[] insertInfos = new InsertInfo[insertInfoCount];
