@@ -15,6 +15,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import org.hibernate.AnnotationException;
@@ -623,7 +624,7 @@ public class EmbeddableBinder {
 			PropertyData propertyData,
 			InheritanceState inheritanceState,
 			MetadataBuildingContext context) {
-		if ( inheritanceState != null ) {
+		if ( inheritanceState != null && componentClass.getDirectAnnotationUsage( MappedSuperclass.class ) == null ) {
 			final var discriminatorColumn = processEmbeddableDiscriminatorProperties(
 					componentClass,
 					propertyData,

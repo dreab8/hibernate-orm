@@ -104,6 +104,22 @@ public class InheritanceState {
 		return null;
 	}
 
+	public static InheritanceState getInheritanceStateOfSuperEntity1(
+			ClassDetails classDetails,
+			Map<ClassDetails, InheritanceState> states) {
+		ClassDetails candidate = classDetails;
+		do {
+			candidate = candidate.getSuperClass();
+			final var currentState = states.get( candidate );
+			if ( currentState != null ) {
+				return currentState;
+			}
+		}
+		while ( candidate != null && !isObjectClass( candidate ) );
+		return null;
+	}
+
+
 	public static InheritanceState getSuperclassInheritanceState(
 			ClassDetails classDetails,
 			Map<ClassDetails, InheritanceState> states) {
