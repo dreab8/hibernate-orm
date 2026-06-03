@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Max Rydahl Andersen
  */
 @SuppressWarnings("JUnitMalformedDeclaration")
-@DomainModel(xmlMappings = "org/hibernate/orm/test/version/PersonThing.hbm.xml")
+@DomainModel(annotatedClasses = { Person.class, Thing.class, Task.class })
 @SessionFactory
 public class VersionTest {
 	@AfterEach

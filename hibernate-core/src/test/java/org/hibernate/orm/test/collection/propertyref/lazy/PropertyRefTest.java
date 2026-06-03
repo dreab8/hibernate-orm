@@ -24,9 +24,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  */
 @JiraKey(value = "HHH-565")
 @DomainModel(
-		xmlMappings = {
-				"org/hibernate/orm/test/collection/propertyref/lazy/User.hbm.xml",
-				"org/hibernate/orm/test/collection/propertyref/lazy/Mail.hbm.xml"
+		annotatedClasses = {
+				User.class,
+				Mail.class
 		}
 )
 @SessionFactory

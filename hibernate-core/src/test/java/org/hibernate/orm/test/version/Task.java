@@ -4,10 +4,22 @@
  */
 package org.hibernate.orm.test.version;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Version;
 
+@Entity
 public class Task {
+	@Id
 	private String description;
+
+	@ManyToOne
 	private Person person;
+
+	@Version
+	@Column(name = "`version`")
 	private int version;
 
 	public int getVersion() {
