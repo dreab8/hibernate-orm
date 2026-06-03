@@ -5,18 +5,14 @@
 package org.hibernate.orm.test.idgen.enhanced.forcedtable;
 
 
-import org.hibernate.cfg.AvailableSettings;
-import org.hibernate.generator.Generator;
 import org.hibernate.id.GenericGeneratorGeneration;
 import org.hibernate.id.enhanced.NoopOptimizer;
 import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.hibernate.id.enhanced.TableStructure;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.testing.orm.junit.DomainModel;
-import org.hibernate.testing.orm.junit.ServiceRegistry;
 import org.hibernate.testing.orm.junit.SessionFactory;
 import org.hibernate.testing.orm.junit.SessionFactoryScope;
-import org.hibernate.testing.orm.junit.Setting;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +31,7 @@ public class BasicForcedTableSequenceTest {
 				.getEntityDescriptor(Entity.class.getName());
 		assertThat( persister.getGenerator() ).isInstanceOf( GenericGeneratorGeneration.class );
 		assertThat( ((GenericGeneratorGeneration) persister.getGenerator()).getDelegate() ).isInstanceOf( SequenceStyleGenerator.class );
-		final SequenceStyleGenerator generator = (SequenceStyleGenerator) persister.getGenerator();
+		final SequenceStyleGenerator generator = (SequenceStyleGenerator) ((GenericGeneratorGeneration) persister.getGenerator()).getDelegate();
 		assertThat( generator.getDatabaseStructure() ).isInstanceOf( TableStructure.class );
 		assertThat( generator.getOptimizer() ).isInstanceOf( NoopOptimizer.class );
 
