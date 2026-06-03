@@ -3,12 +3,28 @@
  * Copyright Red Hat Inc. and Hibernate Authors
  */
 package org.hibernate.orm.test.ordered;
+
 import java.util.HashSet;
 import java.util.Set;
 
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+
+import jakarta.persistence.OrderBy;
+
+@Entity
 public class Search {
+	@Id
 	private String searchString;
-	private Set searchResults = new HashSet();
+	@ElementCollection
+	@CollectionTable(joinColumns = @JoinColumn(name = "searchString"))
+	@Column(name = "text")
+	@OrderBy
+	private Set<String> searchResults = new HashSet<>();
 
 	Search() {}
 

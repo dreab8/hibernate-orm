@@ -26,9 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Gavin King
  */
-@DomainModel(
-		xmlMappings = "org/hibernate/orm/test/ordered/Search.hbm.xml"
-)
+@DomainModel(annotatedClasses = Search.class)
 @SessionFactory
 public class OrderByTest {
 
