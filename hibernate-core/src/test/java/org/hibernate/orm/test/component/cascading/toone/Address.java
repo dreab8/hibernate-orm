@@ -4,18 +4,38 @@
  */
 package org.hibernate.orm.test.component.cascading.toone;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.id.IncrementGenerator;
 
 /**
- * {@inheritDoc}
- *
  * @author Steve Ebersole
  */
+@Entity
+@Table(name = "COMP_CASC_TO1_ADDR")
 public class Address {
+	@Id
+	@GenericGenerator(type = IncrementGenerator.class)
+	@Column(name = "ID")
 	private Long id;
+
+	@Column(name = "STREET1")
 	private String street1;
+
+	@Column(name = "STREET2")
 	private String street2;
+
+	@Column(name = "CITY")
 	private String city;
+
+	@Column(name = "STATE")
 	private String state;
+
+	@Column(name = "ZIP_CODE")
 	private String zipCode;
 
 	public Long getId() {

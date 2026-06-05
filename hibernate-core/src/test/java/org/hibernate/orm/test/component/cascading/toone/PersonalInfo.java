@@ -4,13 +4,16 @@
  */
 package org.hibernate.orm.test.component.cascading.toone;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.ManyToOne;
 
 /**
- * {@inheritDoc}
- *
  * @author Steve Ebersole
  */
+@Embeddable
 public class PersonalInfo {
+	@ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE })
 	private Address homeAddress = new Address();
 
 	public PersonalInfo() {
