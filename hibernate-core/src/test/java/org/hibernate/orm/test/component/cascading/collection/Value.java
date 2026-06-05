@@ -4,15 +4,33 @@
  */
 package org.hibernate.orm.test.component.cascading.collection;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.id.IncrementGenerator;
 
 /**
- * {@inheritDoc}
- *
  * @author Steve Ebersole
  */
+@Entity
+@Table(name = "`Value`")
 public class Value {
+	@Id
+	@GenericGenerator(type = IncrementGenerator.class)
+	@Column(name = "ID")
 	private Long id;
+
+	@ManyToOne
+	@JoinColumn(name = "DEF_ID")
 	private Definition definition;
+
+	@Embedded
 	private LocalizedStrings localizedStrings = new LocalizedStrings();
 
 	protected Value() {

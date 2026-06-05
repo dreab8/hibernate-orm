@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Steve Ebersole
  */
 @DomainModel(
-		xmlMappings = "org/hibernate/orm/test/component/cascading/collection/Mappings.hbm.xml"
+		annotatedClasses = { Definition.class, Value.class }
 )
 @SessionFactory
 public class CascadeToComponentCollectionTest {
