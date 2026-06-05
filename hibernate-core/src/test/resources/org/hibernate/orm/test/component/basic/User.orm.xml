@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<!--
+  ~ SPDX-License-Identifier: Apache-2.0
+  ~ Copyright Red Hat Inc. and Hibernate Authors
+  -->
+<entity-mappings xmlns="http://www.hibernate.org/xsd/orm/mapping"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 version="7.0">
+
+    <package>org.hibernate.orm.test.component.basic</package>
+
+    <named-query name="userNameIn">
+        <query>from User where person.name in (:nameList) or userName in (:nameList)</query>
+    </named-query>
+
+    <entity class="User" metadata-complete="true" access="FIELD">
+        <table name="T_USER"/>
+        <attributes>
+            <id name="userName"/>
+            <basic name="password" optimistic-lock="false">
+                <column name="`password`" nullable="false"/>
+            </basic>
+            <version name="lastModified"/>
+            <embedded name="person">
+                <!-- heightInches: column with read/write transformers -->
+                <attribute-override name="heightInches">
+                    <column name="height_centimeters" nullable="false">
+                        <read>height_centimeters / 2.54E0</read>
+                        <write>? * 2.54E0</write>
+                    </column>
+                </attribute-override>
+                <!-- currentAddress: maps to "address" column -->
+                <attribute-override name="currentAddress">
+                    <column name="address" insertable="false" updatable="false"/>
+                </attribute-override>
+            </embedded>
+        </attributes>
+    </entity>
+
+    <entity class="Employee" metadata-complete="true" access="FIELD">
+        <table name="T_EMP"/>
+        <attributes>
+            <id name="id">
+                <column name="ID"/>
+                <generated-value generator="increment-gen"/>
+                <generic-generator name="increment-gen" class="increment"/>
+            </id>
+            <basic name="hireDate">
+                <column name="HIRE_DATE"/>
+                <temporal>DATE</temporal>
+            </basic>
+            <one-to-many name="directReports" target-entity="Employee"
+                         classification="SET" orphan-removal="true" fetch="LAZY">
+                <join-column name="PARENT_ID"/>
+                <cascade>
+                    <cascade-all/>
+                </cascade>
+            </one-to-many>
+            <embedded name="person">
+                <!-- yob: override formula to regular column -->
+                <attribute-override name="yob">
+                    <column name="yob"/>
+                </attribute-override>
+                <!-- currentAddress: maps to "address_2" column -->
+                <attribute-override name="currentAddress">
+                    <column name="address_2" insertable="false" updatable="false"/>
+                </attribute-override>
+                </embedded>
+            <embedded name="optionalComponent"/>
+        </attributes>
+    </entity>
+
+    <embeddable class="Person" metadata-complete="true" access="FIELD">
+        <attributes>
+            <basic name="name">
+                <column updatable="false" nullable="false"/>
+            </basic>
+            <basic name="dob">
+                <column updatable="false" nullable="false"/>
+            </basic>
+            <basic name="address"/>
+            <basic name="previousAddress">
+                <column insertable="false"/>
+            </basic>
+            <basic name="yob">
+                <formula>year(dob)</formula>
+            </basic>
+            <basic name="heightInches"/>
+            <basic name="currentAddress">
+                <column insertable="false" updatable="false"/>
+            </basic>
+        </attributes>
+    </embeddable>
+
+    <embeddable class="OptionalComponent" metadata-complete="true" access="FIELD">
+        <attributes>
+            <basic name="value1">
+                <column nullable="true"/>
+            </basic>
+            <basic name="value2">
+                <column nullable="true"/>
+            </basic>
+        </attributes>
+    </embeddable>
+
+</entity-mappings>

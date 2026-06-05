@@ -39,7 +39,7 @@ public class ComponentTest extends BaseSessionFactoryFunctionalTest {
 
 	@Override
 	public String[] getOrmXmlFiles() {
-		return new String[] { "org/hibernate/orm/test/component/basic/User.hbm.xml" };
+		return new String[] { "org/hibernate/orm/test/component/basic/User.orm.xml" };
 	}
 
 	@Override
