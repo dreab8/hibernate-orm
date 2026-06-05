@@ -4,14 +4,30 @@
  */
 package org.hibernate.orm.test.cut;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import org.hibernate.annotations.CompositeType;
 
 /**
  * @author Gavin King
  */
+@Entity
+@Table(name = "Trnsctn")
 public class Transaction {
 
+	@Id
+	@GeneratedValue
 	private Long id;
+
+	@Column(length = 100, nullable = false)
 	private String description;
+
+	@CompositeType(MonetoryAmountUserType.class)
+	@Column(nullable = false)
 	private MonetoryAmount value;
 
 	public String getDescription() {
