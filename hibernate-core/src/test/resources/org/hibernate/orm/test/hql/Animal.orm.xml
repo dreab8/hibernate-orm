@@ -83,7 +83,9 @@
             access="FIELD" metadata-complete="true">
         <primary-key-join-column name="animal"/>
         <attributes>
-            <basic name="pregnant"/>
+            <basic name="pregnant">
+                <column name="pregnant" nullable="true"/>
+            </basic>
             <basic name="birthdate">
                 <temporal>DATE</temporal>
             </basic>
@@ -122,8 +124,12 @@
                     <write>? * 2.54E0</write>
                 </column>
             </basic>
-            <basic name="intValue"/>
-            <basic name="floatValue"/>
+            <basic name="intValue">
+                <column name="intValue" nullable="true"/>
+            </basic>
+            <basic name="floatValue">
+                <column name="floatValue" nullable="true"/>
+            </basic>
             <basic name="bigDecimalValue"/>
             <basic name="bigIntegerValue"/>
             <embedded name="name"/>
@@ -250,8 +256,8 @@
     </entity>
 
     <entity class="org.hibernate.orm.test.hql.Joiner"
-            access="FIELD" metadata-complete="true">
-        <secondary-table name="JOINED">
+            access="PROPERTY" metadata-complete="true">
+        <secondary-table name="JOINED" optional="false" owned="true">
             <primary-key-join-column name="ID"/>
         </secondary-table>
         <attributes>
