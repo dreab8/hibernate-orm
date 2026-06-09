@@ -103,6 +103,10 @@
             <embedded name="nullComponent"/>
             <transient name="bytes"/>
             <transient name="component"/>
+            <transient name="dependent"/>
+            <transient name="locale"/>
+            <transient name="versionCalendar"/>
+            <transient name="versionTimestamp"/>
         </attributes>
     </entity>
 
@@ -142,6 +146,8 @@
             <basic name="name">
                 <column name="name_name" table="bar_join_table"/>
             </basic>
+            <transient name="barComponent"/>
+            <transient name="baz"/>
             <any name="object">
                 <discriminator>
                     <column name="clazz" length="100"/>
@@ -171,6 +177,7 @@
             <basic name="value">
                 <column name="one_value"/>
             </basic>
+            <transient name="manies"/>
         </attributes>
     </entity>
 
@@ -183,6 +190,7 @@
                 <generated-value/>
             </id>
             <basic name="x"/>
+            <transient name="one"/>
         </attributes>
     </entity>
 
@@ -199,6 +207,7 @@
             <transient name="glarch"/>
             <transient name="parent"/>
             <transient name="baz"/>
+            <transient name="null"/>
         </attributes>
     </embeddable>
 

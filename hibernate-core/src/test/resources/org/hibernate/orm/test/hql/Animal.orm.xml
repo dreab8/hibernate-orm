@@ -29,7 +29,8 @@
             <basic name="postalCode"/>
             <basic name="country"/>
             <many-to-one name="stateProvince"
-                         target-entity="org.hibernate.orm.test.hql.StateProvince">
+                         target-entity="org.hibernate.orm.test.hql.StateProvince"
+                         fetch="LAZY">
                 <join-column name="state_prov_id"/>
             </many-to-one>
         </attributes>
@@ -58,9 +59,9 @@
             </many-to-one>
             <one-to-many name="offspring"
                          target-entity="org.hibernate.orm.test.hql.Animal"
-                         mapped-by="mother"
                          classification="SET">
                 <order-by>father_id</order-by>
+                <join-column name="mother_id"/>
             </one-to-many>
         </attributes>
     </entity>
@@ -116,9 +117,10 @@
         <attributes>
             <basic name="nickName"/>
             <basic name="heightInches">
-                <column name="height_centimeters" nullable="false"
-                        read="height_centimeters / 2.54E0"
-                        write="? * 2.54E0"/>
+                <column name="height_centimeters" nullable="false">
+                    <read>height_centimeters / 2.54E0</read>
+                    <write>? * 2.54E0</write>
+                </column>
             </basic>
             <basic name="intValue"/>
             <basic name="floatValue"/>
@@ -172,11 +174,16 @@
             access="FIELD" metadata-complete="true">
         <table name="`User`"/>
         <attributes>
-            <id name="id"/>
+            <id name="id">
+                <generated-value generator="foreign-human"/>
+                <generic-generator name="foreign-human" class="foreign">
+                    <parameter name="property" value="human"/>
+                </generic-generator>
+            </id>
             <basic name="userName"/>
             <one-to-one name="human"
                         target-entity="org.hibernate.orm.test.hql.Human"
-                        maps-id=""/>
+                        constrained="true"/>
             <element-collection name="permissions" target-class="java.lang.String" classification="LIST">
                 <order-column name="permissionId"/>
                 <column name="permissionName"/>

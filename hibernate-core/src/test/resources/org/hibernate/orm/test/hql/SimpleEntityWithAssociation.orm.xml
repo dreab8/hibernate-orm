@@ -18,7 +18,10 @@
                 <column name="NAME"/>
             </basic>
             <basic name="negatedNumber">
-                <column name="negated_num" read="-negated_num" write="0 - ?"/>
+                <column name="negated_num">
+                    <read>-negated_num</read>
+                    <write>0 - ?</write>
+                </column>
             </basic>
             <one-to-many name="associatedEntities"
                          target-entity="org.hibernate.orm.test.hql.SimpleAssociatedEntity"
