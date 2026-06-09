@@ -22,7 +22,6 @@
                 <target>java.lang.String</target>
             </basic>
             <one-to-one name="marelo" target-entity="Marelo">
-                <property-ref name="commento"/>
             </one-to-one>
         </attributes>
     </entity>
