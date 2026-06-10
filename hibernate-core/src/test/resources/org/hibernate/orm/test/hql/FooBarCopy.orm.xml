@@ -16,7 +16,6 @@
         <dynamic-update>true</dynamic-update>
         <select-before-update>true</select-before-update>
         <inheritance strategy="SINGLE_TABLE"/>
-        <proxy>org.hibernate.orm.test.legacy.FooProxy</proxy>
         <discriminator-value>F</discriminator-value>
         <discriminator-column name="`foo_subclass_1234`" discriminator-type="CHAR"/>
         <attributes>
@@ -112,13 +111,11 @@
 
     <entity class="org.hibernate.orm.test.legacy.Trivial"
             access="PROPERTY" metadata-complete="true">
-        <proxy>org.hibernate.orm.test.legacy.TrivialProxy</proxy>
         <discriminator-value>T</discriminator-value>
     </entity>
 
     <entity class="org.hibernate.orm.test.legacy.Abstract"
             access="PROPERTY" metadata-complete="true">
-        <proxy>org.hibernate.orm.test.legacy.AbstractProxy</proxy>
         <discriminator-value>null</discriminator-value>
         <attributes>
             <basic name="time">
@@ -137,7 +134,6 @@
         <secondary-table name="bar_join_table">
             <primary-key-join-column name="bar_id"/>
         </secondary-table>
-        <proxy>org.hibernate.orm.test.legacy.BarProxy</proxy>
         <discriminator-value>B</discriminator-value>
         <attributes>
             <basic name="barString">
