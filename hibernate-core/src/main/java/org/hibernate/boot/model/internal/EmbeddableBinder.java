@@ -1270,6 +1270,7 @@ public class EmbeddableBinder {
 				Property referencedProperty ) {
 			final var property = new Property();
 			property.setName( referencedProperty.getName() );
+			property.setMemberDetails( referencedProperty.getMemberDetails() );
 			//FIXME set optional?
 			//property.setOptional( property.isOptional() );
 			property.setPersistentClass( embeddable.getOwner() );
