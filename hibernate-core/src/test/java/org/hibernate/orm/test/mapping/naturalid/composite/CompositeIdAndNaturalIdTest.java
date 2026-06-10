@@ -23,7 +23,7 @@ import static org.hibernate.cfg.StatisticsSettings.GENERATE_STATISTICS;
 				@Setting(name = GENERATE_STATISTICS, value = "false")
 		}
 )
-@DomainModel(xmlMappings = "mappings/natural-id/composite/Account.hbm.xml")
+@DomainModel(xmlMappings = "mappings/natural-id/composite/Account.orm.xml")
 @SessionFactory
-public class HbmCompositeIdAndNaturalIdTest extends AbstractCompositeIdAndNaturalIdTest {
+public class CompositeIdAndNaturalIdTest extends AbstractCompositeIdAndNaturalIdTest {
 }
