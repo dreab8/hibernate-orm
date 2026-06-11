@@ -17,6 +17,7 @@ import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.id.enhanced.LegacyNamingStrategy;
 import org.hibernate.service.ServiceRegistry;
+import org.hibernate.testing.orm.junit.Setting;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.schema.TargetType;
 
@@ -41,6 +42,9 @@ import static org.hamcrest.Matchers.containsString;
 @BaseUnitTest
 @RequiresDialectFeature(feature = DialectFeatureChecks.SupportsSequences.class)
 @RequiresDialectFeature( feature = DialectFeatureChecks.SupportPooledSequences.class )
+@org.hibernate.testing.orm.junit.ServiceRegistry(
+		settings = @Setting( name = AvailableSettings.TRANSFORM_HBM_XML, value = "true")
+)
 public class SequenceGeneratorIncrementTest {
 	private File output;
 	private ServiceRegistry ssr;
@@ -179,8 +183,8 @@ public class SequenceGeneratorIncrementTest {
 	}
 
 	@Test
-	public void testSequenceHbm() throws Exception {
-		buildMetadata( "org/hibernate/orm/test/schemaupdate/idgenerator/sequence.hbm.xml" );
+	public void testSequenceXmlMapping() throws Exception {
+		buildMetadata( "org/hibernate/orm/test/schemaupdate/idgenerator/sequence.orm.xml" );
 
 		createSchema();
 
@@ -189,9 +193,9 @@ public class SequenceGeneratorIncrementTest {
 	}
 
 	@Test
-	public void testSequenceHbmLegacy() throws Exception {
+	public void testSequenceXmlMappingLegacy() throws Exception {
 		buildMetadata(
-				"org/hibernate/orm/test/schemaupdate/idgenerator/sequence.hbm.xml",
+				"org/hibernate/orm/test/schemaupdate/idgenerator/sequence.orm.xml",
 				LegacyNamingStrategy.class.getName()
 		);
 
