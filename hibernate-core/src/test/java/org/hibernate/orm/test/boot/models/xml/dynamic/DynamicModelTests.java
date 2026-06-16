@@ -54,6 +54,15 @@ public class DynamicModelTests {
 	}
 
 	@Test
+	@DomainModel(xmlMappings = "mappings/models/dynamic/dynamic-collection.xml")
+	@JiraKey("HHH-20573")
+	void testDynamicModelWithCollections(DomainModelScope modelScope) {
+		final var entityBinding = modelScope.getDomainModel().getEntityBinding( "DynamicCollectionEntity" );
+		assertThat( entityBinding ).isNotNull();
+		assertThat( entityBinding.getProperty( "children" ) ).isNotNull();
+	}
+
+	@Test
 	@ServiceRegistry
 	void testSimpleDynamicModel(ServiceRegistryScope registryScope) {
 		final ManagedResources managedResources = new AdditionalManagedResourcesImpl.Builder()
