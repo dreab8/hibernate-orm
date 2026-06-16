@@ -23,6 +23,7 @@ import org.hibernate.models.spi.ModelsContext;
 
 import org.hibernate.testing.orm.junit.DomainModel;
 import org.hibernate.testing.orm.junit.DomainModelScope;
+import org.hibernate.testing.orm.junit.JiraKey;
 import org.hibernate.testing.orm.junit.NotImplementedYet;
 import org.hibernate.testing.orm.junit.ServiceRegistry;
 import org.hibernate.testing.orm.junit.ServiceRegistryScope;
@@ -60,6 +61,20 @@ public class DynamicModelTests {
 		final var entityBinding = modelScope.getDomainModel().getEntityBinding( "DynamicCollectionEntity" );
 		assertThat( entityBinding ).isNotNull();
 		assertThat( entityBinding.getProperty( "children" ) ).isNotNull();
+	}
+
+	@Test
+	@DomainModel(xmlMappings = "mappings/models/dynamic/dynamic-collection-with-package.xml")
+	@JiraKey( "HHH-20574" )
+	void testDynamicModelTargetEntityNotPackageQualified(DomainModelScope modelScope) {
+		final var parentBinding = modelScope.getDomainModel().getEntityBinding( "DynamicParent" );
+		assertThat( parentBinding ).isNotNull();
+		assertThat( parentBinding.getProperty( "partner" ) ).isNotNull();
+		assertThat( parentBinding.getProperty( "children" ) ).isNotNull();
+
+		final var childBinding = modelScope.getDomainModel().getEntityBinding( "DynamicChild" );
+		assertThat( childBinding ).isNotNull();
+		assertThat( childBinding.getProperty( "parent" ) ).isNotNull();
 	}
 
 	@Test
