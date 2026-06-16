@@ -119,9 +119,6 @@ public class ElementCollectionAttributeProcessing {
 			JaxbElementCollectionImpl jaxbElementCollection,
 			XmlDocumentContext xmlDocumentContext,
 			MutableMemberDetails memberDetails) {
-		// todo (7.0) : we need a distinction here between hbm.xml target and orm.xml target-entity
-		//		- for orm.xml target-entity we should apply the package name, if one
-		//		- for hbm.xml target we should not since it could refer to a dynamic mapping
 		final String targetClass = jaxbElementCollection.getTargetClass();
 		if ( StringHelper.isNotEmpty( targetClass ) ) {
 			final TargetXmlAnnotation targetUsage = (TargetXmlAnnotation) memberDetails.applyAnnotationUsage(
