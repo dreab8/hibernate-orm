@@ -14,6 +14,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.boot.MetadataBuilder;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Environment;
+import org.hibernate.cfg.MappingSettings;
 import org.hibernate.community.dialect.InformixDialect;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.OracleDialect;
@@ -65,6 +66,7 @@ public class ImmutableTest extends BaseSessionFactoryFunctionalTest {
 	protected void applySettings(StandardServiceRegistryBuilder builer) {
 		builer.applySetting( Environment.GENERATE_STATISTICS, "true" );
 		builer.applySetting( Environment.STATEMENT_BATCH_SIZE, "0" );
+		builer.applySetting( MappingSettings.TRANSFORM_HBM_XML, "true" );
 	}
 
 	@Override

@@ -317,6 +317,29 @@ public class HbmTransformationJaxbTests {
 	}
 
 	@Test
+	public void dumpContractVariationTransformation(ServiceRegistryScope scope) {
+		transformAndVerify( "org/hibernate/orm/test/immutable/ContractVariation.hbm.xml", scope, (transformed) -> {
+			try {
+				final var mappingBinder = new org.hibernate.boot.jaxb.internal.MappingBinder(
+						org.hibernate.boot.jaxb.internal.MappingBinder.class.getClassLoader()::getResourceAsStream,
+						UnsupportedFeatureHandling.ERROR
+				);
+				final var marshaller = mappingBinder.mappingJaxbContext().createMarshaller();
+				marshaller.setProperty( jakarta.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT, true );
+				final var writer = new java.io.StringWriter();
+				marshaller.marshal( transformed, writer );
+				java.nio.file.Files.writeString(
+						java.nio.file.Path.of( "/tmp/ContractVariation-transformed.orm.xml" ),
+						writer.toString()
+				);
+			}
+			catch (Exception e) {
+				throw new RuntimeException( e );
+			}
+		} );
+	}
+
+	@Test
 	@JiraKey( "HHH-20594" )
 	public void testNonAggregatedCompositeIdKeyManyToOneTransformation(ServiceRegistryScope scope) {
 		transformAndVerify( "xml/jaxb/mapping/non-aggregate-key-many-to-one/hbm.xml", scope, (transformed) -> {
