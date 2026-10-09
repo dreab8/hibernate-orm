@@ -897,7 +897,7 @@ public class HbmTransformationJaxbTests {
 	}
 
 	@Test
-	@JiraKey( "HHH-20950" )
+	@JiraKey( "HHH-20975" )
 	public void testListIndexBaseTransformation(ServiceRegistryScope scope) {
 		// <list-index base="1"/> has no equivalent attribute on <order-column/> in mapping.xml;
 		// it must be transferred as the sibling <list-index-base/> element instead. The <key/>
