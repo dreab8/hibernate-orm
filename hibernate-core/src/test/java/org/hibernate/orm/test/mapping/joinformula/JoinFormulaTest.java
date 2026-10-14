@@ -9,6 +9,8 @@ import org.hibernate.testing.orm.junit.SessionFactoryScope;
 import org.hibernate.testing.orm.junit.Setting;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @DomainModel(
 		annotatedClasses = {
 				ParentEntity.class,
@@ -33,6 +35,52 @@ public class JoinFormulaTest {
 					//this can boot.
 				}
 		);
+	}
+
+	/**
+	 * Runtime coverage for a {@code @OneToOne} whose join mixes a read-only physical
+	 * {@code @JoinColumn} (the parent's own id, shared with the child's {@code PARENT_ID})
+	 * with a {@code @JoinFormula} literal discriminating which child row to load.
+	 * Such a mixed tuple keeps its existing logical many-to-one binding (it is not a
+	 * formula-only "special one-to-one"), so persisting/loading must behave exactly like
+	 * an ordinary required one-to-one.
+	 */
+	@Test
+	public void testLoadThroughMixedColumnAndFormula(SessionFactoryScope scope) {
+		scope.inTransaction( session -> {
+			final ChildEntity tom = new ChildEntity();
+			tom.setId( 1L );
+			tom.setParentId( 10L );
+			tom.setName( "Tom" );
+			session.persist( tom );
+
+			final ChildEntity ben = new ChildEntity();
+			ben.setId( 2L );
+			ben.setParentId( 10L );
+			ben.setName( "Ben" );
+			session.persist( ben );
+
+			final ParentEntity parent = new ParentEntity();
+			parent.setId( 10L );
+			session.persist( parent );
+		} );
+
+		scope.inTransaction( session -> {
+			final ParentEntity parent = session.find( ParentEntity.class, 10L );
+			assertThat( parent.getTom().getId() ).isEqualTo( 1L );
+			assertThat( parent.getTom().getName() ).isEqualTo( "Tom" );
+			assertThat( parent.getBen().getId() ).isEqualTo( 2L );
+			assertThat( parent.getBen().getName() ).isEqualTo( "Ben" );
+		} );
+
+		scope.inTransaction( session -> {
+			final ParentEntity parent = session.createQuery(
+					"from ParentEntity p join fetch p.tom join fetch p.ben where p.id = :id",
+					ParentEntity.class
+			).setParameter( "id", 10L ).getSingleResult();
+			assertThat( parent.getTom().getName() ).isEqualTo( "Tom" );
+			assertThat( parent.getBen().getName() ).isEqualTo( "Ben" );
+		} );
 	}
 
 }
