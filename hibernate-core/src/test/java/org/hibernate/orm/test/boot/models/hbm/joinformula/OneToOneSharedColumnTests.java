@@ -2,7 +2,8 @@ package org.hibernate.orm.test.boot.models.hbm.joinformula;
 
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.Formula;
-import org.hibernate.mapping.ManyToOne;
+import org.hibernate.mapping.OneToOne;
+import org.hibernate.type.SpecialOneToOneType;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
 import org.hibernate.mapping.Value;
@@ -13,12 +14,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Tests the mixed tuple described in the formula-one-to-one specification as the
- * "read-only physical owner column" extension: a {@code @OneToOne} join mixing a
- * read-only {@code @JoinColumn} that reuses the owner's own id column with a
- * {@code @JoinFormula}. That extension is not implemented -- this confirms the
- * mapping still binds as the existing logical many-to-one rather than being
- * reinterpreted as the formula-only "special one-to-one".
+ * Tests a read-only shared owner column combined with a formula in a special one-to-one.
  *
  * @author Steve Ebersole
  */
@@ -31,10 +27,8 @@ public class OneToOneSharedColumnTests {
 		final Property address = personEntityBinding.getProperty( "address" );
 		final Value addressValue = address.getValue();
 
-		// a mixed column/formula tuple -- even a read-only one -- is not eligible
-		// for the formula-only special-one-to-one binding path
-		assertThat( addressValue ).isInstanceOf( ManyToOne.class );
-		assertThat( ( (ManyToOne) addressValue ).isLogicalOneToOne() ).isTrue();
+		assertThat( addressValue ).isInstanceOf( OneToOne.class );
+		assertThat( addressValue.getType() ).isInstanceOf( SpecialOneToOneType.class );
 
 		assertThat( addressValue.getSelectables() ).hasSize( 2 );
 		assertThat( ( (Column) addressValue.getSelectables().get( 0 ) ).getName() ).isEqualTo( "name" );

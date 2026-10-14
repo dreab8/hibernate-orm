@@ -10,9 +10,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 
 /**
- * A {@code @OneToOne} whose join mixes a physical column with a formula. Such a
- * mixed tuple must retain its existing logical many-to-one binding -- it is not
- * eligible for the formula-only "special one-to-one" binding path.
+ * A {@code @OneToOne} whose join mixes a writable physical column with a formula.
+ * The mixed tuple must retain its existing logical many-to-one binding -- it is not
+ * eligible for the read-only formula-based "special one-to-one" binding path.
  *
  * @author Steve Ebersole
  */
