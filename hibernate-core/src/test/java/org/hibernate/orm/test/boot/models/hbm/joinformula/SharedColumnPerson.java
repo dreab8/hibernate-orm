@@ -11,11 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 
 /**
- * A {@code @OneToOne} whose join reuses the owner's own id column, read-only, mixed
- * with a formula literal -- the "shared owner identifier column" pattern described
- * as a pending (not-yet-implemented) scope extension in the formula-one-to-one
- * specification. Such a mixed tuple is expected to keep its existing logical
- * many-to-one binding, just like an ordinary mixed column/formula tuple.
+ * A one-to-one join combining the read-only owner identifier column with a formula.
  *
  * @author Steve Ebersole
  */

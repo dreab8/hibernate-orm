@@ -41,8 +41,8 @@ public class JoinFormulaTest {
 	 * Runtime coverage for a {@code @OneToOne} whose join mixes a read-only physical
 	 * {@code @JoinColumn} (the parent's own id, shared with the child's {@code PARENT_ID})
 	 * with a {@code @JoinFormula} literal discriminating which child row to load.
-	 * Such a mixed tuple keeps its existing logical many-to-one binding (it is not a
-	 * formula-only "special one-to-one"), so persisting/loading must behave exactly like
+	 * This tuple references the child's parent-id/name unique key instead of its
+	 * primary key, so it keeps its existing logical many-to-one binding and behaves like
 	 * an ordinary required one-to-one.
 	 */
 	@Test

@@ -59,9 +59,9 @@ public class JoinColumnAndFormulaTests {
 	}
 
 	/**
-	 * A {@code @OneToOne}/{@code <one-to-one>} whose join mixes a physical column with a
-	 * formula must retain its existing logical many-to-one binding -- only formula-only
-	 * tuples are eligible for the "special one-to-one" binding path.
+	 * A {@code @OneToOne}/{@code <one-to-one>} whose join mixes a writable physical column
+	 * with a formula must retain its existing logical many-to-one binding -- writable mixed
+	 * tuples are not eligible for the "special one-to-one" binding path.
 	 */
 	void verifyMixedOneToOneRemainsManyToOne(DomainModelScope domainModelScope) {
 		final PersistentClass entityBinding = domainModelScope.getEntityBinding( OneToOneContact.class );
