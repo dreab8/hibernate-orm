@@ -21,6 +21,7 @@ import org.hibernate.boot.registry.classloading.internal.ClassLoaderServiceImpl;
 import org.hibernate.boot.registry.classloading.internal.TcclLookupPrecedence;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.cfg.Environment;
 import org.hibernate.jpa.boot.internal.ParsedPersistenceXmlDescriptor;
 
 import jakarta.persistence.PersistenceException;
@@ -30,6 +31,7 @@ import static jakarta.persistence.PersistenceUnitTransactionType.JTA;
 import static jakarta.persistence.PersistenceUnitTransactionType.RESOURCE_LOCAL;
 import static org.hibernate.boot.archive.internal.ArchiveHelper.getJarURLFromURLEntry;
 import static org.hibernate.cfg.JdbcSettings.JAKARTA_JTA_DATASOURCE;
+import static org.hibernate.cfg.MappingSettings.XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES;
 import static org.hibernate.cfg.JdbcSettings.JAKARTA_NON_JTA_DATASOURCE;
 import static org.hibernate.cfg.JdbcSettings.JPA_JTA_DATASOURCE;
 import static org.hibernate.cfg.JdbcSettings.JPA_NON_JTA_DATASOURCE;
@@ -41,6 +43,7 @@ import static org.hibernate.internal.log.DeprecationLogger.DEPRECATION_LOGGER;
 import static org.hibernate.internal.util.StringHelper.isNotEmpty;
 import static org.hibernate.jpa.internal.JpaLogger.JPA_LOGGER;
 import static org.hibernate.internal.util.StringHelper.isEmpty;
+import static org.hibernate.internal.util.config.ConfigurationHelper.getBoolean;
 import static org.hibernate.jpa.internal.util.ConfigurationHelper.overrideProperties;
 
 /**
@@ -82,10 +85,12 @@ public final class PersistenceXmlParser {
 
 	private final Map<?, ?> integration;
 	private final ClassLoaderService classLoaderService;
+	private final boolean dtdAndExternalEntitiesAllowed;
 
 	private PersistenceXmlParser(Map<?, ?> integration, ClassLoader providedClassLoader,
 			ClassLoaderService providedClassLoaderService) {
 		this.integration = integration;
+		this.dtdAndExternalEntitiesAllowed = isDtdAndExternalEntitiesAllowed( integration );
 		if ( providedClassLoaderService != null ) {
 			classLoaderService = providedClassLoaderService;
 		}
@@ -108,6 +113,16 @@ public final class PersistenceXmlParser {
 					new ClassLoaderServiceImpl( providedClassLoaders,
 							TcclLookupPrecedence.from( integration, TcclLookupPrecedence.AFTER ) );
 		}
+	}
+
+	/**
+	 * The {@code persistence.xml} file is parsed before its own properties are known, so the
+	 * setting can only come from the integration settings or, failing that, from the
+	 * {@linkplain Environment#getProperties() environment} (system properties and {@code hibernate.properties}).
+	 */
+	private static boolean isDtdAndExternalEntitiesAllowed(Map<?, ?> integration) {
+		return getBoolean( XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES, integration,
+				getBoolean( XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES, Environment.getProperties() ) );
 	}
 
 	/**
@@ -328,7 +343,7 @@ public final class PersistenceXmlParser {
 			// avoid JAR locking on Windows and Tomcat
 			connection.setUseCaches( false );
 			try ( var inputStream = connection.getInputStream() ) {
-				return new ConfigurationBinder( classLoaderService )
+				return new ConfigurationBinder( classLoaderService, dtdAndExternalEntitiesAllowed )
 						.bind( new StreamSource( inputStream ),
 								new Origin( SourceType.URL, resourceName ) )
 						.getRoot();

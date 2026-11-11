@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE persistence [
+		<!ENTITY puName "dtdpu">
+]>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_2.xsd"
+			 version="3.2">
+
+	<persistence-unit name="&puName;">
+		<properties>
+			<!-- must have no effect: the setting cannot be enabled from the document it applies to -->
+			<property name="hibernate.xml.allow_dtd_and_external_entities" value="true"/>
+		</properties>
+	</persistence-unit>
+
+</persistence>

@@ -58,7 +58,7 @@ public final class JpaDescriptorParser {
 		entityMappings = new ArrayList<>();
 		xmlParserHelper = new XmlParserHelper( context );
 		resourceStreamLocator = new ResourceStreamLocatorImpl( context );
-		configurationBinder = new ConfigurationBinder( resourceStreamLocator );
+		configurationBinder = new ConfigurationBinder( resourceStreamLocator, context.allowDtdAndExternalEntities() );
 		mappingBinder = new MappingBinder( resourceStreamLocator, this::mappingSetting );
 	}
 

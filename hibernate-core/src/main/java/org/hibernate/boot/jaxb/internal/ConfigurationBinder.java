@@ -21,10 +21,20 @@ import jakarta.xml.bind.JAXBException;
  */
 public class ConfigurationBinder extends AbstractBinder<JaxbPersistenceImpl> {
 	private final XMLEventFactory xmlEventFactory = XMLEventFactory.newInstance();
+	private final boolean dtdAndExternalEntitiesAllowed;
 	private JAXBContext jaxbContext;
 
 	public ConfigurationBinder(ResourceStreamLocator resourceStreamLocator) {
+		this( resourceStreamLocator, false );
+	}
+
+	/**
+	 * @param dtdAndExternalEntitiesAllowed whether the document may declare a DTD and reference
+	 * external entities; see {@link org.hibernate.cfg.MappingSettings#XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES}
+	 */
+	public ConfigurationBinder(ResourceStreamLocator resourceStreamLocator, boolean dtdAndExternalEntitiesAllowed) {
 		super( resourceStreamLocator );
+		this.dtdAndExternalEntitiesAllowed = dtdAndExternalEntitiesAllowed;
 	}
 
 	@Override
@@ -32,12 +42,11 @@ public class ConfigurationBinder extends AbstractBinder<JaxbPersistenceImpl> {
 		return false;
 	}
 
-	// persistence.xml is parsed before Hibernate settings are resolved, so there is no
-	// settings source to read from here; always apply the secure defaults.
-
+	// persistence.xml is parsed before Hibernate settings are resolved, so the caller
+	// decides (e.g. from hibernate.properties or integration settings); secure by default.
 	@Override
 	public boolean isDtdAndExternalEntitiesAllowed() {
-		return false;
+		return dtdAndExternalEntitiesAllowed;
 	}
 
 	@Override

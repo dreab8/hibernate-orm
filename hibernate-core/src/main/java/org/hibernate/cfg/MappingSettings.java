@@ -554,8 +554,12 @@ public interface MappingSettings {
 	String VALIDATE_XML = "hibernate.validate_xml";
 
 	/**
-	 * Whether {@code cfg.xml}/{@code orm.xml}/{@code hbm.xml} documents may declare and use
-	 * a DTD and reference external entities.
+	 * Whether {@code cfg.xml}/{@code orm.xml}/{@code hbm.xml}/{@code persistence.xml} documents
+	 * may declare and use a DTD and reference external entities.
+	 * <p>
+	 * For {@code persistence.xml}, which is parsed before its own properties are read, the setting
+	 * is only taken from the integration settings passed to the bootstrap, from system properties,
+	 * or from {@code hibernate.properties}.
 	 * <p>
 	 * Disabled by default to avoid potential XXE (XML External Entity) attacks.
 	 *
