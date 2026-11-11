@@ -557,9 +557,10 @@ public interface MappingSettings {
 	 * Whether {@code cfg.xml}/{@code orm.xml}/{@code hbm.xml}/{@code persistence.xml} documents
 	 * may declare and use a DTD and reference external entities.
 	 * <p>
-	 * For {@code persistence.xml}, which is parsed before its own properties are read, the setting
-	 * is only taken from the integration settings passed to the bootstrap, from system properties,
-	 * or from {@code hibernate.properties}.
+	 * For {@code persistence.xml}, and for a {@code cfg.xml} loaded during JPA bootstrap, which are
+	 * parsed before the persistence unit properties are known, the setting is only taken from the
+	 * integration settings passed to the bootstrap, from system properties, or from
+	 * {@code hibernate.properties}.
 	 * <p>
 	 * Disabled by default to avoid potential XXE (XML External Entity) attacks.
 	 *

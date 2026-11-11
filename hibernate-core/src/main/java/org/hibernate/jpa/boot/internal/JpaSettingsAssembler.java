@@ -6,6 +6,7 @@ import jakarta.annotation.Nonnull;
 import org.hibernate.boot.CacheRegionDefinition;
 import org.hibernate.boot.CacheRegionDefinition.CacheRegionType;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Environment;
 import org.hibernate.jpa.HibernatePersistenceConfiguration;
 import org.hibernate.jpa.boot.spi.PersistenceUnitDescriptor;
 import org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorBuilderImpl;
@@ -50,6 +51,7 @@ import static org.hibernate.cfg.AvailableSettings.PASS;
 import static org.hibernate.cfg.AvailableSettings.TRANSACTION_COORDINATOR_STRATEGY;
 import static org.hibernate.cfg.AvailableSettings.URL;
 import static org.hibernate.cfg.AvailableSettings.USER;
+import static org.hibernate.cfg.AvailableSettings.XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES;
 import static org.hibernate.cfg.PersistenceSettings.PERSISTENCE_UNIT_NAME;
 import static org.hibernate.cfg.TransactionSettings.FLUSH_BEFORE_COMPLETION;
 import static org.hibernate.internal.util.config.ConfigurationHelper.getBoolean;
@@ -91,7 +93,7 @@ final class JpaSettingsAssembler {
 		// see if the persistence.xml settings named a Hibernate config file
 		final String cfgXmlResourceName = getCfgXmlResourceName( Collections.emptyMap(), mergedSettings );
 		if ( isNotEmpty( cfgXmlResourceName ) ) {
-			processHibernateConfigXmlResources( standardRegistryBuilder, mergedSettings, cfgXmlResourceName );
+			processHibernateConfigXmlResources( standardRegistryBuilder, mergedSettings, cfgXmlResourceName, cfg.properties() );
 		}
 
 		normalizeSettings( null, null, mergedSettings );
@@ -117,7 +119,7 @@ final class JpaSettingsAssembler {
 		// see if the persistence.xml settings named a Hibernate config file
 		final String cfgXmlResourceName = getCfgXmlResourceName( integrationSettings, mergedSettings );
 		if ( isNotEmpty( cfgXmlResourceName ) ) {
-			processHibernateConfigXmlResources( registryBuilder, mergedSettings, cfgXmlResourceName );
+			processHibernateConfigXmlResources( registryBuilder, mergedSettings, cfgXmlResourceName, integrationSettings );
 		}
 
 		normalizeSettings( persistenceUnit, integrationSettings, mergedSettings );
@@ -794,7 +796,17 @@ final class JpaSettingsAssembler {
 	private void processHibernateConfigXmlResources(
 			StandardServiceRegistryBuilder serviceRegistryBuilder,
 			MergedSettings mergedSettings,
-			String cfgXmlResourceName) {
+			String cfgXmlResourceName,
+			Map<?, ?> integrationSettings) {
+		// The cfg.xml is parsed with DTDs/external entities disabled unless explicitly allowed.
+		// The opt-in is read from the integration settings (or the HibernatePersistenceConfiguration
+		// properties) and from hibernate.properties / system properties, but deliberately not from the
+		// persistence unit properties: those come from persistence.xml, which cannot opt itself in
+		// (it has already been parsed), so the same rule applies to the cfg.xml it references.
+		if ( getBoolean( XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES, integrationSettings,
+				getBoolean( XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES, Environment.getProperties() ) ) ) {
+			serviceRegistryBuilder.applySetting( XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES, true );
+		}
 		final var loadedConfig =
 				serviceRegistryBuilder.getConfigLoader()
 						.loadConfigXmlResource( cfgXmlResourceName );
