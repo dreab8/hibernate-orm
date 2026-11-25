@@ -80,7 +80,8 @@ import static org.hibernate.jpamodelgen.util.TypeUtils.toTypeString;
 		JPAMetaModelEntityProcessor.LAZY_XML_PARSING,
 		JPAMetaModelEntityProcessor.ADD_GENERATION_DATE,
 		JPAMetaModelEntityProcessor.ADD_GENERATED_ANNOTATION,
-		JPAMetaModelEntityProcessor.ADD_SUPPRESS_WARNINGS_ANNOTATION
+		JPAMetaModelEntityProcessor.ADD_SUPPRESS_WARNINGS_ANNOTATION,
+		JPAMetaModelEntityProcessor.ALLOW_DTD_AND_EXTERNAL_ENTITIES
 })
 public class JPAMetaModelEntityProcessor extends AbstractProcessor {
 	/**
@@ -107,6 +108,14 @@ public class JPAMetaModelEntityProcessor extends AbstractProcessor {
 	 * Controls whether the processor should only load XML files when there have been changes
 	 */
 	public static final String LAZY_XML_PARSING = "lazyXmlParsing";
+
+	/**
+	 * Whether {@code orm.xml}/{@code persistence.xml} mapping documents may declare and use
+	 * a DTD and reference external entities.
+	 * <p>
+	 * Disabled by default to avoid XXE (XML External Entity) attacks.
+	 */
+	public static final String ALLOW_DTD_AND_EXTERNAL_ENTITIES = "allowDtdAndExternalEntities";
 
 	/**
 	 * Whether the {@code jakarta.annotation.Generated} annotation should be added to
