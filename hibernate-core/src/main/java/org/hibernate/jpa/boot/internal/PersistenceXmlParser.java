@@ -494,19 +494,26 @@ public class PersistenceXmlParser {
 					final InputSource inputSource = new InputSource( inputStream );
 					try {
 						DocumentBuilder documentBuilder = documentBuilderFactory( allowDtdAndExternalEntities ).newDocumentBuilder();
+						if ( !allowDtdAndExternalEntities ) {
+							// Guard which does not depend on the features supported by the parser:
+							// never fetch an external DTD or an external entity
+							documentBuilder.setEntityResolver( (publicId, systemId) -> {
+								throw new ExternalResourceDisallowedException( systemId );
+							} );
+						}
 						try {
 							Document document = documentBuilder.parse( inputSource );
+							if ( !allowDtdAndExternalEntities && document.getDoctype() != null ) {
+								// Guard which does not depend on the features supported by the parser:
+								// the parser accepted the DOCTYPE, so it does not support disallowing it
+								throw dtdDisallowedException( resourceName, null );
+							}
 							validate( document );
 							return document;
 						}
 						catch (SAXException | IOException e) {
-							if ( !allowDtdAndExternalEntities && e.getMessage() != null && e.getMessage().contains( "DOCTYPE" ) ) {
-								throw new PersistenceException(
-										"The persistence.xml [" + resourceName + "] declares a DTD, but DTDs and external entities are disabled by default for security reasons;"
-												+ " to re-enable them, set '" + MappingSettings.XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES
-												+ "' to 'true' at your own risk",
-										e
-								);
+							if ( !allowDtdAndExternalEntities && isCausedByDtd( e ) ) {
+								throw dtdDisallowedException( resourceName, e );
 							}
 							throw new PersistenceException( "Unexpected error parsing [" + resourceName + "]", e );
 						}
@@ -525,6 +532,31 @@ public class PersistenceXmlParser {
 		}
 		catch (IOException e) {
 			throw new PersistenceException( "Unable to access [" + resourceName + "]", e );
+		}
+	}
+
+	private static PersistenceException dtdDisallowedException(String resourceName, Exception cause) {
+		return new PersistenceException(
+				"The persistence.xml [" + resourceName + "] declares a DTD, but DTDs and external entities are disabled by default for security reasons;"
+						+ " to re-enable them, set '" + MappingSettings.XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES
+						+ "' to 'true' at your own risk",
+				cause
+		);
+	}
+
+	private static boolean isCausedByDtd(Exception e) {
+		// the parser may wrap the exception thrown by the entity resolver
+		for ( Throwable t = e; t != null; t = t.getCause() ) {
+			if ( t instanceof ExternalResourceDisallowedException ) {
+				return true;
+			}
+		}
+		return e.getMessage() != null && e.getMessage().contains( "DOCTYPE" );
+	}
+
+	private static final class ExternalResourceDisallowedException extends SAXException {
+		private ExternalResourceDisallowedException(String systemId) {
+			super( "Access to the external DTD or entity [" + systemId + "] is disallowed" );
 		}
 	}
 
@@ -581,7 +613,15 @@ public class PersistenceXmlParser {
 		final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		documentBuilderFactory.setNamespaceAware( true );
 		if ( !allowDtdAndExternalEntities ) {
-			setFeature( documentBuilderFactory, "http://apache.org/xml/features/disallow-doctype-decl", true );
+			if ( !setFeature( documentBuilderFactory, "http://apache.org/xml/features/disallow-doctype-decl", true ) ) {
+				// Fail fast: without this feature the parser would process the DTD of a persistence.xml
+				throw new PersistenceException(
+						"The XML parser [" + documentBuilderFactory.getClass().getName() + "] does not support disallowing DTDs,"
+								+ " so persistence.xml cannot be parsed with DTDs and external entities disabled;"
+								+ " use an XML parser supporting the 'http://apache.org/xml/features/disallow-doctype-decl' feature,"
+								+ " or set '" + MappingSettings.XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES + "' to 'true' at your own risk"
+				);
+			}
 			setFeature( documentBuilderFactory, "http://xml.org/sax/features/external-general-entities", false );
 			setFeature( documentBuilderFactory, "http://xml.org/sax/features/external-parameter-entities", false );
 			setFeature( documentBuilderFactory, "http://apache.org/xml/features/nonvalidating/load-external-dtd", false );
@@ -598,12 +638,29 @@ public class PersistenceXmlParser {
 		return documentBuilderFactory;
 	}
 
-	private static void setFeature(DocumentBuilderFactory documentBuilderFactory, String feature, boolean value) {
+	/**
+	 * @return {@code false} if the DocumentBuilderFactory implementation does not support the feature
+	 */
+	private static boolean setFeature(DocumentBuilderFactory documentBuilderFactory, String feature, boolean value) {
 		try {
 			documentBuilderFactory.setFeature( feature, value );
+			return true;
 		}
 		catch (ParserConfigurationException ignore) {
 			// the DocumentBuilderFactory implementation does not support this feature
+			return false;
+		}
+		catch (AbstractMethodError e) {
+			// the DocumentBuilderFactory implementation predates JAXP 1.3 (e.g. an old Xerces version)
+			// and so has no setFeature method: such implementations accept features as attributes
+			try {
+				documentBuilderFactory.setAttribute( feature, value );
+				return true;
+			}
+			catch (IllegalArgumentException ignore) {
+				// the DocumentBuilderFactory implementation does not support this feature
+				return false;
+			}
 		}
 	}
 
