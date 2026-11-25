@@ -877,6 +877,20 @@ public interface AvailableSettings extends org.hibernate.jpa.AvailableSettings {
 	 */
 	String XML_MAPPING_ENABLED = "hibernate.xml_mapping_enabled";
 
+	/**
+	 * Whether {@code cfg.xml}/{@code orm.xml}/{@code hbm.xml} documents may declare and use
+	 * a DTD and reference external entities.
+	 * <p>
+	 * Also applies to {@code persistence.xml}, which is parsed before its own properties are
+	 * read; there it can only be enabled through integration settings, {@code hibernate.properties}
+	 * or system properties.
+	 * <p>
+	 * Disabled by default to avoid potential XXE (XML External Entity) attacks.
+	 * <p>
+	 * Default is {@code false}.
+	 */
+	String XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES = "hibernate.xml.allow_dtd_and_external_entities";
+
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// SessionFactoryBuilder level settings
 	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

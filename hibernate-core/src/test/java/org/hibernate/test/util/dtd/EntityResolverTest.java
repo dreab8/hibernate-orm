@@ -6,13 +6,16 @@
  */
 package org.hibernate.test.util.dtd;
 
+import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.BootstrapServiceRegistry;
-import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
-import org.hibernate.service.ServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.AvailableSettings;
 
 import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Steve Ebersole
@@ -24,17 +27,36 @@ public class EntityResolverTest extends BaseUnitTestCase {
 		//		<!ENTITY child SYSTEM "classpath://org/hibernate/test/util/dtd/child.xml">
 		// which we are expecting the Hibernate custom entity resolver to be able to resolve
 		// locally via classpath lookup.
-		final MetadataSources metadataSources = new MetadataSources()
-			.addResource( "org/hibernate/test/util/dtd/Parent.hbm.xml" );
+		buildMetadata( "org/hibernate/test/util/dtd/Parent.hbm.xml" );
+	}
 
+	@Test
+	public void testOrmXmlEntityIncludeResolution() {
+		// Parent.orm.xml contains the following entity include:
+		//		<!ENTITY child SYSTEM "classpath://org/hibernate/test/util/dtd/child-entity.xml">
+		final Metadata metadata = buildMetadata( "org/hibernate/test/util/dtd/Parent.orm.xml" );
+		assertNotNull( metadata.getEntityBinding( Child.class.getName() ) );
+	}
+
+	@Test
+	public void testOrmXmlInternalEntityResolution() {
+		// InternalEntity.orm.xml uses the following internal entity as the package name:
+		//		<!ENTITY package "org.hibernate.test.util.dtd">
+		final Metadata metadata = buildMetadata( "org/hibernate/test/util/dtd/InternalEntity.orm.xml" );
+		assertNotNull( metadata.getEntityBinding( Parent.class.getName() ) );
+	}
+
+	private static Metadata buildMetadata(String resource) {
+		final StandardServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+				.applySetting( AvailableSettings.XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES, "true" )
+				.build();
 		try {
-			metadataSources.buildMetadata();
+			return new MetadataSources( serviceRegistry )
+					.addResource( resource )
+					.buildMetadata();
 		}
 		finally {
-			ServiceRegistry metaServiceRegistry = metadataSources.getServiceRegistry();
-			if(metaServiceRegistry instanceof BootstrapServiceRegistry ) {
-				BootstrapServiceRegistryBuilder.destroy( metaServiceRegistry );
-			}
+			StandardServiceRegistryBuilder.destroy( serviceRegistry );
 		}
 	}
 }

@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -27,6 +28,8 @@ import org.hibernate.jpamodelgen.util.Constants;
 import org.hibernate.jpamodelgen.xml.jaxb.ObjectFactory;
 
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 
 /**
  * Provides common functionality used for XML parsing.
@@ -45,8 +48,6 @@ public class XmlParserHelper {
 	 * initial cache size.
 	 */
 	private static final int NUMBER_OF_SCHEMAS = 4;
-
-	private static final XMLInputFactory XML_INPUT_FACTORY = XMLInputFactory.newInstance();
 
 	private static final ConcurrentMap<String, Schema> SCHEMA_CACHE = new ConcurrentHashMap<String, Schema>(
 			NUMBER_OF_SCHEMAS
@@ -137,8 +138,13 @@ public class XmlParserHelper {
 		}
 	}
 
-	private synchronized XMLEventReader createXmlEventReader(InputStream xmlStream) throws XMLStreamException {
-		return XML_INPUT_FACTORY.createXMLEventReader( xmlStream );
+	private XMLEventReader createXmlEventReader(InputStream xmlStream) throws XMLStreamException {
+		// DTD processing and external entities are disabled by default to avoid XXE attacks
+		final boolean allowDtdAndExternalEntities = context.allowDtdAndExternalEntities();
+		final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+		xmlInputFactory.setProperty( XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, allowDtdAndExternalEntities );
+		xmlInputFactory.setProperty( XMLInputFactory.SUPPORT_DTD, allowDtdAndExternalEntities );
+		return xmlInputFactory.createXMLEventReader( xmlStream );
 	}
 
 	private String getPackage(String resourceName) {
@@ -166,7 +172,15 @@ public class XmlParserHelper {
 			return schema;
 		}
 
-		SchemaFactory sf = SchemaFactory.newInstance( javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI );
+		final SchemaFactory sf = SchemaFactory.newInstance( XMLConstants.W3C_XML_SCHEMA_NS_URI );
+		try {
+			// the schemas are bundled and self-contained, they never need external access
+			sf.setProperty( XMLConstants.ACCESS_EXTERNAL_DTD, "" );
+			sf.setProperty( XMLConstants.ACCESS_EXTERNAL_SCHEMA, "" );
+		}
+		catch (SAXNotRecognizedException | SAXNotSupportedException ignore) {
+			// the SchemaFactory implementation does not support JAXP 1.5 access restrictions
+		}
 		try {
 			schema = sf.newSchema( schemaUrl );
 		}

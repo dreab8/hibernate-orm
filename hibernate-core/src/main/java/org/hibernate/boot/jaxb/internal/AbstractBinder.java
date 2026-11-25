@@ -13,12 +13,14 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.DTD;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import javax.xml.transform.Source;
 import javax.xml.validation.Schema;
 
 import org.hibernate.boot.MappingException;
+import org.hibernate.boot.cfgxml.internal.XmlFactoryUtil;
 import org.hibernate.boot.jaxb.Origin;
 import org.hibernate.boot.jaxb.internal.stax.BufferedXMLEventReader;
 import org.hibernate.boot.jaxb.internal.stax.LocalXmlResourceResolver;
@@ -26,6 +28,7 @@ import org.hibernate.boot.jaxb.spi.Binder;
 import org.hibernate.boot.jaxb.spi.Binding;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.internal.util.StringHelper;
 import org.jboss.logging.Logger;
 
@@ -50,6 +53,8 @@ public abstract class AbstractBinder implements Binder {
 	public boolean isValidationEnabled() {
 		return validateXml;
 	}
+
+	public abstract boolean isDtdAndExternalEntitiesAllowed();
 
 	@Override
 	public Binding bind(InputStream stream, Origin origin) {
@@ -99,8 +104,22 @@ public abstract class AbstractBinder implements Binder {
 
 	private Binding doBind(XMLEventReader eventReader, Origin origin) {
 		try {
-			final StartElement rootElementStartEvent = seekRootElementStartEvent( eventReader, origin );
-			return doBind( eventReader, rootElementStartEvent, origin );
+			final RootElement rootElement = seekRootElement( eventReader, origin );
+			try {
+				return doBind( eventReader, rootElement.startElement(), origin );
+			}
+			catch (MappingException e) {
+				if ( rootElement.declaresEntities() && !isDtdAndExternalEntitiesAllowed() ) {
+					throw new MappingException(
+							"The mapping document declares a DTD and/or external entities, but these are disabled by default for security reasons;"
+									+ " to re-enable them, set '" + AvailableSettings.XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES
+									+ "' to 'true' at your own risk",
+							e,
+							origin
+					);
+				}
+				throw e;
+			}
 		}
 		finally {
 			try {
@@ -124,16 +143,24 @@ public abstract class AbstractBinder implements Binder {
 
 	@SuppressWarnings( { "UnnecessaryLocalVariable" })
 	private XMLInputFactory buildStaxFactory() {
-		XMLInputFactory staxFactory = XMLInputFactory.newInstance();
+		XMLInputFactory staxFactory = XmlFactoryUtil.newXmlInputFactory( isDtdAndExternalEntitiesAllowed() );
 		staxFactory.setXMLResolver( xmlResourceResolver );
 		return staxFactory;
 	}
 
 	protected StartElement seekRootElementStartEvent(XMLEventReader staxEventReader, Origin origin) {
+		return seekRootElement( staxEventReader, origin ).startElement();
+	}
+
+	private RootElement seekRootElement(XMLEventReader staxEventReader, Origin origin) {
 		XMLEvent rootElementStartEvent;
+		boolean declaresEntities = false;
 		try {
 			rootElementStartEvent = staxEventReader.peek();
 			while ( rootElementStartEvent != null && !rootElementStartEvent.isStartElement() ) {
+				if ( rootElementStartEvent instanceof DTD ) {
+					declaresEntities = ( (DTD) rootElementStartEvent ).getDocumentTypeDeclaration().contains( "<!ENTITY" );
+				}
 				staxEventReader.nextEvent();
 				rootElementStartEvent = staxEventReader.peek();
 			}
@@ -146,7 +173,25 @@ public abstract class AbstractBinder implements Binder {
 			throw new MappingException( "Could not locate root element", origin );
 		}
 
-		return rootElementStartEvent.asStartElement();
+		return new RootElement( rootElementStartEvent.asStartElement(), declaresEntities );
+	}
+
+	private static final class RootElement {
+		private final StartElement startElement;
+		private final boolean declaresEntities;
+
+		private RootElement(StartElement startElement, boolean declaresEntities) {
+			this.startElement = startElement;
+			this.declaresEntities = declaresEntities;
+		}
+
+		StartElement startElement() {
+			return startElement;
+		}
+
+		boolean declaresEntities() {
+			return declaresEntities;
+		}
 	}
 
 	protected abstract Binding doBind(XMLEventReader staxEventReader, StartElement rootElementStartEvent, Origin origin);

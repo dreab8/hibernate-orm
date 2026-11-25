@@ -6,6 +6,7 @@
  */
 package org.hibernate.boot.jaxb.internal;
 
+import java.util.function.Function;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLEventFactory;
@@ -21,9 +22,12 @@ import org.hibernate.boot.jaxb.mapping.spi.JaxbEntityMappings;
 import org.hibernate.boot.jaxb.spi.Binding;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.xsd.MappingXsdSupport;
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.internal.util.config.ConfigurationException;
 
 import org.jboss.logging.Logger;
+
+import static org.hibernate.engine.config.spi.StandardConverters.BOOLEAN;
 
 /**
  * @author Steve Ebersole
@@ -33,11 +37,39 @@ public class MappingBinder extends AbstractBinder {
 
 	private final XMLEventFactory xmlEventFactory = XMLEventFactory.newInstance();
 
+	/**
+	 * Null when this binder was not given access to Hibernate settings, in which case the
+	 * XML-security-related setting {@link #isDtdAndExternalEntitiesAllowed()} falls back
+	 * to its secure default.
+	 */
+	private final Function<String, Object> settingsAccess;
+
 	private JAXBContext hbmJaxbContext;
 	private JAXBContext entityMappingsJaxbContext;
 
 	public MappingBinder(ClassLoaderService classLoaderService, boolean validateXml) {
+		this( classLoaderService, validateXml, null );
+	}
+
+	public MappingBinder(
+			ClassLoaderService classLoaderService,
+			boolean validateXml,
+			Function<String, Object> settingsAccess) {
 		super( classLoaderService, validateXml );
+		this.settingsAccess = settingsAccess;
+	}
+
+	@Override
+	public boolean isDtdAndExternalEntitiesAllowed() {
+		return readBooleanSetting( AvailableSettings.XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES );
+	}
+
+	private boolean readBooleanSetting(String settingName) {
+		if ( settingsAccess == null ) {
+			return false;
+		}
+		final Object setting = settingsAccess.apply( settingName );
+		return setting != null && BOOLEAN.convert( setting );
 	}
 
 	@Override

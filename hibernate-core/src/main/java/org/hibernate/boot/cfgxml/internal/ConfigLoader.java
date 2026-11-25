@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Map;
 import java.util.Properties;
 
 import org.hibernate.boot.cfgxml.spi.LoadedConfig;
@@ -33,18 +34,31 @@ public class ConfigLoader {
 	private static final Logger log = Logger.getLogger( ConfigLoader.class );
 
 	private final BootstrapServiceRegistry bootstrapServiceRegistry;
+	private final Map<?, ?> settings;
 
 	private ValueHolder<JaxbCfgProcessor> jaxbProcessorHolder = new ValueHolder<JaxbCfgProcessor>(
 			new ValueHolder.DeferredInitializer<JaxbCfgProcessor>() {
 				@Override
 				public JaxbCfgProcessor initialize() {
-					return new JaxbCfgProcessor( bootstrapServiceRegistry.getService( ClassLoaderService.class ) );
+					return new JaxbCfgProcessor(
+							bootstrapServiceRegistry.getService( ClassLoaderService.class ),
+							settings
+					);
 				}
 			}
 	);
 
 	public ConfigLoader(BootstrapServiceRegistry bootstrapServiceRegistry) {
+		this( bootstrapServiceRegistry, null );
+	}
+
+	/**
+	 * @param settings settings gathered (e.g. from system properties and {@code /hibernate.properties})
+	 * before {@code hibernate.cfg.xml} is parsed, or {@code null} if no such settings are available
+	 */
+	public ConfigLoader(BootstrapServiceRegistry bootstrapServiceRegistry, Map<?, ?> settings) {
 		this.bootstrapServiceRegistry = bootstrapServiceRegistry;
+		this.settings = settings;
 	}
 
 	public LoadedConfig loadConfigXmlResource(String cfgXmlResourceName) {

@@ -18,6 +18,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.PersistenceException;
 import javax.persistence.spi.PersistenceUnitTransactionType;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -29,6 +30,7 @@ import org.hibernate.boot.registry.classloading.internal.ClassLoaderServiceImpl;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.xsd.ConfigXsdSupport;
 import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.cfg.Environment;
 import org.hibernate.internal.EntityManagerMessageLogger;
 import org.hibernate.internal.util.StringHelper;
 import org.hibernate.jpa.internal.util.ConfigurationHelper;
@@ -37,11 +39,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.EntityResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 import org.xml.sax.SAXParseException;
 
+import static org.hibernate.engine.config.spi.StandardConverters.BOOLEAN;
 import static org.hibernate.internal.HEMLogging.messageLogger;
 
 /**
@@ -246,7 +252,7 @@ public class PersistenceXmlParser {
 			LOG.tracef( "Attempting to parse persistence.xml file : %s", xmlUrl.toExternalForm() );
 		}
 
-		final Document doc = loadUrl( xmlUrl );
+		final Document doc = loadUrl( xmlUrl, integration );
 		final Element top = doc.getDocumentElement();
 
 		final NodeList children = top.getChildNodes();
@@ -444,8 +450,26 @@ public class PersistenceXmlParser {
 		}
 	}
 
-	private Document loadUrl(URL xmlUrl) {
+	/**
+	 * Settings that affect parsing of {@code persistence.xml} itself. Properties declared inside the
+	 * file cannot apply to its own parsing, so only integration settings and
+	 * {@code hibernate.properties}/system properties are consulted, in that order.
+	 */
+	private static Object getXmlParsingSetting(Map integration, String settingName) {
+		if ( integration != null && integration.containsKey( settingName ) ) {
+			return integration.get( settingName );
+		}
+		return Environment.getProperties().get( settingName );
+	}
+
+	private static boolean isDtdAndExternalEntitiesAllowed(Map integration) {
+		final Object setting = getXmlParsingSetting( integration, AvailableSettings.XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES );
+		return setting != null && BOOLEAN.convert( setting );
+	}
+
+	private Document loadUrl(URL xmlUrl, Map integration) {
 		final String resourceName = xmlUrl.toExternalForm();
+		final boolean allowDtdAndExternalEntities = isDtdAndExternalEntitiesAllowed( integration );
 		try {
 			URLConnection conn = xmlUrl.openConnection();
 			conn.setUseCaches( false ); //avoid JAR locking on Windows and Tomcat
@@ -453,15 +477,28 @@ public class PersistenceXmlParser {
 				try (InputStream inputStream = conn.getInputStream()) {
 					final InputSource inputSource = new InputSource( inputStream );
 					try {
-						DocumentBuilder documentBuilder = documentBuilderFactory().newDocumentBuilder();
+						DocumentBuilder documentBuilder = documentBuilderFactory( allowDtdAndExternalEntities ).newDocumentBuilder();
+						if ( !allowDtdAndExternalEntities ) {
+							// does not depend on the features supported by the parser implementation:
+							// never fetch an external DTD nor an external entity
+							documentBuilder.setEntityResolver( DISALLOWING_ENTITY_RESOLVER );
+						}
+						final Document document;
 						try {
-							Document document = documentBuilder.parse( inputSource );
-							validate( document );
-							return document;
+							document = documentBuilder.parse( inputSource );
 						}
 						catch (SAXException | IOException e) {
+							if ( !allowDtdAndExternalEntities && isCausedByDtd( e ) ) {
+								throw dtdDisallowedException( resourceName, e );
+							}
 							throw new PersistenceException( "Unexpected error parsing [" + resourceName + "]", e );
 						}
+						if ( !allowDtdAndExternalEntities && document.getDoctype() != null ) {
+							// the parser implementation was not able to reject the DOCTYPE declaration by itself
+							throw dtdDisallowedException( resourceName, null );
+						}
+						validate( document );
+						return document;
 					}
 					catch (ParserConfigurationException e) {
 						throw new PersistenceException(
@@ -480,6 +517,39 @@ public class PersistenceXmlParser {
 		}
 	}
 
+	private static final String DISALLOWED_ENTITY_MESSAGE = "DOCTYPE declarations and external entities are disallowed";
+
+	private static final EntityResolver DISALLOWING_ENTITY_RESOLVER = new EntityResolver() {
+		@Override
+		public InputSource resolveEntity(String publicId, String systemId) throws SAXException {
+			throw new SAXException( DISALLOWED_ENTITY_MESSAGE + " [publicId=" + publicId + ", systemId=" + systemId + "]" );
+		}
+	};
+
+	private static boolean isCausedByDtd(Throwable e) {
+		Throwable current = e;
+		while ( current != null ) {
+			final String message = current.getMessage();
+			if ( message != null && message.contains( "DOCTYPE" ) ) {
+				return true;
+			}
+			final Throwable cause = current instanceof SAXException && ( (SAXException) current ).getException() != null
+					? ( (SAXException) current ).getException()
+					: current.getCause();
+			current = cause == current ? null : cause;
+		}
+		return false;
+	}
+
+	private static PersistenceException dtdDisallowedException(String resourceName, Exception cause) {
+		return new PersistenceException(
+				"The persistence.xml [" + resourceName + "] declares a DTD, but DTDs and external entities are disabled by default for security reasons;"
+						+ " to re-enable them, set '" + AvailableSettings.XML_ALLOW_DTD_AND_EXTERNAL_ENTITIES
+						+ "' to 'true' at your own risk",
+				cause
+		);
+	}
+
 	private void validate(Document document) {
 		// todo : add ability to disable validation...
 
@@ -487,6 +557,13 @@ public class PersistenceXmlParser {
 		final Validator validator = new ConfigXsdSupport().jpaXsd( version ).getSchema().newValidator();
 
 		List<SAXException> errors = new ArrayList<>();
+		try {
+			validator.setProperty( XMLConstants.ACCESS_EXTERNAL_DTD, "" );
+			validator.setProperty( XMLConstants.ACCESS_EXTERNAL_SCHEMA, "" );
+		}
+		catch (SAXNotRecognizedException | SAXNotSupportedException ignore) {
+			// the Validator implementation does not support JAXP 1.5 access restrictions
+		}
 		validator.setErrorHandler( new ErrorHandlerImpl( errors ) );
 		try {
 			validator.validate( new DOMSource( document ) );
@@ -509,18 +586,59 @@ public class PersistenceXmlParser {
 	}
 
 	private DocumentBuilderFactory documentBuilderFactory;
+	private boolean documentBuilderFactoryAllowsDtd;
 
-	private DocumentBuilderFactory documentBuilderFactory() {
-		if ( documentBuilderFactory == null ) {
-			documentBuilderFactory = buildDocumentBuilderFactory();
+	private DocumentBuilderFactory documentBuilderFactory(boolean allowDtdAndExternalEntities) {
+		if ( documentBuilderFactory == null || documentBuilderFactoryAllowsDtd != allowDtdAndExternalEntities ) {
+			documentBuilderFactory = buildDocumentBuilderFactory( allowDtdAndExternalEntities );
+			documentBuilderFactoryAllowsDtd = allowDtdAndExternalEntities;
 		}
 		return documentBuilderFactory;
 	}
 
-	private DocumentBuilderFactory buildDocumentBuilderFactory() {
-		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+	private static DocumentBuilderFactory buildDocumentBuilderFactory(boolean allowDtdAndExternalEntities) {
+		final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 		documentBuilderFactory.setNamespaceAware( true );
+		if ( !allowDtdAndExternalEntities ) {
+			setFeature( documentBuilderFactory, "http://apache.org/xml/features/disallow-doctype-decl", true );
+			setFeature( documentBuilderFactory, "http://xml.org/sax/features/external-general-entities", false );
+			setFeature( documentBuilderFactory, "http://xml.org/sax/features/external-parameter-entities", false );
+			setFeature( documentBuilderFactory, "http://apache.org/xml/features/nonvalidating/load-external-dtd", false );
+			try {
+				documentBuilderFactory.setXIncludeAware( false );
+			}
+			catch (UnsupportedOperationException | AbstractMethodError ignore) {
+				// the DocumentBuilderFactory implementation predates JAXP 1.3 and so does not support XInclude
+			}
+			documentBuilderFactory.setExpandEntityReferences( false );
+			try {
+				documentBuilderFactory.setAttribute( XMLConstants.ACCESS_EXTERNAL_DTD, "" );
+				documentBuilderFactory.setAttribute( XMLConstants.ACCESS_EXTERNAL_SCHEMA, "" );
+			}
+			catch (IllegalArgumentException ignore) {
+				// the DocumentBuilderFactory implementation does not support JAXP 1.5 access restrictions
+			}
+		}
 		return documentBuilderFactory;
+	}
+
+	private static void setFeature(DocumentBuilderFactory documentBuilderFactory, String feature, boolean value) {
+		try {
+			documentBuilderFactory.setFeature( feature, value );
+		}
+		catch (ParserConfigurationException ignore) {
+			// the DocumentBuilderFactory implementation does not support this feature
+		}
+		catch (AbstractMethodError e) {
+			// the DocumentBuilderFactory implementation predates JAXP 1.3 (e.g. an old Xerces version)
+			// and so has no setFeature method: such implementations accept features as attributes
+			try {
+				documentBuilderFactory.setAttribute( feature, value );
+			}
+			catch (IllegalArgumentException ignore) {
+				// the DocumentBuilderFactory implementation does not support this feature
+			}
+		}
 	}
 
 	public static class ErrorHandlerImpl implements ErrorHandler {

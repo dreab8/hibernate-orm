@@ -21,6 +21,8 @@ import org.hibernate.boot.jaxb.internal.MappingBinder;
 import org.hibernate.boot.jaxb.internal.UrlXmlSource;
 import org.hibernate.boot.jaxb.spi.Binding;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
+import org.hibernate.cfg.Environment;
+import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.service.ServiceRegistry;
 
 import org.jboss.logging.Logger;
@@ -40,7 +42,22 @@ public class XmlMappingBinderAccess {
 		// NOTE : The boolean here indicates whether or not to perform validation as we load XML documents.
 		// Should we expose this setting?  Disabling would speed up JAXP and JAXB at runtime, but potentially
 		// at the cost of less obvious errors when a document is not valid.
-		this.mappingBinder = new MappingBinder( classLoaderService, true );
+		this.mappingBinder = new MappingBinder(
+				classLoaderService,
+				true,
+				(settingName) -> resolveSetting( serviceRegistry, settingName )
+		);
+	}
+
+	private static Object resolveSetting(ServiceRegistry serviceRegistry, String settingName) {
+		final ConfigurationService configurationService = serviceRegistry.getService( ConfigurationService.class );
+		if ( configurationService != null ) {
+			return configurationService.getSettings().get( settingName );
+		}
+		// e.g. a BootstrapServiceRegistry, as used by Configuration and by MetadataSources
+		// when not given a StandardServiceRegistry: mappings are parsed before any settings
+		// are known, so only system properties and hibernate.properties can be consulted
+		return Environment.getProperties().get( settingName );
 	}
 
 	public MappingBinder getMappingBinder() {

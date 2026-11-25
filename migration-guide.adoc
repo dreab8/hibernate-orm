@@ -81,3 +81,49 @@ via the `ResultSet#getString/Statement#setString` methods i.e. in case of Postgr
 
 The `@Lob` annotation should only be used to force the use of the `ResultSet#getClob/Statement#setClob` JDBC driver methods,
 which is in turn necessary for streaming data.
+
+[[xml-dtd-external-entities]]
+=== DTD processing and external entities in XML documents
+
+To protect applications against XML External Entity (XXE) attacks, Hibernate no longer processes DTDs or
+resolves external entities when parsing XML. This applies to `hibernate.cfg.xml`, `orm.xml` and `hbm.xml`
+mapping documents, and `persistence.xml`.
+
+A document that only declares a `DOCTYPE` is still accepted, though the referenced DTD is never fetched.
+Predefined entities (such as `&amp;`) and character references keep working. However, a document now fails to
+parse if it uses internal entities, external entities, or entities declared in an external DTD. The exception
+is `persistence.xml` when read at runtime, which is rejected as soon as it declares a `DOCTYPE`, even one
+without any entity.
+
+For example, the following document is rejected:
+
+[source,xml]
+----
+<!DOCTYPE entity-mappings [
+    <!ENTITY child SYSTEM "classpath://org/example/child-entity.xml">
+]>
+<entity-mappings xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm" version="2.2">
+    &child;
+</entity-mappings>
+----
+
+For documents coming from a trusted source, the previous behavior can be restored by setting
+`hibernate.xml.allow_dtd_and_external_entities` to `true`:
+
+* for `orm.xml` and `hbm.xml` documents, the setting can be specified like any other configuration setting.
+However, mapping documents added through `Configuration`, or through a `MetadataSources` not built from a
+`StandardServiceRegistry`, are read before any setting is known: in that case it must be specified as a system
+property or in `hibernate.properties`;
+* for `hibernate.cfg.xml`, the setting has to be known before the file is read. With native bootstrap, it must
+be specified as a system property or in `hibernate.properties`. With JPA bootstrap, it may also be specified as
+a persistence unit property or passed as an integration setting when creating the `EntityManagerFactory`;
+* for `persistence.xml`, the setting cannot be specified in the file itself, since it has to be known before
+the file is read. It must be passed as an integration setting when creating the `EntityManagerFactory`, or
+specified as a system property or in `hibernate.properties`.
+
+When the JPA Static Metamodel Generator reads `persistence.xml` and `orm.xml` documents, use the
+annotation processor option `-AallowDtdAndExternalEntities=true` to restore the previous behavior.
+
+NOTE: Enabling DTD processing and external entities only restores the previous behavior. In particular,
+`classpath://` system identifiers are still not resolved in `persistence.xml` read at runtime, nor in documents
+read by the JPA Static Metamodel Generator, as was already the case before.

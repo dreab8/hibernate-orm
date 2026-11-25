@@ -48,6 +48,7 @@ public final class Context {
 	private final ProcessingEnvironment pe;
 	private final boolean logDebug;
 	private final boolean lazyXmlParsing;
+	private final boolean allowDtdAndExternalEntities;
 	private final String persistenceXmlLocation;
 	private final List<String> ormXmlFiles;
 	private final String generatedAnnotation;
@@ -94,6 +95,9 @@ public final class Context {
 		}
 
 		lazyXmlParsing = Boolean.parseBoolean( pe.getOptions().get( JPAMetaModelEntityProcessor.LAZY_XML_PARSING ) );
+		allowDtdAndExternalEntities = Boolean.parseBoolean(
+				pe.getOptions().get( JPAMetaModelEntityProcessor.ALLOW_DTD_AND_EXTERNAL_ENTITIES )
+		);
 		logDebug = Boolean.parseBoolean( pe.getOptions().get( JPAMetaModelEntityProcessor.DEBUG_OPTION ) );
 
 		// Workaround that Eclipse transformer tries to replace this constant which we don't want
@@ -240,6 +244,10 @@ public final class Context {
 
 	public boolean doLazyXmlParsing() {
 		return lazyXmlParsing;
+	}
+
+	public boolean allowDtdAndExternalEntities() {
+		return allowDtdAndExternalEntities;
 	}
 
 	@Override

@@ -54,7 +54,8 @@ import org.hibernate.jpamodelgen.xml.JpaDescriptorParser;
 		JPAMetaModelEntityProcessor.LAZY_XML_PARSING,
 		JPAMetaModelEntityProcessor.ADD_GENERATION_DATE,
 		JPAMetaModelEntityProcessor.ADD_GENERATED_ANNOTATION,
-		JPAMetaModelEntityProcessor.ADD_SUPPRESS_WARNINGS_ANNOTATION
+		JPAMetaModelEntityProcessor.ADD_SUPPRESS_WARNINGS_ANNOTATION,
+		JPAMetaModelEntityProcessor.ALLOW_DTD_AND_EXTERNAL_ENTITIES
 })
 public class JPAMetaModelEntityProcessor extends AbstractProcessor {
 	public static final String DEBUG_OPTION = "debug";
@@ -62,6 +63,15 @@ public class JPAMetaModelEntityProcessor extends AbstractProcessor {
 	public static final String ORM_XML_OPTION = "ormXml";
 	public static final String FULLY_ANNOTATION_CONFIGURED_OPTION = "fullyAnnotationConfigured";
 	public static final String LAZY_XML_PARSING = "lazyXmlParsing";
+
+	/**
+	 * Whether {@code orm.xml}/{@code persistence.xml} mapping documents may declare and use
+	 * a DTD and reference external entities.
+	 * <p>
+	 * Disabled by default to avoid XXE (XML External Entity) attacks.
+	 */
+	public static final String ALLOW_DTD_AND_EXTERNAL_ENTITIES = "allowDtdAndExternalEntities";
+
 	public static final String ADD_GENERATION_DATE = "addGenerationDate";
 	public static final String ADD_GENERATED_ANNOTATION = "addGeneratedAnnotation";
 	public static final String ADD_SUPPRESS_WARNINGS_ANNOTATION = "addSuppressWarningsAnnotation";
