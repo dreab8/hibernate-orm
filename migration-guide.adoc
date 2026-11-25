@@ -114,6 +114,14 @@ parse if it uses internal entities, external entities, or entities declared in a
 is `persistence.xml` when read at runtime, which is rejected as soon as it declares a `DOCTYPE`, even one
 without any entity.
 
+Rejecting the `DOCTYPE` of a `persistence.xml` relies on the
+`http://apache.org/xml/features/disallow-doctype-decl` feature of the XML parser (the JAXP
+`DocumentBuilderFactory` implementation in use). The parser bundled with the JDK supports it. If the application
+replaces it with one that does not, for example a very old Xerces version on the classpath, reading
+`persistence.xml` now fails with a `PersistenceException`, even when the file declares no `DOCTYPE`. In that case
+either use a parser supporting this feature, or set `hibernate.xml.allow_dtd_and_external_entities` to `true`
+as described below.
+
 For example, the following document is rejected:
 
 [source,xml]
