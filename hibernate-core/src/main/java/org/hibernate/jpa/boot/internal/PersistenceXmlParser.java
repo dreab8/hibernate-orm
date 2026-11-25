@@ -625,8 +625,18 @@ public class PersistenceXmlParser {
 			setFeature( documentBuilderFactory, "http://xml.org/sax/features/external-general-entities", false );
 			setFeature( documentBuilderFactory, "http://xml.org/sax/features/external-parameter-entities", false );
 			setFeature( documentBuilderFactory, "http://apache.org/xml/features/nonvalidating/load-external-dtd", false );
-			documentBuilderFactory.setXIncludeAware( false );
-			documentBuilderFactory.setExpandEntityReferences( false );
+			try {
+				documentBuilderFactory.setXIncludeAware( false );
+			}
+			catch (UnsupportedOperationException ignore) {
+				// the DocumentBuilderFactory implementation does not support XInclude
+			}
+			try {
+				documentBuilderFactory.setExpandEntityReferences( false );
+			}
+			catch (UnsupportedOperationException ignore) {
+				// the DocumentBuilderFactory implementation does not support configuring entity reference expansion
+			}
 			try {
 				documentBuilderFactory.setAttribute( XMLConstants.ACCESS_EXTERNAL_DTD, "" );
 				documentBuilderFactory.setAttribute( XMLConstants.ACCESS_EXTERNAL_SCHEMA, "" );
